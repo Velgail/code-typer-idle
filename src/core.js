@@ -5,7 +5,7 @@ import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceE
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 8;
+export const BALANCE_VERSION = 9;
 export const STORE_FEE_RATE = 0.25;
 export const PRODUCTION_SERVICES=[
   {id:'graphics',name:'グラフィック制作',payee:'イラストレーター・3Dアーティスト',share:.6,bonus:6},
@@ -16,6 +16,7 @@ export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;
 export const DAY = 3600;
 export const JOB_SIZE = 100;
+export const OCR_BASE_RATE = 10;
 export const OFFLINE_LIMIT = 8 * 60 * 60;
 const LIMIT = 1e250;
 const bounded = n => Math.max(0, Math.min(LIMIT, Number.isFinite(n) ? n : LIMIT));
@@ -49,7 +50,7 @@ export const SHOP = [
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: 'サーバー運用の最適化', desc: '公開中のオンライン作品のサーバー代を25%削減', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'server', gate: 5 },
-  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。+0.25作業量/秒、各Lvで ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。導入時10作業量/秒。増設分のみLvごと ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
@@ -186,7 +187,10 @@ export function unitRate(s, id) {
   const l = level(s, id);
   if (!l) return 0;
   const config = { macro: [0.25, 1.5], library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [3500, 2] }[id];
-  return bounded(config[0] * Math.pow(config[1], Math.min(800, l - 1)) * metaBonus(s));
+  // The local OCR can handle routine work as soon as it is installed. Its
+  // startup capacity stays fixed; only the existing expansion term compounds.
+  const startup = id === 'macro' ? OCR_BASE_RATE - config[0] : 0;
+  return bounded((startup + config[0] * Math.pow(config[1], Math.min(800, l - 1))) * metaBonus(s));
 }
 export const devRate = s => s.autoEnabled ? bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0)) : 0;
 export const hasTextbook = (s, id = s.subject) => level(s, `book-${id}`) > 0;
