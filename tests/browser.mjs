@@ -180,7 +180,8 @@ try {
   await seeded.goto(url);
   await seeded.locator('#release-button').click();
   assert.match(await seeded.locator('#modal-body').textContent(), /無料公開/);
-  await seeded.locator('[data-action=close]').click();
+  await seeded.locator('[data-action=next-project]').click();
+  assert.equal(await seeded.locator('#next-milestone').evaluate(el=>el.contains(document.activeElement)),true,'closing the release result must focus the next project goal');
   assert.match(await seeded.locator('#task-title').textContent(), /ブロック崩し/);
   await seeded.locator('[data-action=catalog]').click();
   assert.match(await seeded.locator('#modal-body').textContent(), /数当てゲーム/);
