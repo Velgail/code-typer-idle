@@ -109,7 +109,7 @@ export async function verifyMaintenanceUI(browser,url,errors){
     }finally{await context.close();}
   }
 
-  const commercial=developer(1);commercial.progress=18000;commercial.debt=3500;commercial.cash=100000;
+  const commercial=developer(1);commercial.progress=projectAt(1).target;commercial.debt=3500;commercial.cash=100000;
   const {context:second,page:publisher}=await open(commercial,{width:390,height:844});
   try{
     assert.equal(await publisher.locator('#release-button').isDisabled(),false);

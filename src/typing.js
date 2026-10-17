@@ -13,7 +13,7 @@ export const LANGUAGES = [
   { id: 'sql', name: 'SQL', extension: 'sql', description: 'データ分析、集計、ストア運用' },
   { id: 'lua', name: 'Lua', extension: 'lua', description: 'ゲームスクリプト、イベント、描画' }
 ];
-export const TYPING_REWARD = { character: 1.5, completion: 0.5, officeCompletion: 0.75 };
+export const TYPING_REWARD = { character: 1.5, completion: 0.5, officeCompletion: 2.5 };
 export const typingCompletionMultiplier = mode => mode === 'work' ? TYPING_REWARD.officeCompletion : TYPING_REWARD.completion;
 const VARIANTS = 16;
 const DATA = {

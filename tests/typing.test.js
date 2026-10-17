@@ -45,7 +45,7 @@ test('administrative work normalizes image invoice fields, independent of progra
   assert.equal(currentPrompt(s), promptAt('rust', 'syntax', 0));
   assert.equal(s.typing.offset, 0);
 });
-test('a perfect invoice pays 2.25 times the equivalent click work including its completion bonus', () => {
+test('a perfect invoice pays four times equivalent click work including its completion bonus', () => {
   const s = createState(), text = currentPrompt(s), cash = s.cash;
   for (const char of text) {
     const p = handPower(s), result = acceptCharacter(s, char, p);
@@ -53,7 +53,7 @@ test('a perfect invoice pays 2.25 times the equivalent click work including its 
     input(s, { chars: p * TYPING_REWARD.character });
     if (result.complete) input(s, { chars: result.bonus, countManual: false });
   }
-  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 2.25);
+  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 4);
   assert.equal(s.typing.completed, 1); assert.equal(s.typing.offset, 0);
   assert.equal(s.stats.manual, text.length);
 });

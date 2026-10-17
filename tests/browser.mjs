@@ -124,7 +124,7 @@ try {
   assert.equal(saved.typing.errors, 1);
   const workValue = saved.cash + saved.job.progress * saved.job.rate;
   assert.ok(workValue > 101 + prompt.length * 1.5);
-  assert.ok(workValue < 101 + prompt.length * 2.25, 'a mistake reduces the completion bonus');
+  assert.ok(workValue < 101 + prompt.length * 4, 'a mistake reduces the completion bonus');
   assert.ok(Math.abs(await page.locator('#job-progress-bar').evaluate(el => el.value) - saved.job.progress) < 0.01, 'the progress beside the input must show the work still awaiting delivery');
   assert.match(await page.locator('#job-payment').textContent(), /¥100/);
   assert.equal(saved.mode, 'work', 'digits within a prompt must not trigger mode shortcuts');

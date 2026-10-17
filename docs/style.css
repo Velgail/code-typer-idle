@@ -1503,6 +1503,9 @@ button {
   color:var(--green);
   background:#2d3d2f;
 }
+.subject-button small { display:block; margin-top:3px; font:9px var(--mono); }
+.subject-button small:empty { display:none; }
+.subject-button.subject-complete { color:var(--green); }
 
 .project-progress {
   margin:-3px 0 16px;

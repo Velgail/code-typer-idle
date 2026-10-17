@@ -4,7 +4,7 @@ import {
   operatingCost, expenseLines, serverCost, setPublicationActive, workRate, handPower, knowledgeRatio, validity, debtLimit,
   royaltyRate, unitRate, devRate, studyGain, hasTextbook, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
-  developmentReadiness, readingLesson, nextReading, answerReading, READING_UNITS,
+  developmentReadiness, learningGoal, readingLesson, nextReading, answerReading, READING_UNITS,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
   productionOptions, productionCost, orderProduction,
@@ -399,9 +399,16 @@ function renderTask() {
   $('type-label').textContent = studyLocked ? '教材を購入すると学習できます' : paused ? '一時停止中' : typing ? mode === 'work' ? '伝票入力を始める' : 'コード入力を始める' : `クリックして${task[5]}`;
   $('type-hint').textContent = studyLocked ? `${textbook.name} · ${yen(itemCost(state, textbook))}` : paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : `タイピングなら完入力で最大×${TYPING_REWARD.character + typingCompletionMultiplier(mode)}`;
   $('output-rate').innerHTML = `${esc(task[6])} <small>/ ${typing ? '正解文字' : 'クリック'}</small>`;
-  $('output-label').textContent = mode === 'dev' ? ratio>=1 ? 'この入力で進む制作量' : `有効変換率 ${Math.round(validity(state) * 100)}%` : typing ? `正解×${TYPING_REWARD.character} ＋ 完入力ボーナス` : 'このクリックで得られるもの';
+  $('output-label').textContent = mode === 'dev' ? ratio>=1 ? 'この入力で進む制作量' : `有効変換率 ${Math.round(validity(state) * 100)}%` : typing ? `正解×${TYPING_REWARD.character} · 完入力なら合計最大×${TYPING_REWARD.character + typingCompletionMultiplier(mode)}` : 'このクリックで得られるもの';
   $('typing-instructions').textContent = mode === 'work' ? '伝票番号 → 日付 → 品名 → 数量 → 単価' : 'ハイライトされた文字から入力';
-  $('subject-picker').querySelectorAll('[data-subject]').forEach(b => { b.classList.toggle('active', b.dataset.subject === state.subject); b.setAttribute('aria-pressed', b.dataset.subject === state.subject); });
+  $('subject-picker').querySelectorAll('[data-subject]').forEach(b => {
+    const id=b.dataset.subject,required=p.req[id],current=state.skills[id];
+    b.classList.toggle('active',id===state.subject);b.setAttribute('aria-pressed',id===state.subject);
+    const label=`${SKILLS.find(s=>s.id===id).short}を学ぶ`,progress=required?current>=required?'✓ 必要分を習得':`${format(current,1)} / ${format(required)}`:'';
+    b.querySelector('small').textContent=progress;
+    b.classList.toggle('subject-complete',!!required && current>=required);
+    b.setAttribute('aria-label',progress?`${label} · ${progress}`:label);
+  });
   if (mode === 'dev') {
     const policy=developmentPolicy(state), age=debtAgeDays(state,DAY);
     $('current-policy').textContent=({steady:'通常',prototype:'仮実装',structured:'構造重視'})[policy.id];
@@ -521,21 +528,28 @@ function renderAssetsAndGoal() {
     $('catalog-count').textContent = state.catalog.length;
     $('catalog-list').innerHTML = state.catalog.slice(-3).reverse().map(p => `<div class="asset-row">${icon('code')}<div>${esc(p.name)}<small>${p.active === false ? '公開停止中' : p.royalty ? `${yen(p.royalty)} / 秒` : '無料公開'} · 品質 ${p.quality}</small></div></div>`).join('');
   }
+  const ocr=SHOP.find(i=>i.id==='macro'),ocrCost=itemCost(state,ocr);
+  const ocrRate=unitRate({...state,items:{...state.items,macro:1}},'macro');
+  const textbook=SHOP.find(i=>i.id==='book-syntax'),bookCost=itemCost(state,textbook);
+  const firstAutomation=!level(state,'book-syntax') && !level(state,'macro');
+  const learning=learningGoal(state);
   let goal;
-  if (!level(state, 'book-syntax')) goal = ['最初の技術書', '¥1,500を貯めて、入門書を手に入れよう。', state.cash / 1500, `${yen(state.cash)} / ¥1,500`];
+  if (firstAutomation) goal = ['事務作業を自動化', `${yen(ocrCost)}で伝票OCRを導入。事務を${format(ocrRate)}作業量/秒で自動化し、入門書の資金を貯めよう。`, state.cash / ocrCost, `${yen(state.cash)} / ${yen(ocrCost)}`];
+  else if (!level(state, 'book-syntax')) goal = ['最初の技術書', `${yen(bookCost)}を貯めて、入門書を手に入れよう。`, state.cash / bookCost, `${yen(state.cash)} / ${yen(bookCost)}`];
   else if (state.skills.syntax < 12 && !state.projectIndex) goal = ['コードを理解する', '写経・学習で、基礎文法の理解度を12まで上げよう。', state.skills.syntax / 12, `${format(state.skills.syntax)} / 12 K`];
   else if (!state.projectIndex) goal = ['はじめての完成品', '3,000文字の数当てゲームを作って、無料公開しよう。', state.progress / 3000, `${format(state.progress)} / 3,000 chars`];
   else {
     const p = projectAt(state.projectIndex);
-    goal = [p.name, knowledgeRatio(state) >= 1 ? '必要な知識は揃った。最後の一文字まで、作りきろう。' : '次の企画に必要な理解度を、分野ごとに身につけよう。', knowledgeRatio(state) >= 1 ? state.progress / p.target : knowledgeRatio(state), knowledgeRatio(state) >= 1 ? `${format(state.progress)} / ${format(p.target)} chars` : '必要理解度の充足率'];
+    goal = [p.name, learning.next ? `${SKILLS.find(s=>s.id===learning.next.id).name}を${format(learning.next.required)}まで学ぼう。` : '必要な知識は揃った。最後の一文字まで、作りきろう。', learning.next ? learning.progress : state.progress / p.target, learning.next ? `${learning.completed} / ${learning.total} 分野の学習完了` : `${format(state.progress)} / ${format(p.target)} chars`];
   }
   $('next-goal').textContent = goal[0]; $('goal-desc').textContent = goal[1];
   $('goal-bar').style.width = `${pct(goal[2])}%`; $('goal-status').textContent = goal[3]; $('goal-percent').textContent = `${Math.floor(pct(goal[2]))}%`;
   const action=$('goal-action');
   let kind='dev',item='',label='ゲーム開発へ →',disabled=blocked || paused;
-  if(!level(state,'book-syntax')){kind='buy';item='book-syntax';label='教材を買う ¥1,500';disabled ||= state.cash<1500;}
+  if(firstAutomation){kind='buy';item='macro';label=`OCRを導入 ${yen(ocrCost)}`;disabled ||= state.cash<ocrCost;}
+  else if(!level(state,'book-syntax')){kind='buy';item='book-syntax';label=`教材を買う ${yen(bookCost)}`;disabled ||= state.cash<bookCost;}
   else if(knowledgeRatio(state)<1){
-    const missing=Object.entries(projectAt(state.projectIndex).req).filter(([id,value])=>state.skills[id]<value).sort((a,b)=>state.skills[a[0]]/a[1]-state.skills[b[0]]/b[1])[0][0];
+    const missing=learning.next.id;
     item=hasTextbook(state,missing)?missing:`book-${missing}`;
     kind=hasTextbook(state,missing)?'study':'buy';
     label=kind==='study'?`${SKILLS.find(s=>s.id===missing).short}を学ぶ →`:`${SHOP.find(s=>s.id===item).name} ${yen(itemCost(state,SHOP.find(s=>s.id===item)))}`;
@@ -544,11 +558,10 @@ function renderAssetsAndGoal() {
   action.dataset.goalKind=kind;action.dataset.goalItem=item;
   action.textContent=label;action.disabled=disabled;
   $('goal-alternative').classList.toggle('hidden',!!level(state,'macro'));
-  const ocrCost=itemCost(state,SHOP.find(i=>i.id==='macro'));
-  const ocrRate=unitRate({...state,items:{...state.items,macro:1}},'macro');
-  const alternative=`OCRで自動化 ${yen(ocrCost)}<small>事務 ${format(ocrRate,2)} 作業量/秒</small>`;
+  const alternative=firstAutomation?`先に教材を買う ${yen(bookCost)}`:`OCRで自動化 ${yen(ocrCost)}<small>事務 ${format(ocrRate,2)} 作業量/秒</small>`;
   if($('goal-alternative').innerHTML!==alternative)$('goal-alternative').innerHTML=alternative;
-  $('goal-alternative').disabled=blocked || paused || state.cash<ocrCost;
+  $('goal-alternative').dataset.goalItem=firstAutomation?'book-syntax':'macro';
+  $('goal-alternative').disabled=blocked || paused || state.cash<(firstAutomation?bookCost:ocrCost);
 }
 function renderRoadmap() {
   const indexes = [...PROJECTS.map((_, i) => i), ...new Set([7, Math.max(8, state.projectIndex), Math.max(9, state.projectIndex + 1)])];
@@ -621,23 +634,22 @@ function render() {
 }
 
 $('language-select').innerHTML = LANGUAGES.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
-$('subject-picker').innerHTML = SKILLS.map(s => `<button class="subject-button" data-subject="${s.id}" aria-pressed="${state.subject === s.id}">${s.short}を学ぶ</button>`).join('');
+$('subject-picker').innerHTML = SKILLS.map(s => `<button class="subject-button" data-subject="${s.id}" aria-pressed="${state.subject === s.id}"><span>${s.short}を学ぶ</span><small></small></button>`).join('');
 document.addEventListener('click', async event => {
   const b = event.target.closest('button');
   if (!b || b.disabled) return;
-  if(b.id==='goal-alternative'){
-    if(!blocked && !paused && buy(state,'macro')){dirty=true;unlock();render();save();}
-    return;
-  }
-  if(b.id==='goal-action'){
-    const kind=b.dataset.goalKind,item=b.dataset.goalItem;
+  if(b.id==='goal-action' || b.id==='goal-alternative'){
+    const kind=b.id==='goal-alternative'?'buy':b.dataset.goalKind,item=b.dataset.goalItem;
     if(blocked || paused)return;
     if(kind==='buy'){
-      if(buy(state,item)){dirty=true;unlock();render();save();state.subject=item.slice(5);switchMode('study');}
+      if(buy(state,item)){
+        dirty=true;unlock();render();save();
+        if(item.startsWith('book-')){state.subject=item.slice(5);switchMode('study');}
+      }
     }else if(kind==='study'){state.subject=item;switchView('workspace');switchMode('study');}
     else if(kind==='release'){switchMode('dev');$('release-button').click();}
     else{switchView('workspace');switchMode('dev');}
-    if(kind!=='release')$('task-title').scrollIntoView({block:'start',behavior:'instant'});
+    if(kind!=='release' && (kind!=='buy' || item.startsWith('book-')))$('task-title').scrollIntoView({block:'start',behavior:'instant'});
     return;
   }
   if (b.dataset.view) { dirty = true; switchView(b.dataset.view); }

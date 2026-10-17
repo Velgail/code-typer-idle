@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE, STUDY_XP } from '../src/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE, STUDY_XP, learningGoal, needsBuild, runBuild } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 import { acceptCharacter, currentPrompt, TYPING_REWARD } from '../src/typing.js';
 
@@ -83,7 +83,7 @@ test('purchases respect money, gates and one-time equipment', () => {
   assert.equal(buy(s, 'macro'), false);
   s.cash = 1500;
   assert.equal(buy(s, 'macro'), true);
-  assert.equal(s.cash, 0);
+  assert.equal(s.cash, 1000);
   s.cash = 1e6;
   assert.equal(buy(s, 'assistant'), false);
   assert.equal(buy(s, 'kitchen'), false);
@@ -178,7 +178,64 @@ test('a fresh player can fund books and finish the first game without injected r
   const result = simulate(SCENARIOS[0], { horizon: 3600, stopAfter: 1 });
   assert.equal(result.reached, 1);
   assert.ok(result.milestones[0].seconds >= 15 * 60 && result.milestones[0].seconds <= 25 * 60);
-  assert.ok(result.purchases['book-syntax'] >= 4 * 60);
+  assert.ok(result.purchases.macro <= 60, 'the first automation must be reachable within one minute at eight clicks per second');
+  assert.ok(result.purchases['book-syntax'] > result.purchases.macro && result.purchases['book-syntax'] <= 3 * 60);
+});
+
+test('the first OCR takes four delivered jobs and its lower entry price does not discount expansions', () => {
+  const s=createState(),macro=SHOP.find(i=>i.id==='macro');
+  input(s,{chars:399});
+  assert.equal(s.cash,400);assert.equal(buy(s,'macro'),false);
+  input(s,{chars:1});
+  assert.equal(s.cash,500);assert.equal(buy(s,'macro'),true);assert.equal(s.cash,0);
+  assert.equal(itemCost(s,macro),3750);
+  tick(s,150);assert.equal(s.cash,1500);
+  assert.equal(buy(s,'book-syntax'),true);assert.equal(s.cash,0);
+  assert.equal(s.skills.syntax,0,'automating office work must not grant programming knowledge');
+  s.cash=3750;assert.equal(buy(s,'macro'),true);assert.equal(itemCost(s,macro),9375);
+});
+
+test('learning goals retain the chosen subject and show progress while another requirement is still zero', () => {
+  const s=createState();s.projectIndex=1;s.mode='study';s.subject='design';s.skills.syntax=12.6;s.items['book-design']=1;
+  const initial=learningGoal(s);
+  assert.equal(initial.next.id,'design');
+  input(s,{chars:1});
+  const started=learningGoal(s);
+  assert.equal(started.next.id,'design');assert.ok(started.progress>initial.progress);
+  assert.equal(knowledgeRatio(s),0,'the display must not loosen the actual development requirements');
+  s.skills.design=projectAt(1).req.design;
+  assert.equal(learningGoal(s).completed,1);assert.equal(learningGoal(s).next.id,'graphics');
+  Object.assign(s.skills,projectAt(1).req);
+  assert.equal(learningGoal(s).next,null);assert.equal(learningGoal(s).progress,1);
+  s.skills.syntax*=3;assert.equal(learningGoal(s).progress,1,'overlearning one subject cannot fill missing subjects');
+  s.skills.graphics=0;assert.ok(learningGoal(s).progress<1);
+});
+
+test('the reduced second project preserves old saves without doubling their defect or debt ratios', () => {
+  const old=createState();
+  Object.assign(old,{balanceVersion:10,projectIndex:1,progress:12000,debt:3000,defects:400,cash:4321});
+  Object.assign(old.skills,{syntax:50,design:20,graphics:20});old.items.macro=2;
+  old.debtSources.temporary=2000;old.debtSources.coupling=1000;
+  const report={status:'warnings',trigger:'automatic',revision:5,progress:12000,defects:400,time:0,checks:6};
+  old.build={revision:5,checkedRevision:5,changed:0,checkedProgress:12000,knownDefects:400,count:6,last:report,history:[report]};
+  const loaded=deserialize(serialize(old));
+  assert.equal(loaded.progress,projectAt(1).target);
+  assert.equal(loaded.debt,1500);assert.equal(loaded.defects,200);
+  assert.equal(loaded.debt/defectLimit(loaded),old.debt/(18000*.25));
+  assert.deepEqual(loaded.skills,old.skills);assert.equal(loaded.cash,4321);assert.equal(loaded.items.macro,2);
+  assert.equal(loaded.debtSources.temporary,1000);assert.equal(loaded.debtSources.coupling,500);
+  assert.equal(Object.values(loaded.debtSources).reduce((sum,n)=>sum+n,0),1500);
+  assert.equal(loaded.build.knownDefects,200);assert.equal(loaded.build.count,6);
+  assert.equal(loaded.build.last.progress,9000);assert.equal(loaded.build.history[0].defects,200);
+  assert.equal(needsBuild(loaded),true,'the new scope must not reuse a stale build certification');
+  assert.equal(runBuild(loaded).status,'warnings');
+  const again=deserialize(serialize(loaded));
+  assert.equal(again.debt,loaded.debt);assert.equal(again.defects,loaded.defects);
+  assert.deepEqual(again.debtSources,loaded.debtSources);assert.equal(needsBuild(again),false);
+  assert.ok(release(again),'a previously acceptable defect ratio must still allow publication');
+  old.projectIndex=2;old.progress=12000;
+  const later=deserialize(serialize(old));
+  assert.equal(later.progress,12000);assert.equal(later.debt,3000);assert.equal(later.defects,400);
 });
 
 test('syntax foundations take sustained work before the later learning curve slows', () => {

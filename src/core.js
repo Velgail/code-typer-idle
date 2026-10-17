@@ -5,7 +5,7 @@ import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceE
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 10;
+export const BALANCE_VERSION = 11;
 export const STORE_FEE_RATE = 0.25;
 export const PRODUCTION_SERVICES=[
   {id:'graphics',name:'グラフィック制作',payee:'イラストレーター・3Dアーティスト',share:.6,bonus:6},
@@ -31,7 +31,7 @@ export const SKILLS = [
 ];
 export const PROJECTS = [
   { name: '小さな数当てゲーム', genre: 'CONSOLE / FIRST BUILD', target: 3000, req: { syntax: 12 }, payout: 0, royalty: 0, desc: '最初の一本。売上はゼロ。でも、完成させた経験は残る。', icon: '01' },
-  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 18000, req: { syntax: 50, design: 20, graphics: 20 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
+  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 9000, req: { syntax: 24, design: 8, graphics: 8 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
   { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
   { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
   { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 4e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1,000万行相当の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
@@ -52,7 +52,7 @@ export const SHOP = [
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: 'サーバー運用の最適化', desc: '公開中のオンライン作品のサーバー代を25%削減', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'server', gate: 5 },
-  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。導入時10作業量/秒。増設分のみLvごと ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。導入時10作業量/秒。増設分のみLvごと ×1.5', initial: 500, base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
@@ -92,6 +92,13 @@ export function developmentReadiness(s) {
   const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: s.skills[id], missing: Math.max(0, required - s.skills[id]) }));
   const stage = s.crashed || s.defects > defectLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
   return { stage, requirements };
+}
+export function learningGoal(s) {
+  const requirements=Object.entries(projectAt(s.projectIndex).req).map(([id,required])=>({id,required,current:s.skills[id]}));
+  const missing=requirements.filter(r=>r.current<r.required).sort((a,b)=>a.current/a.required-b.current/b.required);
+  // Finish the subject the player chose before suggesting another one.
+  const next=(s.mode==='study' && missing.find(r=>r.id===s.subject)) || missing[0] || null;
+  return {next,completed:requirements.length-missing.length,total:requirements.length,progress:requirements.reduce((sum,r)=>sum+Math.min(1,r.current/r.required),0)/requirements.length};
 }
 export const READING_UNITS = 120;
 export function readingLesson(s) {
@@ -227,7 +234,7 @@ export function autoStudySubject(s) {
   if (missing) return subject;
   return hasTextbook(s) ? s.subject : SKILLS.find(skill => hasTextbook(s, skill.id))?.id || null;
 }
-export const itemCost = (s, item) => bounded(item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
+export const itemCost = (s, item) => bounded(!level(s, item.id) && item.initial !== undefined ? item.initial : item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
 export const netIncome = s => unitRate(s, 'macro') * workRate(s) + netRoyaltyRate(s) - operatingCost(s) / DAY;
 export function log(s, text, kind = 'info') {
   if (s.log.at(-1)?.text === text) return;
@@ -451,6 +458,8 @@ export function deserialize(raw) {
   const num = (value, fallback = 0, min = 0, max = LIMIT) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : fallback;
   for (const key of ['cash', 'progress', 'debt', 'mistakes', 'assets', 'savedAt']) s[key] = num(x[key], s[key], key === 'cash' ? -LIMIT : 0);
   for (const key of ['resets', 'projectIndex', 'runReleased', 'runBest', 'day']) s[key] = Math.floor(num(x[key], s[key], 0, 1e6));
+  const scopeScale=!(x.balanceVersion>=11) && s.projectIndex===1 ? .5 : 1;
+  s.debt*=scopeScale;
   s.day = Math.max(1, s.day);
   const previousDay = x.balanceVersion >= 3 ? DAY : 60;
   s.dayElapsed = num(x.dayElapsed, 0, 0, previousDay - 1e-6) / previousDay * DAY;
@@ -486,14 +495,22 @@ export function deserialize(raw) {
   if(!(x.balanceVersion >= 8)){
     s.defects=Math.min(s.debt,defectLimit(s));s.debt=0;s.debtSources=emptyDebtSources();s.reviewedAt=s.stats.time;
   }else{
-    s.defects=Math.min(num(x.defects),defectLimit(s));
+    s.defects=Math.min(num(x.defects)*scopeScale,defectLimit(s));
     setDevelopmentPolicy(s,x.developmentPolicy);
     s.reviewedAt=Math.min(s.stats.time,num(x.reviewedAt,s.stats.time));
-    s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,num(x.debtSources?.[id],0,0,s.debt)]));
+    s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,num(x.debtSources?.[id],0,0,s.debt/scopeScale)*scopeScale]));
     const normalized=debtBreakdown(s);s.debtSources=emptyDebtSources();for(const c of normalized)s.debtSources[c.id]=c.amount;
   }
   s.crashed = s.crashed || s.defects >= defectLimit(s);
-  s.build=normalizeBuildState(x.build,s,projectAt(s.projectIndex).target);
+  let savedBuild=x.build;
+  if(scopeScale<1 && savedBuild && typeof savedBuild==='object'){
+    // Keep the old second project's validation history within its smaller scope.
+    // Rescale before normalization, which otherwise rejects the old bounds.
+    const record=r=>r && typeof r==='object'?{...r,progress:Math.min(num(r.progress),projectAt(1).target),defects:num(r.defects)*scopeScale}:r;
+    savedBuild={...savedBuild,checkedProgress:Math.min(num(savedBuild.checkedProgress),s.progress),knownDefects:num(savedBuild.knownDefects)*scopeScale,last:record(savedBuild.last),history:Array.isArray(savedBuild.history)?savedBuild.history.map(record):[]};
+  }
+  s.build=normalizeBuildState(savedBuild,s,projectAt(s.projectIndex).target);
+  if(scopeScale<1 && (s.progress || s.debt || s.defects || s.build.last))markBuildChanges(s,1);
   for(const service of PRODUCTION_SERVICES){
     const order=x.production?.[service.id];
     if(s.projectIndex>0 && order && typeof order==='object' && typeof order.paid==='number' && order.paid>0 && order.paid<=LIMIT && Number.isFinite(order.paid))s.production[service.id]={paid:order.paid};

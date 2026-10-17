@@ -24,16 +24,18 @@ for (const scenario of [...SCENARIOS, TYPING_WITH_READING]) test(`first AAA paci
     assert.equal(active, result.milestones[index].activeSeconds);
   }
   if (scenario.id !== TYPING_WITH_READING.id) assert.ok(result.stages[1].modeSeconds.work <= 25 * 60, 'The first paid game must not require another hour of manual invoice work');
+  assert.ok(result.milestones[1].seconds <= 3600, 'the first paid game must be reachable in the initial session under the reference purchase policy');
+  assert.ok(result.stages[1].modeSeconds.study <= 12 * 60, 'adding design and graphics must not introduce an hour of mandatory manual study');
   assert.ok(aaa.seconds >= 3 * 86400, `AAA too early: ${aaa.seconds / 3600} hours`);
   assert.ok(aaa.seconds <= 7 * 86400 + 60, `AAA too late: ${aaa.seconds / 3600} hours`);
   if (scenario.returning) assert.ok(aaa.activeSeconds < 6 * 3600, 'Returning play must not require days of continuous typing');
 });
 
 test('typing sensitivity accounts for invoice reading, wrong attempts and additional correction time', () => {
-  assert.equal(manualInputModel(SCENARIOS[1], 'work').unitsPerSecond, 11.25);
+  assert.equal(manualInputModel(SCENARIOS[1], 'work').unitsPerSecond, 20);
   assert.equal(manualInputModel(SCENARIOS[1], 'study').unitsPerSecond, 10);
   const realistic = manualInputModel(TYPING_WITH_READING, 'work');
-  assert.ok(realistic.unitsPerSecond > 7.5 && realistic.unitsPerSecond < 8, 'Invoice reading can erase the ideal typing advantage');
+  assert.ok(realistic.unitsPerSecond > 13 && realistic.unitsPerSecond < 14, 'Invoice reading and correction must still leave a clear advantage over eight clicks per second');
   assert.ok(manualInputModel(TYPING_WITH_READING, 'study').unitsPerSecond > 8, 'The reading delay belongs to invoices, not code');
   assert.ok(manualInputModel({ ...TYPING_WITH_READING, officeReadingSeconds: 6 }, 'work').unitsPerSecond < realistic.unitsPerSecond);
   assert.ok(manualInputModel({ ...TYPING_WITH_READING, correctionSeconds: 1 }, 'work').unitsPerSecond < realistic.unitsPerSecond);
