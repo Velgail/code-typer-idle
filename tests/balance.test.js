@@ -21,3 +21,17 @@ test('uncapped opportunistic upgrades do not collapse the 30-character-per-secon
   assert.equal(result.reached, 5);
   assert.ok(result.milestones[4].seconds >= 72 * 3600);
 });
+
+test('a quick prototype wins the small release while structured work pays off through reuse',()=>{
+  const prototype=simulate(SCENARIOS[1],{policy:'prototype'});
+  const structured=simulate(SCENARIOS[1],{policy:'structured'});
+  assert.equal(prototype.reached,5);assert.equal(structured.reached,5);
+  assert.ok(prototype.milestones[0].seconds<structured.milestones[0].seconds);
+  assert.ok(structured.milestones[4].seconds<prototype.milestones[4].seconds);
+});
+
+test('outsourcing remains funded and cannot bypass the pacing floor through extra sale quality',()=>{
+  const result=simulate(FAST_TYPING,{opportunistic:true,outsource:true});
+  assert.equal(result.reached,5);assert.ok(result.minimumCash>=0);
+  assert.ok(result.milestones[4].seconds>=72*3600);assert.ok(result.milestones[4].seconds<=7*86400);
+});

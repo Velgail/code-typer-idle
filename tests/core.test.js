@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE } from '../src/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
@@ -20,43 +20,44 @@ test('validity follows the 50% / 100% thresholds and the least understood subjec
   assert.equal(knowledgeRatio(s), .75);
   assert.equal(validity(s), .5);
   input(s, { mode: 'dev', chars: 100 });
-  assert.equal(s.debt, 50);
-  assert.ok(s.progress > 45 && s.progress < 50);
+  assert.equal(s.defects, 50.3);
+  assert.equal(s.progress, 50);
   s.skills.graphics = 0;
   assert.equal(validity(s), 0);
 });
-test('understanding yields clean code and abstraction caps at three', () => {
+test('abstraction caps at three without promising debt-free code', () => {
   const s = createState();
   understand(s, 50);
   input(s, { mode: 'dev', chars: 100 });
   assert.equal(s.progress, 300);
-  assert.equal(s.debt, 0);
+  assert.ok(s.debt > 0);
 });
-test('unreviewable automation creates debt and crashes instead of progressing', () => {
+test('unreviewable automation creates defects and crashes instead of progressing', () => {
   const s = createState();
   s.items.assistant = 1;
   tick(s, 100);
   assert.equal(s.crashed, true);
-  assert.equal(s.debt, debtLimit(s));
+  assert.equal(s.defects, defectLimit(s));
+  assert.equal(s.debt, 0);
   assert.equal(s.progress, 0);
 });
 test('refactoring requires complete understanding and repairs a crashed build', () => {
   const s = createState();
-  s.debt = debtLimit(s); s.crashed = true; s.refactor = true;
+  s.defects = defectLimit(s); s.crashed = true; s.refactor = true;
   input(s, { mode: 'dev', chars: 1e5 });
   assert.equal(s.crashed, true);
   understand(s);
   input(s, { mode: 'dev', chars: 160 });
-  assert.equal(s.debt, 110);
+  assert.equal(s.defects, 110);
   assert.equal(s.crashed, false);
   assert.equal(s.progress, 0);
 });
 test('a release requires a complete and sufficiently repaired project', () => {
   const s = createState(); understand(s);
   assert.equal(release(s), null);
-  s.progress = projectAt(0).target; s.debt = debtLimit(s) * .11;
+  s.progress = projectAt(0).target; s.defects = defectLimit(s) * .11;
   assert.equal(release(s), null);
-  s.debt = 0;
+  s.defects = 0;
   const first = release(s);
   assert.equal(first.royalty, 0);
   assert.equal(first.payout, 0);

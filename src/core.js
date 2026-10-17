@@ -1,9 +1,16 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
 import { createTypingState, normalizeTypingState } from './typing.js';
+import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceEfficiency, incurredDebt, changeDefectRate, addDebt, repayDebt, debtBreakdown } from './maintenance.js';
+import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
+export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 7;
+export const BALANCE_VERSION = 8;
 export const STORE_FEE_RATE = 0.25;
+export const PRODUCTION_SERVICES=[
+  {id:'graphics',name:'グラフィック制作',payee:'イラストレーター・3Dアーティスト',share:.6,bonus:6},
+  {id:'audio',name:'音楽・効果音制作',payee:'作曲家・サウンド制作者',share:.4,bonus:4}
+];
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;
@@ -24,7 +31,7 @@ export const PROJECTS = [
   { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 18000, req: { syntax: 50, design: 20, graphics: 20 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
   { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
   { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
-  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 1e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1億文字の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
+  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 4e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1,000万行相当の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
   { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', online: true, serverDaily: 3e6, target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
   { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', online: true, serverDaily: 3e8, target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 3e12, royalty: 1.5e8, desc: 'クラウド上で物理法則を書き起こす。動き続ける世界を、プレイヤーへ配信する。', icon: '07' }
 ];
@@ -47,7 +54,7 @@ export const SHOP = [
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
   { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '教材のある不足分野を学習 +8文字/秒。各Lvで ×1.8', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
-  { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +500文字/秒。各Lvで ×2', base: 12e6, growth: 3, type: 'auto', glyph: 'server', gate: 4 }
+  { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +3,500文字/秒。各Lvで ×2', base: 12e6, growth: 3, type: 'auto', glyph: 'server', gate: 4 }
 ];
 export const ACHIEVEMENTS = [
   { id: 'first-input', name: '最初の一文字', hint: '1回入力する', test: s => s.stats.manual > 0 },
@@ -61,7 +68,7 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
@@ -80,7 +87,7 @@ export function validity(s) {
 // Uses the same boundaries as code conversion, including exactly 50% = zero.
 export function developmentReadiness(s) {
   const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: s.skills[id], missing: Math.max(0, required - s.skills[id]) }));
-  const stage = s.crashed || s.debt > debtLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
+  const stage = s.crashed || s.defects > defectLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
   return { stage, requirements };
 }
 export const READING_UNITS = 120;
@@ -103,6 +110,62 @@ export function answerReading(s, choice) {
   return { kind: correct ? 'correct' : 'incorrect', amount: reward.amount };
 }
 export const debtLimit = s => projectAt(s.projectIndex).target * 0.25;
+export const defectLimit = s => projectAt(s.projectIndex).target * 0.25;
+export function productionOptions(s){
+  if(!s.projectIndex)return [];
+  const budget=[0,10000,75000,1e6,1e7,1e9,1e12][s.projectIndex] ?? bounded(projectAt(s.projectIndex).payout*.3);
+  const qualityBefore=quality(s);
+  return PRODUCTION_SERVICES.map(service=>({...service,cost:bounded(budget*service.share),ordered:!!s.production[service.id],qualityBefore,qualityAfter:Math.min(100,qualityBefore+(s.production[service.id]?0:service.bonus))}));
+}
+export const productionCost=s=>bounded(Object.values(s.production).reduce((sum,order)=>sum+order.paid,0));
+export function orderProduction(s,id){
+  const quote=productionOptions(s).find(q=>q.id===id);
+  if(!quote || quote.ordered || s.cash<quote.cost || quote.qualityAfter<=quote.qualityBefore)return false;
+  s.cash-=quote.cost;s.production[id]={paid:quote.cost};
+  s.stats.outsourcing=add(s.stats.outsourcing,quote.cost);
+  checkChangedCode(s,1,'assets');
+  log(s,`${quote.payee}へ${quote.name}を依頼。制作費 ¥${quote.cost.toLocaleString('en-US')}を支払い、納品素材を組み込みました。`,'success');
+  return true;
+}
+export const buildStep=s=>buildStepFor(projectAt(s.projectIndex).target);
+export function runBuild(s,trigger='manual'){
+  if(!needsBuild(s))return null;
+  const status=s.crashed?'compile-failed':s.defects>defectLimit(s)*.1?'test-failed':s.defects>0?'warnings':'passed';
+  const previous=s.build.last?.status;
+  const checks=trigger==='automatic'?Math.max(1,Math.floor(s.build.changed/buildStep(s))):1;
+  const result={status,trigger,revision:s.build.revision,progress:s.progress,defects:s.defects,time:s.stats.time,checks};
+  Object.assign(s.build,{checkedRevision:s.build.revision,changed:0,checkedProgress:s.progress,knownDefects:s.defects,count:Math.min(1e250,s.build.count+checks),last:result});
+  s.build.history.push(result);if(s.build.history.length>6)s.build.history.shift();
+  if(previous!==status){
+    const message={ 'compile-failed':'途中ビルド失敗。必要理解度を満たし、不具合の修正が必要です。', 'test-failed':'ビルド成功。テストで公開前に修正が必要な問題を確認しました。', warnings:'ビルド成功。テストで小さな修正点を確認。機能追加を続けられます。', passed:'ビルド・テスト成功。次の変更へ進めます。' }[status];
+    log(s,message,status==='compile-failed' || status==='test-failed'?'error':status==='passed'?'success':'info');
+  }
+  return result;
+}
+function checkChangedCode(s,amount,trigger='automatic',force=false){
+  markBuildChanges(s,amount);
+  if(force || s.build.changed>=buildStep(s) || s.progress>=projectAt(s.projectIndex).target)runBuild(s,trigger);
+}
+export const developmentEfficiency = s => maintenanceEfficiency(s,debtLimit(s),DAY);
+export const defectRepairRate=s=>2*(1+knowledgeRatio(s));
+export const debtRepairRate=s=>.25+.25*Math.min(3,Math.max(1,knowledgeRatio(s)));
+export function maintenanceGain(s,chars=handPower(s)){
+  if(knowledgeRatio(s)<1)return {fixed:0,amount:0};
+  const rate=defectRepairRate(s),fixed=Math.min(s.defects,bounded(chars*rate));
+  return {fixed,amount:Math.min(s.debt,bounded(Math.max(0,chars-fixed/rate)*debtRepairRate(s)))};
+}
+export function developmentGain(s,chars=handPower(s),manual=true){
+  if(s.crashed || s.refactor)return 0;
+  const ratio=knowledgeRatio(s);
+  return Math.min(projectAt(s.projectIndex).target-s.progress,bounded(chars*validity(s)*abstraction(s)*(manual && ratio>=1?ideMultiplier(s):1)*developmentPolicy(s).speed*developmentEfficiency(s)));
+}
+export function setDevelopmentPolicy(s,id){
+  if(!DEVELOPMENT_POLICIES.some(p=>p.id===id))return false;
+  s.developmentPolicy=id;return true;
+}
+export function libraryDebtImport(s){
+  return !level(s,'library')?Math.max(0,Math.min(LIMIT-s.debt,(s.catalog.at(-1)?.technicalDebt || 0)*.25)):0;
+}
 export const abstraction = s => Math.min(3, Math.max(1, 1 + (knowledgeRatio(s) - 1) * 0.3));
 export const royaltyRate = s => bounded(s.catalog.reduce((sum, p) => sum + (p.active === false ? 0 : p.royalty), 0));
 export const netRoyaltyRate = s => royaltyRate(s) * (1 - STORE_FEE_RATE);
@@ -122,7 +185,7 @@ export function setPublicationActive(s, index, active) {
 export function unitRate(s, id) {
   const l = level(s, id);
   if (!l) return 0;
-  const config = { macro: [0.25, 1.5], library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [500, 2] }[id];
+  const config = { macro: [0.25, 1.5], library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [3500, 2] }[id];
   return bounded(config[0] * Math.pow(config[1], Math.min(800, l - 1)) * metaBonus(s));
 }
 export const devRate = s => s.autoEnabled ? bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0)) : 0;
@@ -163,8 +226,16 @@ export function checkAchievements(s) {
 export function buy(s, id) {
   const item = SHOP.find(i => i.id === id);
   if (!item || s.projectIndex < item.gate || (item.max && level(s, id) >= item.max) || s.cash < itemCost(s, item)) return false;
+  const imported=id==='library'?libraryDebtImport(s):0;
   s.cash -= itemCost(s, item);
   s.items[id] = level(s, id) + 1;
+  if(imported>0){
+    const previousReview=s.debt?s.reviewedAt:s.stats.time;
+    addDebt(s,{reuse:imported},LIMIT);
+    s.reviewedAt=Math.min(previousReview,s.catalog.at(-1)?.reviewedAt ?? s.stats.time);
+    checkChangedCode(s,imported,'library');
+    log(s,'前作の補助コードをライブラリへ流用。未整理部分の25%も引き継ぎました。');
+  }
   log(s, `${item.name} Lv.${level(s, id)} を導入しました。`, 'success');
   return true;
 }
@@ -200,40 +271,56 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
   const ratio = knowledgeRatio(s);
   if (s.refactor) {
     if (ratio < 1) return { kind: 'review', amount: 0 };
-    const amount = Math.min(s.debt, bounded(chars * (1 + ratio) * 2));
-    s.debt -= amount;
-    s.stats.debtRemoved = add(s.stats.debtRemoved, amount);
-    if (s.crashed && s.debt <= debtLimit(s) * 0.2) { s.crashed = false; log(s, 'ビルド復旧。もう一度、動くものを作ろう。', 'success'); }
-    return { kind: 'refactor', amount };
+    if(s.build.knownDefects<s.defects)runBuild(s,'review');
+    const {fixed,amount:planned}=maintenanceGain(s,chars);
+    s.defects=Math.max(0,s.defects-fixed);
+    const amount=repayDebt(s,planned);
+    s.stats.debtRemoved=add(s.stats.debtRemoved,amount);s.stats.defectsFixed=add(s.stats.defectsFixed,fixed);
+    s.build.knownDefects=Math.min(s.defects,Math.max(0,s.build.knownDefects-fixed));
+    if(!s.debt && !s.defects)s.reviewedAt=s.stats.time;
+    if(s.crashed && s.defects<=defectLimit(s)*.2){s.crashed=false;log(s,'ビルド復旧。修正したコードで制作を続けられます。','success');}
+    checkChangedCode(s,fixed+amount,'repair',fixed>0 && !s.defects || amount>0 && !s.debt);
+    return {kind:'refactor',amount,fixed};
   }
   if (s.crashed) return { kind: 'crash', amount: 0 };
+  if (s.progress >= projectAt(s.projectIndex).target) return { kind: 'code', amount: 0 };
   const rate = validity(s);
   if (!rate) { s.mistakes = add(s.mistakes, chars); return { kind: 'error', amount: 0 }; }
   if (rate < 1) {
     const bad = chars * (1 - rate);
-    s.debt = Math.min(debtLimit(s), s.debt + bad);
+    s.defects = Math.min(defectLimit(s), s.defects + bad);
     s.mistakes = add(s.mistakes, bad);
-    if (s.debt >= debtLimit(s)) {
+    if (s.defects >= defectLimit(s)) {
       s.crashed = true;
-      log(s, 'ビルド崩壊。必要理解度を満たし、負債を20%以下まで修復してください。', 'error');
+      log(s, 'ビルドが通りません。必要理解度を満たし、コードの不具合を修正してください。', 'error');
+      checkChangedCode(s,bad,'automatic',true);
       return { kind: 'crash', amount: 0 };
     }
   }
-  const ide = manual && ratio >= 1 ? ideMultiplier(s) : 1;
-  const amount = bounded(chars * rate * abstraction(s) * ide * (1 - s.debt / debtLimit(s) * 0.8));
-  const accepted = Math.min(amount, projectAt(s.projectIndex).target - s.progress);
+  const accepted=developmentGain(s,chars,manual);
+  if(!s.progress && !s.debt)s.reviewedAt=s.stats.time;
+  const introducedDefects=accepted*changeDefectRate(s,debtLimit(s));
+  const debtAdded=addDebt(s,incurredDebt(s,accepted,projectAt(s.projectIndex).target),LIMIT);
+  s.defects=Math.min(defectLimit(s),s.defects+introducedDefects);
   s.progress = add(s.progress, accepted);
   s.stats.valid = add(s.stats.valid, accepted);
-  return { kind: rate < 1 ? 'debt' : 'code', amount: accepted };
+  if(s.defects>=defectLimit(s)){
+    s.crashed=true;log(s,'仕様と実装の食い違いでビルドが通りません。レビュー・整理で修正してください。','error');
+    checkChangedCode(s,accepted+chars*(1-rate),'automatic',true);
+    return {kind:'crash',amount:accepted,debtAdded,introducedDefects};
+  }
+  checkChangedCode(s,accepted+chars*(1-rate));
+  return {kind:rate<1?'defect':'code',amount:accepted,debtAdded,introducedDefects};
 }
 // At zero understanding generated code is all invalid; unreviewable automation
-// also fills the debt budget, rather than silently deleting its mistakes.
+// also fills the defect budget, rather than silently deleting its mistakes.
 function automateDevelopment(s, chars) {
-  if (knowledgeRatio(s) < 0.5 && !s.refactor && !s.crashed) {
+  if (knowledgeRatio(s) <= 0.5 && !s.refactor && !s.crashed) {
     s.stats.chars = add(s.stats.chars, chars);
     s.mistakes = add(s.mistakes, chars);
-    s.debt = Math.min(debtLimit(s), s.debt + chars);
-    if (s.debt >= debtLimit(s)) { s.crashed = true; log(s, '自動生成コードをレビューできず、ビルドが崩壊しました。', 'error'); }
+    s.defects = Math.min(defectLimit(s), s.defects + chars);
+    if (s.defects >= defectLimit(s)) { s.crashed = true; log(s, '自動生成コードの不具合を確認できず、ビルドが通らなくなりました。', 'error'); }
+    checkChangedCode(s,chars,'automatic',s.crashed);
     return;
   }
   input(s, { mode: 'dev', chars, manual: false });
@@ -253,7 +340,7 @@ export function tick(s, seconds, { chargeExpenses = true } = {}) {
     if (unitRate(s, 'macro')) input(s, { mode: 'work', chars: bounded(unitRate(s, 'macro') * dt), manual: false });
     const studySubject = unitRate(s, 'lab') ? autoStudySubject(s) : null;
     if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false });
-    if (devRate(s) && s.progress < projectAt(s.projectIndex).target) automateDevelopment(s, bounded(devRate(s) * dt));
+    if (devRate(s) && (s.progress < projectAt(s.projectIndex).target || s.refactor && (s.debt>0 || s.defects>0))) automateDevelopment(s, bounded(devRate(s) * dt));
     if (chargeExpenses) s.dailyAccrued = add(s.dailyAccrued, operatingCost(s) / DAY * dt);
     while (s.dayElapsed >= DAY) {
       s.dayElapsed -= DAY;
@@ -265,12 +352,14 @@ export function tick(s, seconds, { chargeExpenses = true } = {}) {
   }
 }
 export function quality(s) {
-  const p = projectAt(s.projectIndex);
-  return Math.round(Math.max(20, Math.min(100, 80 + Math.min(20, (knowledgeRatio(s) - 1) * 10) - Math.min(40, s.mistakes / p.target * 25) - s.debt / debtLimit(s) * 30)));
+  const assets=PRODUCTION_SERVICES.reduce((sum,p)=>sum+(s.production[p.id]?p.bonus:0),0);
+  return Math.round(Math.max(20,Math.min(100,80+Math.min(20,(knowledgeRatio(s)-1)*10)-Math.min(40,s.defects/defectLimit(s)*40)+assets)));
 }
 export function release(s) {
   const p = projectAt(s.projectIndex);
-  if (s.progress < p.target || s.crashed || s.debt > debtLimit(s) * 0.1) return null;
+  if(s.progress<p.target)return null;
+  runBuild(s,'release');
+  if (s.progress < p.target || s.crashed || s.defects > defectLimit(s) * 0.1) return null;
   const q = quality(s);
   const commercial = s.projectIndex > 0 && q >= 60 && knowledgeRatio(s) >= 1;
   const royalty = commercial ? bounded(p.royalty * q / 100 * metaBonus(s)) : 0;
@@ -278,25 +367,30 @@ export function release(s) {
   const salesFee = grossPayout * STORE_FEE_RATE, payout = grossPayout - salesFee;
   s.stats.storeFees = add(s.stats.storeFees, salesFee);
   earn(s, payout);
-  const title = { name: p.name, quality: q, royalty, payout, grossPayout, salesFee, index: s.projectIndex, online: !!p.online, serverDaily: p.serverDaily || 0, active: true };
+  const title = { name: p.name, quality: q, royalty, payout, grossPayout, salesFee, index: s.projectIndex, online: !!p.online, serverDaily: p.serverDaily || 0, active: true, technicalDebt:s.debt, defects:s.defects, reviewedAt:s.reviewedAt, builds:s.build.count, productionCosts:productionCost(s), services:Object.keys(s.production) };
   s.catalog.push(title);
   // Archive the oldest titles without dropping their running costs or receipts.
   if (s.catalog.length > 100) {
     const oldest = s.catalog.splice(0, 2);
     const serverDaily = bounded(oldest.reduce((total, p) => total + (p.active === false ? 0 : p.serverDaily || 0), 0));
-    s.catalog.unshift({ name: '過去の公開作品', index: -1, archived: true, quality: 80, payout: 0, royalty: bounded(oldest.reduce((sum, p) => sum + (p.active === false ? 0 : p.royalty), 0)), serverDaily, online: serverDaily > 0, active: true });
+    s.catalog.unshift({ name: '過去の公開作品', index: -1, archived: true, quality: 80, payout: 0, royalty: bounded(oldest.reduce((sum, p) => sum + (p.active === false ? 0 : p.royalty), 0)), serverDaily, online: serverDaily > 0, active: true, productionCosts:bounded(oldest.reduce((sum,p)=>sum+(p.productionCosts||0),0)) });
   }
   s.runReleased += 1;
   s.runBest = Math.max(s.runBest, s.projectIndex + 1);
   s.stats.releases += 1;
   for (const [id, req] of Object.entries(p.req)) s.skills[id] = add(s.skills[id], req * .05);
   log(s, `${p.name} を${commercial ? '発売' : '無料公開'}！ 品質 ${q} / 100。完成経験で理解度が上がりました。`, 'success');
+  const carriedDebt=level(s,'library')?s.debt*.25:0,reviewedAt=s.reviewedAt;
   s.projectIndex += 1;
   s.progress = 0;
-  s.debt = 0;
+  s.debt=carriedDebt;s.debtSources=emptyDebtSources();s.debtSources.reuse=carriedDebt;
+  s.defects=0;s.reviewedAt=carriedDebt?reviewedAt:s.stats.time;
+  s.build=createBuildState();markBuildChanges(s,carriedDebt);
+  s.production={};
   s.mistakes = 0;
   s.crashed = false;
   s.refactor = false;
+  if(carriedDebt)log(s,'次作でも使う共通ライブラリへ、未整理部分の25%を引き継ぎました。');
   if (devRate(s)) {
     s.autoEnabled = false;
     log(s, '次の企画のレビュー待ち。自動開発を停止しました。理解度を確認して再開してください。');
@@ -373,15 +467,29 @@ export function deserialize(raw) {
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
   for (const k of ['sound','reducedMotion']) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
   s.progress = Math.min(s.progress, projectAt(s.projectIndex).target);
-  s.debt = Math.min(s.debt, debtLimit(s));
-  s.crashed = s.crashed || s.debt >= debtLimit(s);
+  if(!(x.balanceVersion >= 8)){
+    s.defects=Math.min(s.debt,defectLimit(s));s.debt=0;s.debtSources=emptyDebtSources();s.reviewedAt=s.stats.time;
+  }else{
+    s.defects=Math.min(num(x.defects),defectLimit(s));
+    setDevelopmentPolicy(s,x.developmentPolicy);
+    s.reviewedAt=Math.min(s.stats.time,num(x.reviewedAt,s.stats.time));
+    s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,num(x.debtSources?.[id],0,0,s.debt)]));
+    const normalized=debtBreakdown(s);s.debtSources=emptyDebtSources();for(const c of normalized)s.debtSources[c.id]=c.amount;
+  }
+  s.crashed = s.crashed || s.defects >= defectLimit(s);
+  s.build=normalizeBuildState(x.build,s,projectAt(s.projectIndex).target);
+  for(const service of PRODUCTION_SERVICES){
+    const order=x.production?.[service.id];
+    if(s.projectIndex>0 && order && typeof order==='object' && typeof order.paid==='number' && order.paid>0 && order.paid<=LIMIT && Number.isFinite(order.paid))s.production[service.id]={paid:order.paid};
+  }
   s.achievements = ACHIEVEMENTS.filter(a => x.achievements?.includes?.(a.id)).map(a => a.id);
   s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => {
     const index = p.archived ? -1 : num(p.index, 0, 0, 1e6), project = p.archived ? null : projectAt(index);
-    return { name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), grossPayout: num(p.grossPayout, num(p.payout)), salesFee: num(p.salesFee), index, archived: !!p.archived, online: project ? !!project.online : !!p.online, serverDaily: project ? project.serverDaily || 0 : num(p.serverDaily), active: p.active !== false };
+    return { name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), grossPayout: num(p.grossPayout, num(p.payout)), salesFee: num(p.salesFee), index, archived: !!p.archived, online: project ? !!project.online : !!p.online, serverDaily: project ? project.serverDaily || 0 : num(p.serverDaily), active: p.active !== false, builds: Math.floor(num(p.builds)), productionCosts: num(p.productionCosts), services: PRODUCTION_SERVICES.filter(service=>Array.isArray(p.services) && p.services.includes(service.id)).map(service=>service.id), technicalDebt: num(p.technicalDebt), defects: num(p.defects), reviewedAt: Math.min(s.stats.time,num(p.reviewedAt,s.stats.time)) };
   }) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
+  if(!(x.balanceVersion>=8) && s.defects)log(s,'以前の負債は、不具合の修正作業として引き継ぎました。技術的負債は未整理の構造を別に記録します。');
   if (x.balanceVersion < 6) log(s, '旧事務所の積立を所持金に戻し、未精算の旧費用を取り消しました。');
   return s;
 }

@@ -10,6 +10,7 @@ import { COURSE } from '../src/course.js';
 import { lessonAt, questionFor } from '../src/curriculum.js';
 import { verifyCommentTranslations } from './comment-translations.mjs';
 import { verifyClickKeyboardGuard } from './keyboard-clicks.mjs';
+import { verifyMaintenanceUI } from './maintenance-ui.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -37,6 +38,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const errors = [];
 try {
   await verifyClickKeyboardGuard(browser, url, errors);
+  await verifyMaintenanceUI(browser, url, errors);
   await verifyCommentTranslations(browser, url, errors);
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -52,9 +54,9 @@ try {
   assert.match(await page.locator('#living').textContent(), /¥0/);
   assert.equal(await page.locator('#bill-next').textContent(), '契約・支払いなし');
   await page.locator('#help-button').click();
-  assert.equal(await page.locator('.help-section').count(), 7);
+  assert.equal(await page.locator('.help-section').count(), 8);
   assert.match(await page.locator('#modal-body').textContent(), /教材.*プログラミング基礎教本.*写経・学習/s);
-  assert.match(await page.locator('#modal-body').textContent(), /リファクタリングに切替/);
+  assert.match(await page.locator('#modal-body').textContent(), /レビュー・整理に切替/);
   assert.match(await page.locator('#modal-body').textContent(), /セーブを書き出す/);
   assert.doesNotMatch(await page.locator('#modal-body').textContent(), /FIRST RUN|BALANCE|3〜7日|300打鍵|旧セーブは/);
   await page.locator('#modal-close').click();
@@ -413,15 +415,15 @@ try {
       } else assert.doesNotMatch(await publishing.locator('#expense-lines').textContent(), /ホスティング会社/);
     } finally { await finance.close(); }
   }
-  for (const [syntax, progress, debt, expected] of [[0,0,0,/まず必要な分野/],[6,0,0,/まず必要な分野/],[6.1,0,0,/試作はできる/],[12,0,0,/必要な知識が揃った/],[12,3000,100,/リファクタリング/]]) {
+  for (const [syntax, progress, defects, expected] of [[0,0,0,/まず必要な分野/],[6,0,0,/まず必要な分野/],[6.1,0,0,/試作はできる/],[12,0,0,/必要な知識が揃った/],[12,3000,100,/レビュー・整理/]]) {
     const readyContext=await browser.newContext();
-    const readySave=createState();Object.assign(readySave,{mode:'dev',progress,debt});readySave.skills.syntax=syntax;
+    const readySave=createState();Object.assign(readySave,{mode:'dev',progress,defects});readySave.skills.syntax=syntax;
     await readyContext.addInitScript(data=>localStorage.setItem('code-typer-idle:save:v1',JSON.stringify(data)),readySave);
     const readyPage=await readyContext.newPage();readyPage.on('pageerror',e=>errors.push(e.message));
     await readyPage.goto(url);await readyPage.waitForSelector('#development-readiness b');
     assert.match(await readyPage.locator('#development-readiness').textContent(),expected);
     if(syntax<12){await readyPage.locator('[data-learn=syntax]').click();assert.match(await readyPage.locator('#task-title').textContent(),/基礎文法/);}
-    if(debt>75)assert.equal(await readyPage.locator('#release-button').isDisabled(),true);
+    if(defects>75)assert.equal(await readyPage.locator('#release-button').isDisabled(),true);
     await readyContext.close();
   }
   // Exercise real course typing in every language, including literal Go tabs.
@@ -510,6 +512,8 @@ try {
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`curriculum.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`idioms.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`builds.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`maintenance.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`style.${nextId}.css`)));
     assert.ok(requests.filter(path => path === '/version.json').length >= 3, 'version checks must bypass a previously cached version response');
     await cached.setOffline(true);
