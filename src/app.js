@@ -421,7 +421,7 @@ $('type-button').addEventListener('click', () => {
   if (state.inputStyle === 'typing') focusTypingInput();
   else doInput();
 });
-function processTypingInput({ countErrors = true } = {}) {
+function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
   if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing') return;
   if (state.mode === 'study' && !hasTextbook(state)) return;
   const field = $('typing-input'), prompt = currentPrompt(state), t = state.typing;
@@ -442,8 +442,9 @@ function processTypingInput({ countErrors = true } = {}) {
     }
     return;
   }
+  let countedManual = false;
   for (const character of value.slice(t.offset)) {
-    const power = handPower(state);
+    const power = handPower(state) * rewardScale;
     if (!countErrors && character !== prompt[state.typing.offset]) break;
     const result = acceptCharacter(state, character, power);
     if (!result.correct) {
@@ -456,7 +457,8 @@ function processTypingInput({ countErrors = true } = {}) {
       renderEditor();
       break;
     }
-    doInput({ chars: Math.min(1e250, power * TYPING_REWARD.character) });
+    doInput({ chars: Math.min(1e250, power * TYPING_REWARD.character), countManual: rewardScale === 1 || !countedManual });
+    countedManual = true;
     if (result.complete) {
       doInput({ chars: Math.min(1e250, result.bonus), countManual: false });
       toast(`完入力！ 正確率 ${(result.accuracy * 100).toFixed(1)}% · ボーナス獲得`, '', 1800);
@@ -494,7 +496,8 @@ $('typing-input').addEventListener('keydown', event => {
     if (!event.repeat) {
       const field = $('typing-input');
       field.setRangeText('    ', field.selectionStart, field.selectionEnd, 'end');
-      processTypingInput();
+      // An indentation shortcut is one keystroke, including its pending bonus.
+      processTypingInput({ rewardScale: 0.25 });
     }
     return;
   }

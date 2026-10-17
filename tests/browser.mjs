@@ -5,7 +5,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { createState, projectAt, BALANCE_VERSION } from '../src/core.js';
+import { createState, projectAt, handPower, BALANCE_VERSION } from '../src/core.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -216,12 +216,28 @@ try {
   for (let line = 0; line < studyLines.length; line++) {
     if (line) await seeded.keyboard.press('Enter');
     const indent = studyLines[line].match(/^ */)[0].length;
+    let beforeIndent;
+    if (indent >= 4 && !checkedIndentExit) {
+      await seeded.locator('#save-button').click();
+      beforeIndent = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+      await seeded.locator('#typing-input').click();
+      await seeded.keyboard.press('Control+End');
+    }
     for (let space = 0; space + 4 <= indent; space += 4) await seeded.keyboard.press('Tab');
     assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'code indentation must keep focus in the editor');
     if (indent >= 4 && !checkedIndentExit) {
+      await seeded.locator('#save-button').click();
+      const afterIndent = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+      const tabs = Math.floor(indent / 4);
+      assert.equal(afterIndent.stats.study - beforeIndent.stats.study, tabs * handPower(beforeIndent) * 1.5, 'Tab must pay for one physical keystroke, not four expanded spaces');
+      assert.equal(afterIndent.stats.manual - beforeIndent.stats.manual, tabs);
+      assert.equal(afterIndent.typing.bonusBase - beforeIndent.typing.bonusBase, tabs * handPower(beforeIndent), 'Tab completion bonus must also count one keystroke');
+      await seeded.locator('#typing-input').click();
+      await seeded.keyboard.press('Control+End');
       await seeded.keyboard.press('Shift+Tab');
       assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), false, 'Shift+Tab must let keyboard users leave the editor');
       await seeded.locator('#typing-input').click();
+      await seeded.keyboard.press('Control+End');
       checkedIndentExit = true;
     }
     await seeded.keyboard.type(studyLines[line].slice(indent - indent % 4));
