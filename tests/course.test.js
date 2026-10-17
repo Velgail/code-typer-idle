@@ -16,7 +16,7 @@ test('the pinned course keeps exercise context, prerequisites, source and transl
    const e=track.exercises[unit.exercise],file=track.files[unit.file];assert.ok(e&&file);
    assert.ok(e.units.includes(track.units.indexOf(unit)));assert.ok(unit.code.length>0 && unit.code.length<8192);
    assert.ok(file.url.includes(track.sha));assert.ok(Array.isArray(e.prerequisites));
-   for(const c of unit.comments){assert.ok(c.en.length);assert.match(c.ja,/[\u3040-\u9fff]/);}
+   for(const c of unit.comments){assert.ok(c.en.length);assert.match(c.ja,/[\u3040-\u9fff]/);assert.equal(unit.code.slice(c.start,c.end),c.en);assert.ok(!/^[\s/*#-]+$/.test(c.en));}
   }
  }
  assert.ok(exercises>=1000);assert.ok(functions>=4500);assert.ok(blocks>=6000);

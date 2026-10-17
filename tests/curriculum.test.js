@@ -18,6 +18,7 @@ test('all topics have purposeful English typing comments, Japanese notes, and st
       assert.ok(c.en.length>25 && /^[\x20-\x7e]+$/.test(c.en));
       assert.match(c.ja, /[\u3040-\u9fff]/);
       assert.ok(lesson.code.includes(c.en));
+      assert.equal(lesson.code.slice(c.start, c.end), c.en);
       assert.ok(!lesson.code.includes(c.ja));
     }
     assert.ok(Number.isSafeInteger(lesson.answer));

@@ -1,4 +1,4 @@
-import { courseUnit, currentCourseUnit, nextCourseUnit, validCourseId, coursesLoaded } from './courses.js';
+import { courseUnit, courseLesson, currentCourseUnit, nextCourseUnit, validCourseId, coursesLoaded } from './courses.js';
 // Versioned curricula keep an unfinished pre-update exercise stable.
 // English ASCII prompts keep programming practice independent of an IME.
 import { CURRICULUM_VERSION, BASE_LESSON_COUNT, LESSON_COUNT, lessonAt } from './curriculum.js';
@@ -294,6 +294,20 @@ export function currentPrompt(state) {
   const text = course ? course.code : state.mode === 'work' ? officeOrderAt(state.typing.index, state.typing.officeVersion).input : promptAt(state.typing.language, subject, state.typing.index, state.typing.curriculumVersion);
   state.typing.offset = Math.min(state.typing.offset, text.length - 1);
   return text;
+}
+// Derive completed comments from the validated cursor, including after reload.
+// This does not award progress or wait for the surrounding code to be finished.
+export function typingCommentProgress(state) {
+  if (state.mode === 'work' || state.inputStyle !== 'typing' || state.mode === 'study' && state.studyStyle === 'reading') return { lesson: null, comments: [] };
+  const prompt = currentPrompt(state), t = state.typing;
+  const lesson = state.mode === 'study' && t.source === 'course' ? courseLesson(currentCourseUnit(state)?.id)
+    : t.curriculumVersion === CURRICULUM_VERSION ? lessonAt(t.language, typingSubject(state), t.index) : null;
+  const completed = new Map();
+  for (const comment of lesson?.comments || []) {
+    const { start, end } = comment;
+    if (Number.isSafeInteger(start) && Number.isSafeInteger(end) && start >= 0 && start < end && end <= t.offset && prompt.slice(start, end) === comment.en) completed.set(`${start}/${end}`, comment);
+  }
+  return { lesson, comments: [...completed.values()].sort((a, b) => a.end - b.end) };
 }
 // This function accepts one actual character, never an arbitrary key or a paste.
 // Economy rewards are applied by the caller only after this validation succeeds.

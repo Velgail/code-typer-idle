@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import { createState, projectAt, handPower, BALANCE_VERSION } from '../src/core.js';
 import { COURSE } from '../src/course.js';
 import { lessonAt, questionFor } from '../src/curriculum.js';
+import { verifyCommentTranslations } from './comment-translations.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -34,6 +35,7 @@ const url = process.env.CTI_TEST_URL || await new Promise(resolveUrl => {
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox'] });
 const errors = [];
 try {
+  await verifyCommentTranslations(browser, url, errors);
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
@@ -258,7 +260,7 @@ try {
   assert.equal(await seeded.locator('#completed-notes').isVisible(), true);
   const completedLesson = lessonAt('cpp', 'syntax', 0);
   assert.match(await seeded.locator('#completed-notes').textContent(), new RegExp(completedLesson.title));
-  assert.ok((await seeded.locator('#completed-notes').textContent()).includes(completedLesson.comments[0].ja));
+  assert.ok((await seeded.locator('#typing-comment-notes').textContent()).includes(completedLesson.comments[0].ja));
   assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'completion notes must not take typing focus');
   const nextStudyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
   await seeded.keyboard.type(nextStudyPrompt.slice(0, 12));
@@ -269,9 +271,9 @@ try {
   await seeded.locator('#settings-button').click();
   await seeded.locator('#motion-setting').check();
   await seeded.locator('#comment-locale-setting').selectOption('en');
-  assert.equal(await seeded.locator('#completed-notes [lang=ja]').count(), 0);
+  assert.equal(await seeded.locator('#typing-comment-notes [lang=ja]').count(), 0);
   await seeded.locator('#comment-locale-setting').selectOption('ja');
-  assert.equal(await seeded.locator('#completed-notes [lang=ja]').count(), 2);
+  assert.equal(await seeded.locator('#typing-comment-notes [lang=ja]').count(), 2);
   const [download] = await Promise.all([seeded.waitForEvent('download'), seeded.locator('[data-action=export]').click()]);
   assert.match(download.suggestedFilename(), /^code-typer-idle-day\d+\.json$/);
   await seeded.locator('#modal-close').click();
@@ -449,7 +451,7 @@ try {
     assert.ok(saved.typing.courseCompleted.length>=1,language);
     assert.match(await coursePage.locator('#completed-notes').textContent(),/実行結果は未収録/);
     if(language==='python'){
-      await enter();assert.ok((await coursePage.locator('#completed-notes').textContent()).includes('残りの焼き時間'));
+      await enter();assert.ok((await coursePage.locator('#typing-comment-notes').textContent()).includes('残りの焼き時間'));
     }
     if(language==='cpp'){
       await coursePage.locator('#course-exercise').selectOption('1');
