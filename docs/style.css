@@ -2904,3 +2904,20 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .course-credit a { color:var(--green); }
 .execution-result { padding-top:12px; margin-top:14px; border-top:1px solid var(--border); }
 .execution-result output { color:var(--green); font:18px var(--mono); }
+.learning-guide { margin:12px 0 20px; padding:16px; border:1px solid var(--border); border-radius:8px; overflow-wrap:anywhere; }
+.learning-guide h3,.learning-guide h4 { margin:0 0 8px; font-size:13px; color:var(--green); }
+.learning-guide h4 { margin-top:16px; }
+.learning-guide p,.learning-guide li,.learning-guide summary { font-size:13px; line-height:1.8; }
+.learning-guide .guide-purpose { margin:0 0 8px; color:var(--text); }
+.learning-guide .guide-scope { color:var(--muted); font-size:12px; }
+.learning-guide ul { padding-left:20px; }
+.learning-guide details { margin-top:12px; }
+.learning-guide summary { cursor:pointer; }
+.learning-guide code { font-family:var(--mono); overflow-wrap:anywhere; }
+.binding-list { margin:0; }
+.binding-list>div { display:grid; grid-template-columns:minmax(100px,1fr) minmax(0,2fr); gap:8px 16px; padding:8px 0; border-bottom:1px solid var(--border); font-size:12px; line-height:1.6; }
+.binding-list dt,.binding-list dd { margin:0; min-width:0; }
+.binding-list small { display:block; color:var(--muted); font-size:11px; }
+.binding-list dd small { max-height:4.8em; overflow:auto; }
+.starter-reference .reference-code { max-height:230px; }
+@media(max-width:480px) { .learning-guide { padding:12px; } .binding-list>div { grid-template-columns:minmax(75px,1fr) minmax(0,2fr); gap:8px; } }
