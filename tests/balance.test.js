@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
+import { simulate, SCENARIOS, FAST_TYPING } from '../scripts/simulate-balance.mjs';
 import { PACING_REPORT } from '../src/pacing.js';
 
 for (const scenario of SCENARIOS) test(`first AAA pacing: ${scenario.name}`, () => {
@@ -17,7 +17,7 @@ for (const scenario of SCENARIOS) test(`first AAA pacing: ${scenario.name}`, () 
 });
 
 test('uncapped opportunistic upgrades do not collapse the 30-character-per-second stress case', () => {
-  const result = simulate(SCENARIOS[1], { opportunistic: true });
+  const result = simulate(FAST_TYPING, { opportunistic: true });
   assert.equal(result.reached, 5);
   assert.ok(result.milestones[4].seconds >= 72 * 3600);
 });

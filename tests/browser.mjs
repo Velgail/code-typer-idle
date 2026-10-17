@@ -83,6 +83,19 @@ try {
   await page.keyboard.down(secondPrompt[0]);
   await page.keyboard.up(secondPrompt[0]);
   assert.match(await page.locator('#typing-round').textContent(), /^1 \/ /);
+  // Office jobs use image invoices, while study/development use programming languages.
+  assert.equal(saved.skills.syntax, 0, 'office typing must not grant programming knowledge');
+  assert.equal(await page.locator('#office-source').isVisible(), true);
+  assert.equal(await page.locator('#language-select').isVisible(), false);
+  assert.equal(await page.locator('#editor-content').textContent(), prompt[0] + '▌', 'office output must not show a completed CSV answer');
+  for (const width of [1440, 1024, 768, 390, 360]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Office source fits ${width}px`);
+  }
+  await page.screenshot({ path: 'work/office-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1100 });
+  await page.locator('[data-mode=study]').click();
+  assert.equal(await page.locator('#office-source').isVisible(), false);
   // Changing languages changes the actual target, then correctly typed input works.
   for (const language of ['csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua', 'cpp']) {
     await page.locator('#language-select').selectOption(language);
@@ -137,6 +150,7 @@ try {
     assert.equal(overflow, false, `No horizontal page overflow at ${width}px`);
   }
   await seeded.locator('[data-input-style=typing]').click();
+  await seeded.locator('[data-mode=study]').click();
   await seeded.locator('#language-select').selectOption('rust');
   await seeded.screenshot({ path: 'work/mobile.png', fullPage: true });
   assert.equal(await seeded.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

@@ -2,7 +2,7 @@
 export const PACING_REPORT = {
   "balanceVersion": 3,
   "target": "初回AAAまで、放置込み3〜7日",
-  "method": "新規セーブ、購入・作業切替は15秒ごと、周回なし。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。段階別の事業費・事務所代・納品報酬を計上し、費用の免除なし。タイピングは正確率100%と完入力ボーナスの上限性能。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。",
+  "method": "新規セーブ、購入・作業切替は15秒ごと、周回なし。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。段階別の事業費・事務所代・納品報酬を計上し、費用の免除なし。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。",
   "scenarios": [
     {
       "id": "click",
@@ -64,60 +64,60 @@ export const PACING_REPORT = {
     },
     {
       "id": "typing",
-      "name": "正確な入力 30文字/秒・連続",
-      "rate": 30,
+      "name": "タイピング 300打鍵/分・連続",
+      "rate": 5,
       "yield": 1.5,
       "returning": false,
       "purchases": {
-        "macro": 45,
-        "book-syntax": 90,
-        "keyboard": 345,
-        "monitor": 375,
-        "book-design": 525,
-        "library": 585,
-        "book-graphics": 645,
-        "ide": 780,
-        "lab": 870,
-        "book-systems": 7290,
-        "assistant": 16215,
-        "engineer": 45330,
-        "cluster": 208515
+        "macro": 270,
+        "book-syntax": 465,
+        "keyboard": 1905,
+        "monitor": 2055,
+        "book-design": 2925,
+        "library": 3630,
+        "book-graphics": 3975,
+        "ide": 4395,
+        "lab": 4920,
+        "book-systems": 32295,
+        "assistant": 41415,
+        "engineer": 127680,
+        "cluster": 289080
       },
       "milestones": [
         {
           "name": "小さな数当てゲーム",
-          "seconds": 315,
-          "activeSeconds": 315,
-          "manualInputs": 9450
+          "seconds": 1770,
+          "activeSeconds": 1770,
+          "manualInputs": 8850
         },
         {
           "name": "ネオン・ブロック崩し",
-          "seconds": 1620,
-          "activeSeconds": 1620,
-          "manualInputs": 48600
+          "seconds": 8130,
+          "activeSeconds": 8130,
+          "manualInputs": 40650
         },
         {
           "name": "雨のダンジョン",
-          "seconds": 7275,
-          "activeSeconds": 7275,
-          "manualInputs": 218250
+          "seconds": 32280,
+          "activeSeconds": 32280,
+          "manualInputs": 161400
         },
         {
           "name": "軌道上の街",
-          "seconds": 45315,
-          "activeSeconds": 45315,
-          "manualInputs": 1359450
+          "seconds": 132555,
+          "activeSeconds": 132555,
+          "manualInputs": 662775
         },
         {
           "name": "NO MAN’S DEADLINE",
-          "seconds": 284100,
-          "activeSeconds": 284100,
-          "manualInputs": 8523000
+          "seconds": 428925,
+          "activeSeconds": 428925,
+          "manualInputs": 2144625
         }
       ],
       "reached": 5,
-      "activeSeconds": 284101,
-      "manualInputs": 8523030,
+      "activeSeconds": 428926,
+      "manualInputs": 2144630,
       "minimumCash": 100
     },
     {

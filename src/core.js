@@ -40,7 +40,7 @@ export const SHOP = [
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: '固定費の見直し', desc: '日々の事業維持費を25%削減。事務所代は対象外', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'coffee', gate: 0 },
-  { id: 'macro', tab: 'auto', name: 'データ入力マクロ', desc: '日銭 +0.25文字/秒。各Lvで ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。+0.25作業量/秒、各Lvで ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },

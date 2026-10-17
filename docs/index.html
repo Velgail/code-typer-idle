@@ -7,8 +7,8 @@
   <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と事業費をやりくりする無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./build/style.af89c08f3eaafa0e.css">
-  <script type="module" src="./build/app.af89c08f3eaafa0e.js"></script>
+  <link rel="stylesheet" href="./build/style.f34c30bd14e0cd20.css">
+  <script type="module" src="./build/app.f34c30bd14e0cd20.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -53,11 +53,12 @@
               <button class="work-tab" role="tab" aria-selected="false" data-mode="study"><span data-icon="book"></span>写経・学習<kbd>2</kbd></button>
               <button class="work-tab" role="tab" aria-selected="false" data-mode="dev"><span data-icon="code"></span>ゲーム開発<kbd>3</kbd></button>
             </div>
-            <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">FREELANCE WORK</div><h2 id="task-title">アンケートのデータ入力</h2></div><span class="status-pill" id="task-status"><i></i>作業受付中</span></div><p class="task-description" id="task-description">小さな仕事も、大事な開発資金。まずは開発の資金から。</p>
+            <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">OFFICE WORK</div><h2 id="task-title">伝票画像のデータ化</h2></div><span class="status-pill" id="task-status"><i></i>事務作業中</span></div><p class="task-description" id="task-description">伝票画像の項目をCSVに整形し、100作業量ごとに納品します。</p>
               <div id="subject-picker" class="subject-picker hidden" aria-label="学習分野"></div>
               <div id="project-progress" class="project-progress hidden"></div>
               <div class="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
-              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">contract.cpp</span><span id="editor-language">C++</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><textarea id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
+              <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>原票は画像のため、そのまま文字列をコピーできません。OCR・入力マクロを導入すると読み取りと入力を自動化できます。</small></section>
+              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">invoices.csv</span><span id="editor-language">CSV</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><textarea id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
               <div class="typing-summary hidden" id="typing-summary"><span id="typing-round">0文字 / 0文字</span><span id="typing-accuracy">正確率 100%</span><span id="typing-completed">完入力 0問</span></div>
               <div class="work-output"><span id="output-label">この入力で得られるもの</span><strong id="output-rate">+¥1 <small>/ クリック</small></strong></div>
               <button id="type-button" class="type-button"><span class="type-button-icon" data-icon="keyboard"></span><span><b id="type-label">クリックして働く</b><small id="type-hint">コードタイピングなら完入力で報酬アップ</small></span><span class="keycap">↵</span></button>

@@ -1,5 +1,6 @@
 // 128 curated templates, each with 16 deterministic data sets: 2,048 prompts.
 // English ASCII prompts keep programming practice independent of an IME.
+import { officeOrderAt } from './office.js';
 export const LANGUAGES = [
   { id: 'cpp', name: 'C++', extension: 'cpp', description: 'ゲームエンジン、描画、メモリ管理' },
   { id: 'csharp', name: 'C#', extension: 'cs', description: 'Unity、ゲームロジック、業務API' },
@@ -252,7 +253,7 @@ export function normalizeTypingState(value) {
 }
 export function typingSubject(state) {
   if (state.mode === 'study') return state.subject;
-  if (state.mode === 'work') return ['systems', 'syntax', 'design', 'syntax'][state.typing.index % 4];
+  if (state.mode === 'work') return 'office';
   return ['syntax', 'design', 'graphics', 'systems'][Math.min(3, Math.floor(state.projectIndex / 2))];
 }
 export function currentPrompt(state) {
@@ -264,7 +265,7 @@ export function currentPrompt(state) {
     state.typing.roundErrors = 0;
     state.typing.bonusBase = 0;
   }
-  const text = promptAt(state.typing.language, subject, state.typing.index);
+  const text = state.mode === 'work' ? officeOrderAt(state.typing.index).input : promptAt(state.typing.language, subject, state.typing.index);
   state.typing.offset = Math.min(state.typing.offset, text.length - 1);
   return text;
 }

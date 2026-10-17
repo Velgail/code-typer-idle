@@ -2861,3 +2861,8 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .business-panel p { margin: 6px 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 .business-panel small { font-size: 11px; line-height: 1.7; color: var(--green); }
 #update-banner { gap: 14px; flex-wrap: wrap; }
+
+.office-source { margin: 16px 0; padding: 14px; border: 1px solid var(--border); border-radius: 8px; }
+.office-source h3 { font-size: 12px; margin: 0 0 12px; }
+.office-source canvas { display: block; width: 100%; height: auto; max-width: 440px; border-radius: 3px; }
+.office-source p, .office-source small { display: block; font-size: 11px; line-height: 1.7; color: var(--muted); margin: 8px 0 0; overflow-wrap: anywhere; }

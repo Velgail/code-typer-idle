@@ -4,9 +4,10 @@ import * as game from '../src/core.js';
 
 export const SCENARIOS = [
   { id: 'click', name: 'クリック 8回/秒・連続', rate: 8, yield: 1, returning: false },
-  { id: 'typing', name: '正確な入力 30文字/秒・連続', rate: 30, yield: 1.5, returning: false },
+  { id: 'typing', name: 'タイピング 300打鍵/分・連続', rate: 300 / 60, yield: 1.5, returning: false },
   { id: 'returning', name: 'クリック 8回/秒・離席あり', rate: 8, yield: 1, returning: true }
 ];
+export const FAST_TYPING = { id: 'typing-stress', name: '高速入力 30打鍵/秒・検証用', rate: 30, yield: 1.5, returning: false };
 const items = Object.fromEntries(game.SHOP.map(item => [item.id, item]));
 
 // Explicit, reproducible purchase policy, not a claim of an optimal speedrun.
@@ -76,7 +77,7 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
 export const reportFor = scenarios => ({
   balanceVersion: game.BALANCE_VERSION,
   target: '初回AAAまで、放置込み3〜7日',
-  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。段階別の事業費・事務所代・納品報酬を計上し、費用の免除なし。タイピングは正確率100%と完入力ボーナスの上限性能。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。',
+  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。段階別の事業費・事務所代・納品報酬を計上し、費用の免除なし。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。',
   scenarios
 });
 

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, input, handPower, serialize, deserialize } from '../src/core.js';
 import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../src/typing.js';
+import { OFFICE_PROMPT_COUNT, officeOrderAt } from '../src/office.js';
 
 test('the embedded curriculum contains 2,048 distinct prompts across eight languages and four subjects', () => {
   const prompts = new Set();
@@ -24,6 +25,25 @@ test('wrong characters neither advance the cursor nor generate completion reward
   assert.equal(s.typing.offset, 0); assert.equal(s.typing.errors, 1); assert.equal(s.cash, 100);
   assert.equal(acceptCharacter(s, text[0]).correct, true);
   assert.equal(s.typing.offset, 1);
+});
+test('administrative work normalizes image invoice fields, independent of programming language', () => {
+  const targets = new Set();
+  for (let i = 0; i < OFFICE_PROMPT_COUNT; i++) {
+    const order = officeOrderAt(i);
+    assert.deepEqual(order.input.split(','), [order.id, order.date, order.product, String(order.quantity), String(order.price)]);
+    assert.match(order.sourceDate, /^2026年\d{1,2}月\d{1,2}日$/);
+    assert.match(order.date, /^2026-\d{2}-\d{2}$/);
+    targets.add(order.input);
+  }
+  assert.equal(targets.size, OFFICE_PROMPT_COUNT);
+  const s = createState(), text = currentPrompt(s);
+  assert.equal(text, officeOrderAt(0).input);
+  acceptCharacter(s, text[0]);
+  s.typing.language = 'rust';
+  assert.equal(currentPrompt(s), text); assert.equal(s.typing.offset, 1);
+  s.mode = 'study';
+  assert.equal(currentPrompt(s), promptAt('rust', 'syntax', 0));
+  assert.equal(s.typing.offset, 0);
 });
 test('a perfect prompt pays 1.5 times the equivalent click work including its completion bonus', () => {
   const s = createState(), text = currentPrompt(s), cash = s.cash;
