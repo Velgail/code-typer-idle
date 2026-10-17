@@ -1,7 +1,7 @@
 import { courseUnit, courseLesson, currentCourseUnit, nextCourseUnit, validCourseId, coursesLoaded } from './courses.js';
 // Versioned curricula keep an unfinished pre-update exercise stable.
 // English ASCII prompts keep programming practice independent of an IME.
-import { CURRICULUM_VERSION, BASE_LESSON_COUNT, LESSON_COUNT, lessonAt } from './curriculum.js';
+import { CURRICULUM_VERSION, BASE_LESSON_COUNT, LESSON_COUNT, lessonAt, localeForComments } from './curriculum.js';
 import { OFFICE_DATA_VERSION, officeOrderAt } from './office.js';
 export const LANGUAGES = [
   { id: 'cpp', name: 'C++', extension: 'cpp', description: 'ゲームエンジン、描画、メモリ管理' },
@@ -244,14 +244,13 @@ export function promptAt(language, subject, index, version = CURRICULUM_VERSION)
   return pool[number % pool.length].replace(/\$(\w+)\$/g, (_, key) => data[key]);
 }
 export function createTypingState() {
-  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, lastCourseComments: '', courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
 }
 export function normalizeTypingState(value) {
   const s = createTypingState();
   if (!value || typeof value !== 'object') return s;
   s.curriculumVersion = value.curriculumVersion === CURRICULUM_VERSION ? CURRICULUM_VERSION : 1;
   if (value.source === 'course') s.source = 'course';
-  if (validCourseId(value.lastCourseComments)) s.lastCourseComments=value.lastCourseComments;
   if (validCourseId(value.courseUnit)) s.courseUnit = value.courseUnit;
   if (Array.isArray(value.courseCompleted)) s.courseCompleted = [...new Set(value.courseCompleted.filter(id=>typeof id==='string' && /^[a-f0-9]{16}$/.test(id)))].slice(-12000);
   for(const language of LANGUAGES)for(const subject of SUBJECT_IDS){
@@ -309,6 +308,36 @@ export function typingCommentProgress(state) {
   }
   return { lesson, comments: [...completed.values()].sort((a, b) => a.end - b.end) };
 }
+function translatedComment(comment, prompt) {
+  const before=prompt.slice(prompt.lastIndexOf('\n',comment.start-1)+1,comment.start);
+  const indent=before.match(/^[\t ]*/)[0], ja=comment.ja;
+  const lua=comment.en.match(/^--\[(=*)\[/);
+  if(lua)return `${lua[0]} ${ja.replaceAll('\n',`\n${indent}`)} ]${lua[1]}]`;
+  const block=comment.en.match(/^\/\*+[!]?/);
+  if(block)return `${block[0]} ${ja.replaceAll('\n',`\n${indent}`)} */`;
+  const docstring=comment.en.match(/^(?:[rubf]{0,2})("""|''')/i);
+  if(docstring)return `${docstring[0]}${ja.replaceAll('\n',`\n${indent}`)}${docstring[1]}`;
+  const line=comment.en.match(/^(\/\/[/!]?|--|#)[\t ]*/);
+  if(line)return `${line[0]}${ja.replaceAll('\n',`\n${indent}${line[0]}`)}`;
+  // Native lessons store only the English body, with the marker outside the span.
+  return ja.replaceAll('\n',`\n${before}`);
+}
+// Only the displayed, accepted prefix is translated. Input validation, saved
+// offsets, rewards and the remaining target always use the English source.
+export function typingCodeView(state) {
+  const prompt=currentPrompt(state), t=state.typing;
+  const offset=state.inputStyle==='typing'?t.offset:prompt.length?Math.floor(state.stats.manual%prompt.length):0;
+  const comments=localeForComments(state.settings.commentLocale)==='ja'?typingCommentProgress(state).comments:[];
+  const typed=[];let position=0;
+  for(const comment of comments){
+    if(!comment.ja || comment.start<position || comment.end>offset)continue;
+    if(comment.start>position)typed.push({text:prompt.slice(position,comment.start),translated:false});
+    typed.push({text:translatedComment(comment,prompt),translated:true});position=comment.end;
+  }
+  typed.push({text:prompt.slice(position,offset),translated:false});
+  const next=offset<prompt.length?String.fromCodePoint(prompt.codePointAt(offset)):'';
+  return {prompt,offset,typed,next,pending:prompt.slice(offset+next.length)};
+}
 // This function accepts one actual character, never an arbitrary key or a paste.
 // Economy rewards are applied by the caller only after this validation succeeds.
 export function acceptCharacter(state, character, basePower = 1) {
@@ -326,7 +355,6 @@ export function acceptCharacter(state, character, basePower = 1) {
   const bonus = t.bonusBase * typingCompletionMultiplier(state.mode) * accuracy ** 2;
   if (state.mode === 'study' && t.source === 'course' && courseUnit(t.courseUnit)) {
     t.lastCompleted = {version:CURRICULUM_VERSION,courseUnit:t.courseUnit};
-    if(courseUnit(t.courseUnit).comments.length)t.lastCourseComments=t.courseUnit;
     if (!t.courseCompleted.includes(courseUnit(t.courseUnit).key)) t.courseCompleted.push(courseUnit(t.courseUnit).key);
     const finished=courseUnit(t.courseUnit), next=nextCourseUnit(finished);
     t.courseUnit = next.id;

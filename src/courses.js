@@ -8,7 +8,7 @@ export function installCourses(data) {
   lookup = new Map(Object.entries(data).flatMap(([language,track])=>track.units.map((unit,index)=>[unit.id,{...unit,index,language}])));
 }
 export function needsLegacyCourses(state) {
-  const refs=[state.typing.courseUnit,state.typing.lastCompleted?.courseUnit,state.typing.lastCourseComments,...Object.values(state.typing.courseCursors).map(c=>c.id)];
+  const refs=[state.typing.courseUnit,state.typing.lastCompleted?.courseUnit,...Object.values(state.typing.courseCursors).map(c=>c.id)];
   return refs.some(id=>id && !lookup.has(id) && archive?.[id.split('/')[0]]?.legacyTargets?.[id]);
 }
 export function installLegacyCourses(data) {

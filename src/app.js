@@ -8,7 +8,7 @@ import {
   serialize, deserialize, checkAchievements, log
 } from './core.js';
 import { CURRICULUM_VERSION, lessonAt, questionFor, localeForComments } from './curriculum.js';
-import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, acceptCharacter, typingCommentProgress } from './typing.js';
+import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, acceptCharacter, typingCodeView } from './typing.js';
 import { watchForUpdates } from './updates.js';
 import { officeOrderAt, drawOfficeSource } from './office.js';
 import { learningGuide } from './learningguide.js';
@@ -152,7 +152,7 @@ function showCatalog() {
   showModal('公開したゲーム', state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${p.active === false ? '公開停止中' : p.royalty ? `売上 ${yen(p.royalty)} / 秒・受取 ${yen(p.royalty * (1 - STORE_FEE_RATE))} / 秒` : '無料公開'} · 品質 ${p.quality} / 100</p>${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${p.index}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button>` : ''}</div>`).join(''));
 }
 function settings() {
-  showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>コメントの表示言語</b><small>英語コメントを1つ打ち終えるたびに表示。読解では解答後に表示</small></div><select id="comment-locale-setting" aria-label="コメントの表示言語"><option value="ja" ${state.settings.commentLocale === 'ja' ? 'selected' : ''}>日本語</option><option value="en" ${state.settings.commentLocale === 'en' ? 'selected' : ''}>English</option></select></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、自動処理・売上・サーバー代の発生を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">コード資産を含むすべての進行が対象です。資産を引き継ぐ再出発はロードマップから。</p>`);
+  showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>コメントの表示言語</b><small>入力済みの英語コメントをコード内で置換。読解では解答後に表示</small></div><select id="comment-locale-setting" aria-label="コメントの表示言語"><option value="ja" ${state.settings.commentLocale === 'ja' ? 'selected' : ''}>日本語</option><option value="en" ${state.settings.commentLocale === 'en' ? 'selected' : ''}>English</option></select></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、自動処理・売上・サーバー代の発生を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">コード資産を含むすべての進行が対象です。資産を引き継ぐ再出発はロードマップから。</p>`);
 }
 function switchView(next) {
   view = next;
@@ -236,7 +236,7 @@ function renderShop() {
   });
 }
 function renderEditor() {
-  const prompt = currentPrompt(state), t = state.typing;
+  const code = typingCodeView(state), {prompt,offset}=code, t = state.typing;
   const office = state.mode === 'work';
   const studyLocked = state.mode === 'study' && !hasTextbook(state);
   const courseEmpty = state.mode==='study' && state.typing.source==='course' && !courseUnit(state.typing.courseUnit);
@@ -248,8 +248,7 @@ function renderEditor() {
     if (lastOfficeOrder !== order.input) { drawOfficeSource($('office-image'), order); lastOfficeOrder = order.input; }
   }
   const typing = state.inputStyle === 'typing';
-  const offset = typing ? t.offset : Math.floor(state.stats.manual % prompt.length);
-  const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}/${studyLocked}/${t.courseUnit}/${courseEmpty}`;
+  const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}/${studyLocked}/${t.courseUnit}/${courseEmpty}/${state.settings.commentLocale}`;
   const context = `${t.context}/${t.language}/${t.index}/${t.source}/${t.courseUnit}`;
   if (!composing && inputContext !== context) {
     inputContext = context;
@@ -269,14 +268,14 @@ function renderEditor() {
   if (lastEditorKey !== key) {
     lastEditorKey = key;
     $('editor-content').dataset.prompt = studyLocked || courseEmpty ? '' : prompt;
-    $('editor-content').innerHTML = courseEmpty ? '<p class="panel-note">演習一覧から入力する題材を選んでください。</p>' : studyLocked ? '<p class="panel-note">この分野の教材を購入すると、学習用コードが表示されます。</p>' : office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${esc(prompt.slice(0, offset))}</span><mark class="next-character">${prompt[offset] === '\n' ? '↵\n' : esc(prompt[offset] || ' ')}</mark><span class="pending-code">${esc(prompt.slice(offset + 1))}</span></pre>`;
+    $('editor-content').innerHTML = courseEmpty ? '<p class="panel-note">演習一覧から入力する題材を選んでください。</p>' : studyLocked ? '<p class="panel-note">この分野の教材を購入すると、学習用コードが表示されます。</p>' : office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${code.typed.map(part=>part.translated?`<span class="translated-comment" lang="ja">${esc(part.text)}</span>`:esc(part.text)).join('')}</span><mark class="next-character">${code.next === '\n' ? '↵\n' : esc(code.next || ' ')}</mark><span class="pending-code">${esc(code.pending)}</span></pre>`;
     const mark = $('editor-content').querySelector('mark');
     if (typing && mark) {
       const y = mark.offsetTop;
       if (y < $('editor-content').scrollTop || y > $('editor-content').scrollTop + 200) $('editor-content').scrollTop = Math.max(0, y - 100);
     }
   }
-  const prefix = prompt.slice(0, offset).split('\n');
+  const prefix = code.typed.map(part=>part.text).join('').split('\n');
   $('editor-cursor').textContent = `Ln ${prefix.length}, Col ${prefix.at(-1).length + 1}`;
   const field = ['伝票番号', '日付', '品名', '数量', '単価'][prompt.slice(0, t.offset).split(',').length - 1];
   $('editor-status').textContent = studyLocked ? '教材待ち' : office ? `入力中：${field}` : 'CODE';
@@ -285,9 +284,9 @@ function renderEditor() {
   $('typing-completed').textContent = `完入力 ${t.completed}問`;
 }
 function renderTask() {
-  const field = $('typing-input'), commentPanel = $('typing-comment-notes');
-  const previousNotes = commentPanel.innerHTML, notesHidden = commentPanel.classList.contains('hidden');
+  const field = $('typing-input');
   const previousGuide = $('learning-guide').innerHTML;
+  const previousCodeHeight = $('editor-content').offsetHeight;
   const fieldRect = document.activeElement === field ? field.getBoundingClientRect() : null;
   const viewportTop = window.visualViewport?.offsetTop || 0;
   const viewportBottom = viewportTop + (window.visualViewport?.height || innerHeight);
@@ -348,7 +347,7 @@ function renderTask() {
     $('refactor-button').classList.toggle('active', state.refactor);
   }
   renderEditor(); renderLearning(); renderReadiness(); renderCourse();
-  if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousNotes !== commentPanel.innerHTML || notesHidden !== commentPanel.classList.contains('hidden'))) {
+  if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousCodeHeight !== $('editor-content').offsetHeight)) {
     const rect = field.getBoundingClientRect();
     if (rect.top < viewportTop || rect.bottom > viewportBottom + 1) field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
   }
@@ -361,27 +360,12 @@ function renderLearning() {
   const reading = state.mode === 'study' && state.studyStyle === 'reading', locked = state.mode === 'study' && !hasTextbook(state);
   $('reading-panel').classList.toggle('hidden', !reading || locked);
   const last = state.typing.lastCompleted;
-  const lastLesson = last ? last.courseUnit ? courseLesson(state.typing.lastCourseComments || last.courseUnit) : lessonAt(last.language, last.subject, last.index) : null;
-  const progress = !locked ? typingCommentProgress(state) : { lesson: null, comments: [] };
-  const commentLesson = progress.comments.length ? progress.lesson : lastLesson;
-  const comments = progress.comments.length ? progress.comments : lastLesson?.comments || [];
-  const showComments = state.inputStyle === 'typing' && state.mode !== 'work' && !reading && !locked && comments.length > 0;
-  $('typing-comment-notes').classList.toggle('hidden', !showComments);
-  if (showComments) {
-    const locale = localeForComments(state.settings.commentLocale);
-    const notes = `<h3>${locale === 'ja' ? 'コメントの対訳' : '入力したコメント'} <small>${esc(LANGUAGES.find(l=>l.id===commentLesson.language)?.name || '')} / ${esc(commentLesson.title || '')}</small></h3>${comments.map(c=>`<p lang="${locale}">${esc(c[locale] || c.en)}</p>`).join('')}`;
-    if ($('typing-comment-notes').innerHTML !== notes) {
-      const panel = $('typing-comment-notes');
-      panel.innerHTML = notes;
-      const latest = panel.querySelector('p:last-child');
-      panel.scrollTop = Math.max(0, latest.getBoundingClientRect().top - panel.getBoundingClientRect().top + panel.scrollTop - 8);
-    }
-  }
+  const lastLesson = last ? last.courseUnit ? courseLesson(last.courseUnit) : lessonAt(last.language, last.subject, last.index) : null;
   $('completed-notes').classList.toggle('hidden', !last || state.mode === 'work' || reading);
   if (last) {
     const lesson = lastLesson;
     if (!lesson) return;
-    const notes = `<h3>入力を終えたコード：${esc(LANGUAGES.find(l=>l.id===lesson.language)?.name || '')} / ${esc(lesson.title)}</h3>${state.inputStyle === 'typing' ? '' : commentNotes(lesson)}${last.courseUnit ? '<p class="panel-note">参考実装の入力区間を完了。実行結果は未収録です。</p>' : `<div class="execution-result"><h4>教材の実行結果</h4>${lesson.language==='sql'?'':`<p>呼び出し：<code>${esc(questionFor(lesson).prompt.replace(' の戻り値は？',''))}</code></p>`}<p>${lesson.language==='sql'?'問い合わせ結果':'戻り値'}：<output>${lesson.answer}</output></p><pre class="reading-trace">${esc(lesson.explanation)}</pre></div>`}`;
+    const notes = `<h3>入力を終えたコード：${esc(LANGUAGES.find(l=>l.id===lesson.language)?.name || '')} / ${esc(lesson.title)}</h3>${last.courseUnit ? '<p class="panel-note">参考実装の入力区間を完了。実行結果は未収録です。</p>' : `<div class="execution-result"><h4>教材の実行結果</h4>${lesson.language==='sql'?'':`<p>呼び出し：<code>${esc(questionFor(lesson).prompt.replace(' の戻り値は？',''))}</code></p>`}<p>${lesson.language==='sql'?'問い合わせ結果':'戻り値'}：<output>${lesson.answer}</output></p><pre class="reading-trace">${esc(lesson.explanation)}</pre></div>`}`;
     if ($('completed-notes').innerHTML !== notes) $('completed-notes').innerHTML = notes;
   }
   const t = state.typing;
