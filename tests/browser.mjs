@@ -262,7 +262,7 @@ try {
   assert.equal(await seeded.locator('#completed-notes').isVisible(), true);
   const completedLesson = lessonAt('cpp', 'syntax', 0);
   assert.match(await seeded.locator('#completed-notes').textContent(), new RegExp(completedLesson.title));
-  assert.ok((await seeded.locator('#typing-comment-notes').textContent()).includes(completedLesson.comments[0].ja));
+  assert.equal(await seeded.locator('#editor-content .translated-comment').count(),0,'completing a prompt clears its inline translations');
   assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'completion notes must not take typing focus');
   const nextStudyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
   await seeded.keyboard.type(nextStudyPrompt.slice(0, 12));
@@ -273,9 +273,9 @@ try {
   await seeded.locator('#settings-button').click();
   await seeded.locator('#motion-setting').check();
   await seeded.locator('#comment-locale-setting').selectOption('en');
-  assert.equal(await seeded.locator('#typing-comment-notes [lang=ja]').count(), 0);
+  assert.equal(await seeded.locator('#editor-content .translated-comment').count(), 0);
   await seeded.locator('#comment-locale-setting').selectOption('ja');
-  assert.equal(await seeded.locator('#typing-comment-notes [lang=ja]').count(), 2);
+  assert.equal(await seeded.locator('#editor-content .translated-comment').count(), 0);
   const [download] = await Promise.all([seeded.waitForEvent('download'), seeded.locator('[data-action=export]').click()]);
   assert.match(download.suggestedFilename(), /^code-typer-idle-day\d+\.json$/);
   await seeded.locator('#modal-close').click();
@@ -454,7 +454,7 @@ try {
     assert.ok(saved.typing.courseCompleted.length>=1,language);
     assert.match(await coursePage.locator('#completed-notes').textContent(),/実行結果は未収録/);
     if(language==='python'){
-      const e=COURSE.python.exercises.find(e=>e.slug==='guidos-gorgeous-lasagna');const u=e.units.map(i=>COURSE.python.units[i]).find(u=>u.comments.some(c=>c.ja.includes('残りの焼き時間')));await coursePage.locator('#course-unit').selectOption(u.id);await enter();assert.ok((await coursePage.locator('#typing-comment-notes').textContent()).includes('残りの焼き時間'));
+      const e=COURSE.python.exercises.find(e=>e.slug==='guidos-gorgeous-lasagna');const u=e.units.map(i=>COURSE.python.units[i]).find(u=>u.comments.some(c=>c.ja.includes('残りの焼き時間')));await coursePage.locator('#course-unit').selectOption(u.id);await enter();assert.equal(await coursePage.locator('#editor-content .translated-comment').count(),0);
     }
     if(language==='cpp'){
       await coursePage.locator('#course-exercise').selectOption('1');
