@@ -2871,6 +2871,8 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 }
 
 .business-panel { margin-bottom: 20px; padding: 16px 20px; }
+.business-panel summary { cursor: pointer; font-size: 12px; color: var(--muted); }
+.business-panel summary b { color: var(--text); }
 .business-panel p { margin: 6px 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 .business-panel small { font-size: 11px; line-height: 1.7; color: var(--green); }
 #update-banner { gap: 14px; flex-wrap: wrap; }
@@ -2879,3 +2881,11 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .office-source h3 { font-size: 12px; margin: 0 0 12px; }
 .office-source canvas { display: block; width: 100%; height: auto; max-width: 440px; border-radius: 3px; }
 .office-source p, .office-source small { display: block; font-size: 11px; line-height: 1.7; color: var(--muted); margin: 8px 0 0; overflow-wrap: anywhere; }
+#quick-actions:not(:empty) { margin-bottom: 20px; }
+.job-progress { margin-top: 16px; }
+.job-progress > div { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font: 11px var(--mono); }
+.job-progress strong { color: var(--green); font-weight: 400; }
+.job-progress progress { display: block; width: 100%; height: 6px; margin-top: 8px; border: 0; border-radius: 3px; overflow: hidden; background: var(--border); accent-color: var(--green); }
+.job-progress progress::-webkit-progress-bar { background: var(--border); }
+.job-progress progress::-webkit-progress-value { background: var(--green); }
+.job-progress progress::-moz-progress-bar { background: var(--green); }

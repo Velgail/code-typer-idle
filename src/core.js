@@ -1,7 +1,7 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { createTypingState, normalizeTypingState } from './typing.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 4;
+export const BALANCE_VERSION = 5;
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;

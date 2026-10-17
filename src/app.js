@@ -5,7 +5,7 @@ import {
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
   serialize, deserialize, checkAchievements, log
 } from './core.js';
-import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, currentPrompt, acceptCharacter } from './typing.js';
+import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, acceptCharacter } from './typing.js';
 import { PACING_REPORT } from './pacing.js';
 import { watchForUpdates } from './updates.js';
 import { officeOrderAt, drawOfficeSource } from './office.js';
@@ -125,7 +125,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、事業を支える</b>日銭ワークは100作業量ごとに納品して入金。初期は1件¥100です。実時間1時間でゲーム内1日。序盤は実家で制作し、事業費は電力・通信等の¥600/日だけ。有料発売で独立し、規模に応じた維持費と事務所代が発生します。事務所代は所持金から別途積み立て、30日ごとに精算。内訳と次の費用はメイン画面で確認できます。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。各分野の教材を購入すると学習できます。教材のない分野は手動でも研究ラボでも学習できません。理解度が上がるほど、次の1ポイントには多くの学習が必要です。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、またはコードタイピング。日銭は原票画像を読み、指定のCSV形式で入力します。学習・開発は表示されたコードを入力します。正解文字は×1.25、誤入力なしの完入力で合計×1.5の報酬。作業の切替は画面のタブを使います。Escで入力欄を離れられます。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。研究ラボは教材のある不足分野を優先します。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
+  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、事業を支える</b>日銭ワークは100作業量ごとに納品して入金。初期は1件¥100です。実時間1時間でゲーム内1日。序盤は実家で制作し、事業費は電力・通信等の¥600/日だけ。有料発売で独立し、規模に応じた維持費と事務所代が発生します。事務所代は所持金から別途積み立て、30日ごとに精算。内訳と次の費用はメイン画面で確認できます。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。各分野の教材を購入すると学習できます。教材のない分野は手動でも研究ラボでも学習できません。理解度が上がるほど、次の1ポイントには多くの学習が必要です。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、またはコードタイピング。日銭は原票画像を読み、指定のCSV形式で入力します。学習・開発は表示されたコードを入力します。正解文字は×1.5。誤入力なしの完入力で、原票入力は合計×2.25、コード入力は合計×2の報酬。作業の切替は画面のタブを使います。コード入力中のTabは空白4文字です。Shift+TabまたはEscで入力欄を離れられます。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。研究ラボは教材のある不足分野を優先します。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
 }
 function settings() {
   showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、事業維持費と自動処理を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">コード資産を含むすべての進行が対象です。資産を引き継ぐ再出発はロードマップから。</p>`);
@@ -218,8 +218,8 @@ function renderEditor() {
   $('editor-content').setAttribute('aria-label', office ? 'CSV入力結果' : '出題コード');
   $('office-source').classList.toggle('hidden', !office);
   if (office) {
-    const order = officeOrderAt(t.index);
-    if (lastOfficeOrder !== order.id) { drawOfficeSource($('office-image'), order); lastOfficeOrder = order.id; }
+    const order = officeOrderAt(t.index, t.officeVersion);
+    if (lastOfficeOrder !== order.input) { drawOfficeSource($('office-image'), order); lastOfficeOrder = order.input; }
   }
   const typing = state.inputStyle === 'typing';
   const offset = typing ? t.offset : Math.floor(state.stats.manual % prompt.length);
@@ -261,6 +261,12 @@ function renderTask() {
   const typing = state.inputStyle === 'typing';
   const language = LANGUAGES.find(l => l.id === state.typing.language);
   const power = handPower(state) * (typing ? TYPING_REWARD.character : 1);
+  const actionSlot = $(typing ? 'typing-actions' : 'quick-actions');
+  if ($('manual-actions').parentElement !== actionSlot) actionSlot.append($('manual-actions'));
+  $('job-progress').classList.toggle('hidden', mode !== 'work');
+  $('job-progress-bar').value = state.job.progress;
+  $('job-progress-label').textContent = `${format(state.job.progress, 2)} / ${JOB_SIZE} 作業量`;
+  $('job-payment').textContent = `納品で ${yen(JOB_SIZE * (state.job.progress ? state.job.rate : workRate(state)))}`;
   document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-selected', b.dataset.mode === mode); });
   document.querySelectorAll('[data-input-style]').forEach(b => { b.classList.toggle('active', b.dataset.inputStyle === state.inputStyle); b.setAttribute('aria-pressed', b.dataset.inputStyle === state.inputStyle); });
   $('language-select').value = language.id;
@@ -276,7 +282,7 @@ function renderTask() {
   $('study-lock').classList.toggle('hidden', !studyLocked);
   $('study-lock-message').textContent = `学習には「${textbook.name}」（${yen(itemCost(state, textbook))}）が必要です。日銭ワークで資金を貯めて購入してください。`;
   const task = {
-    work: ['OFFICE WORK', '伝票画像のデータ化', `紙の原票を読み取り、CSV形式へ整える事務作業です。開発知識は増えません。${JOB_SIZE}作業量ごとに精算。現在 ${format(state.job.progress, 2)} / ${JOB_SIZE}、納品報酬 ${yen(JOB_SIZE * (state.job.progress ? state.job.rate : workRate(state)))}。途中進捗は保存されます。`, '事務作業中', 'invoices', '働く', `+${format(power, 2)} 作業量`],
+    work: ['OFFICE WORK', '伝票画像のデータ化', `紙の原票を読み取り、CSV形式へ整えます。${JOB_SIZE}作業量ごとにまとめて納品。`, '事務作業中', 'invoices', '働く', `+${format(power, 2)} 作業量`],
     study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (studyLocked ? ' まず、この分野の教材を購入してください。' : ' 購入した教材で学習します。'), studyLocked ? '教材が必要' : '教材で学習中', lesson.file, '学ぶ', studyLocked ? '学習不可' : `+${studyGain(state, power).toLocaleString('en-US', { maximumFractionDigits: 5 })} K`],
     dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド崩壊' : state.refactor ? '負債を修復中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main', state.refactor ? '修復' : '開発', state.refactor ? ratio >= 1 ? `−${format(Math.min(state.debt, power * (1 + ratio) * 2))} debt` : '先に学習が必要' : state.crashed ? 'ビルド崩壊' : `+${format(Math.min(p.target - state.progress, 1e250, power * validity(state) * abstraction(state) * (ratio >= 1 ? ideMultiplier(state) : 1) * (1 - state.debt / debtLimit(state) * .8)))} chars`]
   }[mode];
@@ -287,9 +293,9 @@ function renderTask() {
   $('editor-language').textContent = mode === 'work' ? 'CSV' : language.name;
   $('type-button').disabled = blocked || paused || studyLocked;
   $('type-label').textContent = studyLocked ? '教材を購入すると学習できます' : paused ? '一時停止中' : typing ? mode === 'work' ? '伝票入力を始める' : 'コード入力を始める' : `クリックして${task[5]}`;
-  $('type-hint').textContent = studyLocked ? `${textbook.name} · ${yen(itemCost(state, textbook))}` : paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : 'タイピングなら完入力で最大×1.5';
+  $('type-hint').textContent = studyLocked ? `${textbook.name} · ${yen(itemCost(state, textbook))}` : paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : `タイピングなら完入力で最大×${TYPING_REWARD.character + typingCompletionMultiplier(mode)}`;
   $('output-rate').innerHTML = `${esc(task[6])} <small>/ ${typing ? '正解文字' : 'クリック'}</small>`;
-  $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : typing ? '正解×1.25 ＋ 完入力ボーナス' : 'このクリックで得られるもの';
+  $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : typing ? `正解×${TYPING_REWARD.character} ＋ 完入力ボーナス` : 'このクリックで得られるもの';
   $('typing-instructions').textContent = mode === 'work' ? '伝票番号 → 日付 → 品名 → 数量 → 単価' : 'ハイライトされた文字から入力';
   $('subject-picker').querySelectorAll('[data-subject]').forEach(b => { b.classList.toggle('active', b.dataset.subject === state.subject); b.setAttribute('aria-pressed', b.dataset.subject === state.subject); });
   if (mode === 'dev') {
@@ -483,6 +489,15 @@ $('typing-input').addEventListener('focus', () => {
 $('typing-input').addEventListener('paste', event => { event.preventDefault(); $('input-feedback').textContent = '文字を入力してください。'; });
 $('typing-input').addEventListener('drop', event => event.preventDefault());
 $('typing-input').addEventListener('keydown', event => {
+  if (event.key === 'Tab' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && !composing && !event.isComposing && state.mode !== 'work') {
+    event.preventDefault();
+    if (!event.repeat) {
+      const field = $('typing-input');
+      field.setRangeText('    ', field.selectionStart, field.selectionEnd, 'end');
+      processTypingInput();
+    }
+    return;
+  }
   if (event.repeat && event.key.length === 1) event.preventDefault();
   if (event.key === 'Escape' && !composing && !event.isComposing) { event.preventDefault(); $('typing-input').blur(); }
 });
@@ -535,7 +550,7 @@ function handleAction(action) {
     state = fresh; invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast(`再出発しました。すべての入力と自動化が ×${metaBonus(state).toFixed(2)} に。`);
   }
 }
-function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; dirty = true; lastFrame = performance.now(); }
+function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; inputContext = ''; lastOfficeOrder = ''; composing = false; dirty = true; lastFrame = performance.now(); }
 $('import-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file || blocked) return;

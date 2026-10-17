@@ -37,6 +37,8 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   await page.goto(url);
   await page.waitForSelector('.buy-button');
+  const firstButton = await page.locator('#type-button').boundingBox();
+  assert.ok(firstButton.y >= 0 && firstButton.y + firstButton.height <= 1100, 'a new player must be able to start working in the first desktop viewport');
   assert.match(await page.title(), /Code Typer Idle/);
   assert.equal(await page.getByText('ここで使うのは、ゲーム内のお金だけ。', { exact: true }).count(), 0);
   assert.equal(await page.locator('.local-tag').count(), 0);
@@ -105,8 +107,10 @@ try {
   assert.equal(saved.typing.correct, prompt.length);
   assert.equal(saved.typing.errors, 1);
   const workValue = saved.cash + saved.job.progress * saved.job.rate;
-  assert.ok(workValue > 101 + prompt.length * 1.25);
-  assert.ok(workValue < 101 + prompt.length * 1.5, 'a mistake reduces the completion bonus');
+  assert.ok(workValue > 101 + prompt.length * 1.5);
+  assert.ok(workValue < 101 + prompt.length * 2.25, 'a mistake reduces the completion bonus');
+  assert.ok(Math.abs(await page.locator('#job-progress-bar').evaluate(el => el.value) - saved.job.progress) < 0.01, 'the progress beside the input must show the work still awaiting delivery');
+  assert.match(await page.locator('#job-payment').textContent(), /¥100/);
   assert.equal(saved.mode, 'work', 'digits within a prompt must not trigger mode shortcuts');
   // Holding a correct key advances once; repeated keydown is rejected.
   const secondPrompt = await page.locator('#editor-content').getAttribute('data-prompt');
@@ -208,9 +212,19 @@ try {
   assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true);
   const studyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
   const studyLines = studyPrompt.split('\n');
+  let checkedIndentExit = false;
   for (let line = 0; line < studyLines.length; line++) {
     if (line) await seeded.keyboard.press('Enter');
-    await seeded.keyboard.type(studyLines[line]);
+    const indent = studyLines[line].match(/^ */)[0].length;
+    for (let space = 0; space + 4 <= indent; space += 4) await seeded.keyboard.press('Tab');
+    assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'code indentation must keep focus in the editor');
+    if (indent >= 4 && !checkedIndentExit) {
+      await seeded.keyboard.press('Shift+Tab');
+      assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), false, 'Shift+Tab must let keyboard users leave the editor');
+      await seeded.locator('#typing-input').click();
+      checkedIndentExit = true;
+    }
+    await seeded.keyboard.type(studyLines[line].slice(indent - indent % 4));
   }
   assert.match(await seeded.locator('#typing-completed').textContent(), /1問/);
   const nextStudyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
