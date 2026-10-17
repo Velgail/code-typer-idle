@@ -155,7 +155,7 @@ export async function verifyEarlyGameUI(browser, url, errors) {
     assert.match(message, /次の依頼は100作業量で\s*¥200/);
     assert.match(message, /自作ライブラリと研究ラボが解禁/);
     assert.match(message, /進行中の案件は受注時の単価で納品/);
-    await page.locator('[data-action=close]').click();
+    await page.locator('[data-action=next-project]').click();
     await page.locator('[data-mode=work]').click();
     assert.match(await page.locator('#job-payment').innerText(), /¥100/, 'the existing half-finished contract keeps its original payment');
   } finally { await release.context.close(); }
