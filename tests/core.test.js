@@ -111,7 +111,7 @@ test('bankruptcy from an unpaid server bill is recoverable after stopping public
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
   const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1; s.items['book-syntax'] = 1;
-  tick(s, 2); assert.equal(s.job.progress, .5); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
+  tick(s, 2); assert.equal(s.job.progress, 20); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
   s.autoEnabled = false;
   const progress = s.progress, knowledge = s.skills.syntax, work = s.job.progress;
   tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.job.progress > work);
@@ -177,7 +177,7 @@ test('a fresh player can fund books and finish the first game without injected r
   const result = simulate(SCENARIOS[0], { horizon: 3600, stopAfter: 1 });
   assert.equal(result.reached, 1);
   assert.ok(result.milestones[0].seconds > 20 * 60 && result.milestones[0].seconds < 60 * 60);
-  assert.ok(result.purchases['book-syntax'] >= 5 * 60);
+  assert.ok(result.purchases['book-syntax'] >= 4 * 60);
 });
 
 test('learning takes sustained work and slows as knowledge increases', () => {
@@ -194,10 +194,23 @@ test('learning takes sustained work and slows as knowledge increases', () => {
 });
 test('the first local macro earns its work income without an unrelated daily charge', () => {
   const s = createState(); s.items.macro = 1;
-  assert.equal(unitRate(s, 'macro'), .25);
+  assert.equal(unitRate(s, 'macro'), 10);
   const cash = s.cash; tick(s, 1800);
-  assert.equal(s.cash - cash, 400); assert.equal(s.job.progress, 50);
-  assert.equal(netIncome(s), .25);
+  assert.equal(s.cash - cash, 18000); assert.equal(s.job.progress, 0);
+  assert.equal(netIncome(s), 10);
+  s.items.macro = 2;
+  assert.equal(unitRate(s, 'macro'), 10.125);
+  s.items.macro = 3;
+  assert.equal(unitRate(s, 'macro'), 10.3125);
+});
+test('the OCR upgrade preserves saved funds, purchased levels and partly completed invoices', () => {
+  const s = createState(); s.balanceVersion = 8; s.cash = 4321; s.items.macro = 2; s.job = { progress: 37, rate: 1 };
+  const loaded = deserialize(serialize(s));
+  assert.equal(loaded.cash, 4321); assert.equal(loaded.items.macro, 2);
+  assert.deepEqual(loaded.job, { progress: 37, rate: 1 });
+  assert.equal(unitRate(loaded, 'macro'), 10.125);
+  tick(loaded, 4);
+  assert.equal(loaded.cash, 4321); assert.equal(loaded.job.progress, 77.5);
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';

@@ -211,10 +211,10 @@ function unlock() {
 
 function renderSkills() {
   const p = projectAt(state.projectIndex);
-  const key = JSON.stringify([state.skills, state.projectIndex]);
+  const key = JSON.stringify([state.skills, state.projectIndex,SKILLS.map(s=>level(state,`book-${s.id}`))]);
   if (key === lastSkillsKey) return;
   lastSkillsKey = key;
-  $('skills').innerHTML = SKILLS.map(s => {
+  $('skills').innerHTML = SKILLS.filter(s=>p.req[s.id] || state.skills[s.id] || level(state,`book-${s.id}`)).map(s => {
     const req = p.req[s.id] || 0, value = state.skills[s.id];
     return `<div class="skill"><div class="skill-top"><span class="skill-name"><span class="skill-number">${s.label}</span>${s.name}</span><span class="skill-value" style="color:${s.color}">${format(value)} <small>/ ${req ? format(req) : '—'}</small></span></div><div class="skill-track"><span style="background:${s.color};width:${req ? pct(value / req) : value ? 100 : 0}%"></span></div><div class="skill-foot"><span>${req ? value >= req ? '必要理解度を達成' : '現在の企画で必要' : 'この企画では要求なし'}</span><span>${req ? `${Math.floor(pct(value / req))}%` : ''}</span></div></div>`;
   }).join('');
@@ -227,7 +227,9 @@ function renderShop() {
     $('shop-intro').textContent = { books: '知識への投資は、ずっと使える。', gear: '道具が変わると、一文字の力が変わる。', auto: '任せるためには、理解が必要。' }[shopTab];
     $('shop-items').innerHTML = SHOP.filter(i => i.tab === shopTab).map(i => {
       const locked = state.projectIndex < i.gate;
-      return `<article class="shop-item ${locked ? 'locked' : ''}"><div class="shop-item-top"><span class="item-icon">${icon(i.glyph)}</span><div><h3>${i.name}</h3><span class="item-level">${locked ? `${i.gate}本公開で解禁` : `LEVEL ${String(level(state, i.id)).padStart(2, '0')}`}</span></div></div><p class="item-description">${i.desc}</p>${i.id === 'library' ? '<p id="library-reuse-note" class="item-description"></p>' : ''}<button class="buy-button" data-buy="${i.id}" ${locked ? 'disabled' : ''}><strong>${yen(itemCost(state, i))}</strong><span>購入する ＋</span></button></article>`;
+      const nextRate=i.id==='macro'?unitRate({...state,items:{...state.items,macro:level(state,'macro')+1}},'macro'):0;
+      const throughput=i.id==='macro'?`<p class="item-description">処理量 ${format(unitRate(state,'macro'),3)} → ${format(nextRate,3)} 作業量/秒</p>`:'';
+      return `<article class="shop-item ${locked ? 'locked' : ''}"><div class="shop-item-top"><span class="item-icon">${icon(i.glyph)}</span><div><h3>${i.name}</h3><span class="item-level">${locked ? `${i.gate}本公開で解禁` : `LEVEL ${String(level(state, i.id)).padStart(2, '0')}`}</span></div></div><p class="item-description">${i.desc}</p>${throughput}${i.id === 'library' ? '<p id="library-reuse-note" class="item-description"></p>' : ''}<button class="buy-button" data-buy="${i.id}" ${locked ? 'disabled' : ''}><strong>${yen(itemCost(state, i))}</strong><span>購入する ＋</span></button></article>`;
     }).join('');
     if (focusedItem) document.querySelector(`[data-buy="${focusedItem}"]`)?.focus({ preventScroll: true });
   }
@@ -277,21 +279,29 @@ function revealTypingInput(){
   if(document.activeElement!==field || field.hidden)return;
   positionTypingInput(true);
   const rect=field.getBoundingClientRect(),top=window.visualViewport?.offsetTop || 0,bottom=top+(window.visualViewport?.height || innerHeight);
-  if(rect.width && (rect.top<top || rect.bottom>bottom))field.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
+  document.documentElement.style.setProperty('--office-top',`${top+8}px`);
+  if(state.mode==='work'){
+    const source=$('office-source').getBoundingClientRect(),clearance=top+source.height+20;
+    if(rect.top<clearance)window.scrollBy({top:rect.top-clearance,behavior:'instant'});
+    else if(rect.bottom>bottom-8)window.scrollBy({top:rect.bottom-bottom+8,behavior:'instant'});
+  }else if(rect.width && (rect.top<top || rect.bottom>bottom))field.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
 }
 function renderEditor() {
   const code = typingCodeView(state), {prompt,offset}=code, t = state.typing;
   const office = state.mode === 'work';
   const studyLocked = state.mode === 'study' && !hasTextbook(state);
   const courseEmpty = state.mode==='study' && state.typing.source==='course' && !courseUnit(state.typing.courseUnit);
+  const typing = state.inputStyle === 'typing';
+  $('code-editor').classList.toggle('office-editor', office);
+  document.querySelector('.work-panel').classList.toggle('office-typing',office && typing);
   $('typing-input').setAttribute('aria-label', office ? '伝票データ入力' : 'コード入力');
   $('editor-content').setAttribute('aria-label', office ? 'CSV入力結果' : '出題コード');
   $('office-source').classList.toggle('hidden', !office);
   if (office) {
     const order = officeOrderAt(t.index, t.officeVersion);
-    if (lastOfficeOrder !== order.input) { drawOfficeSource($('office-image'), order); lastOfficeOrder = order.input; }
+    const sourceKey=`${order.input}/${typing}`;
+    if (lastOfficeOrder !== sourceKey) { drawOfficeSource($('office-image'), order,{compact:typing}); lastOfficeOrder = sourceKey; }
   }
-  const typing = state.inputStyle === 'typing';
   const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}/${studyLocked}/${t.courseUnit}/${courseEmpty}/${state.settings.commentLocale}`;
   const context = `${t.context}/${t.language}/${t.index}/${t.source}/${t.courseUnit}`;
   if (inputContext !== context) {
@@ -463,6 +473,7 @@ function renderLearningGuide(lesson) {
   if(panel.innerHTML!==html)panel.innerHTML=html;
 }
 function renderReadiness() {
+  $('development-readiness').classList.toggle('hidden',state.mode==='work' && !state.projectIndex && !level(state,'book-syntax'));
   const {stage, requirements} = developmentReadiness(state), project = projectAt(state.projectIndex);
   const message = stage === 'repair' ? knowledgeRatio(state) < 1 ? '先に不足分野を学び、レビュー・整理で不具合を修正しよう。' : 'ゲーム開発でレビュー・整理に切り替え、不具合を修正しよう。' : stage === 'complete' ? '制作は完了。ゲーム開発から作品を公開しよう。' : stage === 'ready' ? '必要な知識が揃った。ゲーム開発で制作を進めよう。' : stage === 'prototype' ? '試作はできる。学習不足のまま進めると不具合が増える。' : '制作には、まず必要な分野の学習を進めよう。';
   const html = `<div class="readiness-heading"><b>${esc(project.name)}</b><span class="readiness-progress">制作 ${format(state.progress)} / ${format(project.target)}文字</span><span>${esc(message)}</span></div><div class="readiness-skills">${requirements.map(r => `<span>${SKILLS.find(k=>k.id===r.id).short} <b>${format(r.current, 2)} / ${format(r.required)}</b>${r.missing > 0 ? ` <button class="text-button" data-learn="${r.id}" ${blocked ? 'disabled' : ''}>あと${format(r.missing, 2)}学ぶ →</button>` : ' ✓'}</span>`).join('')}${(stage !== 'learn' || state.progress > 0) && state.mode !== 'dev' ? `<button class="secondary-button" data-action="go-dev" ${blocked ? 'disabled' : ''}>ゲーム開発へ →</button>` : ''}</div>`;
@@ -492,6 +503,8 @@ function renderAssetsAndGoal() {
   if (state.assets) assets.push(`<div class="asset-row">${icon('layers')}<div>永続コード資産 ×${format(state.assets)}<small>入力と自動化に ×${metaBonus(state).toFixed(2)}</small></div></div>`);
   if (snippets) assets.push(`<div class="asset-row">${icon('code')}<div>汎用ライブラリ Lv.${snippets}<small>開発 ${format(unitRate(state, 'library'))} chars/s</small></div></div>`);
   $('code-assets').innerHTML = assets.length ? assets.join('') : `<div class="empty-state"><span class="empty-icon">${icon('layers')}</span><div><p>まだ、まっさら。</p><small>完成した経験を、次の力に。</small></div></div>`;
+  document.querySelector('.assets-panel').classList.toggle('hidden',!assets.length);
+  document.querySelector('.profile-panel').classList.toggle('hidden',!state.projectIndex && !state.assets);
   const catalogKey = JSON.stringify(state.catalog);
   if (catalogKey !== lastCatalogKey) {
     lastCatalogKey = catalogKey;
@@ -509,6 +522,24 @@ function renderAssetsAndGoal() {
   }
   $('next-goal').textContent = goal[0]; $('goal-desc').textContent = goal[1];
   $('goal-bar').style.width = `${pct(goal[2])}%`; $('goal-status').textContent = goal[3]; $('goal-percent').textContent = `${Math.floor(pct(goal[2]))}%`;
+  const action=$('goal-action');
+  let kind='dev',item='',label='ゲーム開発へ →',disabled=blocked || paused;
+  if(!level(state,'book-syntax')){kind='buy';item='book-syntax';label='教材を買う ¥1,500';disabled ||= state.cash<1500;}
+  else if(knowledgeRatio(state)<1){
+    const missing=Object.entries(projectAt(state.projectIndex).req).filter(([id,value])=>state.skills[id]<value).sort((a,b)=>state.skills[a[0]]/a[1]-state.skills[b[0]]/b[1])[0][0];
+    item=hasTextbook(state,missing)?missing:`book-${missing}`;
+    kind=hasTextbook(state,missing)?'study':'buy';
+    label=kind==='study'?`${SKILLS.find(s=>s.id===missing).short}を学ぶ →`:`${SHOP.find(s=>s.id===item).name} ${yen(itemCost(state,SHOP.find(s=>s.id===item)))}`;
+    if(kind==='buy')disabled ||= state.cash<itemCost(state,SHOP.find(s=>s.id===item));
+  }else if(developmentReadiness(state).stage==='complete'){kind='release';label='作品を公開 →';}
+  action.dataset.goalKind=kind;action.dataset.goalItem=item;
+  action.textContent=label;action.disabled=disabled;
+  $('goal-alternative').classList.toggle('hidden',!!level(state,'macro'));
+  const ocrCost=itemCost(state,SHOP.find(i=>i.id==='macro'));
+  const ocrRate=unitRate({...state,items:{...state.items,macro:1}},'macro');
+  const alternative=`OCRで自動化 ${yen(ocrCost)}<small>事務 ${format(ocrRate,2)} 作業量/秒</small>`;
+  if($('goal-alternative').innerHTML!==alternative)$('goal-alternative').innerHTML=alternative;
+  $('goal-alternative').disabled=blocked || paused || state.cash<ocrCost;
 }
 function renderRoadmap() {
   const indexes = [...PROJECTS.map((_, i) => i), ...new Set([7, Math.max(8, state.projectIndex), Math.max(9, state.projectIndex + 1)])];
@@ -521,6 +552,7 @@ function renderAchievements() {
   $('achievements-view').innerHTML = `<p class="view-intro">${state.achievements.length} / ${ACHIEVEMENTS.length} 個の実績を解除。実績は再出発後も引き継ぎます。</p><div class="achievement-grid">${ACHIEVEMENTS.map(a => { const done = state.achievements.includes(a.id); return `<article class="achievement-card ${done ? '' : 'locked'}"><span class="achievement-emblem">${icon(done ? 'award' : 'shield')}</span><div><h2>${a.name}</h2><p>${a.hint}</p><small>${done ? 'UNLOCKED ✓' : 'NOT YET'}</small></div></article>`; }).join('')}</div><div class="stats-grid"><div><span>総プレイ時間</span><b>${duration(state.stats.time)}</b></div><div><span>累計有効文字</span><b>${format(state.stats.valid)}</b></div><div><span>公開したゲーム</span><b>${format(state.stats.releases, 0)}</b></div><div><span>開発人生の周回数</span><b>${state.resets + 1}</b></div></div>`;
 }
 function render() {
+  $('next-milestone').classList.toggle('hidden',view!=='workspace');
   document.body.classList.toggle('reduce-motion', state.settings.reducedMotion);
   const ni = netIncome(state);
   $('cash').textContent = yen(state.cash);
@@ -529,6 +561,12 @@ function render() {
   $('finance-tag').textContent = ni > 0 ? '自動収支プラス' : ni < 0 ? '支払額が自動収入を超過' : '運転資金を貯めよう';
   $('finance-tag').style.color = ni >= 0 ? 'var(--green)' : '';
   const expenses = expenseLines(state), payments = expenses.reduce((sum, line) => sum + line.daily, 0);
+  $('living').closest('.resource').classList.toggle('hidden',!expenses.length && !state.dailyAccrued);
+  $('expense-panel').classList.toggle('hidden',!expenses.length && !state.dailyAccrued);
+  $('total-chars').closest('.resource').classList.toggle('hidden',!state.projectIndex);
+  $('royalty').closest('.resource').classList.toggle('hidden',!state.catalog.length);
+  document.querySelector('.resource-strip').dataset.count=document.querySelectorAll('.resource-strip>.resource:not(.hidden)').length;
+  document.querySelector('.automation-panel').classList.toggle('hidden',!state.projectIndex && !['macro','library','assistant','lab','engineer','cluster'].some(id=>level(state,id)));
   $('living').innerHTML = `${payments ? '−' : ''}${yen(payments)}<em> / 日</em>`;
   $('bill-next').textContent = operatingCost(state) || state.dailyAccrued ? `サーバー代精算まで ${duration(Math.ceil(DAY - state.dayElapsed))}` : royaltyRate(state) ? '販売手数料は売上時に精算' : '契約・支払いなし';
   $('expense-summary').textContent = payments ? `${yen(payments)} / 日` : state.dailyAccrued ? `本日精算予定 ${yen(state.dailyAccrued)}` : '支払いなし';
@@ -550,7 +588,7 @@ function render() {
   $('profile-releases').textContent = state.stats.releases; $('meta-bonus').textContent = `×${metaBonus(state).toFixed(2)}`;
   $('bankrupt-banner').classList.toggle('hidden', state.cash >= 0);
   $('achievement-count').textContent = `${state.achievements.length}/${ACHIEVEMENTS.length}`;
-  $('auto-work').innerHTML = `${format(unitRate(state, 'macro'), 2)} <small>chars/s</small>`;
+  $('auto-work').innerHTML = `${format(unitRate(state, 'macro'), 2)} <small>作業量/秒</small>`;
   $('auto-dev').innerHTML = `${format(devRate(state))} <small>chars/s</small>`;
   const studySubject = autoStudySubject(state), labRate = unitRate(state, 'lab');
   $('auto-study').innerHTML = `${format(studySubject ? labRate : 0)} <small>chars/s · ${studySubject ? SKILLS.find(s => s.id === studySubject).short : labRate ? '教材待ち' : '未稼働'}</small>`;
@@ -578,6 +616,21 @@ $('subject-picker').innerHTML = SKILLS.map(s => `<button class="subject-button" 
 document.addEventListener('click', async event => {
   const b = event.target.closest('button');
   if (!b || b.disabled) return;
+  if(b.id==='goal-alternative'){
+    if(!blocked && !paused && buy(state,'macro')){dirty=true;unlock();render();save();}
+    return;
+  }
+  if(b.id==='goal-action'){
+    const kind=b.dataset.goalKind,item=b.dataset.goalItem;
+    if(blocked || paused)return;
+    if(kind==='buy'){
+      if(buy(state,item)){dirty=true;unlock();render();save();state.subject=item.slice(5);switchMode('study');}
+    }else if(kind==='study'){state.subject=item;switchView('workspace');switchMode('study');}
+    else if(kind==='release'){switchMode('dev');$('release-button').click();}
+    else{switchView('workspace');switchMode('dev');}
+    if(kind!=='release')$('task-title').scrollIntoView({block:'start',behavior:'instant'});
+    return;
+  }
   if (b.dataset.view) { dirty = true; switchView(b.dataset.view); }
   if (b.dataset.mode) switchMode(b.dataset.mode);
   if (b.dataset.inputStyle && !blocked) {
@@ -680,6 +733,7 @@ $('typing-input').addEventListener('input', event => {
 });
 $('typing-input').addEventListener('focus', () => {
   if (state.inputStyle !== 'typing') { state.inputStyle = 'typing'; render(); }
+  if(state.mode==='work')$('office-details').open=false;
   revealTypingInput();
 });
 $('typing-input').addEventListener('paste', event => { event.preventDefault(); $('input-feedback').textContent = '文字を入力してください。'; });
@@ -707,8 +761,12 @@ $('editor-content').addEventListener('click',()=>{
   revealTypingInput();
 });
 $('editor-content').addEventListener('scroll',()=>positionTypingInput());
-window.addEventListener('resize',()=>{positionTypingInput();revealTypingInput();});
-window.visualViewport?.addEventListener('resize',()=>{positionTypingInput();revealTypingInput();});
+function resizeTypingViewport(){
+  document.documentElement.style.setProperty('--office-top',`${(window.visualViewport?.offsetTop || 0)+8}px`);
+  positionTypingInput();revealTypingInput();
+}
+window.addEventListener('resize',resizeTypingViewport);
+window.visualViewport?.addEventListener('resize',resizeTypingViewport);
 $('office-image').addEventListener('click', focusTypingInput);
 $('help-button').addEventListener('click', help); $('guide-link').addEventListener('click', help);
 $('settings-button').addEventListener('click', settings);
@@ -725,7 +783,7 @@ $('release-button').addEventListener('click', () => {
   const result = release(state);
   if (!result) return;
   unlock(); dirty = true; save(); render();
-  showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${result.royalty ? 'NOW ON SALE' : 'FREE TO PLAY'}</div><h3 style="font-size:22px;margin-top:6px">${esc(result.name)}</h3><p>最後の一文字まで、作りきりました。</p><p>開発中のビルド・テスト ${format(result.builds)}回 · 素材制作の外注費 ${yen(result.productionCosts)}。</p><div class="release-detail"><div><small>品質スコア</small><b>${result.quality}<span style="font-size:11px"> / 100</span></b></div><div><small>初回受取</small><b>${yen(result.payout)}</b></div><div><small>継続売上 / 手数料控除後</small><b>${yen(result.royalty * (1 - STORE_FEE_RATE))}<span style="font-size:11px"> / 秒</span></b></div></div><p>${result.royalty ? '発売した作品が、これからの事業と開発を支えます。' : 'この作品は無料公開。売上はゼロですが、完成経験による理解度と実績が残ります。次の仕事と設備も解禁されます。'}</p>${result.grossPayout ? `<p>ゲーム配信ストアへの販売手数料：${yen(result.salesFee)}（初回売上 ${yen(result.grossPayout)} の25%）。</p>` : ''}${result.online ? `<p>公開中はホスティング会社へ ${yen(serverCost(state, result))} / 日。公開したゲームから停止・再開できます。</p><button class="secondary-button" data-publication="${result.index}" data-active="false">公開停止</button>` : ''}<p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>${state.projectIndex === 5 ? '<div class="modal-callout">AAA、完成。けれどエンディングはありません。次は永続するオンライン宇宙を実装します。</div>' : ''}<div class="modal-actions"><button class="primary-button" data-action="close">次の一文字へ ↗</button></div>`);
+  showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${result.royalty ? 'NOW ON SALE' : 'FREE TO PLAY'}</div><h3 style="font-size:22px;margin-top:6px">${esc(result.name)}</h3><p>最後の一文字まで、作りきりました。</p><p>開発中のビルド・テスト ${format(result.builds)}回 · 素材制作の外注費 ${yen(result.productionCosts)}。</p><div class="release-detail"><div><small>品質スコア</small><b>${result.quality}<span style="font-size:11px"> / 100</span></b></div><div><small>初回受取</small><b>${yen(result.payout)}</b></div><div><small>継続売上 / 手数料控除後</small><b>${yen(result.royalty * (1 - STORE_FEE_RATE))}<span style="font-size:11px"> / 秒</span></b></div></div><p>${result.royalty ? '発売した作品が、これからの事業と開発を支えます。' : 'この作品は無料公開。売上はゼロですが、完成経験による理解度と実績が残ります。自作ライブラリと研究ラボが解禁されます。'}</p>${result.index===0 ? `<div class="modal-callout"><b>次の依頼は100作業量で ${yen(workRate(state)*JOB_SIZE)}</b><p>進行中の案件は受注時の単価で納品します。OCRで事務を進めながら、設計と描画を学び、最初の有料作品へ。</p></div>` : ''}${result.grossPayout ? `<p>ゲーム配信ストアへの販売手数料：${yen(result.salesFee)}（初回売上 ${yen(result.grossPayout)} の25%）。</p>` : ''}${result.online ? `<p>公開中はホスティング会社へ ${yen(serverCost(state, result))} / 日。公開したゲームから停止・再開できます。</p><button class="secondary-button" data-publication="${result.index}" data-active="false">公開停止</button>` : ''}<p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>${state.projectIndex === 5 ? '<div class="modal-callout">AAA、完成。けれどエンディングはありません。次は永続するオンライン宇宙を実装します。</div>' : ''}<div class="modal-actions"><button class="primary-button" data-action="close">次の一文字へ ↗</button></div>`);
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'language-select' && !blocked) {

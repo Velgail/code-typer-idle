@@ -64,9 +64,17 @@ export function officeOrderAt(index, version = OFFICE_DATA_VERSION) {
   return { id, date, sourceDate: `2026年${month}月${day}日`, product, quantity, quantityUnit: '個', price,
     input: `${id},${date},${product},${quantity},${price}` };
 }
-export function drawOfficeSource(canvas, order) {
+export function drawOfficeSource(canvas, order, { compact = false } = {}) {
   const ctx = canvas.getContext('2d');
-  canvas.width = 640; canvas.height = 350;
+  canvas.width = compact ? 560 : 640; canvas.height = compact ? 250 : 350;
+  if (compact) {
+    ctx.fillStyle = '#ede8db'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#31362e'; ctx.font = '28px sans-serif';
+    [`伝票番号  ${order.id}`, `発行日    ${order.sourceDate}`, `品名      ${order.product}`, `数量      ${order.quantity} ${order.quantityUnit}`, `単価      ¥${order.price.toLocaleString('en-US')}`]
+      .forEach((line, i) => ctx.fillText(line, 18, 38 + i * 45, 524));
+    canvas.setAttribute('aria-label', `原票。伝票番号 ${order.id}、発行日 ${order.sourceDate}、品名 ${order.product}、数量 ${order.quantity}${order.quantityUnit}、単価 ${order.price}円`);
+    return;
+  }
   ctx.fillStyle = '#ede8db'; ctx.fillRect(0, 0, 640, 350);
   ctx.fillStyle = '#31362e'; ctx.font = 'bold 28px sans-serif';
   ctx.fillText('納品伝票 / 原票スキャン', 32, 48);

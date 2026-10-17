@@ -2873,6 +2873,50 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .office-source h3 { font-size: 12px; margin: 0 0 12px; }
 .office-source canvas { display: block; width: 100%; height: auto; max-width: 440px; border-radius: 3px; }
 .office-source p, .office-source small { display: block; font-size: 11px; line-height: 1.7; color: var(--muted); margin: 8px 0 0; overflow-wrap: anywhere; }
+.office-source summary { margin-top:8px; font-size:11px; color:var(--muted); cursor:pointer; }
+.work-panel { overflow:visible; }
+.work-tabs { border-radius:8px 8px 0 0; }
+.office-typing .office-source {
+  position:sticky;
+  top:var(--office-top,8px);
+  z-index:3;
+  background:var(--panel);
+  padding:8px;
+  margin:12px 0;
+  box-shadow:0 5px 14px #0004;
+}
+.office-typing .office-source h3 { display:none; }
+.office-typing .office-source canvas { max-width:380px; margin-inline:auto; }
+.office-editor .editor-content { min-height:74px; max-height:112px; padding-bottom:28px; }
+.milestone-banner {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  margin-bottom:16px;
+  padding:14px 20px;
+}
+.milestone-copy { min-width:0; flex:1; }
+.milestone-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.milestone-actions small { display:block; font-size:10px; color:var(--muted); }
+.milestone-banner h3 { margin-top:2px; font-size:16px; }
+.milestone-banner p { margin:3px 0 8px; font-size:11px; }
+.milestone-banner .goal-progress { max-width:500px; }
+.milestone-banner .goal-footer { max-width:500px; margin-top:4px; }
+.milestone-banner .primary-button { flex-shrink:0; padding:12px 18px; }
+.resource-strip[data-count="1"] { grid-template-columns:1fr; }
+.resource-strip[data-count="2"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.resource-strip[data-count="3"] { grid-template-columns:repeat(3,minmax(0,1fr)); }
+@media(max-width:720px) {
+  .milestone-banner { flex-wrap:wrap; gap:10px; padding:12px 16px; }
+  .page-heading { padding:20px 0 18px; }
+  .resource-strip[data-count="1"] .resource { min-height:80px; padding:10px 15px; }
+  .milestone-copy { flex-basis:100%; }
+  .milestone-actions { width:100%; }
+  .milestone-actions>button { flex:1; }
+  .milestone-banner .primary-button { padding:10px; }
+  .resource-strip[data-count="3"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
 #quick-actions:not(:empty) { margin-bottom: 20px; }
 .job-progress { margin-top: 16px; }
 .job-progress > div { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font: 11px var(--mono); }

@@ -12,6 +12,7 @@ import { verifyCommentTranslations } from './comment-translations.mjs';
 import { verifyClickKeyboardGuard } from './keyboard-clicks.mjs';
 import { verifyMaintenanceUI } from './maintenance-ui.mjs';
 import { verifyDirectTyping } from './direct-typing.mjs';
+import { verifyEarlyGameUI } from './early-game-ui.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -39,6 +40,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const errors = [];
 try {
   await verifyClickKeyboardGuard(browser, url, errors);
+  await verifyEarlyGameUI(browser, url, errors);
   await verifyMaintenanceUI(browser, url, errors);
   await verifyDirectTyping(browser, url, errors);
   await verifyCommentTranslations(browser, url, errors);
@@ -193,7 +195,7 @@ try {
   await seeded.locator('[data-mode=work]').click();
   await seeded.locator('[data-shop=auto]').click();
   await seeded.locator('[data-buy=macro]').click();
-  assert.match(await seeded.locator('#auto-work').textContent(), /0.25/);
+  assert.match(await seeded.locator('#auto-work').textContent(), /10/);
   await seeded.locator('[data-mode=study]').click();
   await seeded.locator('[data-action=textbooks]').click();
   assert.equal(await seeded.locator('#type-button').isDisabled(), true);
@@ -403,7 +405,7 @@ try {
         await publishing.locator('[data-publication="5"][data-active="true"]').click();
         await publishing.locator('#modal-close').click();
         await publishing.reload();
-        await publishing.waitForSelector('#expense-summary');
+        await publishing.waitForSelector('.buy-button');
         await publishing.locator('#save-button').click();
         const resumed = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
         assert.equal(resumed.catalog[0].active, true);
@@ -481,7 +483,7 @@ try {
     updating.on('pageerror', e => errors.push(e.message));
     await updating.goto(url);
     await updating.waitForURL(`**?v=${currentRelease.id}`);
-    await updating.waitForSelector('#expense-summary');
+    await updating.waitForSelector('.buy-button');
     assert.equal(await updating.locator('.version').textContent(), `v${currentRelease.version}`);
     // Keep old module URLs in the actual HTTP cache, alongside the current build.
     await updating.evaluate(async () => { await fetch('./js/core.js'); await fetch('./js/typing.js'); });
@@ -498,7 +500,7 @@ try {
     assert.equal(new URL(updating.url()).searchParams.get('v'), currentRelease.id, 'failed save must prevent reload');
     await updating.evaluate(() => { Storage.prototype.setItem = window.originalStorageWrite; });
     await Promise.all([updating.waitForURL(`**?v=${nextId}`), updating.locator('#update-button').click()]);
-    await updating.waitForSelector('#expense-summary');
+    await updating.waitForSelector('.buy-button');
     assert.equal(await updating.locator('.version').textContent(), `v${nextVersion}`);
     await updating.locator('#save-button').click();
     preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
