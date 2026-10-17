@@ -5,7 +5,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { createState, projectAt } from '../src/core.js';
+import { createState, projectAt, BALANCE_VERSION } from '../src/core.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -40,13 +40,19 @@ try {
   assert.match(await page.title(), /Code Typer Idle/);
   assert.equal(await page.locator('#cash').textContent(), '¥100');
   await page.locator('#type-button').click();
-  await page.keyboard.type('arbitrary_keyboard_spam_12345');
+  await page.keyboard.type('arbitrary_keyboard_spam_');
+  await page.locator('h1').click();
+  await page.keyboard.type('2026');
   await page.locator('#save-button').click();
   let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
   assert.equal(saved.cash, 100); assert.equal(saved.job.progress, 1, 'arbitrary keys must never produce rewards');
+  assert.equal(saved.mode, 'work', 'typing a year outside the input must never switch to the study tab');
   await page.locator('[data-mode=work]').click();
   await page.locator('[data-input-style=typing]').click();
   assert.equal(await page.locator('#typing-input').isVisible(), true);
+  await page.locator('[data-mode=study]').click();
+  await page.locator('[data-mode=work]').click();
+  assert.equal(await page.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'switching task tabs must restore typing focus');
   const prompt = await page.locator('#editor-content').getAttribute('data-prompt');
   const wrong = prompt[0] === 'x' ? 'y' : 'x';
   await page.keyboard.type(wrong);
@@ -59,7 +65,14 @@ try {
     el.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertFromPaste', data: 'injected paste', bubbles: true, cancelable: true }));
   });
   assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
-  const lines = prompt.split('\n');
+  const dateStart = prompt.indexOf(',') + 1;
+  await page.keyboard.type(prompt.slice(0, dateStart));
+  await page.locator('#office-image').click();
+  assert.equal(await page.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'reading the invoice image must preserve typing focus');
+  await page.keyboard.type('2026');
+  assert.equal(await page.locator('[data-mode=work]').getAttribute('aria-selected'), 'true');
+  assert.match(await page.locator('#typing-round').textContent(), new RegExp(`^${dateStart + 4} / `));
+  const lines = prompt.slice(dateStart + 4).split('\n');
   for (let line = 0; line < lines.length; line++) {
     if (line) {
       await page.keyboard.press('Enter');
@@ -88,6 +101,10 @@ try {
   assert.equal(await page.locator('#office-source').isVisible(), true);
   assert.equal(await page.locator('#language-select').isVisible(), false);
   assert.equal(await page.locator('#editor-content').textContent(), prompt[0] + '▌', 'office output must not show a completed CSV answer');
+  await page.locator('h1').click();
+  await page.keyboard.type('1232026');
+  assert.equal(await page.locator('[data-mode=work]').getAttribute('aria-selected'), 'true', 'digits must never be tab shortcuts after typing focus is lost');
+  assert.match(await page.locator('#typing-round').textContent(), /^1 \/ /);
   for (const width of [1440, 1024, 768, 390, 360]) {
     await page.setViewportSize({ width, height: 900 });
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Office source fits ${width}px`);
@@ -96,17 +113,21 @@ try {
   await page.setViewportSize({ width: 1440, height: 1100 });
   await page.locator('[data-mode=study]').click();
   assert.equal(await page.locator('#office-source').isVisible(), false);
-  // Changing languages changes the actual target, then correctly typed input works.
-  for (const language of ['csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua', 'cpp']) {
-    await page.locator('#language-select').selectOption(language);
-    const target = await page.locator('#editor-content').getAttribute('data-prompt');
-    await page.keyboard.type(target.slice(0, 12));
-    assert.match(await page.locator('#typing-round').textContent(), /^12 \/ /, language);
+  assert.equal(await page.locator('#study-lock').isVisible(), true);
+  assert.match(await page.locator('#study-lock-message').textContent(), /プログラミング基礎教本.*1,500/);
+  for (const style of ['click', 'typing']) {
+    await page.locator(`[data-input-style=${style}]`).click();
+    assert.equal(await page.locator('#type-button').isDisabled(), true);
+    assert.equal(await page.locator('#typing-input').isVisible(), false);
+    assert.equal(await page.locator('#editor-content').getAttribute('data-prompt'), '');
+    await page.locator('#typing-input').evaluate(el => el.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertText', data: 'int 123', bubbles: true, cancelable: true })));
   }
   await page.locator('#save-button').click();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(saved.skills.syntax, 0);
   await page.reload();
   await page.waitForSelector('#task-title');
-  assert.match(await page.locator('#typing-round').textContent(), /^12 \/ /);
+  assert.equal(await page.locator('#type-button').isDisabled(), true, 'the missing-textbook requirement must survive reload');
   // Completed-project fixture tests publishing independently of the balance clock.
   const complete = createState(); complete.mode = 'dev'; complete.skills.syntax = 12;
   complete.progress = projectAt(0).target; complete.cash = 20000;
@@ -135,7 +156,38 @@ try {
   await seeded.locator('[data-shop=auto]').click();
   await seeded.locator('[data-buy=macro]').click();
   assert.match(await seeded.locator('#auto-work').textContent(), /0.25/);
-  await seeded.locator('[data-shop=books]').click();
+  await seeded.locator('[data-mode=study]').click();
+  await seeded.locator('[data-action=textbooks]').click();
+  assert.equal(await seeded.locator('#type-button').isDisabled(), true);
+  await seeded.locator('[data-buy=book-syntax]').click();
+  assert.equal(await seeded.locator('#study-lock').isVisible(), false);
+  assert.equal(await seeded.locator('#type-button').isDisabled(), false);
+  assert.ok(await seeded.locator('#editor-content').getAttribute('data-prompt'), 'buying the textbook must reveal its study code immediately');
+  await seeded.locator('[data-input-style=typing]').click();
+  for (const language of ['csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua', 'cpp']) {
+    await seeded.locator('#language-select').selectOption(language);
+    const target = await seeded.locator('#editor-content').getAttribute('data-prompt');
+    await seeded.keyboard.type(target.slice(0, 12));
+    assert.match(await seeded.locator('#typing-round').textContent(), /^12 \/ /, language);
+  }
+  await seeded.locator('[data-subject=design]').click();
+  assert.equal(await seeded.locator('#type-button').isDisabled(), true, 'a syntax textbook must not unlock design study');
+  assert.match(await seeded.locator('#study-lock-message').textContent(), /設計パターンの教科書.*6,000/);
+  await seeded.locator('[data-subject=syntax]').click();
+  assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true);
+  const studyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
+  const studyLines = studyPrompt.split('\n');
+  for (let line = 0; line < studyLines.length; line++) {
+    if (line) await seeded.keyboard.press('Enter');
+    await seeded.keyboard.type(studyLines[line]);
+  }
+  assert.match(await seeded.locator('#typing-completed').textContent(), /1問/);
+  const nextStudyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
+  await seeded.keyboard.type(nextStudyPrompt.slice(0, 12));
+  await seeded.locator('#save-button').click();
+  await seeded.reload();
+  await seeded.waitForSelector('#task-title');
+  assert.match(await seeded.locator('#typing-round').textContent(), /^12 \/ /);
   await seeded.locator('#settings-button').click();
   await seeded.locator('#motion-setting').check();
   const [download] = await Promise.all([seeded.waitForEvent('download'), seeded.locator('[data-action=export]').click()]);
@@ -210,7 +262,7 @@ try {
     await updating.locator('#save-button').click();
     preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
     assert.equal(preserved.cash, 98765); assert.equal(preserved.skills.syntax, 123); assert.equal(preserved.projectIndex, 2);
-    assert.equal(preserved.balanceVersion, 3); assert.equal(preserved.day, 901);
+    assert.equal(preserved.balanceVersion, BALANCE_VERSION); assert.equal(preserved.day, 901);
     assert.ok(requests.some(path => path.includes(`app.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`style.${nextId}.css`)));

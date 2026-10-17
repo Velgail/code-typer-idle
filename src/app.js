@@ -1,7 +1,7 @@
 import {
   DAY, JOB_SIZE, BUSINESSES, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, level, metaBonus,
   operatingCost, rentCost, businessStage, dailyBillEstimate, workRate, handPower, knowledgeRatio, validity, debtLimit,
-  abstraction, royaltyRate, unitRate, devRate, studyGain, ideMultiplier, autoStudySubject, itemCost, netIncome,
+  abstraction, royaltyRate, unitRate, devRate, studyGain, hasTextbook, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
   serialize, deserialize, checkAchievements, log
 } from './core.js';
@@ -124,7 +124,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、事業を支える</b>日銭ワークは100作業量ごとに納品して入金。初期は1件¥100です。実時間1時間でゲーム内1日。序盤は実家で制作し、事業費は電力・通信等の¥600/日だけ。生活費は対象外です。有料発売で独立し、規模に応じた維持費と事務所代が発生します。事務所代は所持金から別途積み立て、30日ごとに精算。内訳と次の費用はメイン画面で確認できます。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。教材なしでも学べますが、最初の教材で学習量が2倍になります。理解度が上がるほど、次の1ポイントには多くの学習が必要です。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、またはコードタイピング。日銭は原票画像を読み、指定のCSV形式で入力します。学習・開発は表示されたコードを入力します。正解文字は×1.25、誤入力なしの完入力で合計×1.5の報酬。貼り付けは数えません。<kbd>1</kbd> 日銭 / <kbd>2</kbd> 学習 / <kbd>3</kbd> 開発。入力欄をフォーカス中は数字も出題として入力します。Escで入力欄を離れられます。キー長押し、Ctrlや⌘の操作では報酬が発生しません。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。研究ラボは現在企画の不足分野を優先します。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
+  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、事業を支える</b>日銭ワークは100作業量ごとに納品して入金。初期は1件¥100です。実時間1時間でゲーム内1日。序盤は実家で制作し、事業費は電力・通信等の¥600/日だけ。生活費は対象外です。有料発売で独立し、規模に応じた維持費と事務所代が発生します。事務所代は所持金から別途積み立て、30日ごとに精算。内訳と次の費用はメイン画面で確認できます。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。各分野の教材を購入すると学習できます。教材のない分野は手動でも研究ラボでも学習できません。理解度が上がるほど、次の1ポイントには多くの学習が必要です。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、またはコードタイピング。日銭は原票画像を読み、指定のCSV形式で入力します。学習・開発は表示されたコードを入力します。正解文字は×1.25、誤入力なしの完入力で合計×1.5の報酬。貼り付けは数えません。作業の切替は画面のタブを使います。数字キーでタブが切り替わることはありません。Escで入力欄を離れられます。キー長押し、Ctrlや⌘の操作では報酬が発生しません。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。研究ラボは教材のある不足分野を優先します。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
 }
 function settings() {
   showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、事業維持費と自動処理を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">コード資産を含むすべての進行が対象です。資産を引き継ぐ再出発はロードマップから。</p>`);
@@ -143,6 +143,10 @@ function switchMode(next) {
   state.mode = next;
   dirty = true;
   render();
+  focusTypingInput();
+}
+function focusTypingInput() {
+  if (state.inputStyle === 'typing' && !blocked && !paused && view === 'workspace' && !$('modal').open && (state.mode !== 'study' || hasTextbook(state))) $('typing-input').focus({ preventScroll: true });
 }
 function beep(kind) {
   if (!state.settings.sound) return;
@@ -208,6 +212,7 @@ function renderShop() {
 function renderEditor() {
   const prompt = currentPrompt(state), t = state.typing;
   const office = state.mode === 'work';
+  const studyLocked = state.mode === 'study' && !hasTextbook(state);
   $('typing-input').setAttribute('aria-label', office ? '伝票データ入力' : 'コード入力');
   $('editor-content').setAttribute('aria-label', office ? 'CSV入力結果' : '出題コード');
   $('office-source').classList.toggle('hidden', !office);
@@ -217,15 +222,15 @@ function renderEditor() {
   }
   const typing = state.inputStyle === 'typing';
   const offset = typing ? t.offset : Math.floor(state.stats.manual % prompt.length);
-  const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}`;
-  $('typing-input').hidden = !typing;
-  $('typing-input').disabled = blocked || paused;
-  $('typing-summary').classList.toggle('hidden', !typing);
+  const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}/${studyLocked}`;
+  $('typing-input').hidden = !typing || studyLocked;
+  $('typing-input').disabled = blocked || paused || studyLocked;
+  $('typing-summary').classList.toggle('hidden', !typing || studyLocked);
   $('code-editor').classList.toggle('typing-active', typing);
   if (lastEditorKey !== key) {
     lastEditorKey = key;
-    $('editor-content').dataset.prompt = prompt;
-    $('editor-content').innerHTML = office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${esc(prompt.slice(0, offset))}</span><mark class="next-character">${prompt[offset] === '\n' ? '↵\n' : esc(prompt[offset] || ' ')}</mark><span class="pending-code">${esc(prompt.slice(offset + 1))}</span></pre>`;
+    $('editor-content').dataset.prompt = studyLocked ? '' : prompt;
+    $('editor-content').innerHTML = studyLocked ? '<p class="panel-note">この分野の教材を購入すると、学習用コードが表示されます。</p>' : office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${esc(prompt.slice(0, offset))}</span><mark class="next-character">${prompt[offset] === '\n' ? '↵\n' : esc(prompt[offset] || ' ')}</mark><span class="pending-code">${esc(prompt.slice(offset + 1))}</span></pre>`;
     const mark = $('editor-content').querySelector('mark');
     if (typing && mark) {
       const y = mark.offsetTop;
@@ -234,7 +239,7 @@ function renderEditor() {
   }
   const prefix = prompt.slice(0, offset).split('\n');
   $('editor-cursor').textContent = `Ln ${prefix.length}, Col ${prefix.at(-1).length + 1}`;
-  $('editor-status').textContent = office ? '原票を読み取り、指定形式で入力' : typing ? 'TYPE EXACT CODE · 貼り付け不可' : 'CLICK PREVIEW';
+  $('editor-status').textContent = studyLocked ? '教材待ち' : office ? '原票を読み取り、指定形式で入力' : typing ? 'TYPE EXACT CODE · 貼り付け不可' : 'CLICK PREVIEW';
   $('typing-round').textContent = `${t.offset} / ${prompt.length}文字`;
   $('typing-accuracy').textContent = `正確率 ${((t.correct + t.errors) ? t.correct / (t.correct + t.errors) * 100 : 100).toFixed(1)}%`;
   $('typing-completed').textContent = `完入力 ${t.completed}問`;
@@ -254,9 +259,13 @@ function renderTask() {
   $('project-progress').classList.toggle('hidden', mode !== 'dev');
   $('dev-actions').classList.toggle('hidden', mode !== 'dev');
   const lesson = SKILLS.find(s => s.id === state.subject);
+  const studyLocked = mode === 'study' && !hasTextbook(state);
+  const textbook = SHOP.find(item => item.id === `book-${state.subject}`);
+  $('study-lock').classList.toggle('hidden', !studyLocked);
+  $('study-lock-message').textContent = `学習には「${textbook.name}」（${yen(itemCost(state, textbook))}）が必要です。日銭ワークで資金を貯めて購入してください。`;
   const task = {
     work: ['OFFICE WORK', '伝票画像のデータ化', `紙の原票を読み取り、CSV形式へ整える事務作業です。開発知識は増えません。${JOB_SIZE}作業量ごとに精算。現在 ${format(state.job.progress, 2)} / ${JOB_SIZE}、納品報酬 ${yen(JOB_SIZE * (state.job.progress ? state.job.rate : workRate(state)))}。途中進捗は保存されます。`, '事務作業中', 'invoices', '働く', `+${format(power, 2)} 作業量`],
-    study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (level(state, `book-${state.subject}`) ? ' 教材で学習量を増やせます。' : ' 教材なしでも学習可能。最初の教材で学習量が2倍に。'), level(state, `book-${state.subject}`) ? '教材で学習中' : '教材なし', lesson.file, '学ぶ', `+${studyGain(state, power).toLocaleString('en-US', { maximumFractionDigits: 5 })} K`],
+    study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (studyLocked ? ' まず、この分野の教材を購入してください。' : ' 購入した教材で学習します。'), studyLocked ? '教材が必要' : '教材で学習中', lesson.file, '学ぶ', studyLocked ? '学習不可' : `+${studyGain(state, power).toLocaleString('en-US', { maximumFractionDigits: 5 })} K`],
     dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド崩壊' : state.refactor ? '負債を修復中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main', state.refactor ? '修復' : '開発', state.refactor ? ratio >= 1 ? `−${format(Math.min(state.debt, power * (1 + ratio) * 2))} debt` : '先に学習が必要' : state.crashed ? 'ビルド崩壊' : `+${format(Math.min(p.target - state.progress, 1e250, power * validity(state) * abstraction(state) * (ratio >= 1 ? ideMultiplier(state) : 1) * (1 - state.debt / debtLimit(state) * .8)))} chars`]
   }[mode];
   ['task-eyebrow', 'task-title', 'task-description'].forEach((id, i) => $(id).textContent = task[i]);
@@ -264,8 +273,9 @@ function renderTask() {
   $('task-status').className = `status-pill ${mode === 'dev' && state.crashed ? 'error' : mode === 'dev' && ratio < 1 || mode === 'study' && !level(state, `book-${state.subject}`) ? 'warning' : ''}`;
   $('editor-file').textContent = `${task[4]}.${mode === 'work' ? 'csv' : language.extension}`;
   $('editor-language').textContent = mode === 'work' ? 'CSV' : language.name;
-  $('type-label').textContent = paused ? '一時停止中' : typing ? mode === 'work' ? '伝票入力を始める' : 'コード入力を始める' : `クリックして${task[5]}`;
-  $('type-hint').textContent = paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : 'タイピングなら完入力で最大×1.5';
+  $('type-button').disabled = blocked || paused || studyLocked;
+  $('type-label').textContent = studyLocked ? '教材を購入すると学習できます' : paused ? '一時停止中' : typing ? mode === 'work' ? '伝票入力を始める' : 'コード入力を始める' : `クリックして${task[5]}`;
+  $('type-hint').textContent = studyLocked ? `${textbook.name} · ${yen(itemCost(state, textbook))}` : paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : 'タイピングなら完入力で最大×1.5';
   $('output-rate').innerHTML = `${esc(task[6])} <small>/ ${typing ? '正解文字' : 'クリック'}</small>`;
   $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : typing ? '正解×1.25 ＋ 完入力ボーナス' : 'このクリックで得られるもの';
   $('typing-instructions').textContent = typing ? mode === 'work' ? '原票を読み取り、カンマ区切りで入力。誤入力は打ち直すだけ。' : '空白と改行も入力。誤入力は打ち直すだけ。Escで入力欄を離れます。' : '任意キーの連打では報酬が発生しません。';
@@ -348,11 +358,12 @@ function render() {
   $('achievement-count').textContent = `${state.achievements.length}/${ACHIEVEMENTS.length}`;
   $('auto-work').innerHTML = `${format(unitRate(state, 'macro'), 2)} <small>chars/s</small>`;
   $('auto-dev').innerHTML = `${format(devRate(state))} <small>chars/s</small>`;
-  $('auto-study').innerHTML = `${format(unitRate(state, 'lab'))} <small>chars/s · ${SKILLS.find(s => s.id === autoStudySubject(state)).short}</small>`;
+  const studySubject = autoStudySubject(state), labRate = unitRate(state, 'lab');
+  $('auto-study').innerHTML = `${format(studySubject ? labRate : 0)} <small>chars/s · ${studySubject ? SKILLS.find(s => s.id === studySubject).short : labRate ? '教材待ち' : '未稼働'}</small>`;
   $('automation-toggle').setAttribute('aria-pressed', state.autoEnabled);
   $('auto-label').textContent = `自動開発 ${state.autoEnabled ? 'ON' : 'OFF'}`;
   const dangerous = devRate(state) && knowledgeRatio(state) < 1;
-  $('automation-note').textContent = state.crashed ? 'ビルドが崩壊しています。学習し、リファクタリングで復旧を。' : dangerous ? 'レビュー能力が不足。自動開発が技術的負債を増やします。' : unitRate(state, 'macro') ? 'マクロはモードに関係なく稼働中。学習と開発に集中できます。' : '最初のマクロで、タイピングを自動化しよう。';
+  $('automation-note').textContent = state.crashed ? 'ビルドが崩壊しています。学習し、リファクタリングで復旧を。' : dangerous ? 'レビュー能力が不足。自動開発が技術的負債を増やします。' : labRate && !studySubject ? '研究ラボは教材待ちです。不足分野の教材を購入してください。' : unitRate(state, 'macro') ? 'マクロはモードに関係なく稼働中。学習と開発に集中できます。' : '最初のマクロで、タイピングを自動化しよう。';
   $('automation-note').classList.toggle('danger', !!dangerous || state.crashed);
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
   $('manual-rate').textContent = lastManualTimes.length ? `${(lastManualTimes.length / 2).toFixed(1)} taps/s` : '手動入力待機中';
@@ -377,23 +388,24 @@ document.addEventListener('click', event => {
   if (b.dataset.mode) switchMode(b.dataset.mode);
   if (b.dataset.inputStyle && !blocked) {
     state.inputStyle = b.dataset.inputStyle; lastEditorKey = ''; render();
-    if (state.inputStyle === 'typing') $('typing-input').focus();
+    focusTypingInput();
   }
-  if (b.dataset.subject && !blocked) { state.subject = b.dataset.subject; dirty = true; render(); }
+  if (b.dataset.subject && !blocked) { state.subject = b.dataset.subject; dirty = true; render(); focusTypingInput(); }
   if (b.dataset.shop) {
     shopTab = b.dataset.shop;
     document.querySelectorAll('[data-shop]').forEach(el => { el.classList.toggle('active', el.dataset.shop === shopTab); el.setAttribute('aria-selected', el.dataset.shop === shopTab); });
     renderShop();
   }
-  if (b.dataset.buy && !blocked && buy(state, b.dataset.buy)) { unlock(); dirty = true; render(); }
+  if (b.dataset.buy && !blocked && buy(state, b.dataset.buy)) { unlock(); dirty = true; render(); if (b.dataset.buy === `book-${state.subject}`) focusTypingInput(); }
   if (b.dataset.action) handleAction(b.dataset.action);
 });
 $('type-button').addEventListener('click', () => {
-  if (state.inputStyle === 'typing') $('typing-input').focus();
+  if (state.inputStyle === 'typing') focusTypingInput();
   else doInput();
 });
 function typeCharacters(text) {
   if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing') return;
+  if (state.mode === 'study' && !hasTextbook(state)) return;
   for (const character of text) {
     const power = handPower(state);
     const result = acceptCharacter(state, character, power);
@@ -424,14 +436,7 @@ $('typing-input').addEventListener('keydown', event => {
   if (event.repeat || event.key === 'Backspace' || event.key === 'Delete') event.preventDefault();
   if (event.key === 'Escape') { event.preventDefault(); $('typing-input').blur(); }
 });
-document.addEventListener('keydown', e => {
-  if (e.repeat) { e.preventDefault(); return; }
-  if (e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || $('modal').open || blocked || view !== 'workspace' || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
-  if (['1', '2', '3'].includes(e.key)) { e.preventDefault(); switchMode({ 1: 'work', 2: 'study', 3: 'dev' }[e.key]); return; }
-  // Enter/Space on a focused button keeps its standard keyboard behavior.
-  if (e.target.closest('button,a') && [' ', 'Enter'].includes(e.key)) return;
-  // Printable keys outside the typing field never produce game rewards.
-});
+$('office-image').addEventListener('click', focusTypingInput);
 $('help-button').addEventListener('click', help); $('guide-link').addEventListener('click', help);
 $('settings-button').addEventListener('click', settings);
 $('modal-close').addEventListener('click', () => $('modal').close());
@@ -450,12 +455,13 @@ document.addEventListener('change', e => {
   if (e.target.id === 'language-select' && !blocked) {
     state.typing.language = e.target.value;
     state.typing.context = ''; lastEditorKey = ''; render();
-    if (state.inputStyle === 'typing') $('typing-input').focus();
+    focusTypingInput();
   }
   if (e.target.id === 'sound-setting') state.settings.sound = e.target.checked;
   if (e.target.id === 'motion-setting') { state.settings.reducedMotion = e.target.checked; render(); }
 });
 function handleAction(action) {
+  if (action === 'textbooks') { document.querySelector('[data-shop=books]').click(); $('shop-items').scrollIntoView({ block: 'nearest' }); }
   if (action === 'close') $('modal').close();
   if (action === 'pause') { paused = !paused; settings(); render(); }
   if (action === 'export') {

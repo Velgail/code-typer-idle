@@ -7,8 +7,8 @@
   <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と事業費をやりくりする無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./build/style.f34c30bd14e0cd20.css">
-  <script type="module" src="./build/app.f34c30bd14e0cd20.js"></script>
+  <link rel="stylesheet" href="./build/style.d2e08e9043187905.css">
+  <script type="module" src="./build/app.d2e08e9043187905.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -49,12 +49,13 @@
         <div class="center-column">
           <section class="panel work-panel">
             <div class="work-tabs" role="tablist" aria-label="作業モード">
-              <button class="work-tab active" role="tab" aria-selected="true" data-mode="work"><span data-icon="briefcase"></span>日銭ワーク<kbd>1</kbd></button>
-              <button class="work-tab" role="tab" aria-selected="false" data-mode="study"><span data-icon="book"></span>写経・学習<kbd>2</kbd></button>
-              <button class="work-tab" role="tab" aria-selected="false" data-mode="dev"><span data-icon="code"></span>ゲーム開発<kbd>3</kbd></button>
+              <button class="work-tab active" role="tab" aria-selected="true" data-mode="work"><span data-icon="briefcase"></span>日銭ワーク</button>
+              <button class="work-tab" role="tab" aria-selected="false" data-mode="study"><span data-icon="book"></span>写経・学習</button>
+              <button class="work-tab" role="tab" aria-selected="false" data-mode="dev"><span data-icon="code"></span>ゲーム開発</button>
             </div>
             <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">OFFICE WORK</div><h2 id="task-title">伝票画像のデータ化</h2></div><span class="status-pill" id="task-status"><i></i>事務作業中</span></div><p class="task-description" id="task-description">伝票画像の項目をCSVに整形し、100作業量ごとに納品します。</p>
               <div id="subject-picker" class="subject-picker hidden" aria-label="学習分野"></div>
+              <div id="study-lock" class="modal-callout hidden" role="status"><p id="study-lock-message"></p><button class="secondary-button" data-action="textbooks">教材ショップを見る</button></div>
               <div id="project-progress" class="project-progress hidden"></div>
               <div class="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
               <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>原票は画像のため、そのまま文字列をコピーできません。OCR・入力マクロを導入すると読み取りと入力を自動化できます。</small></section>
@@ -67,7 +68,7 @@
             </div>
           </section>
 
-          <section class="panel automation-panel"><div class="panel-heading"><h2><span data-icon="terminal"></span>バックグラウンド処理</h2><button class="switch-control" id="automation-toggle" aria-pressed="true" title="自動開発を切り替える。日銭マクロと研究ラボは常時稼働します。"><span class="switch-track"><i></i></span><span id="auto-label">自動開発 ON</span></button></div><div class="automation-metrics"><div><span>日銭マクロ</span><b id="auto-work">0 <small>chars/s</small></b></div><div><span>自動開発</span><b id="auto-dev">0 <small>chars/s</small></b></div><div><span>研究ラボ</span><b id="auto-study">0 <small>chars/s</small></b></div></div><div class="automation-note" id="automation-note">最初のマクロで、タイピングを自動化しよう。</div></section>
+          <section class="panel automation-panel"><div class="panel-heading"><h2><span data-icon="terminal"></span>バックグラウンド処理</h2><button class="switch-control" id="automation-toggle" aria-pressed="true" title="自動開発を切り替える。日銭マクロは稼働を続け、研究ラボは教材のある分野を学習します。"><span class="switch-track"><i></i></span><span id="auto-label">自動開発 ON</span></button></div><div class="automation-metrics"><div><span>日銭マクロ</span><b id="auto-work">0 <small>chars/s</small></b></div><div><span>自動開発</span><b id="auto-dev">0 <small>chars/s</small></b></div><div><span>研究ラボ</span><b id="auto-study">0 <small>chars/s</small></b></div></div><div class="automation-note" id="automation-note">最初のマクロで、タイピングを自動化しよう。</div></section>
           <section class="panel log-panel"><div class="panel-heading"><h2><span data-icon="terminal"></span>開発ログ</h2><span class="subtle">CONSOLE</span></div><div id="event-log" class="event-log" role="log" aria-label="開発ログ"></div></section>
         </div>
 
@@ -77,7 +78,7 @@
       <section id="roadmap-view" class="hidden secondary-view"></section>
       <section id="achievements-view" class="hidden secondary-view"></section>
     </main>
-    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.2.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">このブラウザに自動保存されます</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
+    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.2.1</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">このブラウザに自動保存されます</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
   </div>
   <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
   <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>
