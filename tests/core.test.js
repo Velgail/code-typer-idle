@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE } from '../src/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE, STUDY_XP } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
+import { acceptCharacter, currentPrompt, TYPING_REWARD } from '../src/typing.js';
 
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
 
@@ -176,21 +177,99 @@ test('all authored projects and ten endless generations can actually be released
 test('a fresh player can fund books and finish the first game without injected resources', () => {
   const result = simulate(SCENARIOS[0], { horizon: 3600, stopAfter: 1 });
   assert.equal(result.reached, 1);
-  assert.ok(result.milestones[0].seconds > 20 * 60 && result.milestones[0].seconds < 60 * 60);
+  assert.ok(result.milestones[0].seconds >= 15 * 60 && result.milestones[0].seconds <= 25 * 60);
   assert.ok(result.purchases['book-syntax'] >= 4 * 60);
 });
 
-test('learning takes sustained work and slows as knowledge increases', () => {
+test('syntax foundations take sustained work before the later learning curve slows', () => {
   const s = createState(); s.items['book-syntax'] = 1;
   assert.equal(studyMultiplier(s), 2);
   input(s, { mode: 'study', chars: 19 });
   assert.ok(s.skills.syntax < 1);
-  input(s, { mode: 'study', chars: 6600 });
+  input(s, { mode: 'study', chars: 5000 });
   assert.ok(s.skills.syntax < 12);
   input(s, { mode: 'study', chars: 100 });
   assert.ok(s.skills.syntax >= 12);
   const early = studyGain(s, 10); s.skills.syntax = 100;
   assert.ok(studyGain(s, 10) < early);
+});
+test('syntax 0 to 12 progresses evenly and costs 75% of the previous cumulative XP', () => {
+  const s = createState(); s.items['book-syntax'] = 1;
+  const xpPerUnit = STUDY_XP * studyMultiplier(s);
+  const previousCost = 12 ** 1.5, targetUnits = previousCost * .75 / xpPerUnit;
+  const gains = [0, 1, 5, 10].map(value => { s.skills.syntax = value; return studyGain(s, 100); });
+  for (const gain of gains) assert.ok(Math.abs(gain - gains[0]) < 1e-14);
+  s.skills.syntax = 0;
+  input(s, { mode: 'study', chars: targetUnits });
+  assert.ok(Math.abs(s.skills.syntax - 12) < 1e-12);
+  input(s, { mode: 'study', chars: 100 });
+  const expected = (previousCost + 100 * xpPerUnit) ** (2 / 3);
+  assert.ok(Math.abs(s.skills.syntax - expected) < 1e-12);
+});
+test('foundation boundary crossing is consistent for batches, split inputs and near-boundary values', () => {
+  const make = value => { const s = createState(); s.items['book-syntax'] = 1; s.skills.syntax = value; return s; };
+  for (const start of [0, 11, 12 - Number.EPSILON * 8, 12, 12 + Number.EPSILON * 8]) {
+    const batch = make(start), split = make(start);
+    input(batch, { mode: 'study', chars: 6000 });
+    for (let index = 0; index < 1000; index++) input(split, { mode: 'study', chars: 6 });
+    assert.ok(Math.abs(batch.skills.syntax - split.skills.syntax) < 1e-10);
+    const tiny = studyGain(make(start), 1e-300);
+    assert.ok(Number.isFinite(tiny) && tiny > 0);
+  }
+});
+test('later syntax and the other subjects retain their previous XP increments and numeric range', () => {
+  const s = createState();
+  for (const subject of ['syntax', 'design', 'graphics', 'systems']) {
+    s.items[`book-${subject}`] = 1;
+    for (const before of subject === 'syntax' ? [12, 50, 100] : [0, 1, 12, 100]) {
+      s.skills[subject] = before;
+      const xp = 500 * STUDY_XP * studyMultiplier(s, subject);
+      const expected = (before ** 1.5 + xp) ** (2 / 3) - before;
+      assert.ok(Math.abs(studyGain(s, 500, subject) - expected) < 1e-12);
+    }
+    s.skills[subject] = 1e150;
+    const tinyGain = studyGain(s, 1, subject), hugeGain = studyGain(s, 1e250, subject);
+    assert.ok(tinyGain > 0 && Number.isFinite(tinyGain));
+    assert.ok(hugeGain > tinyGain && Number.isFinite(hugeGain));
+    s.skills[subject] = 1e250;
+    assert.ok(Number.isFinite(studyGain(s, 1e250, subject)));
+    assert.equal(studyGain(s, 0, subject), 0);
+  }
+  const locked = createState();
+  assert.equal(studyGain(locked, 1e250, 'syntax'), 0);
+  input(locked, { mode: 'study', chars: 1e250 });
+  assert.equal(locked.skills.syntax, 0);
+});
+test('pre-foundation-update saves retain every learned knowledge value', () => {
+  for (const syntax of [0, 1, 6.75, 11.99, 12, 100]) {
+    const s = createState(); s.balanceVersion = 9; s.skills.syntax = syntax;
+    s.skills.design = 4; s.items['book-syntax'] = 1; s.cash = 4321;
+    const loaded = deserialize(serialize(s));
+    assert.deepEqual(loaded.skills, s.skills); assert.equal(loaded.cash, 4321);
+    assert.equal(loaded.items['book-syntax'], 1); assert.equal(loaded.balanceVersion, BALANCE_VERSION);
+  }
+});
+test('the first C++ syntax sequence reaches the first project in at most eleven complete prompts', () => {
+  for (const useTab of [false, true]) {
+    const s = createState(); s.mode = 'study'; s.inputStyle = 'typing'; s.items['book-syntax'] = 1;
+    let prompts = 0, physicalKeys = 0;
+    while (s.skills.syntax < 12 && prompts < 12) {
+      const text = currentPrompt(s); let offset = 0;
+      while (offset < text.length) {
+        const spaces = useTab ? text.slice(offset).match(/^ {2,}/)?.[0].length || 1 : 1;
+        const width = Math.min(4, spaces), power = 1 / width;
+        physicalKeys++;
+        for (let index = 0; index < width; index++) {
+          const accepted = acceptCharacter(s, text[offset++], power);
+          assert.ok(accepted.correct);
+          input(s, { chars: power * TYPING_REWARD.character });
+          if (accepted.complete) { input(s, { chars: accepted.bonus }); prompts++; }
+        }
+      }
+    }
+    assert.ok(s.skills.syntax >= 12); assert.ok(prompts <= 11);
+    assert.ok(physicalKeys >= 2000 && physicalKeys <= 3000);
+  }
 });
 test('the first local macro earns its work income without an unrelated daily charge', () => {
   const s = createState(); s.items.macro = 1;

@@ -5,7 +5,7 @@ import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceE
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 9;
+export const BALANCE_VERSION = 10;
 export const STORE_FEE_RATE = 0.25;
 export const PRODUCTION_SERVICES=[
   {id:'graphics',name:'グラフィック制作',payee:'イラストレーター・3Dアーティスト',share:.6,bonus:6},
@@ -14,6 +14,8 @@ export const PRODUCTION_SERVICES=[
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;
+export const SYNTAX_FOUNDATION_LIMIT = 12;
+export const SYNTAX_FOUNDATION_COST = .75 * Math.sqrt(SYNTAX_FOUNDATION_LIMIT);
 export const DAY = 3600;
 export const JOB_SIZE = 100;
 export const OCR_BASE_RATE = 10;
@@ -197,13 +199,23 @@ export const hasTextbook = (s, id = s.subject) => level(s, `book-${id}`) > 0;
 export const studyMultiplier = (s, id = s.subject) => hasTextbook(s, id) ? bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25)) : 0;
 export const ideMultiplier = s => 1 + level(s, 'ide') * 0.35;
 export function studyGain(s, chars = handPower(s), subject = s.subject) {
-  const before = s.skills[subject];
-  const xp = bounded(chars * STUDY_XP * studyMultiplier(s, subject));
+  let before = s.skills[subject];
+  let xp = bounded(chars * STUDY_XP * studyMultiplier(s, subject));
   if (!xp) return 0;
+  let foundationGain = 0;
+  if (subject === 'syntax' && before < SYNTAX_FOUNDATION_LIMIT) {
+    // Keep the first project's foundation steady: the whole 0→12 interval
+    // costs 75% of its previous XP. Saved knowledge keeps its existing value.
+    const remaining = (SYNTAX_FOUNDATION_LIMIT - before) * SYNTAX_FOUNDATION_COST;
+    if (xp <= remaining) return xp / SYNTAX_FOUNDATION_COST;
+    foundationGain = SYNTAX_FOUNDATION_LIMIT - before;
+    xp -= remaining;
+    before = SYNTAX_FOUNDATION_LIMIT;
+  }
   if (!before) return xp ** (1 / SKILL_EXPONENT);
   // Ratio form avoids overflowing K^1.5 and preserves small incremental gains.
   const ratio = xp / before / before ** (SKILL_EXPONENT - 1);
-  return bounded(Number.isFinite(ratio) ? before * Math.expm1(Math.log1p(ratio) / SKILL_EXPONENT) : xp ** (1 / SKILL_EXPONENT));
+  return bounded(foundationGain + (Number.isFinite(ratio) ? before * Math.expm1(Math.log1p(ratio) / SKILL_EXPONENT) : xp ** (1 / SKILL_EXPONENT)));
 }
 export function autoStudySubject(s) {
   let subject = null, lowest = 1, missing = false;

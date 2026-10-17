@@ -2,7 +2,7 @@ import { coursesLoaded, installCourses, installLegacyCourses, needsLegacyCourses
 import {
   DAY, JOB_SIZE, STORE_FEE_RATE, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, level, metaBonus,
   operatingCost, expenseLines, serverCost, setPublicationActive, workRate, handPower, knowledgeRatio, validity, debtLimit,
-  abstraction, royaltyRate, unitRate, devRate, studyGain, hasTextbook, ideMultiplier, autoStudySubject, itemCost, netIncome,
+  royaltyRate, unitRate, devRate, studyGain, hasTextbook, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
   developmentReadiness, readingLesson, nextReading, answerReading, READING_UNITS,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
@@ -375,6 +375,7 @@ function renderTask() {
   $('build-panel').classList.toggle('hidden', mode !== 'dev');
   $('production-panel').classList.toggle('hidden', mode !== 'dev' || !state.projectIndex);
   $('development-policy').classList.toggle('hidden', mode !== 'dev');
+  $('development-details').classList.toggle('hidden', mode !== 'dev');
   $('dev-actions').classList.toggle('hidden', mode !== 'dev');
   const lesson = SKILLS.find(s => s.id === state.subject);
   const studyLocked = mode === 'study' && !hasTextbook(state);
@@ -395,21 +396,26 @@ function renderTask() {
   $('type-label').textContent = studyLocked ? '教材を購入すると学習できます' : paused ? '一時停止中' : typing ? mode === 'work' ? '伝票入力を始める' : 'コード入力を始める' : `クリックして${task[5]}`;
   $('type-hint').textContent = studyLocked ? `${textbook.name} · ${yen(itemCost(state, textbook))}` : paused ? '設定から再開できます' : typing ? mode === 'work' ? '原票を確認し、CSVの項目順に入力' : '光っている文字から、コードどおりに入力' : `タイピングなら完入力で最大×${TYPING_REWARD.character + typingCompletionMultiplier(mode)}`;
   $('output-rate').innerHTML = `${esc(task[6])} <small>/ ${typing ? '正解文字' : 'クリック'}</small>`;
-  $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : typing ? `正解×${TYPING_REWARD.character} ＋ 完入力ボーナス` : 'このクリックで得られるもの';
+  $('output-label').textContent = mode === 'dev' ? ratio>=1 ? 'この入力で進む制作量' : `有効変換率 ${Math.round(validity(state) * 100)}%` : typing ? `正解×${TYPING_REWARD.character} ＋ 完入力ボーナス` : 'このクリックで得られるもの';
   $('typing-instructions').textContent = mode === 'work' ? '伝票番号 → 日付 → 品名 → 数量 → 単価' : 'ハイライトされた文字から入力';
   $('subject-picker').querySelectorAll('[data-subject]').forEach(b => { b.classList.toggle('active', b.dataset.subject === state.subject); b.setAttribute('aria-pressed', b.dataset.subject === state.subject); });
   if (mode === 'dev') {
     const policy=developmentPolicy(state), age=debtAgeDays(state,DAY);
+    $('current-policy').textContent=({steady:'通常',prototype:'仮実装',structured:'構造重視'})[policy.id];
     document.querySelectorAll('[data-development-policy]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.developmentPolicy===policy.id);b.disabled=blocked || paused;});
     $('development-policy-description').textContent=`${policy.description} 実装速度 ×${policy.speed}。未整理部分は${policy.id==='prototype'?'多い':policy.id==='structured'?'少ない':'中程度'}。`;
-    $('release-cost').textContent = `${state.projectIndex ? '販売時：ゲーム配信ストアへ売上の25%。' : '無料公開。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ' サーバー契約なし。'}${level(state,'library') && state.debt ? ` ライブラリとともに、未整理部分の25%（整理作業量 ${format(state.debt*.25)}）を次作へ引き継ぎます。` : ''}`;
+    $('release-cost').textContent = `${state.projectIndex ? '販売時：ゲーム配信ストアへ売上の25%。' : '無料公開。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ''}${level(state,'library') && state.debt ? ` ライブラリとともに、未整理部分の25%（整理作業量 ${format(state.debt*.25)}）を次作へ引き継ぎます。` : ''}`;
     $('progress-summary').innerHTML = `<div class="progress-meta"><span>${format(state.progress)} / ${format(p.target)} chars</span><b>${pct(state.progress / p.target).toFixed(2)}%</b></div><div class="big-track"><span style="width:${pct(state.progress / p.target)}%;background:${state.crashed ? 'var(--red)' : 'var(--green)'}"></span></div>`;
     $('debt-summary').textContent=`技術的負債 · 整理作業量 ${format(state.debt)} · 変更効率 ${Math.round(developmentEfficiency(state)*100)}%`;
     $('debt-breakdown').innerHTML=debtBreakdown(state).map(c=>`<p><b>${esc(c.name)} · ${format(c.amount)}</b><span>${esc(c.description)}</span></p>`).join('') || '<p>未整理部分なし。</p>';
     $('defect-summary').innerHTML=`<div class="debt-row ${state.crashed?'danger':''}"><span>検証で見つかった不具合 · 修正作業量 <b>${format(state.build.knownDefects)}</b>${needsBuild(state)?' ＋ 未検証の変更あり':''}</span><span>公開までに ${format(defectLimit(state)*.1)} 以下へ修正</span></div>`;
     $('maintenance-hint').textContent=`構造・実装方針による要修正率 ${(changeDefectRate(state,debtLimit(state))*100).toFixed(2)}%。${ratio<1 ? ' 理解不足による混入は別に発生します。' : ''}未整理の構造は、追加・変更を遅くし不具合を招きます。${age>=7 ? ` ${Math.floor(age)}日前から未整理のコードは、読み直しにも時間がかかっています。` : ''}${state.refactor ? ' まず不具合を修正し、その後に構造を整理します。' : ' 負債は残したまま公開できます。'}`;
     $('release-button').disabled = blocked || state.progress < p.target || state.crashed || state.defects > defectLimit(state) * .1;
-    $('release-button').textContent=state.debt ? '負債を残して公開 ↗' : '作品を公開 ↗';
+    $('release-button').textContent='作品を公開 ↗';
+    const releaseProblem=state.crashed || state.defects>defectLimit(state)*.1;
+    const releaseHint=state.crashed ? 'ビルドに失敗しています。レビュー・整理で不具合を修正してください。' : releaseProblem ? needsBuild(state) ? '公開前の検証が必要です。今の変更を検証してください。' : '検証で見つかった不具合を修正してから公開できます。' : state.progress<p.target ? `公開まであと${format(p.target-state.progress)}文字。制作を続けましょう。` : needsBuild(state) ? '公開の準備が整いました。最後の変更も公開時に検証します。' : '公開の準備が整いました。';
+    if($('release-hint').textContent!==releaseHint)$('release-hint').textContent=releaseHint;
+    $('release-hint').classList.toggle('danger',releaseProblem);
     $('refactor-button').textContent = state.refactor ? '← 通常の開発に戻る' : 'レビュー・整理に切替';
     $('refactor-button').classList.toggle('active', state.refactor);
     const statuses={passed:'ビルド・テスト成功',warnings:'ビルド成功 · テストで小さな修正点あり','test-failed':'ビルド成功 · テストで修正が必要','compile-failed':'ビルド失敗 · 不具合の修正が必要'};
@@ -783,7 +789,7 @@ $('release-button').addEventListener('click', () => {
   const result = release(state);
   if (!result) return;
   unlock(); dirty = true; save(); render();
-  showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${result.royalty ? 'NOW ON SALE' : 'FREE TO PLAY'}</div><h3 style="font-size:22px;margin-top:6px">${esc(result.name)}</h3><p>最後の一文字まで、作りきりました。</p><p>開発中のビルド・テスト ${format(result.builds)}回 · 素材制作の外注費 ${yen(result.productionCosts)}。</p><div class="release-detail"><div><small>品質スコア</small><b>${result.quality}<span style="font-size:11px"> / 100</span></b></div><div><small>初回受取</small><b>${yen(result.payout)}</b></div><div><small>継続売上 / 手数料控除後</small><b>${yen(result.royalty * (1 - STORE_FEE_RATE))}<span style="font-size:11px"> / 秒</span></b></div></div><p>${result.royalty ? '発売した作品が、これからの事業と開発を支えます。' : 'この作品は無料公開。売上はゼロですが、完成経験による理解度と実績が残ります。自作ライブラリと研究ラボが解禁されます。'}</p>${result.index===0 ? `<div class="modal-callout"><b>次の依頼は100作業量で ${yen(workRate(state)*JOB_SIZE)}</b><p>進行中の案件は受注時の単価で納品します。OCRで事務を進めながら、設計と描画を学び、最初の有料作品へ。</p></div>` : ''}${result.grossPayout ? `<p>ゲーム配信ストアへの販売手数料：${yen(result.salesFee)}（初回売上 ${yen(result.grossPayout)} の25%）。</p>` : ''}${result.online ? `<p>公開中はホスティング会社へ ${yen(serverCost(state, result))} / 日。公開したゲームから停止・再開できます。</p><button class="secondary-button" data-publication="${result.index}" data-active="false">公開停止</button>` : ''}<p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>${state.projectIndex === 5 ? '<div class="modal-callout">AAA、完成。けれどエンディングはありません。次は永続するオンライン宇宙を実装します。</div>' : ''}<div class="modal-actions"><button class="primary-button" data-action="close">次の一文字へ ↗</button></div>`);
+  showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${result.royalty ? 'NOW ON SALE' : 'FREE TO PLAY'}</div><h3 style="font-size:22px;margin-top:6px">${esc(result.name)}</h3><p>最後の一文字まで、作りきりました。</p><p>開発中のビルド・テスト ${format(result.builds)}回 · 素材制作の外注費 ${yen(result.productionCosts)}。</p><div class="release-detail"><div><small>品質スコア</small><b>${result.quality}<span style="font-size:11px"> / 100</span></b></div><div><small>初回受取</small><b>${yen(result.payout)}</b></div><div><small>継続売上 / 手数料控除後</small><b>${yen(result.royalty * (1 - STORE_FEE_RATE))}<span style="font-size:11px"> / 秒</span></b></div></div><p>${result.royalty ? '発売した作品が、これからの事業と開発を支えます。' : 'この作品は無料公開。売上はゼロですが、完成経験による理解度と実績が残ります。自作ライブラリと研究ラボが解禁されます。'}</p>${result.index===0 ? `<div class="modal-callout"><b>次の依頼は100作業量で ${yen(workRate(state)*JOB_SIZE)}</b><p>進行中の案件は受注時の単価で納品します。OCRで事務を進めながら、設計と描画を学び、最初の有料作品へ。</p></div>` : ''}${result.grossPayout ? `<p>ゲーム配信ストアへの販売手数料：${yen(result.salesFee)}（初回売上 ${yen(result.grossPayout)} の25%）。</p>` : ''}${result.online ? `<p>公開中はホスティング会社へ ${yen(serverCost(state, result))} / 日。公開したゲームから停止・再開できます。</p><button class="secondary-button" data-publication="${result.index}" data-active="false">公開停止</button>` : ''}<p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>${state.projectIndex === 5 ? '<div class="modal-callout">AAA、完成。けれどエンディングはありません。次は永続するオンライン宇宙を実装します。</div>' : ''}<div class="modal-actions"><button class="primary-button" data-action="next-project">次の企画へ →</button></div>`);
 });
 document.addEventListener('change', e => {
   if (e.target.id === 'language-select' && !blocked) {
@@ -811,6 +817,12 @@ function handleAction(action) {
   if (action === 'next-reading' && !blocked && !paused) { nextReading(state); render(); $('reading-question')?.focus({ preventScroll: true }); }
   if (action === 'textbooks') { document.querySelector('[data-shop=books]').click(); $('shop-items').scrollIntoView({ block: 'nearest' }); }
   if (action === 'close') $('modal').close();
+  if(action==='next-project'){
+    $('modal').close();switchView('workspace');
+    const target=$('goal-action').disabled?$('next-milestone'):$('goal-action');
+    target.focus({preventScroll:true});
+    $('next-milestone').scrollIntoView({block:'start',behavior:'instant'});
+  }
   if (action === 'pause') { paused = !paused; settings(); render(); }
   if (action === 'export') {
     const data = serialize(state);

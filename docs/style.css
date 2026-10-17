@@ -1513,6 +1513,16 @@ button {
 .development-policy button { font-size:11px; padding:9px; }
 .development-policy button[aria-pressed=true] { border-color:var(--green); color:var(--green); background:#2d3d2f; }
 .development-policy p { color:var(--muted); line-height:1.7; margin:0; }
+.development-policy > summary { cursor:pointer; color:var(--muted); }
+#current-policy { margin-left:6px; font-size:10px; color:var(--text); }
+.development-details { margin:0 0 18px; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:11px; color:var(--muted); }
+.development-details summary { cursor:pointer; }
+.development-details #debt-details { margin-top:12px; }
+.development-details p { line-height:1.7; margin:10px 0; }
+.development-details h4 { margin:14px 0 6px; font-weight:500; }
+.development-details ol { padding-left:20px; }
+#release-hint { margin:0 0 10px; font-size:12px; color:var(--green); }
+#release-hint.danger { color:var(--red); }
 #debt-details { margin-top:12px; font-size:11px; color:var(--yellow); }
 #debt-details summary { cursor:pointer; line-height:1.7; }
 #debt-breakdown p { display:grid; gap:4px; margin:10px 0; color:var(--muted); }
