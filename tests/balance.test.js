@@ -10,7 +10,7 @@ for (const scenario of SCENARIOS) test(`first AAA pacing: ${scenario.name}`, () 
   assert.ok(result.minimumCash >= 0, 'The benchmark must fund its bills without relying on business debt');
   const aaa = result.milestones[4];
   const reference = PACING_REPORT.scenarios.find(s => s.id === scenario.id);
-  for (let index = 0; index < 5; index++) assert.ok(Math.abs(reference.milestones[index].seconds - result.milestones[index].seconds) <= 60, 'Regenerate the in-game pacing table after changing balance');
+  for (let index = 0; index < 5; index++) assert.ok(Math.abs(reference.milestones[index].seconds - result.milestones[index].seconds) <= 60, 'Regenerate the development pacing report after changing balance');
   assert.ok(aaa.seconds >= 3 * 86400, `AAA too early: ${aaa.seconds / 3600} hours`);
   assert.ok(aaa.seconds <= 7 * 86400 + 60, `AAA too late: ${aaa.seconds / 3600} hours`);
   if (scenario.returning) assert.ok(aaa.activeSeconds < 6 * 3600, 'Returning play must not require days of continuous typing');

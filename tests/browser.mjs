@@ -6,6 +6,8 @@ import { resolve, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { createState, projectAt, handPower, BALANCE_VERSION } from '../src/core.js';
+import { COURSE } from '../src/course.js';
+import { lessonAt, questionFor } from '../src/curriculum.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -253,6 +255,11 @@ try {
     await seeded.keyboard.type(studyLines[line].slice(indent - indent % 4));
   }
   assert.match(await seeded.locator('#typing-completed').textContent(), /1問/);
+  assert.equal(await seeded.locator('#completed-notes').isVisible(), true);
+  const completedLesson = lessonAt('cpp', 'syntax', 0);
+  assert.match(await seeded.locator('#completed-notes').textContent(), new RegExp(completedLesson.title));
+  assert.ok((await seeded.locator('#completed-notes').textContent()).includes(completedLesson.comments[0].ja));
+  assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'completion notes must not take typing focus');
   const nextStudyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
   await seeded.keyboard.type(nextStudyPrompt.slice(0, 12));
   await seeded.locator('#save-button').click();
@@ -261,10 +268,51 @@ try {
   assert.match(await seeded.locator('#typing-round').textContent(), /^12 \/ /);
   await seeded.locator('#settings-button').click();
   await seeded.locator('#motion-setting').check();
+  await seeded.locator('#comment-locale-setting').selectOption('en');
+  assert.equal(await seeded.locator('#completed-notes [lang=ja]').count(), 0);
+  await seeded.locator('#comment-locale-setting').selectOption('ja');
+  assert.equal(await seeded.locator('#completed-notes [lang=ja]').count(), 2);
   const [download] = await Promise.all([seeded.waitForEvent('download'), seeded.locator('[data-action=export]').click()]);
   assert.match(download.suggestedFilename(), /^code-typer-idle-day\d+\.json$/);
   await seeded.locator('#modal-close').click();
   assert.ok(await seeded.locator('body').evaluate(el => el.classList.contains('reduce-motion')));
+  // Reading checks actual code outcomes and grants only finite first-answer bonuses.
+  await seeded.locator('#save-button').click();
+  const beforeReading = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  await seeded.locator('[data-study-style=reading]').click();
+  assert.equal(await seeded.locator('#typing-input').isVisible(), false);
+  assert.equal(await seeded.locator('#reading-panel').isVisible(), true);
+  assert.equal(await seeded.locator('#reading-panel [lang=ja]').count(), 0, 'the explanation must wait until the answer');
+  const readLesson = lessonAt('cpp','syntax',0);
+  assert.equal(await seeded.locator('.reference-code').textContent(), readLesson.code);
+  await seeded.locator(`[data-read-answer="${readLesson.answer}"]`).click();
+  const afterReading = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(afterReading.stats.study - beforeReading.stats.study,120);
+  assert.equal(afterReading.typing.offset,beforeReading.typing.offset,'reading must preserve unfinished typing');
+  assert.ok((await seeded.locator('.reading-explanation').textContent()).includes(readLesson.comments[0].ja));
+  assert.match(await seeded.locator('#reading-panel .reading-trace').textContent(), /health = -8/);
+  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),4);
+  await seeded.locator('[data-action=next-reading]').click();
+  const wrongLesson=lessonAt('cpp','syntax',1);
+  const wrongChoice=questionFor(wrongLesson).choices.find(n=>n!==wrongLesson.answer);
+  await seeded.locator(`[data-read-answer="${wrongChoice}"]`).click();
+  let readingSave=await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(readingSave.stats.study,afterReading.stats.study,'incorrect reading answers grant nothing');
+  await seeded.reload(); await seeded.waitForSelector('#reading-question');
+  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),4);
+  assert.match(await seeded.locator('.reading-explanation').textContent(),/不正解/);
+  await seeded.locator('#save-button').click();
+  readingSave=await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(readingSave.stats.study,afterReading.stats.study,'reload must not award reading twice');
+  assert.match(await seeded.locator('#typing-round').textContent(), /^12 \/ /);
+  await seeded.locator('[data-subject=design]').click();
+  assert.equal(await seeded.locator('#reading-panel').isVisible(),false);
+  assert.equal(await seeded.locator('#study-lock').isVisible(),true);
+  await seeded.locator('[data-subject=syntax]').click();
+  await seeded.locator('[data-study-style=practice]').click();
+  assert.equal(await seeded.locator('#typing-input').isVisible(),true);
+  assert.match(await seeded.locator('#typing-round').textContent(), /^0 \/ /);
+  assert.match(await seeded.locator('#completed-notes').textContent(),new RegExp(completedLesson.title));
   await mkdir('work', { recursive: true });
   await seeded.screenshot({ path: 'work/desktop.png', fullPage: true });
   for (const width of [1024, 768, 390, 360]) {
@@ -361,6 +409,62 @@ try {
       } else assert.doesNotMatch(await publishing.locator('#expense-lines').textContent(), /ホスティング会社/);
     } finally { await finance.close(); }
   }
+  for (const [syntax, progress, debt, expected] of [[0,0,0,/まず必要な分野/],[6,0,0,/まず必要な分野/],[6.1,0,0,/試作はできる/],[12,0,0,/必要な知識が揃った/],[12,3000,100,/リファクタリング/]]) {
+    const readyContext=await browser.newContext();
+    const readySave=createState();Object.assign(readySave,{mode:'dev',progress,debt});readySave.skills.syntax=syntax;
+    await readyContext.addInitScript(data=>localStorage.setItem('code-typer-idle:save:v1',JSON.stringify(data)),readySave);
+    const readyPage=await readyContext.newPage();readyPage.on('pageerror',e=>errors.push(e.message));
+    await readyPage.goto(url);await readyPage.waitForSelector('#development-readiness b');
+    assert.match(await readyPage.locator('#development-readiness').textContent(),expected);
+    if(syntax<12){await readyPage.locator('[data-learn=syntax]').click();assert.match(await readyPage.locator('#task-title').textContent(),/基礎文法/);}
+    if(debt>75)assert.equal(await readyPage.locator('#release-button').isDisabled(),true);
+    await readyContext.close();
+  }
+  // Exercise real course typing in every language, including literal Go tabs.
+  for (const language of ['cpp','csharp','rust','go','python','java','sql','lua']) {
+    const courseContext=await browser.newContext({viewport:{width:1200,height:1000}});
+    const data=createState();data.mode='study';data.inputStyle='typing';for(const id of ['syntax','design','graphics','systems'])data.items[`book-${id}`]=1;
+    await courseContext.addInitScript(data=>{if(!sessionStorage.getItem('seeded')){localStorage.setItem('code-typer-idle:save:v1',JSON.stringify(data));sessionStorage.setItem('seeded','1');}},data);
+    const coursePage=await courseContext.newPage();coursePage.on('pageerror',e=>errors.push(e.message));await coursePage.goto(url);
+    await coursePage.waitForSelector('#study-style-picker');
+    assert.equal(await coursePage.evaluate(()=>performance.getEntriesByType('resource').some(r=>/\/course\.[a-f0-9]+\.js/.test(r.name))),false,'native play must not load the large course archive');
+    await coursePage.locator('[data-study-style=course]').click();await coursePage.waitForSelector('#course-exercise');
+    await coursePage.locator('#language-select').selectOption(language);
+    const enter=async()=>{
+      const code=await coursePage.locator('#editor-content').getAttribute('data-prompt');
+      await coursePage.locator('#typing-input').click();
+      for(const part of code.split(/(\t|\n)/)){
+        if(part==='\t')await coursePage.keyboard.press('Tab');
+        else if(part==='\n')await coursePage.keyboard.press('Enter');
+        else if(part)await coursePage.keyboard.type(part);
+      }
+      return code;
+    };
+    const first=await coursePage.locator('#course-unit').inputValue();
+    if(language==='go')assert.ok((await coursePage.locator('#editor-content').getAttribute('data-prompt')).includes('\t'));
+    await enter();
+    let saved=await coursePage.evaluate(()=>JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+    await coursePage.locator('#save-button').click();saved=await coursePage.evaluate(()=>JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+    assert.equal(saved.typing.lastCompleted.courseUnit,first,language);
+    assert.ok(saved.typing.courseCompleted.length>=1,language);
+    assert.match(await coursePage.locator('#completed-notes').textContent(),/実行結果は未収録/);
+    if(language==='python'){
+      await enter();assert.ok((await coursePage.locator('#completed-notes').textContent()).includes('残りの焼き時間'));
+    }
+    if(language==='cpp'){
+      await coursePage.locator('#course-exercise').selectOption('1');
+      const selected=await coursePage.locator('#course-unit').inputValue();
+      const code=await coursePage.locator('#editor-content').getAttribute('data-prompt');await coursePage.locator('#typing-input').click();await coursePage.keyboard.type(code.slice(0,5));
+      await coursePage.locator('[data-subject=design]').click();await coursePage.locator('[data-subject=syntax]').click();
+      assert.equal(await coursePage.locator('#course-unit').inputValue(),selected);assert.match(await coursePage.locator('#typing-round').textContent(),/^5 \/ /);
+      await coursePage.locator('#language-select').selectOption('rust');await coursePage.locator('#language-select').selectOption('cpp');
+      assert.equal(await coursePage.locator('#course-unit').inputValue(),selected);assert.match(await coursePage.locator('#typing-round').textContent(),/^5 \/ /);
+      await coursePage.locator('#save-button').click();await coursePage.reload();await coursePage.waitForSelector('#course-unit');
+      assert.equal(await coursePage.locator('#course-unit').inputValue(),selected);assert.match(await coursePage.locator('#typing-round').textContent(),/^5 \/ /);
+      await coursePage.setViewportSize({width:390,height:900});assert.equal(await coursePage.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    }
+    await courseContext.close();
+  }
   assert.deepEqual(errors, []);
   if (server) {
     // A cached legacy shell takes the migration entry without clearing storage.
@@ -399,6 +503,8 @@ try {
     assert.equal(preserved.balanceVersion, BALANCE_VERSION); assert.equal(preserved.day, 901);
     assert.ok(requests.some(path => path.includes(`app.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`curriculum.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`idioms.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`style.${nextId}.css`)));
     assert.ok(requests.filter(path => path === '/version.json').length >= 3, 'version checks must bypass a previously cached version response');
     await cached.setOffline(true);

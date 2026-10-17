@@ -1,7 +1,8 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
+import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
 import { createTypingState, normalizeTypingState } from './typing.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 6;
+export const BALANCE_VERSION = 7;
 export const STORE_FEE_RATE = 0.25;
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
@@ -60,7 +61,7 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
@@ -75,6 +76,31 @@ export function knowledgeRatio(s) {
 export function validity(s) {
   const ratio = knowledgeRatio(s);
   return ratio < 0.5 ? 0 : ratio < 1 ? (ratio - 0.5) * 2 : 1;
+}
+// Uses the same boundaries as code conversion, including exactly 50% = zero.
+export function developmentReadiness(s) {
+  const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: s.skills[id], missing: Math.max(0, required - s.skills[id]) }));
+  const stage = s.crashed || s.debt > debtLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
+  return { stage, requirements };
+}
+export const READING_UNITS = 120;
+export function readingLesson(s) {
+  const key = `${s.typing.language}/${s.subject}`;
+  return lessonAt(s.typing.language, s.subject, s.reading.cursors[key] || 0);
+}
+export function nextReading(s) {
+  const key = `${s.typing.language}/${s.subject}`;
+  s.reading.cursors[key] = ((s.reading.cursors[key] || 0) + 1) % TOPICS_PER_SUBJECT;
+}
+export function answerReading(s, choice) {
+  if (!hasTextbook(s)) return { kind: 'textbook', amount: 0 };
+  const lesson = readingLesson(s);
+  if (Object.hasOwn(s.reading.answers, lesson.baseId)) return { kind: 'answered', amount: 0 };
+  if (!Number.isSafeInteger(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
+  s.reading.answers[lesson.baseId] = choice;
+  const correct = choice === lesson.answer;
+  const reward = correct ? input(s, { mode: 'study', subject: s.subject, chars: READING_UNITS, manual: false }) : { amount: 0 };
+  return { kind: correct ? 'correct' : 'incorrect', amount: reward.amount };
 }
 export const debtLimit = s => projectAt(s.projectIndex).target * 0.25;
 export const abstraction = s => Math.min(3, Math.max(1, 1 + (knowledgeRatio(s) - 1) * 0.3));
@@ -333,8 +359,19 @@ export function deserialize(raw) {
   if (SKILLS.some(k => k.id === x.subject)) s.subject = x.subject;
   if (['click', 'typing'].includes(x.inputStyle)) s.inputStyle = x.inputStyle;
   s.typing = normalizeTypingState(x.typing);
+  if (['reading','course'].includes(x.studyStyle)) s.studyStyle = x.studyStyle;
+  if (x.settings?.commentLocale === 'en') s.settings.commentLocale = 'en';
+  // Rebuild known IDs instead of trusting arbitrary imported object keys.
+  for (const language of ['cpp', 'csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua']) for (const subject of SKILLS.map(k => k.id)) {
+    const key = `${language}/${subject}`, cursor = x.reading?.cursors?.[key];
+    if (Number.isSafeInteger(cursor) && cursor >= 0 && cursor < TOPICS_PER_SUBJECT) s.reading.cursors[key] = cursor;
+    for (let index = 0; index < TOPICS_PER_SUBJECT; index++) {
+      const id = lessonAt(language, subject, index).baseId, answer = x.reading?.answers?.[id];
+      if (Number.isSafeInteger(answer)) s.reading.answers[id] = answer;
+    }
+  }
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
-  for (const k of Object.keys(s.settings)) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
+  for (const k of ['sound','reducedMotion']) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
   s.progress = Math.min(s.progress, projectAt(s.projectIndex).target);
   s.debt = Math.min(s.debt, debtLimit(s));
   s.crashed = s.crashed || s.debt >= debtLimit(s);
@@ -345,6 +382,6 @@ export function deserialize(raw) {
   }) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
-  if (x.balanceVersion !== BALANCE_VERSION) log(s, '旧事務所の積立を所持金に戻し、未精算の旧費用を取り消しました。');
+  if (x.balanceVersion < 6) log(s, '旧事務所の積立を所持金に戻し、未精算の旧費用を取り消しました。');
   return s;
 }

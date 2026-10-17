@@ -1,0 +1,42 @@
+[
+  {
+    "track": "lua",
+    "sha": "6699a77825f42d5a449d72125005eb0c0cb07bc2",
+    "root": "work/tracks/lua/lua-6699a77825f42d5a449d72125005eb0c0cb07bc2"
+  },
+  {
+    "track": "sqlite",
+    "sha": "8d2f86389632840f19f3ec2a31162f368b7f8777",
+    "root": "work/tracks/sqlite/sqlite-8d2f86389632840f19f3ec2a31162f368b7f8777"
+  },
+  {
+    "track": "rust",
+    "sha": "cc099ae090a6acbe6f53f1e36325263046ba333e",
+    "root": "work/tracks/rust/rust-cc099ae090a6acbe6f53f1e36325263046ba333e"
+  },
+  {
+    "track": "go",
+    "sha": "acdacf1d5721454b98fa6a263f1a73e1f3e96756",
+    "root": "work/tracks/go/go-acdacf1d5721454b98fa6a263f1a73e1f3e96756"
+  },
+  {
+    "track": "python",
+    "sha": "6105f6d9d3ef66ce3d5c8f529d2882af3d76b706",
+    "root": "work/tracks/python/python-6105f6d9d3ef66ce3d5c8f529d2882af3d76b706"
+  },
+  {
+    "track": "csharp",
+    "sha": "70c7481992b8d74961a33872404a4ebb2f0b5e5b",
+    "root": "work/tracks/csharp/csharp-70c7481992b8d74961a33872404a4ebb2f0b5e5b"
+  },
+  {
+    "track": "cpp",
+    "sha": "c45e4c6545a7d731f3bb13a78ce758bed64e9995",
+    "root": "work/tracks/cpp/cpp-c45e4c6545a7d731f3bb13a78ce758bed64e9995"
+  },
+  {
+    "track": "java",
+    "sha": "9b54e9a017b84d2f62a9bbbe4f9f47dd55c2ab2d",
+    "root": "work/tracks/java/java-9b54e9a017b84d2f62a9bbbe4f9f47dd55c2ab2d"
+  }
+]

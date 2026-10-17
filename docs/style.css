@@ -2866,3 +2866,36 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .catalog-entry { padding:16px 0; border-bottom:1px solid var(--border); }
 .catalog-entry p { color:var(--muted); font-size:12px; }
 @media(max-width:720px) { .expense-row { flex-wrap:wrap; } }
+
+/* Learning stays beside the task; completed comments never take input focus. */
+.development-readiness { padding:16px 22px; border-bottom:1px solid var(--border); background:rgba(164,231,181,.035); font-size:12px; }
+.readiness-heading { display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline; }
+.readiness-heading span { color:var(--muted); }
+.readiness-skills { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; margin-top:10px; }
+.readiness-skills > span { display:inline-flex; flex-wrap:wrap; align-items:baseline; gap:7px; }
+.readiness-skills .text-button { font-size:11px; }
+.lesson-title { margin:16px 0 8px; color:var(--green); font-size:13px; }
+.completed-notes,.reading-explanation { margin-top:18px; padding:16px; border:1px solid var(--border); border-radius:8px; }
+.completed-notes h3,.reading-panel h3 { margin:0 0 12px; font-size:14px; }
+.comment-note p { margin:6px 0; font-size:12px; line-height:1.7; }
+.comment-note [lang=en] { font-family:var(--mono); color:var(--muted); }
+.comment-note + .comment-note { margin-top:12px; }
+.reference-code { max-height:440px; overflow:auto; padding:18px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-family:var(--mono); font-size:12px; line-height:1.8; tab-size:4; }
+.reading-choices { display:flex; flex-wrap:wrap; gap:10px; }
+.reading-choices button { min-width:65px; }
+.reading-choices .correct-choice { border-color:var(--green); color:var(--green); opacity:1; }
+.reading-choices .wrong-choice { border-color:var(--red); color:var(--red); }
+.reading-explanation { margin-bottom:16px; }
+@media(max-width:600px) { .development-readiness { padding:14px 16px; } .reference-code { font-size:11px; padding:12px; } }
+
+.reading-trace { white-space:pre-wrap; overflow-wrap:anywhere; font:12px/1.8 var(--mono); }
+
+.course-panel { margin:14px 0 20px; padding:16px; border:1px solid var(--border); border-radius:8px; }
+.course-panel h3 { margin:0 0 8px; font-size:15px; }
+.course-panel p,.course-panel summary { font-size:12px; line-height:1.8; }
+.course-panel label { display:flex; flex-direction:column; gap:6px; margin:12px 0; font-size:12px; }
+.course-panel select { width:100%; min-width:0; color:var(--text); background:var(--bg); border:1px solid var(--border); padding:10px; border-radius:6px; }
+.course-instructions { white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; line-height:1.8; }
+.course-credit a { color:var(--green); }
+.execution-result { padding-top:12px; margin-top:14px; border-top:1px solid var(--border); }
+.execution-result output { color:var(--green); font:18px var(--mono); }
