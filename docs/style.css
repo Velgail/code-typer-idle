@@ -2791,8 +2791,13 @@ noscript {
   overflow:hidden;
 }
 .typing-input:focus { outline:none; }
-.typing-input.has-draft { background:#121b16; box-shadow:0 1px 0 var(--green); }
-.typing-input.has-error { color:var(--red); box-shadow:0 1px 0 var(--red); }
+.typing-input.has-draft {
+  background:linear-gradient(#121b16,#121b16) left top / var(--draft-text-width) 100% no-repeat;
+  text-decoration-line:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:.15em;
+}
+.typing-input.has-error { color:var(--red); text-decoration-style:wavy; }
 .typing-input[hidden] { display:none; }
 .input-feedback { min-height:0; margin:0 16px; font-size:11px; color:var(--muted); }
 .input-feedback:not(:empty) { margin-bottom:12px; }
