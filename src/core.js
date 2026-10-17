@@ -1,7 +1,8 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { createTypingState, normalizeTypingState } from './typing.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 5;
+export const BALANCE_VERSION = 6;
+export const STORE_FEE_RATE = 0.25;
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;
@@ -23,8 +24,8 @@ export const PROJECTS = [
   { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
   { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
   { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 1e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1億文字の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
-  { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
-  { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 3e12, royalty: 1.5e8, desc: '物理法則を仕様書に書き起こす。仕様変更は受け付けない。', icon: '07' }
+  { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', online: true, serverDaily: 3e6, target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
+  { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', online: true, serverDaily: 3e8, target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 3e12, royalty: 1.5e8, desc: 'クラウド上で物理法則を書き起こす。動き続ける世界を、プレイヤーへ配信する。', icon: '07' }
 ];
 export function projectAt(index) {
   if (index < PROJECTS.length) return PROJECTS[index];
@@ -32,14 +33,14 @@ export function projectAt(index) {
   const pow = (base, exp) => Math.min(LIMIT, Math.pow(base, Math.min(800, exp)));
   const scope = n - 1 + 0.06 * (n - 1) ** 2;
   const understanding = n + 0.04 * n ** 2;
-  return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '宇宙をリリースした翌日、次の宇宙の要件定義が届いた。', icon: String(index + 1).padStart(2, '0') };
+  return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', online: true, serverDaily: Math.min(LIMIT, 5e11 * pow(50, n - 1)), target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '配信中の宇宙を増やすたび、次の宇宙の要件定義が届く。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
   ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習を解禁。学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
   { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
-  { id: 'kitchen', tab: 'gear', name: '固定費の見直し', desc: '日々の事業維持費を25%削減。事務所代は対象外', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'coffee', gate: 0 },
+  { id: 'kitchen', tab: 'gear', name: 'サーバー運用の最適化', desc: '公開中のオンライン作品のサーバー代を25%削減', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'server', gate: 5 },
   { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。+0.25作業量/秒、各Lvで ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
@@ -59,23 +60,12 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, jobs: 0, time: 0 }, day: 1, dayElapsed: 0, billingDays: 0, dailyAccrued: 0, rentAccrued: 0, rentFund: 0, savedAt: now, settings: { sound: false, reducedMotion: false }, log: [{ text: '実家の一室で開発を開始。生活費は家族の支援、ここで管理するのは事業の資金です。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
-export const BUSINESSES = [
-  { name: '実家で個人制作', release: -1, daily: 600, rent: 0, detail: '電力・通信・消耗品。生活費は家族の支援', trigger: '開始時' },
-  { name: '個人事業として独立', release: 1, daily: 1500, rent: 60000, detail: '開発サービス・検証機材・通信', trigger: 'ブロック崩しを有料発売' },
-  { name: '小規模チーム', release: 2, daily: 12000, rent: 180000, detail: '外注・保守・開発環境', trigger: 'ローグライクを有料発売' },
-  { name: '開発スタジオ', release: 3, daily: 100000, rent: 600000, detail: '人件費・制作環境・運営', trigger: '3Dゲームを有料発売' },
-  { name: '大規模開発事業', release: 4, daily: 1000000, rent: 3000000, detail: '大規模チーム・サーバー・運営', trigger: 'AAAを有料発売' }
-];
-export function businessStage(s) {
-  const commercial = s.catalog.reduce((best, title) => title.royalty > 0 ? Math.max(best, title.index) : best, -1);
-  return BUSINESSES.findLast(stage => commercial >= stage.release);
-}
-export const operatingCost = s => businessStage(s).daily * (level(s, 'kitchen') ? 0.75 : 1);
-export const rentCost = s => businessStage(s).rent;
+export const serverCost = (s, title) => title.online && title.active !== false ? bounded((title.serverDaily || 0) * (level(s, 'kitchen') ? 0.75 : 1)) : 0;
+export const operatingCost = s => bounded(s.catalog.reduce((total, title) => total + serverCost(s, title), 0));
 export const dailyBillEstimate = s => s.dailyAccrued + operatingCost(s) * (DAY - s.dayElapsed) / DAY;
 export const workRate = s => [1, 2, 3, 5, 8, 12, 18, 24, 30][Math.min(8, s.projectIndex)];
 export const handPower = s => bounded((1 + level(s, 'keyboard') * 0.25) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
@@ -88,7 +78,21 @@ export function validity(s) {
 }
 export const debtLimit = s => projectAt(s.projectIndex).target * 0.25;
 export const abstraction = s => Math.min(3, Math.max(1, 1 + (knowledgeRatio(s) - 1) * 0.3));
-export const royaltyRate = s => bounded(s.catalog.reduce((sum, p) => sum + p.royalty, 0));
+export const royaltyRate = s => bounded(s.catalog.reduce((sum, p) => sum + (p.active === false ? 0 : p.royalty), 0));
+export const netRoyaltyRate = s => royaltyRate(s) * (1 - STORE_FEE_RATE);
+export function expenseLines(s) {
+  const lines = [];
+  if (royaltyRate(s)) lines.push({ name: '販売・決済手数料', payee: 'ゲーム配信ストア', daily: royaltyRate(s) * STORE_FEE_RATE * DAY, terms: '売上の25%・売上時に精算' });
+  for (const title of s.catalog) if (serverCost(s, title)) lines.push({ name: `${title.name} / サーバー稼働料`, payee: 'ホスティング会社', daily: serverCost(s, title), terms: '公開中のみ発生・日次精算' });
+  return lines;
+}
+export function setPublicationActive(s, index, active) {
+  const title = s.catalog.find(p => p.index === index);
+  if (!title?.online) return false;
+  title.active = !!active;
+  log(s, `${title.name} の公開を${active ? '再開' : '停止'}しました。`, 'info');
+  return true;
+}
 export function unitRate(s, id) {
   const l = level(s, id);
   if (!l) return 0;
@@ -119,7 +123,7 @@ export function autoStudySubject(s) {
   return hasTextbook(s) ? s.subject : SKILLS.find(skill => hasTextbook(s, skill.id))?.id || null;
 }
 export const itemCost = (s, item) => bounded(item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
-export const netIncome = s => unitRate(s, 'macro') * workRate(s) + royaltyRate(s) - operatingCost(s) / DAY - rentCost(s) / (DAY * 30);
+export const netIncome = s => unitRate(s, 'macro') * workRate(s) + netRoyaltyRate(s) - operatingCost(s) / DAY;
 export function log(s, text, kind = 'info') {
   if (s.log.at(-1)?.text === text) return;
   s.log.push({ text, kind, day: s.day });
@@ -208,7 +212,7 @@ function automateDevelopment(s, chars) {
   }
   input(s, { mode: 'dev', chars, manual: false });
 }
-export function tick(s, seconds) {
+export function tick(s, seconds, { chargeExpenses = true } = {}) {
   seconds = Math.max(0, Math.min(OFFLINE_LIMIT, seconds));
   // One-second chunks make daily costs, bankruptcy, and debt behave identically
   // for a foreground session and an offline session.
@@ -217,29 +221,20 @@ export function tick(s, seconds) {
     seconds -= dt;
     s.stats.time += dt;
     s.dayElapsed += dt;
-    earn(s, bounded(royaltyRate(s) * dt));
+    const gross = bounded(royaltyRate(s) * dt), fee = chargeExpenses ? gross * STORE_FEE_RATE : 0;
+    earn(s, gross - fee);
+    s.stats.storeFees = add(s.stats.storeFees, fee);
     if (unitRate(s, 'macro')) input(s, { mode: 'work', chars: bounded(unitRate(s, 'macro') * dt), manual: false });
     const studySubject = unitRate(s, 'lab') ? autoStudySubject(s) : null;
     if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false });
     if (devRate(s) && s.progress < projectAt(s.projectIndex).target) automateDevelopment(s, bounded(devRate(s) * dt));
-    // Accrue only the time actually spent at each business scale. Growth never
-    // backdates a new office or team's bill to the start of the month.
-    s.dailyAccrued = add(s.dailyAccrued, operatingCost(s) / DAY * dt);
-    s.rentAccrued = add(s.rentAccrued, rentCost(s) / (DAY * 30) * dt);
-    const reserve = Math.min(Math.max(0, s.cash), Math.max(0, s.rentAccrued - s.rentFund));
-    s.cash -= reserve;
-    s.rentFund += reserve;
+    if (chargeExpenses) s.dailyAccrued = add(s.dailyAccrued, operatingCost(s) / DAY * dt);
     while (s.dayElapsed >= DAY) {
       s.dayElapsed -= DAY;
       s.day += 1;
       s.cash = Math.max(-LIMIT, s.cash - s.dailyAccrued);
+      s.stats.serverFees = add(s.stats.serverFees, s.dailyAccrued);
       s.dailyAccrued = 0;
-      s.billingDays++;
-      if (s.billingDays === 30) {
-        s.cash = Math.max(-LIMIT, s.cash - (s.rentAccrued - s.rentFund));
-        if (s.rentAccrued) log(s, '事務所代を積立から精算しました。不足分は所持金に計上しています。');
-        s.rentAccrued = s.rentFund = s.billingDays = 0;
-      }
     }
   }
 }
@@ -253,12 +248,18 @@ export function release(s) {
   const q = quality(s);
   const commercial = s.projectIndex > 0 && q >= 60 && knowledgeRatio(s) >= 1;
   const royalty = commercial ? bounded(p.royalty * q / 100 * metaBonus(s)) : 0;
-  const payout = commercial ? bounded(p.payout * (q / 100)) : 0;
+  const grossPayout = commercial ? bounded(p.payout * (q / 100)) : 0;
+  const salesFee = grossPayout * STORE_FEE_RATE, payout = grossPayout - salesFee;
+  s.stats.storeFees = add(s.stats.storeFees, salesFee);
   earn(s, payout);
-  const title = { name: p.name, quality: q, royalty, payout, index: s.projectIndex };
+  const title = { name: p.name, quality: q, royalty, payout, grossPayout, salesFee, index: s.projectIndex, online: !!p.online, serverDaily: p.serverDaily || 0, active: true };
   s.catalog.push(title);
-  // Keep a bounded catalog; old titles still contribute to income.
-  if (s.catalog.length > 100) { const old = s.catalog.shift(); s.catalog[0].royalty = add(s.catalog[0].royalty, old.royalty); }
+  // Archive the oldest titles without dropping their running costs or receipts.
+  if (s.catalog.length > 100) {
+    const oldest = s.catalog.splice(0, 2);
+    const serverDaily = bounded(oldest.reduce((total, p) => total + (p.active === false ? 0 : p.serverDaily || 0), 0));
+    s.catalog.unshift({ name: '過去の公開作品', index: -1, archived: true, quality: 80, payout: 0, royalty: bounded(oldest.reduce((sum, p) => sum + (p.active === false ? 0 : p.royalty), 0)), serverDaily, online: serverDaily > 0, active: true });
+  }
   s.runReleased += 1;
   s.runBest = Math.max(s.runBest, s.projectIndex + 1);
   s.stats.releases += 1;
@@ -299,7 +300,8 @@ export function applyOffline(s, now = Date.now()) {
   const elapsed = Math.max(0, (now - s.savedAt) / 1000);
   const seconds = Math.min(elapsed, OFFLINE_LIMIT);
   const before = { cash: s.cash, progress: s.progress, knowledge: s.skills[s.subject] };
-  if (seconds > 2) tick(s, seconds);
+  if (seconds > 2) tick(s, seconds, { chargeExpenses: !s.skipOfflineExpenses });
+  delete s.skipOfflineExpenses;
   s.savedAt = now;
   return { seconds, capped: elapsed > OFFLINE_LIMIT, cash: s.cash - before.cash, progress: s.progress - before.progress, knowledge: s.skills[s.subject] - before.knowledge };
 }
@@ -316,10 +318,11 @@ export function deserialize(raw) {
   s.day = Math.max(1, s.day);
   const previousDay = x.balanceVersion >= 3 ? DAY : 60;
   s.dayElapsed = num(x.dayElapsed, 0, 0, previousDay - 1e-6) / previousDay * DAY;
-  if (x.balanceVersion >= 3) {
-    s.billingDays = Math.floor(num(x.billingDays, 0, 0, 29));
-    for (const key of ['dailyAccrued', 'rentAccrued', 'rentFund']) s[key] = num(x[key]);
-    s.rentFund = Math.min(s.rentFund, s.rentAccrued);
+  if (x.balanceVersion >= 6) s.dailyAccrued = num(x.dailyAccrued);
+  else {
+    if (x.balanceVersion >= 3) s.cash = Math.min(LIMIT, s.cash + Math.min(num(x.rentFund), num(x.rentAccrued)));
+    // New contracts do not charge for time spent away before this update.
+    Object.defineProperty(s, 'skipOfflineExpenses', { value: true, configurable: true });
   }
   s.job.progress = num(x.job?.progress, 0, 0, JOB_SIZE - 1e-9);
   s.job.rate = num(x.job?.rate, workRate(s), 1, 30);
@@ -336,9 +339,12 @@ export function deserialize(raw) {
   s.debt = Math.min(s.debt, debtLimit(s));
   s.crashed = s.crashed || s.debt >= debtLimit(s);
   s.achievements = ACHIEVEMENTS.filter(a => x.achievements?.includes?.(a.id)).map(a => a.id);
-  s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => ({ name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), index: num(p.index, 0, 0, 1e6) })) : [];
+  s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => {
+    const index = p.archived ? -1 : num(p.index, 0, 0, 1e6), project = p.archived ? null : projectAt(index);
+    return { name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), grossPayout: num(p.grossPayout, num(p.payout)), salesFee: num(p.salesFee), index, archived: !!p.archived, online: project ? !!project.online : !!p.online, serverDaily: project ? project.serverDaily || 0 : num(p.serverDaily), active: p.active !== false };
+  }) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
-  if (x.balanceVersion !== BALANCE_VERSION) log(s, '更新を適用しました。資金・理解度・作品・設備は引き継ぎます。学習には分野ごとの教材が必要です。');
+  if (x.balanceVersion !== BALANCE_VERSION) log(s, '旧事務所の積立を所持金に戻し、未精算の旧費用を取り消しました。');
   return s;
 }

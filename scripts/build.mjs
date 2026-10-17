@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 
 const root = new URL('../docs/', import.meta.url);
-const modules = ['app', 'core', 'typing', 'pacing', 'updates', 'office'];
+const modules = ['app', 'core', 'typing', 'updates', 'office'];
 const sources = await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, root), 'utf8')));
 const css = await readFile(new URL('style.css', root), 'utf8');
 const htmlPath = new URL('index.html', root);
