@@ -106,7 +106,7 @@ test('bankruptcy is recoverable and halves manual efficiency', () => {
   assert.ok(s.cash > 0); assert.equal(handPower(s), 1);
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
-  const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1;
+  const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1; s.items['book-syntax'] = 1;
   tick(s, 2); assert.equal(s.job.progress, .5); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
   s.autoEnabled = false;
   const progress = s.progress, knowledge = s.skills.syntax, work = s.job.progress;
@@ -197,10 +197,44 @@ test('a first macro covers solo business costs without funding exponential upgra
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';
+  s.items['book-design'] = 1; s.items['book-graphics'] = 1;
   assert.equal(autoStudySubject(s), 'design');
   tick(s, 10);
   assert.ok(s.skills.design > 0 && s.skills.graphics > 0);
   assert.equal(s.subject, 'syntax');
+});
+test('every study subject requires its own textbook, including imported knowledge and offline labs', () => {
+  const s = createState(0); s.items.lab = 1; s.items.monitor = 5;
+  for (const subject of ['syntax', 'design', 'graphics', 'systems']) {
+    s.subject = subject;
+    assert.equal(studyGain(s, 1e9), 0);
+    assert.deepEqual(input(s, { mode: 'study', chars: 1e9 }), { kind: 'textbook', amount: 0 });
+    assert.equal(s.skills[subject], 0);
+  }
+  assert.equal(s.stats.manual, 0); assert.equal(s.stats.study, 0); assert.equal(s.stats.chars, 0);
+  assert.equal(autoStudySubject(s), null);
+  const loaded = deserialize(serialize(s, 0));
+  applyOffline(loaded, 8 * 3600e3);
+  assert.deepEqual(loaded.skills, s.skills);
+  s.cash = 1500; assert.equal(buy(s, 'book-syntax'), true);
+  input(s, { mode: 'study', subject: 'syntax', chars: 100 });
+  assert.ok(s.skills.syntax > 0);
+  assert.equal(studyGain(s, 100, 'design'), 0);
+  s.skills.design = 100;
+  assert.equal(studyGain(s, 100, 'design'), 0, 'existing knowledge must not bypass the missing textbook');
+});
+test('the lab uses only owned textbooks and pauses when all missing subjects lack materials', () => {
+  const s = createState(); s.projectIndex = 1; s.items.lab = 1;
+  s.skills.syntax = 50; s.items['book-design'] = 1;
+  assert.equal(autoStudySubject(s), 'design');
+  tick(s, 10);
+  assert.ok(s.skills.design > 0); assert.equal(s.skills.graphics, 0);
+  s.skills.design = 20;
+  assert.equal(autoStudySubject(s), null);
+  tick(s, 10); assert.equal(s.skills.design, 20); assert.equal(s.skills.graphics, 0);
+  s.cash = 8000; assert.equal(buy(s, 'book-graphics'), true);
+  assert.equal(autoStudySubject(s), 'graphics');
+  tick(s, 10); assert.ok(s.skills.graphics > 0);
 });
 test('previous saves retain earned resources and acquire safe typing defaults', () => {
   const previous = { ...createState(), cash: 98765, balanceVersion: 1, skills: { syntax: 123, design: 45, graphics: 6, systems: 7 }, projectIndex: 2 };

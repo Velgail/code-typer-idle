@@ -1,7 +1,7 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { createTypingState, normalizeTypingState } from './typing.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 3;
+export const BALANCE_VERSION = 4;
 export const INITIAL_CASH = 100;
 export const STUDY_XP = 0.0031;
 export const SKILL_EXPONENT = 1.5;
@@ -35,7 +35,7 @@ export function projectAt(index) {
   return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '宇宙をリリースした翌日、次の宇宙の要件定義が届いた。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
-  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
+  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習を解禁。学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
   { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
@@ -44,7 +44,7 @@ export const SHOP = [
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
-  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '不足分野を学習 +8文字/秒。各Lvで ×1.8', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
+  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '教材のある不足分野を学習 +8文字/秒。各Lvで ×1.8', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
   { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +500文字/秒。各Lvで ×2', base: 12e6, growth: 3, type: 'auto', glyph: 'server', gate: 4 }
 ];
 export const ACHIEVEMENTS = [
@@ -96,7 +96,8 @@ export function unitRate(s, id) {
   return bounded(config[0] * Math.pow(config[1], Math.min(800, l - 1)) * metaBonus(s));
 }
 export const devRate = s => s.autoEnabled ? bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0)) : 0;
-export const studyMultiplier = (s, id = s.subject) => bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25));
+export const hasTextbook = (s, id = s.subject) => level(s, `book-${id}`) > 0;
+export const studyMultiplier = (s, id = s.subject) => hasTextbook(s, id) ? bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25)) : 0;
 export const ideMultiplier = s => 1 + level(s, 'ide') * 0.35;
 export function studyGain(s, chars = handPower(s), subject = s.subject) {
   const before = s.skills[subject];
@@ -108,12 +109,14 @@ export function studyGain(s, chars = handPower(s), subject = s.subject) {
   return bounded(Number.isFinite(ratio) ? before * Math.expm1(Math.log1p(ratio) / SKILL_EXPONENT) : xp ** (1 / SKILL_EXPONENT));
 }
 export function autoStudySubject(s) {
-  let subject = s.subject, lowest = 1;
+  let subject = null, lowest = 1, missing = false;
   for (const [id, requirement] of Object.entries(projectAt(s.projectIndex).req)) {
     const ratio = s.skills[id] / requirement;
-    if (ratio < lowest) { lowest = ratio; subject = id; }
+    if (ratio < 1) missing = true;
+    if (hasTextbook(s, id) && ratio < lowest) { lowest = ratio; subject = id; }
   }
-  return subject;
+  if (missing) return subject;
+  return hasTextbook(s) ? s.subject : SKILLS.find(skill => hasTextbook(s, skill.id))?.id || null;
 }
 export const itemCost = (s, item) => bounded(item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
 export const netIncome = s => unitRate(s, 'macro') * workRate(s) + royaltyRate(s) - operatingCost(s) / DAY - rentCost(s) / (DAY * 30);
@@ -141,6 +144,7 @@ function earn(s, money) {
 }
 export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
+  if (mode === 'study' && !hasTextbook(s, subject)) return { kind: 'textbook', amount: 0 };
   chars = Math.min(LIMIT, chars);
   if (manual && countManual) s.stats.manual = add(s.stats.manual, 1);
   s.stats.chars = add(s.stats.chars, chars);
@@ -215,7 +219,8 @@ export function tick(s, seconds) {
     s.dayElapsed += dt;
     earn(s, bounded(royaltyRate(s) * dt));
     if (unitRate(s, 'macro')) input(s, { mode: 'work', chars: bounded(unitRate(s, 'macro') * dt), manual: false });
-    if (unitRate(s, 'lab')) input(s, { mode: 'study', subject: autoStudySubject(s), chars: bounded(unitRate(s, 'lab') * dt), manual: false });
+    const studySubject = unitRate(s, 'lab') ? autoStudySubject(s) : null;
+    if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false });
     if (devRate(s) && s.progress < projectAt(s.projectIndex).target) automateDevelopment(s, bounded(devRate(s) * dt));
     // Accrue only the time actually spent at each business scale. Growth never
     // backdates a new office or team's bill to the start of the month.
@@ -334,6 +339,6 @@ export function deserialize(raw) {
   s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => ({ name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), index: num(p.index, 0, 0, 1e6) })) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
-  if (x.balanceVersion !== BALANCE_VERSION) log(s, '事業維持費の新制度を適用しました。資金・理解度・作品・設備を維持し、過去の費用は請求しません。');
+  if (x.balanceVersion !== BALANCE_VERSION) log(s, '更新を適用しました。資金・理解度・作品・設備は引き継ぎます。学習には分野ごとの教材が必要です。');
   return s;
 }
