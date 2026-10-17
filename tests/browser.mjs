@@ -54,7 +54,7 @@ try {
   assert.match(await page.locator('#living').textContent(), /¥0/);
   assert.equal(await page.locator('#bill-next').textContent(), '契約・支払いなし');
   await page.locator('#help-button').click();
-  assert.equal(await page.locator('.help-section').count(), 7);
+  assert.equal(await page.locator('.help-section').count(), 8);
   assert.match(await page.locator('#modal-body').textContent(), /教材.*プログラミング基礎教本.*写経・学習/s);
   assert.match(await page.locator('#modal-body').textContent(), /レビュー・整理に切替/);
   assert.match(await page.locator('#modal-body').textContent(), /セーブを書き出す/);
@@ -512,6 +512,8 @@ try {
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`curriculum.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`idioms.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`builds.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`maintenance.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`style.${nextId}.css`)));
     assert.ok(requests.filter(path => path === '/version.json').length >= 3, 'version checks must bypass a previously cached version response');
     await cached.setOffline(true);

@@ -29,3 +29,9 @@ test('a quick prototype wins the small release while structured work pays off th
   assert.ok(prototype.milestones[0].seconds<structured.milestones[0].seconds);
   assert.ok(structured.milestones[4].seconds<prototype.milestones[4].seconds);
 });
+
+test('outsourcing remains funded and cannot bypass the pacing floor through extra sale quality',()=>{
+  const result=simulate(FAST_TYPING,{opportunistic:true,outsource:true});
+  assert.equal(result.reached,5);assert.ok(result.minimumCash>=0);
+  assert.ok(result.milestones[4].seconds>=72*3600);assert.ok(result.milestones[4].seconds<=7*86400);
+});

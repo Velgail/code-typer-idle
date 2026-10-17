@@ -2,7 +2,7 @@
 export const PACING_REPORT = {
   "balanceVersion": 8,
   "target": "初回AAAまで、放置込み3〜7日",
-  "method": "新規セーブ、購入・作業切替は15秒ごと、周回なし。通常方針で開発し、変更効率80%未満または不具合が公開基準超ならレビュー・整理へ切替。負債を残した公開とライブラリへの25%流用を含む。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。未公開・無料オフラインの固定費はゼロ。販売手数料25%、公開中のオンライン作品のサーバー代、納品報酬を計上。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み（伝票2.25倍、コード2倍）。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。",
+  "method": "新規セーブ、購入・作業切替は15秒ごと、周回なし。通常方針で開発し、変更効率80%未満または不具合が公開基準超ならレビュー・整理へ切替。負債を残した公開とライブラリへの25%流用、途中のビルド・テストを含む。標準計測は自作素材で、外注は追加条件として別計測。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。未公開・無料オフラインの固定費はゼロ。販売手数料25%、公開中のオンライン作品のサーバー代、納品報酬を計上。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み（伝票2.25倍、コード2倍）。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。",
   "scenarios": [
     {
       "id": "click",
@@ -30,37 +30,48 @@ export const PACING_REPORT = {
           "name": "小さな数当てゲーム",
           "seconds": 1605,
           "activeSeconds": 1605,
-          "manualInputs": 12840
+          "manualInputs": 12840,
+          "builds": 14,
+          "productionCosts": 0
         },
         {
           "name": "ネオン・ブロック崩し",
           "seconds": 7680,
           "activeSeconds": 7680,
-          "manualInputs": 61440
+          "manualInputs": 61440,
+          "builds": 33,
+          "productionCosts": 0
         },
         {
           "name": "雨のダンジョン",
           "seconds": 31485,
           "activeSeconds": 31485,
-          "manualInputs": 251880
+          "manualInputs": 251880,
+          "builds": 112,
+          "productionCosts": 0
         },
         {
           "name": "軌道上の街",
           "seconds": 131550,
           "activeSeconds": 131550,
-          "manualInputs": 1052400
+          "manualInputs": 1052400,
+          "builds": 623,
+          "productionCosts": 0
         },
         {
           "name": "NO MAN’S DEADLINE",
-          "seconds": 440490,
-          "activeSeconds": 440490,
-          "manualInputs": 3523920
+          "seconds": 426585,
+          "activeSeconds": 426585,
+          "manualInputs": 3412680,
+          "builds": 55167,
+          "productionCosts": 0
         }
       ],
       "reached": 5,
-      "activeSeconds": 440491,
-      "manualInputs": 3523928,
-      "minimumCash": 0
+      "activeSeconds": 426586,
+      "manualInputs": 3412688,
+      "minimumCash": 0,
+      "outsourcingSpend": 0
     },
     {
       "id": "typing",
@@ -89,37 +100,48 @@ export const PACING_REPORT = {
           "name": "小さな数当てゲーム",
           "seconds": 1275,
           "activeSeconds": 1275,
-          "manualInputs": 6375
+          "manualInputs": 6375,
+          "builds": 14,
+          "productionCosts": 0
         },
         {
           "name": "ネオン・ブロック崩し",
           "seconds": 6060,
           "activeSeconds": 6060,
-          "manualInputs": 30300
+          "manualInputs": 30300,
+          "builds": 33,
+          "productionCosts": 0
         },
         {
           "name": "雨のダンジョン",
           "seconds": 26430,
           "activeSeconds": 26430,
-          "manualInputs": 132150
+          "manualInputs": 132150,
+          "builds": 112,
+          "productionCosts": 0
         },
         {
           "name": "軌道上の街",
           "seconds": 122790,
           "activeSeconds": 122790,
-          "manualInputs": 613950
+          "manualInputs": 613950,
+          "builds": 623,
+          "productionCosts": 0
         },
         {
           "name": "NO MAN’S DEADLINE",
-          "seconds": 425265,
-          "activeSeconds": 425265,
-          "manualInputs": 2126325
+          "seconds": 412620,
+          "activeSeconds": 412620,
+          "manualInputs": 2063100,
+          "builds": 54962,
+          "productionCosts": 0
         }
       ],
       "reached": 5,
-      "activeSeconds": 425266,
-      "manualInputs": 2126330,
-      "minimumCash": 14.784999999581634
+      "activeSeconds": 412621,
+      "manualInputs": 2063105,
+      "minimumCash": 14.784999999581634,
+      "outsourcingSpend": 0
     },
     {
       "id": "returning",
@@ -147,37 +169,48 @@ export const PACING_REPORT = {
           "name": "小さな数当てゲーム",
           "seconds": 1605,
           "activeSeconds": 1605,
-          "manualInputs": 12840
+          "manualInputs": 12840,
+          "builds": 14,
+          "productionCosts": 0
         },
         {
           "name": "ネオン・ブロック崩し",
           "seconds": 28875,
           "activeSeconds": 4575,
-          "manualInputs": 36600
+          "manualInputs": 36600,
+          "builds": 34,
+          "productionCosts": 0
         },
         {
           "name": "雨のダンジョン",
           "seconds": 122400,
           "activeSeconds": 7200,
-          "manualInputs": 57600
+          "manualInputs": 57600,
+          "builds": 112,
+          "productionCosts": 0
         },
         {
           "name": "軌道上の街",
           "seconds": 259200,
           "activeSeconds": 10500,
-          "manualInputs": 84000
+          "manualInputs": 84000,
+          "builds": 619,
+          "productionCosts": 0
         },
         {
           "name": "NO MAN’S DEADLINE",
           "seconds": 604800,
           "activeSeconds": 20100,
-          "manualInputs": 160800
+          "manualInputs": 160800,
+          "builds": 55771,
+          "productionCosts": 0
         }
       ],
       "reached": 5,
       "activeSeconds": 20101,
       "manualInputs": 160808,
-      "minimumCash": 0
+      "minimumCash": 0,
+      "outsourcingSpend": 0
     }
   ]
 };

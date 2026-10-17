@@ -1518,6 +1518,20 @@ button {
 #debt-breakdown p { display:grid; gap:4px; margin:10px 0; color:var(--muted); }
 #debt-breakdown b { color:var(--yellow); font-weight:400; }
 #maintenance-hint { line-height:1.7; margin-top:12px; }
+.build-panel { margin:0 0 18px; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:11px; }
+.build-panel > div { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; }
+.build-panel button { font-size:11px; padding:8px; }
+.build-panel p { line-height:1.7; margin:8px 0; }
+.build-panel details { color:var(--muted); line-height:1.8; }
+.build-panel summary { cursor:pointer; }
+.build-panel ol { padding-left:20px; }
+.build-panel .danger { color:var(--red); }
+.production-panel { margin:0 0 18px; font-size:11px; line-height:1.8; }
+.production-panel summary { cursor:pointer; }
+.production-panel summary span { color:var(--muted); }
+.production-panel article { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; padding:10px 0; border-bottom:1px solid var(--border); }
+.production-panel small { display:block; color:var(--muted); }
+.production-panel button { font-size:11px; padding:8px; }
 
 .progress-meta {
   display:flex;

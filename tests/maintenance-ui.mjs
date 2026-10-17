@@ -60,4 +60,26 @@ export async function verifyMaintenanceUI(browser,url,errors){
     const repaired=await saved(repair);assert.equal(repaired.defects,746);assert.equal(repaired.debt,100);assert.equal(repaired.progress,3000);
     assert.match(await repair.locator('#maintenance-hint').innerText(),/まず不具合を修正/);
   }finally{await third.close();}
+
+  const integration=developer(1);integration.progress=1000;integration.cash=20000;
+  const {context:fourth,page:build}=await open(integration,{width:390,height:844});
+  try{
+    assert.match(await build.locator('#build-status').innerText(),/未検証/);
+    await build.locator('#build-button').click();
+    assert.match(await build.locator('#build-status').innerText(),/ビルド・テスト成功/);
+    assert.equal(await build.locator('#build-button').isDisabled(),true);
+    const before=await saved(build);
+    await build.locator('#production-panel summary').click();
+    assert.match(await build.locator('#production-services').innerText(),/アーティスト.*80 → 86/s);
+    await build.locator('[data-order=graphics]').click();
+    const graphics=await saved(build);assert.equal(graphics.cash,before.cash-6000);assert.equal(graphics.progress,before.progress);
+    assert.equal(graphics.production.graphics.paid,6000);assert.ok(graphics.build.revision>before.build.checkedRevision);
+    assert.match(await build.locator('#build-status').innerText(),/未検証/);
+    assert.equal(await build.locator('[data-order=graphics]').isDisabled(),true);
+    await build.locator('#build-button').click();const verified=await saved(build);
+    assert.equal(verified.build.revision,verified.build.checkedRevision);
+    await build.reload();await build.waitForSelector('#production-total');
+    const restored=await saved(build);assert.equal(restored.production.graphics.paid,6000);assert.equal(restored.cash,graphics.cash);
+    assert.equal(await build.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  }finally{await fourth.close();}
 }
