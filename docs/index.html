@@ -7,8 +7,8 @@
   <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と事業費をやりくりする無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./build/style.d2e08e9043187905.css">
-  <script type="module" src="./build/app.d2e08e9043187905.js"></script>
+  <link rel="stylesheet" href="./build/style.a04beecd8f0f936e.css">
+  <script type="module" src="./build/app.a04beecd8f0f936e.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -19,7 +19,7 @@
         <button class="nav-button" data-view="roadmap"><span data-icon="map"></span>開発ロードマップ</button>
         <button class="nav-button" data-view="achievements"><span data-icon="award"></span>実績<span id="achievement-count" class="nav-count">0/9</span></button>
       </nav>
-      <div class="header-actions"><span class="local-tag"><i></i> LOCAL SAVE</span><button class="icon-button" id="help-button" aria-label="遊び方" title="遊び方">?</button><button class="icon-button" id="settings-button" aria-label="設定" title="設定"><span data-icon="settings"></span></button></div>
+      <div class="header-actions"><button class="icon-button" id="help-button" aria-label="遊び方" title="遊び方">?</button><button class="icon-button" id="settings-button" aria-label="設定" title="設定"><span data-icon="settings"></span></button></div>
     </header>
 
     <main>
@@ -58,12 +58,12 @@
               <div id="study-lock" class="modal-callout hidden" role="status"><p id="study-lock-message"></p><button class="secondary-button" data-action="textbooks">教材ショップを見る</button></div>
               <div id="project-progress" class="project-progress hidden"></div>
               <div class="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
-              <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>原票は画像のため、そのまま文字列をコピーできません。OCR・入力マクロを導入すると読み取りと入力を自動化できます。</small></section>
-              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">invoices.csv</span><span id="editor-language">CSV</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><textarea id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
+              <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>OCR・入力マクロを導入すると、原票の読み取りと入力を自動化できます。</small></section>
+              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">invoices.csv</span><span id="editor-language">CSV</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><label id="typing-label" for="typing-input" class="typing-label">伝票入力</label><textarea rows="3" id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><p id="input-feedback" class="input-feedback" role="status" aria-live="polite"></p><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
               <div class="typing-summary hidden" id="typing-summary"><span id="typing-round">0文字 / 0文字</span><span id="typing-accuracy">正確率 100%</span><span id="typing-completed">完入力 0問</span></div>
               <div class="work-output"><span id="output-label">この入力で得られるもの</span><strong id="output-rate">+¥1 <small>/ クリック</small></strong></div>
               <button id="type-button" class="type-button"><span class="type-button-icon" data-icon="keyboard"></span><span><b id="type-label">クリックして働く</b><small id="type-hint">コードタイピングなら完入力で報酬アップ</small></span><span class="keycap">↵</span></button>
-              <div class="input-note"><span class="live-dot"></span><span id="typing-instructions">任意キーの連打では報酬が発生しません。</span><span id="manual-rate">手動入力待機中</span></div>
+              <div class="input-note"><span class="live-dot"></span><span id="typing-instructions">伝票番号 → 日付 → 品名 → 数量 → 単価</span><span id="manual-rate">手動入力待機中</span></div>
               <div id="dev-actions" class="dev-actions hidden"><button id="refactor-button" class="secondary-button">リファクタリングに切替</button><button id="release-button" class="primary-button" disabled>ビルドして公開 ↗</button></div>
             </div>
           </section>
@@ -72,13 +72,13 @@
           <section class="panel log-panel"><div class="panel-heading"><h2><span data-icon="terminal"></span>開発ログ</h2><span class="subtle">CONSOLE</span></div><div id="event-log" class="event-log" role="log" aria-label="開発ログ"></div></section>
         </div>
 
-        <aside class="right-column"><section class="panel shop-panel"><div class="panel-heading shop-heading"><div><div class="eyebrow">INVEST IN YOURSELF</div><h2>開発者の道具箱</h2></div><span data-icon="bag"></span></div><div class="shop-tabs" role="tablist" aria-label="ショップカテゴリ"><button class="active" role="tab" aria-selected="true" data-shop="books">教材</button><button role="tab" aria-selected="false" data-shop="gear">開発環境</button><button role="tab" aria-selected="false" data-shop="auto">自動化</button></div><div class="shop-intro" id="shop-intro">知識への投資は、ずっと使える。</div><div id="shop-items"></div><div class="shop-footer"><span data-icon="shield"></span>ここで使うのは、ゲーム内のお金だけ。</div></section><div class="quote-card"><span>“</span><p>動いた。<br>その二文字が、次の一文字になる。</p><small>// KEEP BUILDING.</small></div></aside>
+        <aside class="right-column"><section class="panel shop-panel"><div class="panel-heading shop-heading"><div><div class="eyebrow">INVEST IN YOURSELF</div><h2>開発者の道具箱</h2></div><span data-icon="bag"></span></div><div class="shop-tabs" role="tablist" aria-label="ショップカテゴリ"><button class="active" role="tab" aria-selected="true" data-shop="books">教材</button><button role="tab" aria-selected="false" data-shop="gear">開発環境</button><button role="tab" aria-selected="false" data-shop="auto">自動化</button></div><div class="shop-intro" id="shop-intro">知識への投資は、ずっと使える。</div><div id="shop-items"></div></section><div class="quote-card"><span>“</span><p>動いた。<br>その二文字が、次の一文字になる。</p><small>// KEEP BUILDING.</small></div></aside>
       </section>
 
       <section id="roadmap-view" class="hidden secondary-view"></section>
       <section id="achievements-view" class="hidden secondary-view"></section>
     </main>
-    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.2.1</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">このブラウザに自動保存されます</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
+    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.2.2</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">自動保存</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
   </div>
   <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
   <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>
