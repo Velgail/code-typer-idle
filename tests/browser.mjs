@@ -43,6 +43,15 @@ try {
   assert.equal(await page.getByText('ここで使うのは、ゲーム内のお金だけ。', { exact: true }).count(), 0);
   assert.equal(await page.locator('.local-tag').count(), 0);
   assert.equal(await page.locator('#cash').textContent(), '¥100');
+  assert.match(await page.locator('#living').textContent(), /¥0/);
+  assert.equal(await page.locator('#bill-next').textContent(), '契約・支払いなし');
+  await page.locator('#help-button').click();
+  assert.equal(await page.locator('.help-section').count(), 7);
+  assert.match(await page.locator('#modal-body').textContent(), /教材.*プログラミング基礎教本.*写経・学習/s);
+  assert.match(await page.locator('#modal-body').textContent(), /リファクタリングに切替/);
+  assert.match(await page.locator('#modal-body').textContent(), /セーブを書き出す/);
+  assert.doesNotMatch(await page.locator('#modal-body').textContent(), /FIRST RUN|BALANCE|3〜7日|300打鍵|旧セーブは/);
+  await page.locator('#modal-close').click();
   await page.locator('#type-button').click();
   await page.keyboard.type('arbitrary_keyboard_spam_');
   await page.locator('h1').click();
@@ -170,7 +179,8 @@ try {
   assert.match(await seeded.locator('#modal-body').textContent(), /数当てゲーム/);
   await seeded.locator('#modal-close').click();
   await seeded.locator('[data-view=roadmap]').click();
-  assert.match(await seeded.locator('.pacing-panel').textContent(), /3〜7日/);
+  assert.equal(await seeded.locator('.pacing-panel').count(), 0);
+  assert.doesNotMatch(await seeded.locator('#roadmap-view').textContent(), /FIRST RUN|BALANCE|シミュレーション|3〜7日|旧セーブ|300打鍵/);
   assert.equal(await seeded.locator('.roadmap-card').count(), 10);
   await seeded.locator('[data-view=achievements]').click();
   assert.equal(await seeded.locator('.achievement-card').count(), 9);
@@ -289,6 +299,69 @@ try {
   assert.deepEqual(errors, []);
   console.log('Browser checks passed: direct entry, visible editable drafts, native IME composition/commit, no duplicate rewards on edits, click income, paste/repeat guards, multiline typing, eight languages, cursor persistence, release, textbook requirements, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
+  // Actual publication controls must match the accounting shown before release.
+  for (const index of [1, 5]) {
+    const ready = createState(); ready.mode = 'dev'; ready.cash = 1e8; ready.projectIndex = index;
+    const project = projectAt(index); ready.progress = project.target;
+    Object.assign(ready.skills, project.req);
+    const finance = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
+    try {
+      await finance.addInitScript(data => {
+        if (!sessionStorage.getItem('finance-seeded')) {
+          localStorage.setItem('code-typer-idle:save:v1', JSON.stringify(data));
+          sessionStorage.setItem('finance-seeded', 'yes');
+        }
+      }, ready);
+      const publishing = await finance.newPage();
+      publishing.on('pageerror', e => errors.push(e.message));
+      await publishing.goto(url);
+      await publishing.waitForSelector('#release-cost');
+      assert.match(await publishing.locator('#living').textContent(), /¥0/);
+      assert.match(await publishing.locator('#release-cost').textContent(), /ゲーム配信ストア.*25%/);
+      if (index === 5) assert.match(await publishing.locator('#release-cost').textContent(), /ホスティング会社.*日.*公開停止/);
+      await publishing.locator('#release-button').click();
+      assert.match(await publishing.locator('#modal-body').textContent(), /販売手数料/);
+      await publishing.locator('#modal-close').click();
+      await publishing.locator('.expense-panel summary').click();
+      assert.match(await publishing.locator('#expense-lines').textContent(), /ゲーム配信ストア.*25%/);
+      await publishing.locator('#save-button').click();
+      const started = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+      const title = started.catalog[0];
+      assert.equal(title.salesFee, title.grossPayout * .25);
+      assert.equal(title.payout, title.grossPayout * .75);
+      assert.ok(Math.abs(started.cash - ready.cash - started.stats.earned) < .01, 'sale fees must not be charged twice');
+      if (index === 5) {
+        assert.match(await publishing.locator('#expense-lines').textContent(), /ホスティング会社/);
+        await publishing.locator('[data-action=catalog]').click();
+        await publishing.locator('[data-publication="5"][data-active="false"]').click();
+        let stopped = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+        assert.equal(stopped.catalog[0].active, false);
+        assert.match(await publishing.locator('#living').textContent(), /¥0/);
+        assert.match(await publishing.locator('#catalog-list').textContent(), /公開停止中/);
+        assert.equal(await publishing.locator('#published-count').textContent(), '公開作品の継続売上なし');
+        if (stopped.dailyAccrued > 0) {
+          assert.match(await publishing.locator('#expense-summary').textContent(), /本日精算予定/);
+          assert.doesNotMatch(await publishing.locator('#expense-lines').textContent(), /支払いはありません/);
+        }
+        await publishing.locator('#modal-close').click();
+        await publishing.waitForTimeout(350);
+        await publishing.locator('#save-button').click();
+        const afterStop = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+        assert.equal(afterStop.stats.storeFees, stopped.stats.storeFees);
+        assert.equal(afterStop.dailyAccrued, stopped.dailyAccrued);
+        await publishing.locator('[data-action=catalog]').click();
+        await publishing.locator('[data-publication="5"][data-active="true"]').click();
+        await publishing.locator('#modal-close').click();
+        await publishing.reload();
+        await publishing.waitForSelector('#expense-summary');
+        await publishing.locator('#save-button').click();
+        const resumed = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+        assert.equal(resumed.catalog[0].active, true);
+        assert.ok(resumed.dailyAccrued >= afterStop.dailyAccrued);
+      } else assert.doesNotMatch(await publishing.locator('#expense-lines').textContent(), /ホスティング会社/);
+    } finally { await finance.close(); }
+  }
+  assert.deepEqual(errors, []);
   if (server) {
     // A cached legacy shell takes the migration entry without clearing storage.
     legacyHTML = true;
@@ -301,7 +374,7 @@ try {
     updating.on('pageerror', e => errors.push(e.message));
     await updating.goto(url);
     await updating.waitForURL(`**?v=${currentRelease.id}`);
-    await updating.waitForSelector('#business-stage');
+    await updating.waitForSelector('#expense-summary');
     assert.equal(await updating.locator('.version').textContent(), `v${currentRelease.version}`);
     // Keep old module URLs in the actual HTTP cache, alongside the current build.
     await updating.evaluate(async () => { await fetch('./js/core.js'); await fetch('./js/typing.js'); });
@@ -318,7 +391,7 @@ try {
     assert.equal(new URL(updating.url()).searchParams.get('v'), currentRelease.id, 'failed save must prevent reload');
     await updating.evaluate(() => { Storage.prototype.setItem = window.originalStorageWrite; });
     await Promise.all([updating.waitForURL(`**?v=${nextId}`), updating.locator('#update-button').click()]);
-    await updating.waitForSelector('#business-stage');
+    await updating.waitForSelector('#expense-summary');
     assert.equal(await updating.locator('.version').textContent(), `v${nextVersion}`);
     await updating.locator('#save-button').click();
     preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));

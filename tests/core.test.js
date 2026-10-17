@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, businessStage, operatingCost, rentCost, netIncome } from '../src/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
@@ -71,7 +71,7 @@ test('commercial releases earn persistent royalties only above the quality and u
   const title = release(s);
   assert.ok(title.royalty > 0);
   const cash = s.cash; tick(s, 1);
-  assert.ok(Math.abs(s.cash + s.rentFund - cash - title.royalty) < 1e-8);
+  assert.ok(Math.abs(s.cash - cash - title.royalty * (1 - STORE_FEE_RATE)) < 1e-8);
   const low = createState(); low.projectIndex = 1; understand(low, .75); low.progress = projectAt(1).target;
   assert.equal(release(low).royalty, 0);
 });
@@ -84,26 +84,29 @@ test('purchases respect money, gates and one-time equipment', () => {
   assert.equal(s.cash, 0);
   s.cash = 1e6;
   assert.equal(buy(s, 'assistant'), false);
+  assert.equal(buy(s, 'kitchen'), false);
+  s.projectIndex = 5;
   assert.equal(buy(s, 'kitchen'), true);
   assert.equal(buy(s, 'kitchen'), false);
   assert.equal(buy(s, 'not-an-item'), false);
 });
-test('daily business costs are settled exactly without charging personal living expenses', () => {
-  const s = createState(); s.cash = 10000;
-  tick(s, DAY - 1); assert.equal(s.cash, 10000); assert.equal(s.day, 1);
-  tick(s, 1); assert.ok(Math.abs(s.cash - 9400) < 1e-7); assert.equal(s.day, 2);
-  assert.equal(rentCost(s), 0); assert.equal(operatingCost(s), 600);
-  const fractional = createState(); fractional.cash = 10000;
-  tick(fractional, DAY - .25); tick(fractional, .5);
-  assert.ok(Math.abs(fractional.cash - 9400) < 1e-7);
-  assert.equal(fractional.dayElapsed, .25);
-  assert.ok(Math.abs(fractional.dailyAccrued - 600 / DAY * .25) < 1e-9);
+test('solo work and free offline releases have no recurring charges', () => {
+  const s = createState();
+  tick(s, 8 * DAY);
+  assert.equal(s.cash, INITIAL_CASH); assert.equal(operatingCost(s), 0);
+  assert.deepEqual(expenseLines(s), []); assert.equal(s.stats.storeFees, 0);
+  s.progress = projectAt(0).target; understand(s);
+  release(s); tick(s, DAY);
+  assert.equal(s.cash, INITIAL_CASH); assert.equal(s.dailyAccrued, 0);
 });
-test('bankruptcy is recoverable and halves manual efficiency', () => {
+test('bankruptcy from an unpaid server bill is recoverable after stopping publication', () => {
   const s = createState(); s.cash = 0;
-  tick(s, DAY); assert.ok(Math.abs(s.cash + 600) < 1e-7); assert.equal(handPower(s), .5);
-  input(s, { mode: 'work', chars: 700 });
+  s.catalog = [{ name: 'online', index: 5, online: true, serverDaily: 3000, royalty: 0, active: true }];
+  tick(s, DAY); assert.ok(Math.abs(s.cash + 3000) < 1e-7); assert.equal(handPower(s), .5);
+  assert.equal(setPublicationActive(s, 5, false), true);
+  input(s, { mode: 'work', chars: 3200 });
   assert.ok(s.cash > 0); assert.equal(handPower(s), 1);
+  const cash = s.cash; tick(s, DAY); assert.equal(s.cash, cash);
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
   const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1; s.items['book-syntax'] = 1;
@@ -188,12 +191,12 @@ test('learning takes sustained work and slows as knowledge increases', () => {
   const early = studyGain(s, 10); s.skills.syntax = 100;
   assert.ok(studyGain(s, 10) < early);
 });
-test('a first macro covers solo business costs without funding exponential upgrades', () => {
+test('the first local macro earns its work income without an unrelated daily charge', () => {
   const s = createState(); s.items.macro = 1;
   assert.equal(unitRate(s, 'macro'), .25);
   const cash = s.cash; tick(s, 1800);
   assert.equal(s.cash - cash, 400); assert.equal(s.job.progress, 50);
-  assert.ok(netIncome(s) > .08 && netIncome(s) < .09);
+  assert.equal(netIncome(s), .25);
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';
@@ -244,53 +247,78 @@ test('previous saves retain earned resources and acquire safe typing defaults', 
   assert.equal(loaded.inputStyle, 'click'); assert.equal(loaded.typing.language, 'cpp'); assert.equal(loaded.balanceVersion, BALANCE_VERSION);
 });
 
-test('independence follows commercial success, while free releases retain the solo cost scale', () => {
-  const s = createState(); s.projectIndex = 2;
-  s.catalog.push({ index: 1, name: 'free', royalty: 0 });
-  assert.equal(businessStage(s).name, '実家で個人制作');
-  s.catalog[0].royalty = 2;
-  assert.equal(operatingCost(s), 1500); assert.equal(rentCost(s), 60000);
+test('store fees apply once to initial and ongoing commercial sales with a named payee', () => {
+  const s = createState(); s.projectIndex = 1; understand(s); s.progress = projectAt(1).target;
+  const before = s.cash, title = release(s);
+  assert.equal(title.salesFee, title.grossPayout * STORE_FEE_RATE);
+  assert.equal(s.cash - before, title.grossPayout * (1 - STORE_FEE_RATE));
+  const afterRelease = s.cash; tick(s, 10);
+  assert.ok(Math.abs(s.cash - afterRelease - title.royalty * 10 * (1 - STORE_FEE_RATE)) < 1e-7);
+  assert.ok(Math.abs(s.stats.storeFees - title.salesFee - title.royalty * 10 * STORE_FEE_RATE) < 1e-7);
+  assert.equal(operatingCost(s), 0, 'an offline sale must not create a server contract');
+  assert.equal(expenseLines(s)[0].payee, 'ゲーム配信ストア');
+  assert.match(expenseLines(s)[0].terms, /25%/);
+});
+
+test('only published online titles create fixed server costs, even with no sales', () => {
+  const s = createState(); s.projectIndex = 5; s.cash = 1e8;
+  assert.equal(operatingCost(s), 0, 'development alone must not rent a server');
+  s.progress = projectAt(5).target;
+  const free = release(s);
+  assert.equal(free.royalty, 0); assert.equal(free.online, true);
+  assert.equal(operatingCost(s), 3e6);
+  assert.equal(expenseLines(s)[0].payee, 'ホスティング会社');
   s.items.kitchen = 1;
-  assert.equal(operatingCost(s), 1125); assert.equal(rentCost(s), 60000);
-  s.catalog.push({ index: 3, name: '3D', royalty: 200 });
-  assert.equal(businessStage(s).name, '開発スタジオ');
+  assert.equal(serverCost(s, free), 2250000);
+  assert.equal(setPublicationActive(s, 5, false), true); assert.equal(operatingCost(s), 0);
+  assert.equal(setPublicationActive(s, 5, true), true); assert.equal(operatingCost(s), 2250000);
 });
 
-test('monthly office reserves conserve money, never double charge, and survive save/offline', () => {
-  const s = createState(); s.catalog = [{ name: 'commercial', index: 1, royalty: 1.6 }]; s.cash = 1e6;
-  for (let i = 0; i < 3; i++) tick(s, 8 * DAY);
-  tick(s, 5 * DAY);
+test('server bills accrue only while a title is live and retain fees incurred before stopping', () => {
+  const s = createState(); s.cash = 1e7;
+  s.catalog = [{ ...projectAt(5), index: 5, royalty: 0, active: true }];
+  tick(s, DAY / 2);
+  assert.equal(s.cash, 1e7); assert.ok(Math.abs(s.dailyAccrued - 1500000) < .001);
+  setPublicationActive(s, 5, false); tick(s, DAY / 2);
+  assert.ok(Math.abs(s.cash - 8500000) < .001); assert.equal(s.dailyAccrued, 0);
+  const loaded = deserialize(serialize(s)); tick(loaded, DAY);
+  assert.equal(loaded.cash, s.cash); assert.equal(loaded.catalog[0].active, false);
+  assert.ok(Math.abs(loaded.stats.serverFees - 1500000) < .001);
+});
+
+test('server fees and sales are identical in foreground and offline play', () => {
+  const s = createState(0); s.cash = 1e8;
+  s.catalog = [{ ...projectAt(5), index: 5, royalty: 100, active: true }];
   const loaded = deserialize(serialize(s, 0));
-  assert.ok(Math.abs(loaded.rentFund - 58000) < .001);
-  assert.ok(Math.abs(loaded.rentAccrued - loaded.rentFund) < 1e-7);
   tick(s, DAY); applyOffline(loaded, DAY * 1000);
-  const expected = 1e6 + 1.6 * 30 * DAY - 1500 * 30 - 60000;
+  const expected = 1e8 + 100 * (1 - STORE_FEE_RATE) * DAY - 3e6;
   assert.ok(Math.abs(s.cash - expected) < .001);
-  assert.equal(s.billingDays, 0); assert.equal(s.rentFund, 0); assert.equal(s.rentAccrued, 0);
-  assert.ok(Math.abs(s.cash - loaded.cash) < 1e-7);
+  assert.ok(Math.abs(loaded.cash - s.cash) < .001);
+  assert.equal(netIncome(s), 100 * (1 - STORE_FEE_RATE) - 3e6 / DAY);
 });
 
-test('midday business growth accrues only its actual share of day and office costs', () => {
-  const s = createState(); s.cash = 1e6;
-  tick(s, DAY / 2);
-  s.catalog = [{ name: 'commercial', index: 1, royalty: 1.6 }];
-  tick(s, DAY / 2);
-  assert.ok(Math.abs(s.cash + s.rentFund - (1e6 + 1.6 * DAY / 2 - 300 - 750)) < 1e-6);
-  assert.ok(Math.abs(s.rentAccrued - 1000) < 1e-6);
+test('new contracts do not backdate fees and old unspent rent reserves are returned once', () => {
+  const old = { ...createState(0), balanceVersion: 5, cash: 1000, dailyAccrued: 600, rentAccrued: 900, rentFund: 800, billingDays: 10,
+    catalog: [{ ...projectAt(5), index: 5, royalty: 1, active: true }] };
+  const s = deserialize(JSON.stringify(old));
+  assert.equal(s.cash, 1800); assert.equal(s.dailyAccrued, 0);
+  applyOffline(s, DAY * 1000);
+  assert.ok(Math.abs(s.cash - (1800 + DAY)) < 1e-7, 'the first migrated absence must not apply a new fee retroactively');
+  const loaded = deserialize(serialize(s, DAY * 1000));
+  assert.equal(loaded.cash, s.cash, 'loading the migrated save must not refund again');
+  const cash = loaded.cash; tick(loaded, DAY);
+  assert.ok(Math.abs(loaded.cash - cash - DAY * (1 - STORE_FEE_RATE) + 3e6) < .001);
 });
 
-test('unfunded bills remain as full debt rather than disappearing at the old floor', () => {
-  const s = createState(); s.cash = 0;
-  for (let i = 0; i < 4; i++) tick(s, 8 * DAY);
-  assert.ok(Math.abs(s.cash + 19200) < 1e-6);
-  assert.equal(deserialize(serialize(s)).cash, s.cash);
-  assert.equal(handPower(s), .5);
-  const independent = createState(); independent.cash = 0;
-  independent.catalog = [{ name: 'commercial', index: 1, royalty: 1e-12 }];
-  for (let i = 0; i < 3; i++) tick(independent, 8 * DAY);
-  tick(independent, 6 * DAY);
-  assert.ok(Math.abs(independent.cash + 105000) < .001, 'all 30 daily bills and unfunded office rent remain payable');
-  assert.equal(independent.rentFund, 0);
+test('archiving an old portfolio preserves active server bills and selling income', () => {
+  const s = createState();
+  s.catalog = Array.from({ length: 100 }, (_, index) => ({ name: `old-${index}`, index: index + 5, royalty: 100, online: true, serverDaily: 3000, active: true }));
+  const costs = operatingCost(s), sales = royaltyRate(s);
+  understand(s); s.progress = projectAt(0).target; release(s);
+  assert.equal(s.catalog.length, 100); assert.equal(operatingCost(s), costs); assert.equal(royaltyRate(s), sales);
+  assert.equal(s.catalog[0].archived, true);
+  setPublicationActive(s, -1, false);
+  assert.equal(operatingCost(s), costs - 6000); assert.equal(royaltyRate(s), sales - 200);
 });
 
 test('a completed work order pays its accepted quote and carries progress across modes and saves', () => {
@@ -309,7 +337,7 @@ test('legacy calendar migration preserves day fraction without backdating new ex
   const old = { ...createState(), balanceVersion: 2, day: 901, dayElapsed: 30, cash: -4321, billingDays: 29, rentAccrued: 1e6, rentFund: 1e6 };
   const s = deserialize(JSON.stringify(old));
   assert.equal(s.day, 901); assert.equal(s.dayElapsed, DAY / 2); assert.equal(s.cash, -4321);
-  assert.equal(s.billingDays, 0); assert.equal(s.rentAccrued, 0); assert.equal(s.rentFund, 0);
+  assert.equal(s.dailyAccrued, 0);
   tick(s, DAY / 2);
-  assert.ok(Math.abs(s.cash + 4621) < 1e-7);
+  assert.equal(s.cash, -4321);
 });
