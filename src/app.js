@@ -288,6 +288,7 @@ function renderTask() {
   const reading = mode === 'study' && state.studyStyle === 'reading';
   const typing = state.inputStyle === 'typing';
   const language = LANGUAGES.find(l => l.id === state.typing.language);
+  $('type-button').querySelector('.keycap').classList.toggle('hidden', !typing);
   const power = handPower(state) * (typing ? TYPING_REWARD.character : 1);
   const actionSlot = $(typing ? 'typing-actions' : 'quick-actions');
   if ($('manual-actions').parentElement !== actionSlot) actionSlot.append($('manual-actions'));
@@ -539,6 +540,11 @@ document.addEventListener('click', async event => {
 $('type-button').addEventListener('click', () => {
   if (state.inputStyle === 'typing') focusTypingInput();
   else doInput();
+});
+// Native button activation repeats Enter clicks while the button has focus.
+// The click economy accepts pointer taps; keyboard play uses code typing.
+for (const type of ['keydown', 'keyup']) $('type-button').addEventListener(type, event => {
+  if (state.inputStyle === 'click' && (event.key === 'Enter' || event.key === ' ')) event.preventDefault();
 });
 function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
   if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing') return;

@@ -9,6 +9,7 @@ import { createState, projectAt, handPower, BALANCE_VERSION } from '../src/core.
 import { COURSE } from '../src/course.js';
 import { lessonAt, questionFor } from '../src/curriculum.js';
 import { verifyCommentTranslations } from './comment-translations.mjs';
+import { verifyClickKeyboardGuard } from './keyboard-clicks.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -35,6 +36,7 @@ const url = process.env.CTI_TEST_URL || await new Promise(resolveUrl => {
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox'] });
 const errors = [];
 try {
+  await verifyClickKeyboardGuard(browser, url, errors);
   await verifyCommentTranslations(browser, url, errors);
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
