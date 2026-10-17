@@ -25,7 +25,7 @@ python3 -m http.server 4173 --directory docs
 3. **Source: Deploy from a branch** を選びます。
 4. 公開するブランチと **`/docs`** を選んで保存します。
 
-このリポジトリの公開先は、設定後に `https://velgail.github.io/code-typer-idle/` となる想定です。実際の公開状態とURLはGitHubのPages画面で確認してください。この実装作業ではPages設定の変更やリモートへのpushは行っていません。
+このリポジトリの公開先は、設定後に `https://velgail.github.io/code-typer-idle/` となる想定です。実際の公開状態とURLはGitHubのPages画面で確認してください。
 
 `docs/.nojekyll` を同梱しています。外部CDN、広告、課金、API、バックエンド、アクセス解析は使いません。プレイデータはブラウザ内に保存します。
 
