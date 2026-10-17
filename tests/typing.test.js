@@ -4,11 +4,11 @@ import { createState, input, handPower, serialize, deserialize } from '../src/co
 import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../src/typing.js';
 import { OFFICE_PROMPT_COUNT, OFFICE_DATA_VERSION, officeOrderAt } from '../src/office.js';
 
-test('the embedded curriculum contains 2,048 distinct prompts across eight languages and four subjects', () => {
+test('the embedded curriculum contains 8,192 distinct prompts across eight languages and four subjects', () => {
   const prompts = new Set();
-  assert.equal(LANGUAGES.length, 8); assert.equal(TEMPLATE_COUNT, 128); assert.equal(PROMPT_COUNT, 2048);
+  assert.equal(LANGUAGES.length, 8); assert.equal(TEMPLATE_COUNT, 512); assert.equal(PROMPT_COUNT, 8192);
   for (const language of LANGUAGES) for (const subject of SUBJECT_IDS) {
-    for (let index = 0; index < 64; index++) {
+    for (let index = 0; index < 256; index++) {
       const prompt = promptAt(language.id, subject, index);
       assert.ok(prompt.length >= 40 && prompt.length < 2000);
       assert.ok(!/\$\w+\$/.test(prompt));

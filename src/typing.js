@@ -1,5 +1,7 @@
-// 128 curated templates, each with 16 deterministic data sets: 2,048 prompts.
+import { courseUnit, currentCourseUnit, nextCourseUnit, validCourseId, coursesLoaded } from './courses.js';
+// Versioned curricula keep an unfinished pre-update exercise stable.
 // English ASCII prompts keep programming practice independent of an IME.
+import { CURRICULUM_VERSION, BASE_LESSON_COUNT, LESSON_COUNT, lessonAt } from './curriculum.js';
 import { OFFICE_DATA_VERSION, officeOrderAt } from './office.js';
 export const LANGUAGES = [
   { id: 'cpp', name: 'C++', extension: 'cpp', description: 'ゲームエンジン、描画、メモリ管理' },
@@ -226,9 +228,11 @@ const DATA = {
 };
 
 export const SUBJECT_IDS = ['syntax', 'design', 'graphics', 'systems'];
-export const TEMPLATE_COUNT = Object.values(DATA).reduce((n, topics) => n + Object.values(topics).reduce((m, pool) => m + pool.length, 0), 0);
-export const PROMPT_COUNT = TEMPLATE_COUNT * VARIANTS;
-export function promptAt(language, subject, index) {
+export const TEMPLATE_COUNT = BASE_LESSON_COUNT;
+export const PROMPT_COUNT = LESSON_COUNT;
+export function promptAt(language, subject, index, version = CURRICULUM_VERSION) {
+  language = LANGUAGES.some(l => l.id === language) ? language : 'cpp';
+  if (version === CURRICULUM_VERSION) return lessonAt(language, subject, index).code;
   language = DATA[language] ? language : 'cpp';
   subject = SUBJECT_IDS.includes(subject) ? subject : 'syntax';
   const pool = DATA[language][subject];
@@ -240,15 +244,29 @@ export function promptAt(language, subject, index) {
   return pool[number % pool.length].replace(/\$(\w+)\$/g, (_, key) => data[key]);
 }
 export function createTypingState() {
-  return { language: 'cpp', officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, lastCourseComments: '', courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
 }
 export function normalizeTypingState(value) {
   const s = createTypingState();
   if (!value || typeof value !== 'object') return s;
+  s.curriculumVersion = value.curriculumVersion === CURRICULUM_VERSION ? CURRICULUM_VERSION : 1;
+  if (value.source === 'course') s.source = 'course';
+  if (validCourseId(value.lastCourseComments)) s.lastCourseComments=value.lastCourseComments;
+  if (validCourseId(value.courseUnit)) s.courseUnit = value.courseUnit;
+  if (Array.isArray(value.courseCompleted)) s.courseCompleted = [...new Set(value.courseCompleted.filter(id=>typeof id==='string' && /^[a-f0-9]{16}$/.test(id)))].slice(-12000);
+  for(const language of LANGUAGES)for(const subject of SUBJECT_IDS){
+    const key=`${language.id}/${subject}`,cursor=value.courseCursors?.[key];
+    if(cursor && validCourseId(cursor.id))s.courseCursors[key]={id:cursor.id,offset:Number.isSafeInteger(cursor.offset)&&cursor.offset>=0?Math.min(8192,cursor.offset):0,roundErrors:Number.isSafeInteger(cursor.roundErrors)&&cursor.roundErrors>=0?Math.min(1e12,cursor.roundErrors):0,bonusBase:Number.isFinite(cursor.bonusBase)&&cursor.bonusBase>=0?Math.min(1e250,cursor.bonusBase):0};
+  }
+  const last = value.lastCompleted;
+  if (validCourseId(last?.courseUnit)) s.lastCompleted = {version:CURRICULUM_VERSION,courseUnit:last.courseUnit};
+  if (last?.version === CURRICULUM_VERSION && LANGUAGES.some(l => l.id === last.language) && SUBJECT_IDS.includes(last.subject) && Number.isSafeInteger(last.index) && last.index >= 0 && last.index < 256) {
+    s.lastCompleted = { version: CURRICULUM_VERSION, language: last.language, subject: last.subject, index: last.index };
+  }
   s.officeVersion = value.officeVersion === OFFICE_DATA_VERSION ? OFFICE_DATA_VERSION : 1;
   if (LANGUAGES.some(l => l.id === value.language)) s.language = value.language;
   for (const key of ['index', 'offset', 'errors', 'correct', 'completed', 'roundErrors']) if (Number.isSafeInteger(value[key]) && value[key] >= 0 && value[key] < 1e12) s[key] = value[key];
-  s.offset = Math.min(2000, s.offset);
+  s.offset = Math.min(8192, s.offset);
   if (typeof value.context === 'string' && /^[a-z]+\/[a-z]+\/\d+$/.test(value.context)) s.context = value.context;
   if (Number.isFinite(value.bonusBase) && value.bonusBase >= 0) s.bonusBase = Math.min(1e250, value.bonusBase);
   return s;
@@ -259,6 +277,8 @@ export function typingSubject(state) {
   return ['syntax', 'design', 'graphics', 'systems'][Math.min(3, Math.floor(state.projectIndex / 2))];
 }
 export function currentPrompt(state) {
+  if(state.mode==='study' && state.typing.source==='course' && !coursesLoaded())return '';
+  const course = state.mode === 'study' && state.typing.source === 'course' ? currentCourseUnit(state) : null;
   const subject = typingSubject(state);
   const context = `${state.mode}/${subject}/${state.projectIndex}`;
   if (state.typing.context !== context) {
@@ -266,9 +286,12 @@ export function currentPrompt(state) {
     state.typing.offset = 0;
     state.typing.roundErrors = 0;
     state.typing.bonusBase = 0;
+    const resume=course && state.typing.courseCursors[`${state.typing.language}/${subject}`];
+    if(course && resume?.id===course.id){state.typing.offset=resume.offset;state.typing.roundErrors=resume.roundErrors;state.typing.bonusBase=resume.bonusBase;}
   }
   if (state.mode === 'work' && !state.typing.offset) state.typing.officeVersion = OFFICE_DATA_VERSION;
-  const text = state.mode === 'work' ? officeOrderAt(state.typing.index, state.typing.officeVersion).input : promptAt(state.typing.language, subject, state.typing.index);
+  if (state.mode !== 'work' && !state.typing.offset) state.typing.curriculumVersion = CURRICULUM_VERSION;
+  const text = course ? course.code : state.mode === 'work' ? officeOrderAt(state.typing.index, state.typing.officeVersion).input : promptAt(state.typing.language, subject, state.typing.index, state.typing.curriculumVersion);
   state.typing.offset = Math.min(state.typing.offset, text.length - 1);
   return text;
 }
@@ -276,17 +299,28 @@ export function currentPrompt(state) {
 // Economy rewards are applied by the caller only after this validation succeeds.
 export function acceptCharacter(state, character, basePower = 1) {
   const text = currentPrompt(state), t = state.typing;
-  if (character !== text[t.offset]) {
+  if (typeof character !== 'string' || [...character].length !== 1 || !text.startsWith(character, t.offset)) {
     t.errors++;
     t.roundErrors++;
     return { correct: false, complete: false, bonus: 0 };
   }
-  t.offset++;
+  t.offset += character.length;
   t.correct++;
   t.bonusBase = Math.min(1e250, t.bonusBase + basePower);
   if (t.offset < text.length) return { correct: true, complete: false, bonus: 0 };
   const accuracy = text.length / (text.length + t.roundErrors);
   const bonus = t.bonusBase * typingCompletionMultiplier(state.mode) * accuracy ** 2;
+  if (state.mode === 'study' && t.source === 'course' && courseUnit(t.courseUnit)) {
+    t.lastCompleted = {version:CURRICULUM_VERSION,courseUnit:t.courseUnit};
+    if(courseUnit(t.courseUnit).comments.length)t.lastCourseComments=t.courseUnit;
+    if (!t.courseCompleted.includes(courseUnit(t.courseUnit).key)) t.courseCompleted.push(courseUnit(t.courseUnit).key);
+    const finished=courseUnit(t.courseUnit), next=nextCourseUnit(finished);
+    t.courseUnit = next.id;
+    t.courseCursors[`${finished.language}/${finished.subject}`]={id:next.id,offset:0,roundErrors:0,bonusBase:0};
+  } else if (state.mode !== 'work' && t.curriculumVersion === CURRICULUM_VERSION) {
+    const lesson = lessonAt(t.language, typingSubject(state), t.index);
+    t.lastCompleted = { version: CURRICULUM_VERSION, language: lesson.language, subject: lesson.subject, index: lesson.index };
+  }
   t.completed++;
   t.index++;
   t.offset = 0;
