@@ -444,6 +444,7 @@ try {
       }
       return code;
     };
+    if(language==='go'){const e=COURSE.go.exercises.find(e=>e.slug==='lasagna');const u=e.units.map(i=>COURSE.go.units[i]).find(u=>u.code.includes('\t'));await coursePage.locator('#course-exercise').selectOption(String(COURSE.go.exercises.indexOf(e)));await coursePage.locator('#course-unit').selectOption(u.id);}
     const first=await coursePage.locator('#course-unit').inputValue();
     if(language==='go')assert.ok((await coursePage.locator('#editor-content').getAttribute('data-prompt')).includes('\t'));
     await enter();
@@ -453,7 +454,7 @@ try {
     assert.ok(saved.typing.courseCompleted.length>=1,language);
     assert.match(await coursePage.locator('#completed-notes').textContent(),/実行結果は未収録/);
     if(language==='python'){
-      await enter();assert.ok((await coursePage.locator('#typing-comment-notes').textContent()).includes('残りの焼き時間'));
+      const e=COURSE.python.exercises.find(e=>e.slug==='guidos-gorgeous-lasagna');const u=e.units.map(i=>COURSE.python.units[i]).find(u=>u.comments.some(c=>c.ja.includes('残りの焼き時間')));await coursePage.locator('#course-unit').selectOption(u.id);await enter();assert.ok((await coursePage.locator('#typing-comment-notes').textContent()).includes('残りの焼き時間'));
     }
     if(language==='cpp'){
       await coursePage.locator('#course-exercise').selectOption('1');

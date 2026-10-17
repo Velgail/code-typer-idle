@@ -236,7 +236,7 @@ export function lessonAt(language, subject, index) {
  const explanation=specific?specific.explanation:language==='sql'?`${topic.comments[0].ja} 結果は ${answer}。`:trace.join('\n');
  const lines=[...code.matchAll(/^[ \t]*(?:\/\/|--|#) ([^\n]*)/gm)];
  const comments=metadata.comments.flatMap(note=>lines.filter(line=>line[1]===note.en).map(line=>({...note,start:line.index+line[0].length-note.en.length,end:line.index+line[0].length})));
- return {id:`${language}/${subject}/${topicId}/${variant}`,baseId:`${language}/${subject}/${topicId}`,version:CURRICULUM_VERSION,language,subject,index:number,topicId,title:metadata.title,english:metadata.english,code,comments,answer,explanation};
+ return {id:`${language}/${subject}/${topicId}/${variant}`,baseId:`${language}/${subject}/${topicId}`,version:CURRICULUM_VERSION,language,subject,index:number,topicId,title:metadata.title,english:metadata.english,code,comments,bindings:!specific && language!=='sql'?Object.entries(topic.inputs(variant)).map(([name,value])=>({name,kind:'local',initial:String(value)})):[],answer,explanation};
 }
 export function questionFor(lesson) {
  let seed=0;for(const char of lesson.id)seed=(Math.imul(seed,31)+char.charCodeAt(0))>>>0;

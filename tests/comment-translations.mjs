@@ -10,8 +10,8 @@ export async function verifyCommentTranslations(browser, url, errors) {
     { language, source: 'standard', lesson: lessonAt(language, 'syntax', 0) },
     { language, source: 'course', lesson: COURSE[language].units.find(unit => unit.comments.some(c => c.end < unit.code.length)) }
   ]);
-  cases.push({ language: 'rust', source: 'course', lesson: COURSE.rust.units.find(unit => unit.id === 'rust/a78ed17a-b2c0-485c-814b-e13ccd1f4153/b5148413d77e4959/0'), checkScroll: true });
-  cases.push({ language: 'python', source: 'course', lesson: COURSE.python.units.find(unit => unit.comments.some(c => c.en.includes('Calculate the bake time remaining') && unit.code.endsWith(c.en))), completes: true });
+  cases.push({ language: 'rust', source: 'course', lesson: COURSE.rust.units.find(unit => unit.comments.length >= 8 && unit.comments.at(-1).end < unit.code.length - 1), checkScroll: true });
+  cases.push({ language: 'python', source: 'course', lesson: COURSE.python.units.find(unit => unit.comments.length === 1 && unit.code.endsWith(unit.comments[0].en)), completes: true });
   for (const { language, source, lesson, completes = false, checkScroll = false } of cases) {
     assert.ok(lesson, `${language}/${source} needs a real comment fixture`);
     const context = await browser.newContext({ viewport: checkScroll ? { width: 390, height: 450 } : { width: 1100, height: 1000 } });

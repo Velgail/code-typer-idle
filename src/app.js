@@ -1,4 +1,4 @@
-import { coursesLoaded, installCourses, courseTrack, courseUnit, courseLesson, currentCourseUnit, firstCourseUnit, rememberCourseCursor } from './courses.js';
+import { coursesLoaded, installCourses, installLegacyCourses, needsLegacyCourses, courseTrack, courseUnit, courseLesson, currentCourseUnit, firstCourseUnit, rememberCourseCursor } from './courses.js';
 import {
   DAY, JOB_SIZE, STORE_FEE_RATE, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, level, metaBonus,
   operatingCost, expenseLines, serverCost, setPublicationActive, workRate, handPower, knowledgeRatio, validity, debtLimit,
@@ -11,6 +11,7 @@ import { CURRICULUM_VERSION, lessonAt, questionFor, localeForComments } from './
 import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, acceptCharacter, typingCommentProgress } from './typing.js';
 import { watchForUpdates } from './updates.js';
 import { officeOrderAt, drawOfficeSource } from './office.js';
+import { learningGuide } from './learningguide.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -58,10 +59,16 @@ let lastShopKey = '', lastEditorKey = '', lastLogKey = '', lastSkillsKey = '', l
 let lastFrame = performance.now(), sinceSave = 0, dirty = true, offlineResult;
 let lastManualTimes = [], tapNumber = 0, soundContext;
 let courseLoading;
-async function loadCourses() {
+let legacyCourseLoading;
+async function loadCourses(forState = state) {
   if (!coursesLoaded()) {
     courseLoading ||= import('./course.js').then(module=>installCourses(module.COURSE)).catch(error=>{courseLoading=null;throw error;});
     await courseLoading;
+  }
+  if(needsLegacyCourses(forState)){
+    // This published immutable archive keeps an unfinished old prompt exact.
+    legacyCourseLoading ||= import('./course.a422c81794d07a40.js').then(module=>installLegacyCourses(module.COURSE)).catch(error=>{legacyCourseLoading=null;throw error;});
+    await legacyCourseLoading;
   }
 }
 let lastCourseKey = '';
@@ -280,6 +287,7 @@ function renderEditor() {
 function renderTask() {
   const field = $('typing-input'), commentPanel = $('typing-comment-notes');
   const previousNotes = commentPanel.innerHTML, notesHidden = commentPanel.classList.contains('hidden');
+  const previousGuide = $('learning-guide').innerHTML;
   const fieldRect = document.activeElement === field ? field.getBoundingClientRect() : null;
   const viewportTop = window.visualViewport?.offsetTop || 0;
   const viewportBottom = viewportTop + (window.visualViewport?.height || innerHeight);
@@ -340,7 +348,7 @@ function renderTask() {
     $('refactor-button').classList.toggle('active', state.refactor);
   }
   renderEditor(); renderLearning(); renderReadiness(); renderCourse();
-  if (inputWasVisible && document.activeElement === field && (previousNotes !== commentPanel.innerHTML || notesHidden !== commentPanel.classList.contains('hidden'))) {
+  if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousNotes !== commentPanel.innerHTML || notesHidden !== commentPanel.classList.contains('hidden'))) {
     const rect = field.getBoundingClientRect();
     if (rect.top < viewportTop || rect.bottom > viewportBottom + 1) field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
   }
@@ -378,8 +386,10 @@ function renderLearning() {
   }
   const t = state.typing;
   const course = state.mode === 'study' && t.source === 'course' ? courseLesson(t.courseUnit) : null;
-  const title = course ? course.title : !reading && state.mode !== 'work' && !locked && t.curriculumVersion === CURRICULUM_VERSION ? lessonAt(t.language, state.mode === 'study' ? state.subject : ['syntax','design','graphics','systems'][Math.min(3, Math.floor(state.projectIndex / 2))], t.index).title : '';
+  const currentLesson = !reading && state.mode !== 'work' && !locked ? course || (t.curriculumVersion === CURRICULUM_VERSION ? lessonAt(t.language, state.mode === 'study' ? state.subject : ['syntax','design','graphics','systems'][Math.min(3, Math.floor(state.projectIndex / 2))], t.index) : null) : null;
+  const title = currentLesson?.title || '';
   $('lesson-title').classList.toggle('hidden', !title); $('lesson-title').textContent = title;
+  renderLearningGuide(currentLesson);
   if (!reading || locked) return;
   const lesson = readingLesson(state), question = questionFor(lesson);
   const answered = Object.hasOwn(state.reading.answers, lesson.baseId), choice = state.reading.answers[lesson.baseId];
@@ -388,6 +398,16 @@ function renderLearning() {
   lastReadingKey = key;
   const answeredCount = Array.from({length:16}, (_,i)=>lessonAt(lesson.language,lesson.subject,i)).filter(l=>Object.hasOwn(state.reading.answers,l.baseId)).length;
   $('reading-panel').innerHTML = `<p class="panel-note">回答済み ${answeredCount} / 16本 · 各題の初回正解で理解ボーナス</p>${answeredCount === 16 ? '<div class="modal-callout">この言語・分野の読解を一巡しました。写経で学習を続けるか、ほかの言語や分野の参考コードを選べます。<button class="secondary-button" data-study-style="practice">写経で学習を続ける →</button></div>' : ''}<h3>${esc(lesson.title)}</h3><pre class="reference-code" tabindex="0" aria-label="参考コード">${esc(lesson.code)}</pre><h4 id="reading-question" tabindex="-1">${esc(question.prompt)}</h4><div class="reading-choices">${question.choices.map(value => `<button class="secondary-button ${answered && value === lesson.answer ? 'correct-choice' : answered && value === choice ? 'wrong-choice' : ''}" data-read-answer="${value}" ${answered || blocked || paused ? 'disabled' : ''}>${value}${answered && value === lesson.answer ? ' ✓' : ''}</button>`).join('')}</div>${answered ? `<div class="reading-explanation" role="status"><p><b>${choice === lesson.answer ? '正解。理解度を獲得済み。' : '不正解。今回の理解度加算はありません。'}</b> 答えは ${lesson.answer}。</p>${commentNotes(lesson)}<pre class="reading-trace">${esc(lesson.explanation)}</pre></div><button class="secondary-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>次の参考コード →</button>` : `<p class="panel-note">コードの処理を追って、結果を選んでください。初回正解で理解度が増えます。</p><button class="text-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>この題材を後で読む →</button>`}`;
+}
+function renderLearningGuide(lesson) {
+  const panel=$('learning-guide'), guide=learningGuide(lesson);
+  panel.classList.toggle('hidden',!guide);
+  if(!guide)return;
+  const kinds={namespace:'名前空間',class:'クラス',struct:'構造体',enum:'列挙型',interface:'インターフェース',impl:'実装',trait:'トレイト',module:'モジュール',receiver:'メソッドの対象'};
+  const rows=entries=>`<dl class="binding-list">${entries.map(b=>`<div><dt><code>${esc(b.name)}</code>${b.type?` <small>${esc(b.type)}</small>`:''}</dt><dd>${esc(b.meaning)}${b.initial?`<small>設定値：<code>${esc(b.initial)}</code></small>`:''}</dd></div>`).join('')}</dl>`;
+  const setup=lesson.exerciseInfo?.setup || [];
+  const html=`<h3>このコードで作るもの</h3><p class="guide-purpose">${esc(guide.purpose)}</p>${guide.scope.length?`<p class="guide-scope">${guide.scope.map(s=>`${kinds[s.kind] || esc(s.kind)} <code>${esc(s.name)}</code>`).join(' › ')}</p>`:''}${guide.notes.length?`<ul>${guide.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}${guide.bindings.length?`<h4>引数・変数の使い道</h4>${rows(guide.bindings.slice(0,6))}${guide.bindings.length>6?`<details><summary>ほかの${guide.bindings.length-6}個を見る</summary>${rows(guide.bindings.slice(6))}</details>`:''}`:''}${setup.length?`<details class="starter-reference" ${lesson.language==='sql'?'open':''}><summary>${lesson.language==='sql'?'使うテーブル・初期データ':'あらかじめ用意されているコード'}</summary>${setup.map(f=>`<h4>${esc(f.path)}</h4><pre class="reference-code" tabindex="0">${esc(f.code)}</pre>`).join('')}</details>`:''}`;
+  if(panel.innerHTML!==html)panel.innerHTML=html;
 }
 function renderReadiness() {
   const {stage, requirements} = developmentReadiness(state), project = projectAt(state.projectIndex);
@@ -410,7 +430,7 @@ function renderCourse() {
   if(lastCourseKey===key)return;lastCourseKey=key;
   const total=Object.values(['cpp','csharp','rust','go','python','java','sql','lua'].map(id=>courseTrack(id))).reduce((n,t)=>n+t.exercises.length,0);
   const exercise=lesson?.exerciseInfo;
-  $('course-panel').innerHTML=`<h3>言語別の講座</h3><p>${track.exercises.length}演習・${track.functionCount}関数／SQL区間 · 全言語 ${total.toLocaleString()}演習</p><label>演習 <select id="course-exercise" aria-label="講座の演習">${track.exercises.map((e,i)=>`<option value="${i}" ${unit?.exercise===i?'selected':''}>${e.kind==='concept'?'基礎・概念':'応用'} · ${esc(e.title)}${e.kind==='practice'?` / 難度${e.difficulty}`:''} (${e.units.filter(i=>state.typing.courseCompleted.includes(track.units[i].key)).length}/${e.units.length})</option>`).join('')}</select></label>${lesson && hasTextbook(state)?`<label>入力区間 <select id="course-unit" aria-label="講座の入力区間">${exercise.units.map(i=>{const u=track.units[i];return `<option value="${u.id}" ${u.id===unit.id?'selected':''}>${state.typing.courseCompleted.includes(u.key)?'✓ ':''}${esc(u.label)} (${u.part}/${u.parts})</option>`;}).join('')}</select></label><p class="panel-note">${esc(exercise.concepts.join(' / ') || exercise.description)}${exercise.prerequisites.length?`<br>前提：${esc(exercise.prerequisites.join(' / '))}`:''}</p><details><summary>課題と周辺コードを見る</summary><p>${esc(exercise.description)}</p><pre class="course-instructions">${esc(exercise.instructions)}</pre>${exercise.files.map(i=>`<h4>${esc(track.files[i].path)}</h4><pre class="reference-code" tabindex="0">${esc(track.files[i].code)}</pre>`).join('')}</details><p class="course-credit"><a href="${esc(lesson.fileInfo.url)}" target="_blank" rel="noopener">Exercism / ${esc(exercise.title)}</a> · ${esc(exercise.authors.join(', '))} · <a href="./licenses/exercism-MIT.txt" target="_blank" rel="noopener">MIT</a></p>`:hasTextbook(state)?'<p>この分野の入力区間はありません。演習一覧から題材を選んでください。</p>':'<p>この分野の教材を購入すると、課題と参考実装を開けます。</p>'}`;
+  $('course-panel').innerHTML=`<h3>言語別の講座</h3><p>${track.exercises.length}演習 · 全言語 ${total.toLocaleString()}演習</p><label>演習 <select id="course-exercise" aria-label="講座の演習">${track.exercises.map((e,i)=>`<option value="${i}" ${unit?.exercise===i?'selected':''}>${e.kind==='concept'?'基礎・概念':'応用'} · ${esc(e.title)}${e.kind==='practice'?` / 難度${e.difficulty}`:''} (${e.units.filter(i=>state.typing.courseCompleted.includes(track.units[i].key)).length}/${e.units.length})</option>`).join('')}</select></label>${lesson && hasTextbook(state)?`<label>入力区間 <select id="course-unit" aria-label="講座の入力区間">${unit.legacy?`<option value="${unit.id}" selected>入力中の区間 · ${esc(unit.label)}</option>`:''}${exercise.units.map(i=>{const u=track.units[i];return `<option value="${u.id}" ${u.id===unit.id?'selected':''}>${state.typing.courseCompleted.includes(u.key)?'✓ ':''}${esc(u.label)} (${u.part}/${u.parts})</option>`;}).join('')}</select></label><p class="panel-note">${esc(exercise.concepts.join(' / ') || exercise.description)}${exercise.prerequisites.length?`<br>前提：${esc(exercise.prerequisites.join(' / '))}`:''}</p><details><summary>課題と周辺コードを見る</summary><p>${esc(exercise.description)}</p><pre class="course-instructions">${esc(exercise.instructions)}</pre>${exercise.files.map(i=>`<h4>${esc(track.files[i].path)}</h4><pre class="reference-code" tabindex="0">${esc(track.files[i].code)}</pre>`).join('')}</details><p class="course-credit"><a href="${esc(lesson.fileInfo.url)}" target="_blank" rel="noopener">Exercism / ${esc(exercise.title)}</a> · ${esc(exercise.authors.join(', '))} · <a href="./licenses/exercism-MIT.txt" target="_blank" rel="noopener">MIT</a></p>`:hasTextbook(state)?'<p>この分野の入力区間はありません。演習一覧から題材を選んでください。</p>':'<p>この分野の教材を購入すると、課題と参考実装を開けます。</p>'}`;
 }
 function renderAssetsAndGoal() {
   const snippets = level(state, 'library');
@@ -702,7 +722,7 @@ $('import-file').addEventListener('change', async e => {
   try {
     if (file.size > 500000) throw new Error('セーブファイルが大きすぎます。');
     const imported = deserialize(await file.text());
-    if(imported.typing.source==='course' || imported.typing.lastCompleted?.courseUnit) await loadCourses();
+    if(imported.typing.source==='course' || imported.typing.lastCompleted?.courseUnit) await loadCourses(imported);
     state = imported; applyOffline(state); canSave = true; paused = false;
     invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast('セーブデータを読み込みました。');
   } catch (error) { toast(`読み込めません：${error.message}`, 'error'); }
