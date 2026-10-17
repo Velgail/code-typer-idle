@@ -252,13 +252,14 @@ function positionTypingInput(ensureVisible=false){
   if(field.hidden || !mark || !stage.clientWidth)return;
   const style=getComputedStyle(mark.closest('pre')),lineHeight=parseFloat(style.lineHeight);
   field.style.fontFamily=style.fontFamily;field.style.fontSize=style.fontSize;field.style.lineHeight=style.lineHeight;
+  field.style.fontWeight=style.fontWeight;field.style.fontStyle=style.fontStyle;field.style.letterSpacing=style.letterSpacing;field.style.tabSize=style.tabSize;
   const lines=field.value.split('\n'),height=lineHeight*Math.min(3,lines.length);
   const locate=()=>{
-    const r=mark.getClientRects()[0] || mark.getBoundingClientRect(),parent=stage.getBoundingClientRect();
-    let x=r.left-parent.left,y=r.top-parent.top-(lineHeight-r.height)/2;
-    // Keep the expected character visible alongside an incorrect draft.
-    if(field.value){x+=r.width+4;if(x>stage.clientWidth-32){x=17;y+=lineHeight;}}
-    return {x,y};
+    // Measure the glyph, excluding the mark's bottom border. Both the caret
+    // and a mistaken character occupy this exact code position.
+    const range=document.createRange();range.selectNodeContents(mark);
+    const r=range.getClientRects()[0] || mark.getBoundingClientRect(),parent=stage.getBoundingClientRect();
+    return {x:r.left-parent.left,y:r.top-parent.top-(lineHeight-r.height)/2};
   };
   let point=locate();
   if(ensureVisible){
@@ -266,8 +267,10 @@ function positionTypingInput(ensureVisible=false){
     else if(point.y+height>stage.clientHeight-8)content.scrollTop+=point.y+height-stage.clientHeight+8;
     point=locate();
   }
-  draftMeasure.font=`${style.fontSize} ${style.fontFamily}`;
-  const width=Math.max(16,...lines.map(line=>draftMeasure.measureText(line.replaceAll('\t','    ')).width+4));
+  draftMeasure.font=`${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const textWidth=Math.max(0,...lines.map(line=>draftMeasure.measureText(line.replaceAll('\t','    ')).width));
+  const width=Math.max(16,textWidth+4);
+  field.style.setProperty('--draft-text-width',`${textWidth}px`);
   field.style.left=`${Math.max(0,point.x)}px`;field.style.top=`${point.y}px`;
   field.style.width=`${Math.max(16,Math.min(width,stage.clientWidth-point.x-5))}px`;
   field.style.height=`${height}px`;
@@ -689,7 +692,9 @@ function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
   feedback.textContent = ''; feedback.classList.remove('error');
   const showError=()=>{
     const item=['伝票番号','日付（YYYY-MM-DD）','品名','数量','単価'][prompt.slice(0,t.offset).split(',').length-1];
-    feedback.textContent=state.mode==='work'?`${item}の入力を確認してください。`:'ハイライトと異なる文字があります。';
+    const expected=String.fromCodePoint(prompt.codePointAt(t.offset));
+    const next=expected==='\n'?'改行（Enter）':expected==='\t'?'字下げ（Tab）':expected===' '?'空白':`「${expected}」`;
+    feedback.textContent=state.mode==='work'?`${item}の入力を確認してください。`:`次の文字は${next}です。`;
     feedback.classList.add('error');
   };
   let countedManual = false,consumed=0,completed=false;
