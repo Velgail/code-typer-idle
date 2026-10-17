@@ -38,6 +38,8 @@ try {
   await page.goto(url);
   await page.waitForSelector('.buy-button');
   assert.match(await page.title(), /Code Typer Idle/);
+  assert.equal(await page.getByText('ここで使うのは、ゲーム内のお金だけ。', { exact: true }).count(), 0);
+  assert.equal(await page.locator('.local-tag').count(), 0);
   assert.equal(await page.locator('#cash').textContent(), '¥100');
   await page.locator('#type-button').click();
   await page.keyboard.type('arbitrary_keyboard_spam_');
@@ -48,7 +50,8 @@ try {
   assert.equal(saved.cash, 100); assert.equal(saved.job.progress, 1, 'arbitrary keys must never produce rewards');
   assert.equal(saved.mode, 'work', 'typing a year outside the input must never switch to the study tab');
   await page.locator('[data-mode=work]').click();
-  await page.locator('[data-input-style=typing]').click();
+  await page.getByRole('textbox', { name: '伝票データ入力' }).click();
+  assert.equal(await page.locator('[data-input-style=typing]').getAttribute('aria-pressed'), 'true', 'clicking the input must start typing without a mode-selector prerequisite');
   assert.equal(await page.locator('#typing-input').isVisible(), true);
   await page.locator('[data-mode=study]').click();
   await page.locator('[data-mode=work]').click();
@@ -58,6 +61,10 @@ try {
   await page.keyboard.type(wrong);
   assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
   assert.equal(await page.locator('#cash').textContent(), '¥100');
+  assert.equal(await page.locator('#typing-input').inputValue(), wrong.toUpperCase(), 'incorrect text must remain visible and editable');
+  assert.match(await page.locator('#input-feedback').textContent(), /伝票番号/);
+  await page.keyboard.press('Backspace');
+  assert.equal(await page.locator('#typing-input').inputValue(), '');
   // Programmatic clipboard events exercise the real paste/beforeinput guards.
   await page.locator('#typing-input').evaluate(el => {
     const clipboard = new DataTransfer(); clipboard.setData('text/plain', 'injected paste');
@@ -65,8 +72,20 @@ try {
     el.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertFromPaste', data: 'injected paste', bubbles: true, cancelable: true }));
   });
   assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Input.imeSetComposition', { text: 'ｉｎｖ', selectionStart: 3, selectionEnd: 3 });
+  await page.waitForTimeout(350); // At least one render must leave the IME draft intact.
+  assert.equal(await page.locator('#typing-input').inputValue(), 'ｉｎｖ');
+  assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /, 'uncommitted IME text must not pay');
+  await cdp.send('Input.insertText', { text: 'ｉｎｖ' });
+  assert.equal(await page.locator('#typing-input').inputValue(), 'INV');
+  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'committed IME text must count exactly once');
+  await cdp.send('Input.imeSetComposition', { text: 'ｘ', selectionStart: 1, selectionEnd: 1 });
+  await cdp.send('Input.imeSetComposition', { text: '', selectionStart: 0, selectionEnd: 0 });
+  assert.equal(await page.locator('#typing-input').inputValue(), 'INV');
+  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'cancelling composition must not credit its draft');
   const dateStart = prompt.indexOf(',') + 1;
-  await page.keyboard.type(prompt.slice(0, dateStart));
+  await page.keyboard.type(prompt.slice(3, dateStart));
   await page.locator('#office-image').click();
   assert.equal(await page.locator('#typing-input').evaluate(el => el === document.activeElement), true, 'reading the invoice image must preserve typing focus');
   await page.keyboard.type('2026');
@@ -91,7 +110,7 @@ try {
   assert.equal(saved.mode, 'work', 'digits within a prompt must not trigger mode shortcuts');
   // Holding a correct key advances once; repeated keydown is rejected.
   const secondPrompt = await page.locator('#editor-content').getAttribute('data-prompt');
-  await page.locator('#typing-input').focus();
+  await page.locator('#typing-input').click();
   await page.keyboard.down(secondPrompt[0]);
   await page.keyboard.down(secondPrompt[0]);
   await page.keyboard.up(secondPrompt[0]);
@@ -164,6 +183,18 @@ try {
   assert.equal(await seeded.locator('#type-button').isDisabled(), false);
   assert.ok(await seeded.locator('#editor-content').getAttribute('data-prompt'), 'buying the textbook must reveal its study code immediately');
   await seeded.locator('[data-input-style=typing]').click();
+  const studyCDP = await seededContext.newCDPSession(seeded);
+  await studyCDP.send('Input.imeSetComposition', { text: 'ｉｎｔ', selectionStart: 3, selectionEnd: 3 });
+  await studyCDP.send('Input.insertText', { text: 'ｉｎｔ' });
+  assert.equal(await seeded.locator('#typing-input').inputValue(), 'int');
+  await seeded.locator('#save-button').click();
+  const beforeRetyping = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')).stats.study);
+  await seeded.locator('#typing-input').click();
+  await seeded.keyboard.press('Control+A'); await seeded.keyboard.press('Backspace');
+  await seeded.keyboard.type('int');
+  await seeded.locator('#save-button').click();
+  const afterRetyping = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')).stats.study);
+  assert.equal(afterRetyping, beforeRetyping, 'editing already credited text must not award duplicate study XP');
   for (const language of ['csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua', 'cpp']) {
     await seeded.locator('#language-select').selectOption(language);
     const target = await seeded.locator('#editor-content').getAttribute('data-prompt');
@@ -226,7 +257,7 @@ try {
   await duplicate.waitForFunction(() => document.querySelector('#type-button').disabled);
   assert.match(await duplicate.locator('#save-status').textContent(), /別タブで起動中/);
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: click income, rejection of arbitrary keys/paste/repeat/wrong characters, exact multiline typing and completion bonuses, all eight languages, cursor persistence, release, pacing guide, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
+  console.log('Browser checks passed: direct entry, visible editable drafts, native IME composition/commit, no duplicate rewards on edits, click income, paste/repeat guards, multiline typing, eight languages, cursor persistence, release, textbook requirements, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
   if (server) {
     // A cached legacy shell takes the migration entry without clearing storage.
