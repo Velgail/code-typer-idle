@@ -53,16 +53,16 @@ export async function verifyCommentTranslations(browser,url,errors){
       assert.ok((await page.locator(replaced).first().textContent()).includes(first.ja));
       assert.equal(await page.locator('#editor-content .typed-code').textContent().then(t=>t.includes(first.en)),false,'the English comment must be replaced, not repeated elsewhere');
       assert.equal(await page.locator('#editor-content').getAttribute('data-prompt'),lesson.code,'the actual English input target stays stable');
-      assert.equal(await page.locator('#typing-input').inputValue(),lesson.code.slice(0,first.end));
+      assert.equal(await page.locator('#typing-input').inputValue(),'');
       assert.equal(await page.locator('#typing-input').evaluate(el=>el===document.activeElement),true);
-      assert.equal(await page.locator('#typing-input').evaluate(el=>el.selectionStart),first.end);
+      assert.equal(await page.locator('#typing-input').evaluate(el=>el.selectionStart),0);
       const next=[...lesson.code.slice(first.end)][0];
       assert.equal(await page.locator('#editor-content .next-character').textContent(),next==='\n'?'↵\n':next);
       assert.equal(await page.locator('#editor-content .pending-code').textContent(),lesson.code.slice(first.end+next.length));
       await page.locator('#save-button').click();await page.reload();
       await page.waitForSelector(replaced);
       assert.ok((await page.locator(replaced).first().textContent()).includes(first.ja),'reload must restore only this prompt’s accepted translations');
-      assert.equal(await page.locator('#typing-input').inputValue(),lesson.code.slice(0,first.end));
+      assert.equal(await page.locator('#typing-input').inputValue(),'');
       if(many){
         await page.locator('#typing-input').click();await page.keyboard.press('Control+End');let offset=first.end;
         for(const comment of comments.slice(1)){

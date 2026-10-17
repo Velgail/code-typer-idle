@@ -2755,32 +2755,34 @@ noscript {
 .editor .editor-content {
   position:relative;
   max-height:280px;
+  min-height:140px;
+  padding-bottom:72px;
+  font:inherit;
   overflow:auto;
   scrollbar-width:thin;
 }
-.typing-label {
-  display:block;
-  margin:14px 16px 7px;
-  color:var(--muted);
-  font-size:11px;
-}
+.editor-stage { position:relative; overflow:clip; font:16px/1.95 var(--mono); }
 .typing-input {
+  position:absolute;
+  z-index:1;
   display:block;
   box-sizing:border-box;
-  width:calc(100% - 32px);
-  min-height:100px;
-  margin:0 16px 12px;
-  padding:12px;
-  resize:vertical;
+  width:16px;
+  height:31.2px;
+  margin:0;
+  padding:0;
+  resize:none;
   color:var(--green);
-  background:#0e1712;
-  border:1px solid #4d6353;
-  border-radius:4px;
-  font:16px/1.7 var(--mono);
+  background:transparent;
+  border:0;
+  border-radius:0;
+  font:inherit;
   caret-color:var(--green);
+  overflow:hidden;
 }
-.typing-input:focus { outline:2px solid var(--green); outline-offset:1px; }
-.typing-input::placeholder { color:var(--faint); font-size:11px; }
+.typing-input:focus { outline:none; }
+.typing-input.has-draft { background:#121b16; box-shadow:0 1px 0 var(--green); }
+.typing-input.has-error { color:var(--red); box-shadow:0 1px 0 var(--red); }
 .typing-input[hidden] { display:none; }
 .input-feedback { min-height:0; margin:0 16px; font-size:11px; color:var(--muted); }
 .input-feedback:not(:empty) { margin-bottom:12px; }

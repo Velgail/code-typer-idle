@@ -78,7 +78,7 @@ async function loadCourses(forState = state) {
 let lastCourseKey = '';
 let lastReadingKey = '';
 let lastOfficeOrder = '';
-let composing = false, compositionContext = '', inputContext = '', draftBeforeInput = '';
+let inputContext = '', draftBeforeInput = '';
 let loadingNotice = '', futureSave = false;
 try {
   const saved = localStorage.getItem(KEY);
@@ -150,7 +150,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li><b>日銭ワーク</b>で「クリックして働く」を押すか、原票の項目を入力します。納品バーが100作業量に達するたびに入金されます。</li><li>右の道具箱で<b>教材</b>を開き、「プログラミング基礎教本」を¥1,500で購入します。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームは無料公開で、次の案件と設備が解禁されます。</li></ol></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。入力欄をクリックしてもタイピングを開始できます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>間違えた文字はBackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。全角英数字は半角へ、伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。教材名と価格が出ている場合は「教材ショップを見る」から購入し、学ぶ分野を選んでください。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>2本目以降は必要理解度を満たし、品質60以上で有料発売になります。必要理解度に届かない場合は無料公開になります。技術的負債や修正済みのミスを理由に無料公開にはなりません。</p></details><details class="help-section"><summary>素材制作の外注</summary><p>2本目から、ゲーム開発の<b>素材制作の外注</b>でグラフィックや音楽・効果音を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売した作品は初回売上と継続売上を生みます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると両方が再開します。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は、公開を停止して日銭ワークで資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。購入と作品公開は自分で行います。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>資産を引き継いで再出発</summary><p>ローグライク公開後、<b>開発ロードマップ → 資産を引き継いで再出発</b>を選べます。資金・教材・設備・今回の公開作品・読解の回答記録を手放し、コード資産による倍率を得ます。実績と累計記録は残ります。AAAの先にも企画が続きます。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
+  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li><b>日銭ワーク</b>で「クリックして働く」を押すか、原票の項目を入力します。納品バーが100作業量に達するたびに入金されます。</li><li>右の道具箱で<b>教材</b>を開き、「プログラミング基礎教本」を¥1,500で購入します。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームは無料公開で、次の案件と設備が解禁されます。</li></ol></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。コード表示をクリックすると、その位置でタイピングを始められます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>正解はコード側へすぐ確定し、誤入力だけがカーソルのそばに残ります。BackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。半角で入力してください。伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。教材名と価格が出ている場合は「教材ショップを見る」から購入し、学ぶ分野を選んでください。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>2本目以降は必要理解度を満たし、品質60以上で有料発売になります。必要理解度に届かない場合は無料公開になります。技術的負債や修正済みのミスを理由に無料公開にはなりません。</p></details><details class="help-section"><summary>素材制作の外注</summary><p>2本目から、ゲーム開発の<b>素材制作の外注</b>でグラフィックや音楽・効果音を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売した作品は初回売上と継続売上を生みます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると両方が再開します。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は、公開を停止して日銭ワークで資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。購入と作品公開は自分で行います。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>資産を引き継いで再出発</summary><p>ローグライク公開後、<b>開発ロードマップ → 資産を引き継いで再出発</b>を選べます。資金・教材・設備・今回の公開作品・読解の回答記録を手放し、コード資産による倍率を得ます。実績と累計記録は残ります。AAAの先にも企画が続きます。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
 }
 function showCatalog() {
   showModal('公開したゲーム', state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${p.active === false ? '公開停止中' : p.royalty ? `売上 ${yen(p.royalty)} / 秒・受取 ${yen(p.royalty * (1 - STORE_FEE_RATE))} / 秒` : '無料公開'} · 品質 ${p.quality} / 100</p>${p.productionCosts ? `<p>素材制作の外注費 ${yen(p.productionCosts)} · 支払済み</p>` : ''}${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${p.index}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button>` : ''}</div>`).join(''));
@@ -243,6 +243,42 @@ function renderShop() {
     b.querySelector('span').textContent = owned ? '✓' : state.projectIndex < i.gate ? '未解禁' : '購入する ＋';
   });
 }
+const draftMeasure=document.createElement('canvas').getContext('2d');
+function positionTypingInput(ensureVisible=false){
+  const field=$('typing-input'),content=$('editor-content'),stage=$('editor-stage');
+  const mark=content.querySelector('.next-character');
+  if(field.hidden || !mark || !stage.clientWidth)return;
+  const style=getComputedStyle(mark.closest('pre')),lineHeight=parseFloat(style.lineHeight);
+  field.style.fontFamily=style.fontFamily;field.style.fontSize=style.fontSize;field.style.lineHeight=style.lineHeight;
+  const lines=field.value.split('\n'),height=lineHeight*Math.min(3,lines.length);
+  const locate=()=>{
+    const r=mark.getClientRects()[0] || mark.getBoundingClientRect(),parent=stage.getBoundingClientRect();
+    let x=r.left-parent.left,y=r.top-parent.top-(lineHeight-r.height)/2;
+    // Keep the expected character visible alongside an incorrect draft.
+    if(field.value){x+=r.width+4;if(x>stage.clientWidth-32){x=17;y+=lineHeight;}}
+    return {x,y};
+  };
+  let point=locate();
+  if(ensureVisible){
+    if(point.y<8)content.scrollTop+=point.y-8;
+    else if(point.y+height>stage.clientHeight-8)content.scrollTop+=point.y+height-stage.clientHeight+8;
+    point=locate();
+  }
+  draftMeasure.font=`${style.fontSize} ${style.fontFamily}`;
+  const width=Math.max(16,...lines.map(line=>draftMeasure.measureText(line.replaceAll('\t','    ')).width+4));
+  field.style.left=`${Math.max(0,point.x)}px`;field.style.top=`${point.y}px`;
+  field.style.width=`${Math.max(16,Math.min(width,stage.clientWidth-point.x-5))}px`;
+  field.style.height=`${height}px`;
+  field.classList.toggle('has-draft',!!field.value);
+  field.classList.toggle('has-error',$('input-feedback').classList.contains('error'));
+}
+function revealTypingInput(){
+  const field=$('typing-input');
+  if(document.activeElement!==field || field.hidden)return;
+  positionTypingInput(true);
+  const rect=field.getBoundingClientRect(),top=window.visualViewport?.offsetTop || 0,bottom=top+(window.visualViewport?.height || innerHeight);
+  if(rect.width && (rect.top<top || rect.bottom>bottom))field.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
+}
 function renderEditor() {
   const code = typingCodeView(state), {prompt,offset}=code, t = state.typing;
   const office = state.mode === 'work';
@@ -258,22 +294,20 @@ function renderEditor() {
   const typing = state.inputStyle === 'typing';
   const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}/${studyLocked}/${t.courseUnit}/${courseEmpty}/${state.settings.commentLocale}`;
   const context = `${t.context}/${t.language}/${t.index}/${t.source}/${t.courseUnit}`;
-  if (!composing && inputContext !== context) {
+  if (inputContext !== context) {
     inputContext = context;
-    $('typing-input').value = prompt.slice(0, t.offset);
+    $('typing-input').value = '';
     $('input-feedback').textContent = '';
+    $('input-feedback').classList.remove('error');
   }
   const reading = state.mode === 'study' && state.studyStyle === 'reading';
   $('code-editor').classList.toggle('hidden', reading);
   $('typing-input').hidden = studyLocked || reading || courseEmpty;
   $('typing-input').disabled = blocked || paused || studyLocked || reading || courseEmpty;
-  $('typing-input').placeholder = office ? '伝票番号,YYYY-MM-DD,品名,数量,単価' : '上のコードを入力';
-  $('typing-label').textContent = office ? '伝票入力' : 'コード入力';
-  $('typing-label').classList.toggle('hidden', studyLocked);
-  $('editor-content').classList.toggle('hidden', office);
   $('typing-summary').classList.toggle('hidden', !typing || studyLocked);
   $('code-editor').classList.toggle('typing-active', typing);
-  if (lastEditorKey !== key) {
+  const codeChanged = lastEditorKey !== key;
+  if (codeChanged) {
     lastEditorKey = key;
     $('editor-content').dataset.prompt = studyLocked || courseEmpty ? '' : prompt;
     $('editor-content').innerHTML = courseEmpty ? '<p class="panel-note">演習一覧から入力する題材を選んでください。</p>' : studyLocked ? '<p class="panel-note">この分野の教材を購入すると、学習用コードが表示されます。</p>' : office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${code.typed.map(part=>part.translated?`<span class="translated-comment" lang="ja">${esc(part.text)}</span>`:esc(part.text)).join('')}</span><mark class="next-character">${code.next === '\n' ? '↵\n' : esc(code.next || ' ')}</mark><span class="pending-code">${esc(code.pending)}</span></pre>`;
@@ -290,6 +324,7 @@ function renderEditor() {
   $('typing-round').textContent = `${t.offset} / ${prompt.length}文字`;
   $('typing-accuracy').textContent = `正確率 ${((t.correct + t.errors) ? t.correct / (t.correct + t.errors) * 100 : 100).toFixed(1)}%`;
   $('typing-completed').textContent = `完入力 ${t.completed}問`;
+  positionTypingInput(codeChanged && document.activeElement===$('typing-input'));
 }
 function renderTask() {
   const field = $('typing-input');
@@ -380,7 +415,7 @@ function renderTask() {
     if($('production-services').innerHTML!==productionHTML){$('production-services').innerHTML=productionHTML;if(focusedService)document.querySelector(`[data-order="${focusedService}"]`)?.focus({preventScroll:true});}
   }
   renderEditor(); renderLearning(); renderReadiness(); renderCourse();
-  if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousCodeHeight !== $('editor-content').offsetHeight || previousProgressHeight!==$('project-progress').offsetHeight+$('build-panel').offsetHeight)) {
+  if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousCodeHeight !== $('editor-content').offsetHeight || previousProgressHeight!==$('project-progress').offsetHeight+$('build-panel').offsetHeight || Math.abs(fieldRect.top-field.getBoundingClientRect().top)>.5)) {
     const rect = field.getBoundingClientRect();
     if (rect.top < viewportTop || rect.bottom > viewportBottom + 1) field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
   }
@@ -589,73 +624,68 @@ function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
   if (state.mode === 'study' && (!hasTextbook(state) || state.studyStyle === 'reading')) return;
   if(state.mode==='study' && state.typing.source==='course' && !courseUnit(state.typing.courseUnit)) return;
   const field = $('typing-input'), prompt = currentPrompt(state), t = state.typing;
-  // Leave the native draft alone during composition. Normalize committed ASCII
-  // without changing its length or the caret; invoice letter case is cosmetic.
-  let value = field.value.replace(/[！-～]/g, (char,index) => prompt[index] === char ? char : String.fromCharCode(char.charCodeAt(0) - 0xfee0)).replace(/\u3000/g, (char,index) => prompt[index] === char ? char : ' ');
-  if (state.mode === 'work') value = value.replace(/[a-z]/g, char => char.toUpperCase());
-  if (value !== field.value) {
-    const { selectionStart, selectionEnd } = field;
-    field.value = value; field.setSelectionRange(selectionStart, selectionEnd);
-  }
+  const {selectionStart,selectionEnd}=field;
+  const value=state.mode==='work'?field.value.replace(/[a-z]/g,char=>char.toUpperCase()):field.value;
   const feedback = $('input-feedback');
   feedback.textContent = ''; feedback.classList.remove('error');
-  if (value.slice(0, t.offset) !== prompt.slice(0, t.offset)) {
-    if (value.length >= t.offset) {
-      feedback.textContent = '入力済みの文字を確認してください。';
-      feedback.classList.add('error');
-    }
-    return;
-  }
-  let countedManual = false;
-  for (const character of value.slice(t.offset)) {
+  const showError=()=>{
+    const item=['伝票番号','日付（YYYY-MM-DD）','品名','数量','単価'][prompt.slice(0,t.offset).split(',').length-1];
+    feedback.textContent=state.mode==='work'?`${item}の入力を確認してください。`:'ハイライトと異なる文字があります。';
+    feedback.classList.add('error');
+  };
+  let countedManual = false,consumed=0,completed=false;
+  for (const character of value) {
     const power = handPower(state) * rewardScale;
-    if (!countErrors && character !== prompt[state.typing.offset]) break;
+    if(!countErrors && character!==String.fromCodePoint(prompt.codePointAt(state.typing.offset))){
+      showError();break;
+    }
     const result = acceptCharacter(state, character, power);
     if (!result.correct) {
       beep('error');
       $('code-editor').classList.add('typing-error');
       setTimeout(() => $('code-editor').classList.remove('typing-error'), 180);
-      const item = ['伝票番号', '日付（YYYY-MM-DD）', '品名', '数量', '単価'][prompt.slice(0, t.offset).split(',').length - 1];
-      feedback.textContent = state.mode === 'work' ? `${item}の入力を確認してください。` : 'ハイライトと異なる文字があります。';
-      feedback.classList.add('error');
+      showError();
       renderEditor();
       break;
     }
+    consumed+=character.length;
+    field.value=result.complete?'':value.slice(consumed);
+    field.setSelectionRange(Math.max(0,selectionStart-consumed),Math.max(0,selectionEnd-consumed));
     doInput({ chars: Math.min(1e250, power * TYPING_REWARD.character), countManual: rewardScale === 1 || !countedManual });
     countedManual = true;
     if (result.complete) {
+      completed=true;
       doInput({ chars: Math.min(1e250, result.bonus), countManual: false });
       toast(`完入力！ 正確率 ${(result.accuracy * 100).toFixed(1)}% · ボーナス獲得`, '', 1800);
       break;
     }
   }
+  // Only unaccepted text belongs to the native input. Accepted English remains
+  // in the canonical progress, while the code view can show translated comments.
+  const remaining=completed?'':value.slice(consumed);
+  if(field.value!==remaining)field.value=remaining;
+  field.setSelectionRange(Math.max(0,selectionStart-consumed),Math.max(0,selectionEnd-consumed));
+  if(!remaining){field.scrollTop=0;field.scrollLeft=0;}
+  renderEditor();
+  revealTypingInput();
 }
 $('typing-input').addEventListener('beforeinput', event => {
   draftBeforeInput = $('typing-input').value;
   if (/insertFrom(Paste|Drop)/.test(event.inputType) && event.cancelable) event.preventDefault();
 });
 $('typing-input').addEventListener('input', event => {
-  if (composing || event.isComposing) return;
+  if (event.isComposing) {positionTypingInput(true);return;}
   if (/insertFrom(Paste|Drop)/.test(event.inputType)) { $('typing-input').value = draftBeforeInput; return; }
   processTypingInput({ countErrors: !event.inputType?.startsWith('delete') });
 });
-$('typing-input').addEventListener('compositionstart', () => {
-  composing = true; compositionContext = inputContext;
-});
-$('typing-input').addEventListener('compositionend', () => {
-  composing = false;
-  currentPrompt(state);
-  const t = state.typing;
-  if (compositionContext !== `${t.context}/${t.language}/${t.index}/${t.source}/${t.courseUnit}`) { inputContext = ''; renderEditor(); return; }
-  processTypingInput();
-});
 $('typing-input').addEventListener('focus', () => {
   if (state.inputStyle !== 'typing') { state.inputStyle = 'typing'; render(); }
+  revealTypingInput();
 });
 $('typing-input').addEventListener('paste', event => { event.preventDefault(); $('input-feedback').textContent = '文字を入力してください。'; });
 $('typing-input').addEventListener('drop', event => event.preventDefault());
 $('typing-input').addEventListener('keydown', event => {
-  if (event.key === 'Tab' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && !composing && !event.isComposing && state.mode !== 'work') {
+  if (event.key === 'Tab' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && !event.isComposing && state.mode !== 'work') {
     event.preventDefault();
     if (!event.repeat) {
       const field = $('typing-input');
@@ -667,9 +697,18 @@ $('typing-input').addEventListener('keydown', event => {
     }
     return;
   }
-  if (event.repeat && event.key.length === 1) event.preventDefault();
-  if (event.key === 'Escape' && !composing && !event.isComposing) { event.preventDefault(); $('typing-input').blur(); }
+  if (event.repeat && (event.key.length === 1 || event.key==='Enter')) event.preventDefault();
+  if (event.key === 'Escape' && !event.isComposing) { event.preventDefault(); $('typing-input').blur(); }
 });
+$('editor-content').addEventListener('click',()=>{
+  if($('typing-input').disabled || blocked || paused || $('modal').open || view!=='workspace' || window.getSelection()?.isCollapsed===false)return;
+  if(state.inputStyle!=='typing'){state.inputStyle='typing';dirty=true;render();}
+  focusTypingInput();
+  revealTypingInput();
+});
+$('editor-content').addEventListener('scroll',()=>positionTypingInput());
+window.addEventListener('resize',()=>{positionTypingInput();revealTypingInput();});
+window.visualViewport?.addEventListener('resize',()=>{positionTypingInput();revealTypingInput();});
 $('office-image').addEventListener('click', focusTypingInput);
 $('help-button').addEventListener('click', help); $('guide-link').addEventListener('click', help);
 $('settings-button').addEventListener('click', settings);
@@ -736,7 +775,7 @@ function handleAction(action) {
     state = fresh; invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast(`再出発しました。すべての入力と自動化が ×${metaBonus(state).toFixed(2)} に。`);
   }
 }
-function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; composing = false; dirty = true; lastFrame = performance.now(); }
+function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; dirty = true; lastFrame = performance.now(); }
 $('import-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file || blocked) return;

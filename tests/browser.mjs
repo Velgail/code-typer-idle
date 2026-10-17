@@ -11,6 +11,7 @@ import { lessonAt, questionFor } from '../src/curriculum.js';
 import { verifyCommentTranslations } from './comment-translations.mjs';
 import { verifyClickKeyboardGuard } from './keyboard-clicks.mjs';
 import { verifyMaintenanceUI } from './maintenance-ui.mjs';
+import { verifyDirectTyping } from './direct-typing.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
 const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
@@ -39,6 +40,7 @@ const errors = [];
 try {
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyMaintenanceUI(browser, url, errors);
+  await verifyDirectTyping(browser, url, errors);
   await verifyCommentTranslations(browser, url, errors);
   const context = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
@@ -92,17 +94,12 @@ try {
   });
   assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
   const cdp = await context.newCDPSession(page);
-  await cdp.send('Input.imeSetComposition', { text: 'ｉｎｖ', selectionStart: 3, selectionEnd: 3 });
-  await page.waitForTimeout(350); // At least one render must leave the IME draft intact.
-  assert.equal(await page.locator('#typing-input').inputValue(), 'ｉｎｖ');
-  assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /, 'uncommitted IME text must not pay');
-  await cdp.send('Input.insertText', { text: 'ｉｎｖ' });
-  assert.equal(await page.locator('#typing-input').inputValue(), 'INV');
-  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'committed IME text must count exactly once');
-  await cdp.send('Input.imeSetComposition', { text: 'ｘ', selectionStart: 1, selectionEnd: 1 });
-  await cdp.send('Input.imeSetComposition', { text: '', selectionStart: 0, selectionEnd: 0 });
-  assert.equal(await page.locator('#typing-input').inputValue(), 'INV');
-  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'cancelling composition must not credit its draft');
+  await cdp.send('Input.insertText', { text: 'inv' });
+  assert.equal(await page.locator('#typing-input').inputValue(), '');
+  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'an ASCII batch is accepted once and immediately consumed');
+  assert.equal(await page.locator('#editor-content .typed-code').textContent(),'INV');
+  await page.keyboard.press('Backspace');
+  assert.match(await page.locator('#typing-round').textContent(), /^3 \/ /, 'Backspace cannot undo already credited output');
   const dateStart = prompt.indexOf(',') + 1;
   await page.keyboard.type(prompt.slice(3, dateStart));
   await page.locator('#office-image').click();
@@ -206,9 +203,8 @@ try {
   assert.ok(await seeded.locator('#editor-content').getAttribute('data-prompt'), 'buying the textbook must reveal its study code immediately');
   await seeded.locator('[data-input-style=typing]').click();
   const studyCDP = await seededContext.newCDPSession(seeded);
-  await studyCDP.send('Input.imeSetComposition', { text: 'ｉｎｔ', selectionStart: 3, selectionEnd: 3 });
-  await studyCDP.send('Input.insertText', { text: 'ｉｎｔ' });
-  assert.equal(await seeded.locator('#typing-input').inputValue(), 'int');
+  await studyCDP.send('Input.insertText', { text: 'int' });
+  assert.equal(await seeded.locator('#typing-input').inputValue(), '');
   await seeded.locator('#save-button').click();
   const beforeRetyping = await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')).stats.study);
   await seeded.locator('#typing-input').click();
@@ -351,7 +347,7 @@ try {
   await duplicate.waitForFunction(() => document.querySelector('#type-button').disabled);
   assert.match(await duplicate.locator('#save-status').textContent(), /別タブで起動中/);
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: direct entry, visible editable drafts, native IME composition/commit, no duplicate rewards on edits, click income, paste/repeat guards, multiline typing, eight languages, cursor persistence, release, textbook requirements, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
+  console.log('Browser checks passed: direct entry, direct inline input, immediate acceptance and editable errors, no duplicate rewards on edits, click income, paste/repeat guards, multiline typing, eight languages, cursor persistence, release, textbook requirements, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
   // Actual publication controls must match the accounting shown before release.
   for (const index of [1, 5]) {
