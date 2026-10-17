@@ -5,8 +5,10 @@ import {
   abstraction, royaltyRate, unitRate, devRate, studyGain, hasTextbook, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
   developmentReadiness, readingLesson, nextReading, answerReading, READING_UNITS,
+  defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   serialize, deserialize, checkAchievements, log
 } from './core.js';
+import { developmentPolicy, debtBreakdown, debtAgeDays, changeDefectRate } from './maintenance.js';
 import { CURRICULUM_VERSION, lessonAt, questionFor, localeForComments } from './curriculum.js';
 import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, acceptCharacter, typingCodeView } from './typing.js';
 import { watchForUpdates } from './updates.js';
@@ -146,7 +148,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li><b>日銭ワーク</b>で「クリックして働く」を押すか、原票の項目を入力します。納品バーが100作業量に達するたびに入金されます。</li><li>右の道具箱で<b>教材</b>を開き、「プログラミング基礎教本」を¥1,500で購入します。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、3,000文字まで制作します。「ビルドして公開」が押せるようになったら公開します。最初の数当てゲームは無料公開で、次の案件と設備が解禁されます。</li></ol></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。入力欄をクリックしてもタイピングを開始できます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。完入力後、下にそのコードのコメントと日本語訳が残ります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>間違えた文字はBackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。全角英数字は半角へ、伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。教材名と価格が出ている場合は「教材ショップを見る」から購入し、学ぶ分野を選んでください。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、半分を超えても要求に届かない分野があると<b>技術的負債</b>が増えます。負債が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>必要な全分野を要求値まで学んでから、<b>リファクタリングに切替</b>で負債を減らしてください。負債を十分減らしたら通常の開発へ戻します。公開には進捗の完了と、負債が上限の10%以下であることが必要です。</p><p>2本目以降は必要理解度を満たし、品質60以上で有料発売になります。学習不足やミスが多いと無料公開になる場合があります。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売した作品は初回売上と継続売上を生みます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると両方が再開します。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は、公開を停止して日銭ワークで資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発も負債になるため、新作公開後は停止します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。購入と作品公開は自分で行います。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>資産を引き継いで再出発</summary><p>ローグライク公開後、<b>開発ロードマップ → 資産を引き継いで再出発</b>を選べます。資金・教材・設備・今回の公開作品・読解の回答記録を手放し、コード資産による倍率を得ます。実績と累計記録は残ります。AAAの先にも企画が続きます。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
+  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li><b>日銭ワーク</b>で「クリックして働く」を押すか、原票の項目を入力します。納品バーが100作業量に達するたびに入金されます。</li><li>右の道具箱で<b>教材</b>を開き、「プログラミング基礎教本」を¥1,500で購入します。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、3,000文字まで制作します。「ビルドして公開」が押せるようになったら公開します。最初の数当てゲームは無料公開で、次の案件と設備が解禁されます。</li></ol></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。入力欄をクリックしてもタイピングを開始できます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>間違えた文字はBackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。全角英数字は半角へ、伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。教材名と価格が出ている場合は「教材ショップを見る」から購入し、学ぶ分野を選んでください。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>2本目以降は必要理解度を満たし、品質60以上で有料発売になります。必要理解度に届かない場合は無料公開になります。技術的負債や修正済みのミスを理由に無料公開にはなりません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売した作品は初回売上と継続売上を生みます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると両方が再開します。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は、公開を停止して日銭ワークで資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。購入と作品公開は自分で行います。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>資産を引き継いで再出発</summary><p>ローグライク公開後、<b>開発ロードマップ → 資産を引き継いで再出発</b>を選べます。資金・教材・設備・今回の公開作品・読解の回答記録を手放し、コード資産による倍率を得ます。実績と累計記録は残ります。AAAの先にも企画が続きます。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
 }
 function showCatalog() {
   showModal('公開したゲーム', state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${p.active === false ? '公開停止中' : p.royalty ? `売上 ${yen(p.royalty)} / 秒・受取 ${yen(p.royalty * (1 - STORE_FEE_RATE))} / 秒` : '無料公開'} · 品質 ${p.quality} / 100</p>${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${p.index}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button>` : ''}</div>`).join(''));
@@ -191,10 +193,10 @@ function doInput(options = {}) {
   if (options.countManual !== false) { tapNumber++; lastManualTimes.push(performance.now()); }
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
   beep(result.kind);
-  let text = { work: result.amount ? `${yen(result.amount)} 納品` : `+${format(result.work)} 作業量`, study: `+${format(result.amount, 2)} K`, code: `+${format(result.amount)} chars`, debt: `+${format(result.amount)} chars / 負債発生`, refactor: `−${format(result.amount)} debt`, error: '理解度不足・有効進捗0', crash: 'Build failed', review: '先に必要な理解度を学習' }[result.kind] || '';
+  let text = { work: result.amount ? `${yen(result.amount)} 納品` : `+${format(result.work)} 作業量`, study: `+${format(result.amount, 2)} K`, code: `+${format(result.amount)} chars`, defect: `+${format(result.amount)} chars / 不具合混入`, refactor: result.fixed ? `修正 ${format(result.fixed)} / 整理 ${format(result.amount)}` : `整理 ${format(result.amount)}`, error: '理解度不足・有効進捗0', crash: 'Build failed', review: '先に必要な理解度を学習' }[result.kind] || '';
   const floating = $('input-float');
   floating.textContent = text;
-  floating.style.color = ['error', 'crash', 'review', 'debt'].includes(result.kind) ? 'var(--red)' : 'var(--green)';
+  floating.style.color = ['error', 'crash', 'review', 'defect'].includes(result.kind) ? 'var(--red)' : 'var(--green)';
   if (!state.settings.reducedMotion) { floating.classList.remove('animate'); void floating.offsetWidth; floating.classList.add('animate'); }
   if (result.kind === 'error' && tapNumber % 12 === 1) log(state, '理解度不足: まずは要求理解度の50%を超えるまで学習しましょう。', 'error');
   dirty = true;
@@ -223,9 +225,13 @@ function renderShop() {
     $('shop-intro').textContent = { books: '知識への投資は、ずっと使える。', gear: '道具が変わると、一文字の力が変わる。', auto: '任せるためには、理解が必要。' }[shopTab];
     $('shop-items').innerHTML = SHOP.filter(i => i.tab === shopTab).map(i => {
       const locked = state.projectIndex < i.gate;
-      return `<article class="shop-item ${locked ? 'locked' : ''}"><div class="shop-item-top"><span class="item-icon">${icon(i.glyph)}</span><div><h3>${i.name}</h3><span class="item-level">${locked ? `${i.gate}本公開で解禁` : `LEVEL ${String(level(state, i.id)).padStart(2, '0')}`}</span></div></div><p class="item-description">${i.desc}</p><button class="buy-button" data-buy="${i.id}" ${locked ? 'disabled' : ''}><strong>${yen(itemCost(state, i))}</strong><span>購入する ＋</span></button></article>`;
+      return `<article class="shop-item ${locked ? 'locked' : ''}"><div class="shop-item-top"><span class="item-icon">${icon(i.glyph)}</span><div><h3>${i.name}</h3><span class="item-level">${locked ? `${i.gate}本公開で解禁` : `LEVEL ${String(level(state, i.id)).padStart(2, '0')}`}</span></div></div><p class="item-description">${i.desc}</p>${i.id === 'library' ? '<p id="library-reuse-note" class="item-description"></p>' : ''}<button class="buy-button" data-buy="${i.id}" ${locked ? 'disabled' : ''}><strong>${yen(itemCost(state, i))}</strong><span>購入する ＋</span></button></article>`;
     }).join('');
     if (focusedItem) document.querySelector(`[data-buy="${focusedItem}"]`)?.focus({ preventScroll: true });
+  }
+  if ($('library-reuse-note')) {
+    const source=state.catalog.at(-1), imported=libraryDebtImport(state);
+    $('library-reuse-note').textContent = !level(state,'library') && imported ? `「${source.name}」の補助コードを流用。未整理部分の25%（整理作業量 ${format(imported)}）も引き継ぎます。` : '共通コードを流用し、今後の公開時に未整理部分の25%を次作へ引き継ぎます。';
   }
   document.querySelectorAll('[data-buy]').forEach(b => {
     const i = SHOP.find(i => i.id === b.dataset.buy), owned = i.max && level(state, i.id) >= i.max;
@@ -297,6 +303,8 @@ function renderTask() {
   const language = LANGUAGES.find(l => l.id === state.typing.language);
   $('type-button').querySelector('.keycap').classList.toggle('hidden', !typing);
   const power = handPower(state) * (typing ? TYPING_REWARD.character : 1);
+  const repair=maintenanceGain(state,power);
+  const repairPreview=repair.fixed ? `修正 ${format(repair.fixed,2)}${repair.amount ? ` / 整理 ${format(repair.amount,2)}` : ''}` : `整理 ${format(repair.amount,2)}`;
   const actionSlot = $(typing ? 'typing-actions' : 'quick-actions');
   if ($('manual-actions').parentElement !== actionSlot) actionSlot.append($('manual-actions'));
   $('job-progress').classList.toggle('hidden', mode !== 'work');
@@ -316,6 +324,7 @@ function renderTask() {
   $('language-select').title = `${language.description} / 全${PROMPT_COUNT.toLocaleString()}問`;
   $('subject-picker').classList.toggle('hidden', mode !== 'study');
   $('project-progress').classList.toggle('hidden', mode !== 'dev');
+  $('development-policy').classList.toggle('hidden', mode !== 'dev');
   $('dev-actions').classList.toggle('hidden', mode !== 'dev');
   const lesson = SKILLS.find(s => s.id === state.subject);
   const studyLocked = mode === 'study' && !hasTextbook(state);
@@ -325,7 +334,7 @@ function renderTask() {
   const task = {
     work: ['OFFICE WORK', '伝票画像のデータ化', `紙の原票を読み取り、CSV形式へ整えます。${JOB_SIZE}作業量ごとにまとめて納品。`, '事務作業中', 'invoices', '働く', `+${format(power, 2)} 作業量`],
     study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (studyLocked ? ' まず、この分野の教材を購入してください。' : ' 購入した教材で学習します。'), studyLocked ? '教材が必要' : '教材で学習中', lesson.file, '学ぶ', studyLocked ? '学習不可' : `+${studyGain(state, power).toLocaleString('en-US', { maximumFractionDigits: 5 })} K`],
-    dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド崩壊' : state.refactor ? '負債を修復中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main', state.refactor ? '修復' : '開発', state.refactor ? ratio >= 1 ? `−${format(Math.min(state.debt, power * (1 + ratio) * 2))} debt` : '先に学習が必要' : state.crashed ? 'ビルド崩壊' : `+${format(Math.min(p.target - state.progress, 1e250, power * validity(state) * abstraction(state) * (ratio >= 1 ? ideMultiplier(state) : 1) * (1 - state.debt / debtLimit(state) * .8)))} chars`]
+    dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド失敗' : state.refactor ? 'レビュー・整理中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main', state.refactor ? 'レビュー・整理' : '開発', state.refactor ? ratio >= 1 ? repairPreview : '先に学習が必要' : state.crashed ? 'ビルド失敗' : `+${format(developmentGain(state,power))} chars`]
   }[mode];
   ['task-eyebrow', 'task-title', 'task-description'].forEach((id, i) => $(id).textContent = task[i]);
   $('task-status').innerHTML = `<i></i>${task[3]}`;
@@ -340,10 +349,18 @@ function renderTask() {
   $('typing-instructions').textContent = mode === 'work' ? '伝票番号 → 日付 → 品名 → 数量 → 単価' : 'ハイライトされた文字から入力';
   $('subject-picker').querySelectorAll('[data-subject]').forEach(b => { b.classList.toggle('active', b.dataset.subject === state.subject); b.setAttribute('aria-pressed', b.dataset.subject === state.subject); });
   if (mode === 'dev') {
-    $('release-cost').textContent = `${state.projectIndex ? '販売時：ゲーム配信ストアへ売上の25%。' : '無料公開。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ' サーバー契約なし。'}`;
-    $('project-progress').innerHTML = `<div class="progress-meta"><span>${format(state.progress)} / ${format(p.target)} chars</span><b>${pct(state.progress / p.target).toFixed(2)}%</b></div><div class="big-track"><span style="width:${pct(state.progress / p.target)}%;background:${state.crashed ? 'var(--red)' : 'var(--green)'}"></span></div><div class="debt-row ${state.crashed ? 'danger' : ''}"><span>技術的負債 <b>${format(state.debt)} / ${format(debtLimit(state))}</b></span><span>公開には負債10%以下が必要</span></div>`;
-    $('release-button').disabled = blocked || state.progress < p.target || state.crashed || state.debt > debtLimit(state) * .1;
-    $('refactor-button').textContent = state.refactor ? '← 通常の開発に戻る' : 'リファクタリングに切替';
+    const policy=developmentPolicy(state), age=debtAgeDays(state,DAY);
+    document.querySelectorAll('[data-development-policy]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.developmentPolicy===policy.id);b.disabled=blocked || paused;});
+    $('development-policy-description').textContent=`${policy.description} 実装速度 ×${policy.speed}。未整理部分は${policy.id==='prototype'?'多い':policy.id==='structured'?'少ない':'中程度'}。`;
+    $('release-cost').textContent = `${state.projectIndex ? '販売時：ゲーム配信ストアへ売上の25%。' : '無料公開。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ' サーバー契約なし。'}${level(state,'library') && state.debt ? ` ライブラリとともに、未整理部分の25%（整理作業量 ${format(state.debt*.25)}）を次作へ引き継ぎます。` : ''}`;
+    $('progress-summary').innerHTML = `<div class="progress-meta"><span>${format(state.progress)} / ${format(p.target)} chars</span><b>${pct(state.progress / p.target).toFixed(2)}%</b></div><div class="big-track"><span style="width:${pct(state.progress / p.target)}%;background:${state.crashed ? 'var(--red)' : 'var(--green)'}"></span></div>`;
+    $('debt-summary').textContent=`技術的負債 · 整理作業量 ${format(state.debt)} · 変更効率 ${Math.round(developmentEfficiency(state)*100)}%`;
+    $('debt-breakdown').innerHTML=debtBreakdown(state).map(c=>`<p><b>${esc(c.name)} · ${format(c.amount)}</b><span>${esc(c.description)}</span></p>`).join('') || '<p>未整理部分なし。</p>';
+    $('defect-summary').innerHTML=`<div class="debt-row ${state.crashed?'danger':''}"><span>不具合・仕様との食い違い · 修正作業量 <b>${format(state.defects)}</b></span><span>公開までに ${format(defectLimit(state)*.1)} 以下へ修正</span></div>`;
+    $('maintenance-hint').textContent=`構造・実装方針による要修正率 ${(changeDefectRate(state,debtLimit(state))*100).toFixed(2)}%。${ratio<1 ? ' 理解不足による混入は別に発生します。' : ''}未整理の構造は、追加・変更を遅くし不具合を招きます。${age>=7 ? ` ${Math.floor(age)}日前から未整理のコードは、読み直しにも時間がかかっています。` : ''}${state.refactor ? ' まず不具合を修正し、その後に構造を整理します。' : ' 負債は残したまま公開できます。'}`;
+    $('release-button').disabled = blocked || state.progress < p.target || state.crashed || state.defects > defectLimit(state) * .1;
+    $('release-button').textContent=state.debt ? '負債を残して公開 ↗' : 'ビルドして公開 ↗';
+    $('refactor-button').textContent = state.refactor ? '← 通常の開発に戻る' : 'レビュー・整理に切替';
     $('refactor-button').classList.toggle('active', state.refactor);
   }
   renderEditor(); renderLearning(); renderReadiness(); renderCourse();
@@ -396,7 +413,7 @@ function renderLearningGuide(lesson) {
 }
 function renderReadiness() {
   const {stage, requirements} = developmentReadiness(state), project = projectAt(state.projectIndex);
-  const message = stage === 'repair' ? knowledgeRatio(state) < 1 ? '先に不足分野を学び、リファクタリングで負債を修復しよう。' : 'ゲーム開発でリファクタリングに切り替え、負債を修復しよう。' : stage === 'complete' ? '制作は完了。ゲーム開発からビルドして公開しよう。' : stage === 'ready' ? '必要な知識が揃った。ゲーム開発で制作を進めよう。' : stage === 'prototype' ? '試作はできる。学習不足のまま進めると負債が増える。' : '制作には、まず必要な分野の学習を進めよう。';
+  const message = stage === 'repair' ? knowledgeRatio(state) < 1 ? '先に不足分野を学び、レビュー・整理で不具合を修正しよう。' : 'ゲーム開発でレビュー・整理に切り替え、不具合を修正しよう。' : stage === 'complete' ? '制作は完了。ゲーム開発からビルドして公開しよう。' : stage === 'ready' ? '必要な知識が揃った。ゲーム開発で制作を進めよう。' : stage === 'prototype' ? '試作はできる。学習不足のまま進めると不具合が増える。' : '制作には、まず必要な分野の学習を進めよう。';
   const html = `<div class="readiness-heading"><b>${esc(project.name)}</b><span class="readiness-progress">制作 ${format(state.progress)} / ${format(project.target)}文字</span><span>${esc(message)}</span></div><div class="readiness-skills">${requirements.map(r => `<span>${SKILLS.find(k=>k.id===r.id).short} <b>${format(r.current, 2)} / ${format(r.required)}</b>${r.missing > 0 ? ` <button class="text-button" data-learn="${r.id}" ${blocked ? 'disabled' : ''}>あと${format(r.missing, 2)}学ぶ →</button>` : ' ✓'}</span>`).join('')}${(stage !== 'learn' || state.progress > 0) && state.mode !== 'dev' ? `<button class="secondary-button" data-action="go-dev" ${blocked ? 'disabled' : ''}>ゲーム開発へ →</button>` : ''}</div>`;
   if ($('development-readiness').innerHTML !== html) {
     const focused = document.activeElement?.dataset.learn;
@@ -489,7 +506,7 @@ function render() {
   $('automation-toggle').setAttribute('aria-pressed', state.autoEnabled);
   $('auto-label').textContent = `自動開発 ${state.autoEnabled ? 'ON' : 'OFF'}`;
   const dangerous = devRate(state) && knowledgeRatio(state) < 1;
-  $('automation-note').textContent = state.crashed ? 'ビルドが崩壊しています。学習し、リファクタリングで復旧を。' : dangerous ? 'レビュー能力が不足。自動開発が技術的負債を増やします。' : labRate && !studySubject ? '研究ラボは教材待ちです。不足分野の教材を購入してください。' : unitRate(state, 'macro') ? 'マクロはモードに関係なく稼働中。学習と開発に集中できます。' : '最初のマクロで、タイピングを自動化しよう。';
+  $('automation-note').textContent = state.crashed ? 'ビルド失敗。必要な分野を学び、レビュー・整理で不具合の修正を。' : dangerous ? 'レビューに必要な知識が不足。自動生成コードに不具合が混入します。' : labRate && !studySubject ? '研究ラボは教材待ちです。不足分野の教材を購入してください。' : unitRate(state, 'macro') ? 'マクロはモードに関係なく稼働中。学習と開発に集中できます。' : '最初のマクロで、タイピングを自動化しよう。';
   $('automation-note').classList.toggle('danger', !!dangerous || state.crashed);
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
   $('manual-rate').textContent = lastManualTimes.length ? `${(lastManualTimes.length / 2).toFixed(1)} taps/s` : '手動入力待機中';
@@ -645,6 +662,7 @@ $('modal').addEventListener('click', e => { if (e.target === $('modal')) { const
 $('save-button').addEventListener('click', () => save(true));
 $('automation-toggle').addEventListener('click', () => { if (!blocked) { state.autoEnabled = !state.autoEnabled; dirty = true; render(); } });
 $('refactor-button').addEventListener('click', () => { if (!blocked) { state.refactor = !state.refactor; dirty = true; render(); } });
+document.querySelectorAll('[data-development-policy]').forEach(b=>b.addEventListener('click',()=>{if(!blocked && !paused){setDevelopmentPolicy(state,b.dataset.developmentPolicy);dirty=true;render();}}));
 $('release-button').addEventListener('click', () => {
   if (blocked) return;
   const result = release(state);

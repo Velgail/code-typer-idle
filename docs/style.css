@@ -1508,6 +1508,17 @@ button {
   margin:-3px 0 16px;
 }
 
+.development-policy { margin:0 0 18px; font-size:11px; }
+.development-policy > div { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+.development-policy button { font-size:11px; padding:9px; }
+.development-policy button[aria-pressed=true] { border-color:var(--green); color:var(--green); background:#2d3d2f; }
+.development-policy p { color:var(--muted); line-height:1.7; margin:0; }
+#debt-details { margin-top:12px; font-size:11px; color:var(--yellow); }
+#debt-details summary { cursor:pointer; line-height:1.7; }
+#debt-breakdown p { display:grid; gap:4px; margin:10px 0; color:var(--muted); }
+#debt-breakdown b { color:var(--yellow); font-weight:400; }
+#maintenance-hint { line-height:1.7; margin-top:12px; }
+
 .progress-meta {
   display:flex;
   justify-content:space-between;
@@ -1539,7 +1550,9 @@ button {
   margin-top:8px;
   display:flex;
   justify-content:space-between;
-  font-size:8px;
+  flex-wrap:wrap;
+  gap:6px;
+  font-size:11px;
   color:var(--faint);
 }
 

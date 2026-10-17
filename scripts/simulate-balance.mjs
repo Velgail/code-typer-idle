@@ -26,8 +26,9 @@ export function purchasePlan(state, need) {
   ];
 }
 
-export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportunistic = false } = {}) {
+export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportunistic = false, policy = 'steady', maintenance = true, reuse = true } = {}) {
   const state = game.createState(0);
+  game.setDevelopmentPolicy(state,policy);
   const milestones = [];
   let nextDecision = 0, activeSeconds = 0, manualInputs = 0, minimumCash = state.cash;
   const purchases = {};
@@ -47,6 +48,7 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
         if (state.projectIndex >= item.gate && game.level(state, id) && state.cash > game.itemCost(state, item) * 4) invest(id);
       }
       for (const [id, desired] of purchasePlan(state, need)) {
+        if(id==='library' && !reuse)continue;
         const item = items[id];
         if (state.projectIndex < item.gate || game.level(state, id) >= desired) continue;
         if (invest(id)) purchases[id] ??= time;
@@ -54,11 +56,14 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
       }
       if (need.length) state.subject = need[0][0];
       state.autoEnabled = !need.length;
-      state.mode = essential ? 'work' : need.length ? 'study' : 'dev';
-      if (state.progress >= project.target && !need.length) {
+      if (state.progress >= project.target && !need.length && !state.crashed && state.defects<=game.defectLimit(state)*.1) {
         const released = game.release(state);
         if (released) milestones.push({ name: released.name, seconds: time, activeSeconds, manualInputs });
+      } else if(!need.length){
+        if(state.refactor && !state.defects && !state.debt)state.refactor=false;
+        if(state.defects>game.defectLimit(state)*.1 || maintenance && game.developmentEfficiency(state)<.8)state.refactor=true;
       }
+      state.mode = essential ? 'work' : need.length ? 'study' : 'dev';
     }
     if (active) {
       // Aggregate one second of correct manual work. Learning XP is additive;
@@ -79,7 +84,7 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
 export const reportFor = scenarios => ({
   balanceVersion: game.BALANCE_VERSION,
   target: '初回AAAまで、放置込み3〜7日',
-  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。未公開・無料オフラインの固定費はゼロ。販売手数料25%、公開中のオンライン作品のサーバー代、納品報酬を計上。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み（伝票2.25倍、コード2倍）。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。',
+  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。通常方針で開発し、変更効率80%未満または不具合が公開基準超ならレビュー・整理へ切替。負債を残した公開とライブラリへの25%流用を含む。ゲーム内1日＝実時間1時間。日次支払い見込額を確保して購入。未公開・無料オフラインの固定費はゼロ。販売手数料25%、公開中のオンライン作品のサーバー代、納品報酬を計上。タイピングは300打鍵/分（5打鍵/秒）、正確率100%と完入力ボーナス込み（伝票2.25倍、コード2倍）。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜は8時間離席。',
   scenarios
 });
 

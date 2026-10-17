@@ -73,14 +73,15 @@ test('finite reading bonuses cannot bypass later knowledge requirements', () => 
 test('readiness agrees with real development at zero, exactly 50%, above 50%, and 100%', () => {
   const s=createState();s.mode='dev';
   for(const [value,stage,advances] of [[0,'learn',false],[6,'learn',false],[6.01,'prototype',true],[12,'ready',true]]) {
-    s.skills.syntax=value;s.progress=0;s.debt=0;
+    s.skills.syntax=value;s.progress=0;s.debt=0;s.defects=0;
     assert.equal(developmentReadiness(s).stage,stage);
     assert.equal(validity(s)>0,advances);
     input(s,{chars:1});assert.equal(s.progress>0,advances);
     assert.equal(developmentReadiness(s).requirements[0].missing,Math.max(0,12-value));
   }
   s.progress=3000;assert.equal(developmentReadiness(s).stage,'complete');
-  s.debt=100;assert.equal(developmentReadiness(s).stage,'repair');
+  s.debt=100;assert.equal(developmentReadiness(s).stage,'complete');
+  s.defects=100;assert.equal(developmentReadiness(s).stage,'repair');
   s.skills.syntax=5;assert.equal(developmentReadiness(s).stage,'repair');
 });
 test('completion notes refer to the finished English-comment exercise through next prompts and saves', () => {
