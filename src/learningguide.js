@@ -115,7 +115,19 @@ const specific = {
   'go/luhn': {x:'検証する番号の1桁'},
   'go/error-handling': {x:'recoverで受け取ったpanicの値'},
   'go/dnd-character': {character:'能力値と体力を持つRPGのキャラクター'},
-  'csharp/wizards-and-warriors-2': {character:'戦闘に参加するRPGのキャラクター'}
+  'csharp/wizards-and-warriors-2': {character:'戦闘に参加するRPGのキャラクター'},
+  'rust/ocr-numbers': {
+    line_count:'数字の図を含む入力全体の行数。4の倍数か検証する',
+    char_count:'入力の各行の文字数。3の倍数か検証する',
+    y:'入力を1行ずつに分割して集めた配列',
+    converted_lines:'4行ごとに読み取った数字列。最後にカンマでつなぐ',
+    unparsed_characters:'桁の位置ごとに、数字の図を構成する文字を集める対応表',
+    line_chars:'読み取り中の1行を、1文字ずつに分けた配列',
+    char_chars:'今の桁の図を構成する文字を追加する領域',
+    parsed_characters:'4行分の図から読み取った、横に並ぶ数字の文字列'
+  },
+  'rust/ocr-numbers/convert': {input:'空白と罫線で数字を描いた、複数行の入力文字列'},
+  'rust/ocr-numbers/convert_character': {input:'1桁分の3文字×4行の図を、行順に並べた文字配列'}
 };
 const notes = {
  'cpp/last-will': ['家族ごとの関数と暗証番号の断片は、すでに用意されている。','assemble_account_numberは、補正値を使った3家族の口座番号を足す。','assemble_codeは、赤い断片の合計と青い断片の合計を掛ける。::は所属する名前空間をたどる記号。'],
@@ -145,10 +157,10 @@ export function learningGuide(lesson) {
  const entries=new Map();
  for(const binding of symbols) {
   if(!contains(lesson.code,binding.name) || binding.owner && active.length && !active.includes(binding.owner))continue;
-  const name=normalizeName(binding.name), meaning=specific[key]?.[name] || terms[name] || (binding.kind==='receiver'?'このメソッドの操作対象':null);
-  const role=binding.kind==='parameter'?'呼び出し側から渡す引数':binding.kind==='receiver'?'操作対象':binding.kind==='iteration'?'繰り返しの位置':'このコード内で設定する値';
+  const name=normalizeName(binding.name), meaning=specific[`${key}/${binding.owner || lesson.name}`]?.[name] || specific[key]?.[name] || terms[name] || (binding.kind==='receiver'?'このメソッドの操作対象':null);
+  const role=binding.kind==='parameter'?'引数':binding.kind==='receiver'?'操作対象':binding.kind==='iteration'?'反復処理の変数':'ローカル変数・フィールド';
   const identity=JSON.stringify([binding.name,binding.kind,binding.type,meaning,binding.initial]);
-  entries.set(identity,{...binding,meaning:meaning || role,role});
+  entries.set(identity,{...binding,meaning:meaning || null,role});
  }
  // Object receivers are meaningful even where the language makes them implicit.
  for(const name of ['self','this'])if(contains(lesson.code,name) && ![...entries.values()].some(b=>b.name===name))entries.set(name,{name,meaning:specific[key]?.[name] || terms[name],role:'操作対象'});

@@ -111,7 +111,12 @@ test('identifier hints do not assume coordinates or characters from an ambiguous
  const make=(language,slug,code,name)=>learningGuide({language,code,exerciseInfo:{slug,purposeJa:'用途'},bindings:[{name,kind:'parameter'}]});
  assert.doesNotMatch(make('go','luhn','x * 2','x').bindings[0].meaning,/横/);
  assert.match(make('go','dnd-character','character.Health','character').bindings[0].meaning,/RPG/);
- assert.equal(make('cpp','unrelated','int x','x').bindings[0].meaning,'呼び出し側から渡す引数');
+ assert.equal(make('cpp','unrelated','int x','x').bindings[0].meaning,null);
+ assert.equal(make('cpp','unrelated','int x','x').bindings[0].role,'引数');
+ const ocr=exerciseUnits('rust','ocr-numbers');
+ const guides=ocr.units.map(unit=>learningGuide({...unit,language:'rust',exerciseInfo:ocr.exercise}));
+ assert.match(guides.flatMap(g=>g.bindings).find(b=>b.name==='y').meaning,/1行ずつ/);
+ assert.ok(guides.flatMap(g=>g.bindings).filter(b=>b.name==='input').every(b=>b.meaning.includes('図') || b.meaning.includes('罫線')));
 });
 test('an unfinished published course retains exact text and cursor through the archive upgrade',()=>{
  const old=LEGACY_COURSE.cpp.units.find(u=>COURSE.cpp.legacyTargets[u.id]);
