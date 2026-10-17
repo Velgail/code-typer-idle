@@ -1,10 +1,12 @@
 import {
   DAY, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, level, metaBonus,
   livingCost, rentCost, workRate, handPower, knowledgeRatio, validity, debtLimit,
-  abstraction, royaltyRate, unitRate, devRate, studyMultiplier, itemCost, netIncome,
+  abstraction, royaltyRate, unitRate, devRate, studyGain, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, quality, prestigeGain, prestige, applyOffline,
   serialize, deserialize, checkAchievements, log
 } from './core.js';
+import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, currentPrompt, acceptCharacter } from './typing.js';
+import { PACING_REPORT } from './pacing.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -42,7 +44,7 @@ export function format(n, digits = 1) {
   if (index >= units.length) return n.toExponential(2).replace('e+', 'e');
   return (n / 1e4 ** index).toLocaleString('en-US', { maximumFractionDigits: 2 }) + units[index];
 }
-const yen = n => `${n < 0 ? '−' : ''}¥${format(Math.abs(n), 0)}`;
+const yen = n => `${n < 0 ? '−' : ''}¥${format(Math.abs(n), Math.abs(n) < 100 ? 2 : 0)}`;
 const pct = n => Math.max(0, Math.min(100, n * 100));
 const duration = seconds => seconds < 60 ? `${Math.floor(seconds)}秒` : seconds < 3600 ? `${Math.floor(seconds / 60)}分${Math.floor(seconds % 60)}秒` : `${Math.floor(seconds / 3600)}時間${Math.floor(seconds % 3600 / 60)}分`;
 const KEY = 'code-typer-idle:save:v1';
@@ -115,7 +117,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、生活をつなぐ</b>日銭ワークで1文字ごとに資金を獲得。60秒で1日が進み、食費が引かれます。30日ごとに家賃も。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。教材なしでも学べますが、最初の教材で効率が10倍になります。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、または好きな文字キーを打鍵。<kbd>1</kbd> 日銭 / <kbd>2</kbd> 学習 / <kbd>3</kbd> 開発。キー長押し、Ctrlや⌘を使う操作は数えません。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
+  showModal('一文字から、ゲーム開発者へ。', `<p>同じ打鍵でも、どこに時間を使うかで結果が変わります。</p><div class="guide-steps"><div class="guide-step"><span>01</span><p><b>働いて、生活をつなぐ</b>日銭ワークで1文字ごとに資金を獲得。60秒で1日が進み、食費が引かれます。30日ごとに家賃も。まずは¥1,500の入門書を。</p></div><div class="guide-step"><span>02</span><p><b>学んで、コードを理解する</b>写経・学習で分野別の理解度が上昇。教材なしでも学べますが、最初の教材で学習量が2倍になります。理解度が上がるほど、次の1ポイントには多くの学習が必要です。学習中の収入はゼロです。</p></div><div class="guide-step"><span>03</span><p><b>完成させて、次へ進む</b>ゲーム開発で有効文字を積み上げ、ビルドして公開。最初の作品は無料。2作目から、十分な品質と理解度があれば継続売上を得られます。</p></div></div><div class="modal-callout">理解度が要求の50%未満なら、開発進捗はゼロ。50〜100%では技術的負債が増えます。崩壊したビルドは必要理解度を満たしてからリファクタリングで復旧できます。自動開発の丸投げにも注意。</div><p><strong>操作</strong>　クリック、またはコードタイピング。コードタイピングでは、表示された文字だけを正解として数えます。正解文字は×1.25、誤入力なしの完入力で合計×1.5の報酬。貼り付けは数えません。<kbd>1</kbd> 日銭 / <kbd>2</kbd> 学習 / <kbd>3</kbd> 開発。入力欄をフォーカス中は数字も出題として入力します。Escで入力欄を離れられます。キー長押し、Ctrlや⌘の操作では報酬が発生しません。</p><p><strong>放置と保存</strong>　自動化は選択モードにかかわらず動きます。研究ラボは現在企画の不足分野を優先します。離席中は最大8時間分を計算。公開と購入は手動です。5秒ごとに保存します。</p><p><strong>その先</strong>　AAAは途中の目標。宇宙規模の開発、コード資産を引き継ぐ再出発、さらに大きな次世代へ進めます。</p><div class="modal-actions"><button class="primary-button" data-action="close">開発を始めよう ↗</button></div>`);
 }
 function settings() {
   showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、生活費と自動処理を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">コード資産を含むすべての進行が対象です。資産を引き継ぐ再出発はロードマップから。</p>`);
@@ -146,11 +148,10 @@ function beep(kind) {
     osc.connect(gain); gain.connect(soundContext.destination); osc.start(); osc.stop(soundContext.currentTime + 0.05);
   } catch { /* Sound is optional if the browser cannot play it. */ }
 }
-function doInput() {
+function doInput(options = {}) {
   if (blocked || paused) return;
-  const result = input(state);
-  tapNumber++;
-  lastManualTimes.push(performance.now());
+  const result = input(state, options);
+  if (options.countManual !== false) { tapNumber++; lastManualTimes.push(performance.now()); }
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
   beep(result.kind);
   let text = { work: `+${yen(result.amount)}`, study: `+${format(result.amount, 2)} K`, code: `+${format(result.amount)} chars`, debt: `+${format(result.amount)} chars / 負債発生`, refactor: `−${format(result.amount)} debt`, error: 'Syntax Error', crash: 'Build failed', review: '先に必要な理解度を学習' }[result.kind] || '';
@@ -161,6 +162,7 @@ function doInput() {
   if (result.kind === 'error' && tapNumber % 12 === 1) log(state, 'Syntax Error: まずは要求理解度の50%以上を学習しましょう。', 'error');
   dirty = true;
   unlock(); render();
+  return result;
 }
 function unlock() {
   for (const a of checkAchievements(state)) toast(`実績解除：${a.name}`);
@@ -196,55 +198,60 @@ function renderShop() {
     b.querySelector('span').textContent = owned ? '✓' : state.projectIndex < i.gate ? '未解禁' : '購入する ＋';
   });
 }
-function editorLines() {
-  const mode = state.mode;
-  const n = Math.floor(state.stats.chars);
-  if (mode === 'work') return [
-    '<span class="code-comment"># 今日の入力業務 / survey_response.csv</span>',
-    'id, name, category, response',
-    `<span class="code-number">${String(n + 1024).padStart(6, '0')}</span>, <span class="code-string">"user_01"</span>, survey, <span class="code-string">"とても満足"</span>`,
-    `<span class="code-number">${String(n + 1025).padStart(6, '0')}</span>, <span class="code-string">"user_02"</span>, survey, <span class="code-string">"満足"</span>`,
-    '',
-    '<span class="code-comment"># 一文字ずつ、開発資金に変えていく。</span>',
-    `<span class="code-name">earnings</span> += <span class="code-number">${format(workRate(state))}</span> <span class="code-comment">// yen per character</span>`,
-    `<span class="code-dim">${String(n + 1026).padStart(6, '0')}, </span><span class="caret"></span>`
-  ];
-  if (mode === 'study') {
-    const lesson = SKILLS.find(s => s.id === state.subject);
-    const snippets = {
-      syntax: ['<span class="code-keyword">const</span> dream = <span class="code-string">"my first game"</span>;', '<span class="code-keyword">function</span> <span class="code-name">takeOneStep</span>(knowledge) {', '  <span class="code-keyword">return</span> knowledge + <span class="code-number">1</span>;', '}', '', '<span class="code-name">takeOneStep</span>(today);'],
-      design: ['<span class="code-keyword">class</span> <span class="code-name">Game</span> {', '  <span class="code-name">constructor</span>(renderer, input) {', '    <span class="code-keyword">this</span>.renderer = renderer;', '    <span class="code-keyword">this</span>.input = input;', '  }', '}'],
-      graphics: ['<span class="code-keyword">function</span> <span class="code-name">draw</span>(ctx, player) {', '  ctx.fillStyle = <span class="code-string">"#a7e4b1"</span>;', '  ctx.<span class="code-name">fillRect</span>(player.x, player.y, <span class="code-number">16</span>, <span class="code-number">16</span>);', '  <span class="code-name">requestAnimationFrame</span>(draw);', '}', '<span class="code-comment">// 次のフレームへ。</span>'],
-      systems: ['<span class="code-keyword">const</span> cache = <span class="code-keyword">new</span> <span class="code-name">Map</span>();', '<span class="code-keyword">async function</span> <span class="code-name">loadWorld</span>(id) {', '  <span class="code-keyword">if</span> (cache.<span class="code-name">has</span>(id)) <span class="code-keyword">return</span> cache.get(id);', '  <span class="code-keyword">const</span> world = <span class="code-keyword">await</span> fetchWorld(id);', '  cache.<span class="code-name">set</span>(id, world);', '}']
-    }[state.subject];
-    const count = Math.min(6, Math.floor(state.skills[state.subject]) % 7 + 1);
-    return [`<span class="code-comment">// ${lesson.lesson}</span>`, ...snippets.map((line, i) => i < count ? line : `<span class="code-dim">${line.replace(/<[^>]*>/g, '')}</span>`), `<span class="code-comment">// 理解度 ${format(state.skills[state.subject], 2)}</span> <span class="caret"></span>`];
+function renderEditor() {
+  const prompt = currentPrompt(state), t = state.typing;
+  const typing = state.inputStyle === 'typing';
+  const offset = typing ? t.offset : Math.floor(state.stats.manual % prompt.length);
+  const key = `${state.mode}/${state.subject}/${state.projectIndex}/${t.language}/${t.index}/${offset}/${t.errors}/${typing}`;
+  $('typing-input').hidden = !typing;
+  $('typing-input').disabled = blocked || paused;
+  $('typing-summary').classList.toggle('hidden', !typing);
+  $('code-editor').classList.toggle('typing-active', typing);
+  if (lastEditorKey !== key) {
+    lastEditorKey = key;
+    $('editor-content').dataset.prompt = prompt;
+    $('editor-content').innerHTML = `<pre class="typing-code"><span class="typed-code">${esc(prompt.slice(0, offset))}</span><mark class="next-character">${prompt[offset] === '\n' ? '↵\n' : esc(prompt[offset] || ' ')}</mark><span class="pending-code">${esc(prompt.slice(offset + 1))}</span></pre>`;
+    const mark = $('editor-content').querySelector('mark');
+    if (typing && mark) {
+      const y = mark.offsetTop;
+      if (y < $('editor-content').scrollTop || y > $('editor-content').scrollTop + 200) $('editor-content').scrollTop = Math.max(0, y - 100);
+    }
   }
-  if (state.crashed) return ['<span class="code-error">BUILD FAILED · TECHNICAL DEBT LIMIT</span>', '', '<span class="code-comment">// 一度、キーボードから手を離そう。</span>', `<span class="code-error">debt: ${format(state.debt)} / ${format(debtLimit(state))}</span>`, '', '<span class="code-comment">// 1. 必要な分野を100%まで学ぶ</span>', '<span class="code-comment">// 2. リファクタリングで負債を20%以下に</span>', '<span class="code-comment">// 3. 小さく、正しく、作り直す</span>'];
-  if (state.refactor) return ['<span class="code-comment">// REFACTOR MODE / make it readable.</span>', '<span class="code-keyword">function</span> <span class="code-name">cleanUp</span>(project) {', `  <span class="code-keyword">if</span> (understanding &lt; <span class="code-number">100%</span>) {`, '    <span class="code-keyword">return</span> <span class="code-string">"study first"</span>;', '  }', '  project.debt -= review();', '}', `<span class="code-comment">// 残りの負債 ${format(state.debt)}</span><span class="caret"></span>`];
-  if (knowledgeRatio(state) < 0.5) return ['<span class="code-comment">// main.js / わからないまま、書いてみた。</span>', '<span class="code-keyword">const</span> game = <span class="code-error">new Something()</span>;', '', '<span class="code-error">ReferenceError: Something is not defined</span>', '<span class="code-comment">// 理解度が不足しています。</span>', '<span class="code-comment">// 写経・学習で、必要分野を学んでみよう。</span>', '', '<span class="code-error">build: 0 valid characters</span><span class="caret"></span>'];
-  return [`<span class="code-comment">// ${esc(projectAt(state.projectIndex).name)} / main.js</span>`, '<span class="code-keyword">import</span> { Game } <span class="code-keyword">from</span> <span class="code-string">"./engine"</span>;', '', '<span class="code-keyword">const</span> game = <span class="code-keyword">new</span> <span class="code-name">Game</span>({', '  world: <span class="code-string">"a little bigger than yesterday"</span>,', `  progress: <span class="code-number">${format(state.progress)}</span>,`, '});', `<span class="code-name">game.start</span>(); <span class="code-comment">// ${validity(state) < 1 ? 'warning: unresolved debt' : 'a world worth building.'}</span><span class="caret"></span>`];
+  const prefix = prompt.slice(0, offset).split('\n');
+  $('editor-cursor').textContent = `Ln ${prefix.length}, Col ${prefix.at(-1).length + 1}`;
+  $('editor-status').textContent = typing ? 'TYPE EXACT CODE · 貼り付け不可' : 'CLICK PREVIEW';
+  $('typing-round').textContent = `${t.offset} / ${prompt.length}文字`;
+  $('typing-accuracy').textContent = `正確率 ${((t.correct + t.errors) ? t.correct / (t.correct + t.errors) * 100 : 100).toFixed(1)}%`;
+  $('typing-completed').textContent = `完入力 ${t.completed}問`;
 }
 function renderTask() {
   const p = projectAt(state.projectIndex), mode = state.mode, ratio = knowledgeRatio(state);
+  const typing = state.inputStyle === 'typing';
+  const language = LANGUAGES.find(l => l.id === state.typing.language);
+  const power = handPower(state) * (typing ? TYPING_REWARD.character : 1);
   document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-selected', b.dataset.mode === mode); });
+  document.querySelectorAll('[data-input-style]').forEach(b => { b.classList.toggle('active', b.dataset.inputStyle === state.inputStyle); b.setAttribute('aria-pressed', b.dataset.inputStyle === state.inputStyle); });
+  $('language-select').value = language.id;
+  $('language-select').title = `${language.description} / 全${PROMPT_COUNT.toLocaleString()}問`;
   $('subject-picker').classList.toggle('hidden', mode !== 'study');
   $('project-progress').classList.toggle('hidden', mode !== 'dev');
   $('dev-actions').classList.toggle('hidden', mode !== 'dev');
   const lesson = SKILLS.find(s => s.id === state.subject);
   const task = {
-    work: ['FREELANCE WORK', state.projectIndex ? 'デバッグ・開発サポート' : 'アンケートのデータ入力', '小さな仕事も、大事な開発資金。まずは今日の生活から。', '作業受付中', 'data-entry.csv', 'CSV', 'タイプして働く', `+${yen(handPower(state) * workRate(state))}`],
-    study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (level(state, `book-${state.subject}`) ? ' 教材を開いて、ひとつずつ。' : ' 無料のメモで学習中。教材があると10倍速く学べます。'), level(state, `book-${state.subject}`) ? '教材で学習中' : '教材なし', lesson.file, 'JavaScript', 'タイプして学ぶ', `+${format(Math.min(1e250, handPower(state) * .065 * studyMultiplier(state)), 2)} K`],
-    dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド崩壊' : state.refactor ? '負債を修復中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main.js', 'JavaScript', state.refactor ? 'タイプして修復' : 'タイプして開発', state.refactor ? ratio >= 1 ? `−${format(Math.min(state.debt, handPower(state) * (1 + ratio) * 2))} debt` : '先に学習が必要' : state.crashed ? 'ビルド崩壊' : `+${format(Math.min(p.target - state.progress, 1e250, handPower(state) * validity(state) * abstraction(state) * (ratio >= 1 ? Math.min(1e250, 3 ** level(state, 'ide')) : 1) * (1 - state.debt / debtLimit(state) * .8)))} chars`]
+    work: ['FREELANCE WORK', state.projectIndex ? 'デバッグ・開発サポート' : '小さなプログラミング作業', '一文字ずつ開発資金に。正確なコード入力で、完入力ボーナスも。', '作業受付中', 'contract', '働く', `+${yen(Math.min(1e250, power * workRate(state)))}`],
+    study: ['STUDY & UNDERSTAND', `${lesson.name}を学ぶ`, lesson.lesson + (level(state, `book-${state.subject}`) ? ' 教材で学習量を増やせます。' : ' 教材なしでも学習可能。最初の教材で学習量が2倍に。'), level(state, `book-${state.subject}`) ? '教材で学習中' : '教材なし', lesson.file, '学ぶ', `+${studyGain(state, power).toLocaleString('en-US', { maximumFractionDigits: 5 })} K`],
+    dev: ['BUILD YOUR NEXT GAME', p.name, p.desc, state.crashed ? 'ビルド崩壊' : state.refactor ? '負債を修復中' : ratio >= 1 ? '理解度クリア' : '理解度不足', 'main', state.refactor ? '修復' : '開発', state.refactor ? ratio >= 1 ? `−${format(Math.min(state.debt, power * (1 + ratio) * 2))} debt` : '先に学習が必要' : state.crashed ? 'ビルド崩壊' : `+${format(Math.min(p.target - state.progress, 1e250, power * validity(state) * abstraction(state) * (ratio >= 1 ? ideMultiplier(state) : 1) * (1 - state.debt / debtLimit(state) * .8)))} chars`]
   }[mode];
   ['task-eyebrow', 'task-title', 'task-description'].forEach((id, i) => $(id).textContent = task[i]);
   $('task-status').innerHTML = `<i></i>${task[3]}`;
   $('task-status').className = `status-pill ${mode === 'dev' && state.crashed ? 'error' : mode === 'dev' && ratio < 1 || mode === 'study' && !level(state, `book-${state.subject}`) ? 'warning' : ''}`;
-  $('editor-file').textContent = task[4]; $('editor-language').textContent = task[5];
-  $('type-label').textContent = paused ? '一時停止中' : task[6];
-  $('type-hint').textContent = paused ? '設定から再開できます' : 'クリック、またはキーボードを打鍵';
-  $('output-rate').innerHTML = `${esc(task[7])} <small>/ 打鍵</small>`;
-  $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : 'この入力で得られるもの';
+  $('editor-file').textContent = `${task[4]}.${language.extension}`;
+  $('editor-language').textContent = language.name;
+  $('type-label').textContent = paused ? '一時停止中' : typing ? 'コード入力を始める' : `クリックして${task[5]}`;
+  $('type-hint').textContent = paused ? '設定から再開できます' : typing ? '光っている文字から、コードどおりに入力' : 'コードタイピングなら完入力で最大×1.5';
+  $('output-rate').innerHTML = `${esc(task[6])} <small>/ ${typing ? '正解文字' : 'クリック'}</small>`;
+  $('output-label').textContent = mode === 'dev' ? `有効変換率 ${Math.round(validity(state) * 100)}%${ratio >= 1 ? ` / 抽象化 ×${format(abstraction(state), 2)}` : ''}` : typing ? '正解×1.25 ＋ 完入力ボーナス' : 'このクリックで得られるもの';
+  $('typing-instructions').textContent = typing ? '空白と改行も入力。誤入力は打ち直すだけ。Escで入力欄を離れます。' : '任意キーの連打では報酬が発生しません。';
   $('subject-picker').querySelectorAll('[data-subject]').forEach(b => { b.classList.toggle('active', b.dataset.subject === state.subject); b.setAttribute('aria-pressed', b.dataset.subject === state.subject); });
   if (mode === 'dev') {
     $('project-progress').innerHTML = `<div class="progress-meta"><span>${format(state.progress)} / ${format(p.target)} chars</span><b>${pct(state.progress / p.target).toFixed(2)}%</b></div><div class="big-track"><span style="width:${pct(state.progress / p.target)}%;background:${state.crashed ? 'var(--red)' : 'var(--green)'}"></span></div><div class="debt-row ${state.crashed ? 'danger' : ''}"><span>技術的負債 <b>${format(state.debt)} / ${format(debtLimit(state))}</b></span><span>公開には負債10%以下が必要</span></div>`;
@@ -252,12 +259,7 @@ function renderTask() {
     $('refactor-button').textContent = state.refactor ? '← 通常の開発に戻る' : 'リファクタリングに切替';
     $('refactor-button').classList.toggle('active', state.refactor);
   }
-  const editorKey = `${mode}/${state.subject}/${state.crashed}/${state.refactor}/${tapNumber}/${Math.floor(state.progress)}/${Math.floor(state.skills[state.subject])}/${Math.floor(ratio * 10)}`;
-  if (editorKey !== lastEditorKey) {
-    lastEditorKey = editorKey;
-    $('editor-content').innerHTML = editorLines().map((line, i) => `<div class="code-line ${i === 7 ? 'active-line' : ''}"><span class="line-number">${i + 1}</span><span class="line-code">${line || ' '}</span></div>`).join('');
-    $('editor-cursor').textContent = `Ln ${Math.floor(state.stats.chars / 40) + 1}, Col ${Math.floor(state.stats.chars % 40) + 1}`;
-  }
+  renderEditor();
 }
 function renderAssetsAndGoal() {
   const snippets = level(state, 'library');
@@ -286,10 +288,14 @@ function renderAssetsAndGoal() {
 }
 function renderRoadmap() {
   const indexes = [...PROJECTS.map((_, i) => i), ...new Set([7, Math.max(8, state.projectIndex), Math.max(9, state.projectIndex + 1)])];
-  $('roadmap-view').innerHTML = `<p class="view-intro">表示上の1行は40文字換算。AAAの開発規模は1億文字。100万行を超えたあとも、次の企画は届きます。</p><div class="roadmap-grid">${indexes.map(i => {
+  $('roadmap-view').innerHTML = `${renderPacing()}<p class="view-intro">表示上の1行は40文字換算。AAAの開発規模は1億文字。100万行を超えたあとも、次の企画は届きます。</p><div class="roadmap-grid">${indexes.map(i => {
     const p = projectAt(i), done = i < state.projectIndex, current = i === state.projectIndex;
     return `<article class="roadmap-card ${done ? 'completed' : current ? 'current' : ''}"><span class="roadmap-state">${done ? '✓ 公開済み' : current ? '● 現在のプロジェクト' : 'これからの企画'}</span><div class="roadmap-number">${p.icon}</div><div class="eyebrow">${p.genre}</div><h2>${esc(p.name)}</h2><p>${p.desc}</p><div class="roadmap-spec"><span>${format(p.target)} 文字</span><span>${i === 0 ? '無料公開' : `最大 ${yen(p.royalty)} / 秒`}</span></div><p style="font-size:9px;margin-bottom:0">${Object.entries(p.req).map(([k, v]) => `${SKILLS.find(s => s.id === k).short} ${format(v)}`).join(' / ')}</p></article>`;
   }).join('')}</div><section class="prestige-card"><div><div class="eyebrow">REFACTOR YOUR CAREER</div><h2>経験を資産に、もう一度。</h2><p>ローグライク公開後に再出発できます。資金、理解度、設備、公開作品を手放して、永続コード資産を獲得。資産は全打鍵、自動化、次の周回の売上を強化します。実績と累計記録は残ります。遠くまで進めるほど獲得量は4倍ずつ増えます。</p><p>現在の資産 ${format(state.assets)} / 倍率 ×${metaBonus(state).toFixed(2)} / 今回の獲得予定 <strong>+${format(prestigeGain(state))}</strong></p></div><button class="primary-button" data-action="prestige" ${!prestigeGain(state) || blocked ? 'disabled' : ''}>資産を引き継いで再出発 ↗</button></section>`;
+}
+function renderPacing() {
+  const time = n => n < 3600 ? `${Math.ceil(n / 60)}分` : `${(n / 3600).toFixed(1)}時間`;
+  return `<section class="panel pacing-panel"><div class="eyebrow">FIRST RUN / BALANCE v${PACING_REPORT.balanceVersion}</div><h2>初回AAAの目安は、放置込み3〜7日。</h2><p>新規セーブ・周回なしで、購入と学習を配分したシミュレーションです。入力速度と投資先で変わります。</p><div class="pacing-table-wrap"><table class="pacing-table"><thead><tr><th>到達点</th>${PACING_REPORT.scenarios.map(s => `<th>${esc(s.name)}</th>`).join('')}</tr></thead><tbody><tr><td>基礎教本</td>${PACING_REPORT.scenarios.map(s => `<td>${time(s.purchases['book-syntax'])}</td>`).join('')}</tr>${PROJECTS.slice(0, 5).map((p, index) => `<tr><td>${index === 4 ? 'AAA公開' : esc(p.name)}</td>${PACING_REPORT.scenarios.map(s => `<td>${s.milestones[index] ? time(s.milestones[index].seconds) : '計測範囲外'}</td>`).join('')}</tr>`).join('')}</tbody></table></div><p>タイピング列は30文字/秒を全問正解し、完入力ボーナスも得る上限性能です。離席ありは最初に1時間、以降は日中16時間に2時間ごと5分、夜は8時間離席。AAAまでの実操作は約${(PACING_REPORT.scenarios[2].milestones[4].activeSeconds / 3600).toFixed(1)}時間です。旧セーブは進行を維持するため、この目安の対象外です。</p></section>`;
 }
 function renderAchievements() {
   $('achievements-view').innerHTML = `<p class="view-intro">${state.achievements.length} / ${ACHIEVEMENTS.length} 個の実績を解除。実績は再出発後も引き継ぎます。</p><div class="achievement-grid">${ACHIEVEMENTS.map(a => { const done = state.achievements.includes(a.id); return `<article class="achievement-card ${done ? '' : 'locked'}"><span class="achievement-emblem">${icon(done ? 'award' : 'shield')}</span><div><h2>${a.name}</h2><p>${a.hint}</p><small>${done ? 'UNLOCKED ✓' : 'NOT YET'}</small></div></article>`; }).join('')}</div><div class="stats-grid"><div><span>総プレイ時間</span><b>${duration(state.stats.time)}</b></div><div><span>累計有効文字</span><b>${format(state.stats.valid)}</b></div><div><span>公開したゲーム</span><b>${format(state.stats.releases, 0)}</b></div><div><span>開発人生の周回数</span><b>${state.resets + 1}</b></div></div>`;
@@ -307,7 +313,7 @@ function render() {
   $('living').title = `家賃 ${yen(rentCost(state))} / 30日。次の家賃はDay ${Math.floor((state.day - 1) / 30 + 1) * 30 + 1}`;
   $('day-ring').style.strokeDashoffset = String(100.53 * state.dayElapsed / DAY);
   $('total-chars').innerHTML = `${format(state.stats.chars, 0)}<em> chars</em>`;
-  $('input-power').textContent = `${format(handPower(state))}文字 / 打鍵 · 約${format(state.stats.chars / 40, 0)}行`;
+  $('input-power').textContent = `${format(handPower(state), 2)}文字 / クリック · 約${format(state.stats.chars / 40, 0)}行`;
   $('royalty').innerHTML = `${yen(royaltyRate(state))}<em> / 秒</em>`;
   $('published-count').textContent = state.catalog.length ? `${state.catalog.length}作品からの継続売上` : 'まだ、最初の一歩。';
   $('release-count').textContent = `${state.stats.releases} RELEASES`;
@@ -319,9 +325,9 @@ function render() {
   $('profile-releases').textContent = state.stats.releases; $('meta-bonus').textContent = `×${metaBonus(state).toFixed(2)}`;
   $('bankrupt-banner').classList.toggle('hidden', state.cash >= 0);
   $('achievement-count').textContent = `${state.achievements.length}/${ACHIEVEMENTS.length}`;
-  $('auto-work').innerHTML = `${format(unitRate(state, 'macro'))} <small>chars/s</small>`;
+  $('auto-work').innerHTML = `${format(unitRate(state, 'macro'), 2)} <small>chars/s</small>`;
   $('auto-dev').innerHTML = `${format(devRate(state))} <small>chars/s</small>`;
-  $('auto-study').innerHTML = `${format(unitRate(state, 'lab'))} <small>chars/s</small>`;
+  $('auto-study').innerHTML = `${format(unitRate(state, 'lab'))} <small>chars/s · ${SKILLS.find(s => s.id === autoStudySubject(state)).short}</small>`;
   $('automation-toggle').setAttribute('aria-pressed', state.autoEnabled);
   $('auto-label').textContent = `自動開発 ${state.autoEnabled ? 'ON' : 'OFF'}`;
   const dangerous = devRate(state) && knowledgeRatio(state) < 1;
@@ -341,12 +347,17 @@ function render() {
   dirty = false;
 }
 
+$('language-select').innerHTML = LANGUAGES.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
 $('subject-picker').innerHTML = SKILLS.map(s => `<button class="subject-button" data-subject="${s.id}" aria-pressed="${state.subject === s.id}">${s.short}を学ぶ</button>`).join('');
 document.addEventListener('click', event => {
   const b = event.target.closest('button');
   if (!b || b.disabled) return;
   if (b.dataset.view) { dirty = true; switchView(b.dataset.view); }
   if (b.dataset.mode) switchMode(b.dataset.mode);
+  if (b.dataset.inputStyle && !blocked) {
+    state.inputStyle = b.dataset.inputStyle; lastEditorKey = ''; render();
+    if (state.inputStyle === 'typing') $('typing-input').focus();
+  }
   if (b.dataset.subject && !blocked) { state.subject = b.dataset.subject; dirty = true; render(); }
   if (b.dataset.shop) {
     shopTab = b.dataset.shop;
@@ -356,13 +367,49 @@ document.addEventListener('click', event => {
   if (b.dataset.buy && !blocked && buy(state, b.dataset.buy)) { unlock(); dirty = true; render(); }
   if (b.dataset.action) handleAction(b.dataset.action);
 });
-$('type-button').addEventListener('click', doInput);
+$('type-button').addEventListener('click', () => {
+  if (state.inputStyle === 'typing') $('typing-input').focus();
+  else doInput();
+});
+function typeCharacters(text) {
+  if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing') return;
+  for (const character of text) {
+    const power = handPower(state);
+    const result = acceptCharacter(state, character, power);
+    if (!result.correct) {
+      beep('error');
+      $('code-editor').classList.add('typing-error');
+      setTimeout(() => $('code-editor').classList.remove('typing-error'), 180);
+      renderEditor();
+      continue;
+    }
+    doInput({ chars: Math.min(1e250, power * TYPING_REWARD.character) });
+    if (result.complete) {
+      doInput({ chars: Math.min(1e250, result.bonus), countManual: false });
+      toast(`完入力！ 正確率 ${(result.accuracy * 100).toFixed(1)}% · ボーナス獲得`, '', 1800);
+    }
+  }
+  $('typing-input').value = '';
+}
+$('typing-input').addEventListener('beforeinput', event => {
+  if (event.cancelable) event.preventDefault();
+  if (event.inputType === 'insertText' && event.data && !event.isComposing) typeCharacters(event.data);
+  else if (event.inputType === 'insertLineBreak' || event.inputType === 'insertParagraph') typeCharacters('\n');
+});
+$('typing-input').addEventListener('input', () => { $('typing-input').value = ''; });
+$('typing-input').addEventListener('paste', event => { event.preventDefault(); toast('貼り付けは入力に数えません。コードを打って進めてください。'); });
+$('typing-input').addEventListener('drop', event => event.preventDefault());
+$('typing-input').addEventListener('keydown', event => {
+  if (event.repeat || event.key === 'Backspace' || event.key === 'Delete') event.preventDefault();
+  if (event.key === 'Escape') { event.preventDefault(); $('typing-input').blur(); }
+});
 document.addEventListener('keydown', e => {
+  if (e.repeat) { e.preventDefault(); return; }
   if (e.repeat || e.isComposing || e.ctrlKey || e.metaKey || e.altKey || $('modal').open || blocked || view !== 'workspace' || ['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
   if (['1', '2', '3'].includes(e.key)) { e.preventDefault(); switchMode({ 1: 'work', 2: 'study', 3: 'dev' }[e.key]); return; }
   // Enter/Space on a focused button keeps its standard keyboard behavior.
   if (e.target.closest('button,a') && [' ', 'Enter'].includes(e.key)) return;
-  if (e.key.length === 1 || e.key === 'Enter') { e.preventDefault(); doInput(); }
+  // Printable keys outside the typing field never produce game rewards.
 });
 $('help-button').addEventListener('click', help); $('guide-link').addEventListener('click', help);
 $('settings-button').addEventListener('click', settings);
@@ -379,6 +426,11 @@ $('release-button').addEventListener('click', () => {
   showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${result.royalty ? 'NOW ON SALE' : 'FREE TO PLAY'}</div><h3 style="font-size:22px;margin-top:6px">${esc(result.name)}</h3><p>最後の一文字まで、作りきりました。</p><div class="release-detail"><div><small>品質スコア</small><b>${result.quality}<span style="font-size:11px"> / 100</span></b></div><div><small>初回売上</small><b>${yen(result.payout)}</b></div><div><small>継続売上</small><b>${yen(result.royalty)}<span style="font-size:11px"> / 秒</span></b></div></div><p>${result.royalty ? '発売した作品が、これからの生活と開発を支えます。' : 'この作品は無料公開。売上はゼロですが、完成経験による理解度と実績が残ります。次の仕事と設備も解禁されます。'}</p><p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>${state.projectIndex === 5 ? '<div class="modal-callout">AAA、完成。けれどエンディングはありません。次は永続するオンライン宇宙を実装します。</div>' : ''}<div class="modal-actions"><button class="primary-button" data-action="close">次の一文字へ ↗</button></div>`);
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'language-select' && !blocked) {
+    state.typing.language = e.target.value;
+    state.typing.context = ''; lastEditorKey = ''; render();
+    if (state.inputStyle === 'typing') $('typing-input').focus();
+  }
   if (e.target.id === 'sound-setting') state.settings.sound = e.target.checked;
   if (e.target.id === 'motion-setting') { state.settings.reducedMotion = e.target.checked; render(); }
 });

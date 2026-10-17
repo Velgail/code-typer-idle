@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT } from '../docs/js/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject } from '../docs/js/core.js';
+import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
 
@@ -34,7 +35,7 @@ test('understanding yields clean code and abstraction caps at three', () => {
 test('unreviewable automation creates debt and crashes instead of progressing', () => {
   const s = createState();
   s.items.assistant = 1;
-  tick(s, 3);
+  tick(s, 100);
   assert.equal(s.crashed, true);
   assert.equal(s.debt, debtLimit(s));
   assert.equal(s.progress, 0);
@@ -70,15 +71,17 @@ test('commercial releases earn persistent royalties only above the quality and u
   const title = release(s);
   assert.ok(title.royalty > 0);
   const cash = s.cash; tick(s, 1);
-  assert.equal(s.cash - cash, title.royalty);
+  assert.ok(Math.abs(s.cash - cash - title.royalty) < 1e-8);
   const low = createState(); low.projectIndex = 1; understand(low, .75); low.progress = projectAt(1).target;
   assert.equal(release(low).royalty, 0);
 });
 test('purchases respect money, gates and one-time equipment', () => {
   const s = createState();
   assert.equal(buy(s, 'book-syntax'), false);
+  assert.equal(buy(s, 'macro'), false);
+  s.cash = 1500;
   assert.equal(buy(s, 'macro'), true);
-  assert.equal(s.cash, 300);
+  assert.equal(s.cash, 0);
   s.cash = 1e6;
   assert.equal(buy(s, 'assistant'), false);
   assert.equal(buy(s, 'kitchen'), true);
@@ -88,18 +91,18 @@ test('purchases respect money, gates and one-time equipment', () => {
 test('food and monthly rent are charged on their exact days', () => {
   const s = createState(); s.cash = 10000;
   tick(s, 59); assert.equal(s.cash, 10000); assert.equal(s.day, 1);
-  tick(s, 1); assert.equal(s.cash, 9880); assert.equal(s.day, 2);
-  tick(s, 29 * 60); assert.equal(s.day, 31); assert.equal(s.cash, 2800);
+  tick(s, 1); assert.equal(s.cash, 9994); assert.equal(s.day, 2);
+  tick(s, 29 * 60); assert.equal(s.day, 31); assert.equal(s.cash, 9640);
 });
 test('bankruptcy is recoverable and halves manual efficiency', () => {
   const s = createState(); s.cash = 0;
-  tick(s, 60); assert.equal(s.cash, -120); assert.equal(handPower(s), .5);
-  for (let i = 0; i < 21; i++) input(s, { mode: 'work' });
+  tick(s, 60); assert.equal(s.cash, -6); assert.equal(handPower(s), .5);
+  for (let i = 0; i < 13; i++) input(s, { mode: 'work' });
   assert.ok(s.cash > 0); assert.equal(handPower(s), 1);
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
   const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1;
-  tick(s, 2); assert.ok(s.cash > 1200); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
+  tick(s, 2); assert.ok(s.cash > INITIAL_CASH); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
   s.autoEnabled = false;
   const progress = s.progress, knowledge = s.skills.syntax, cash = s.cash;
   tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.cash > cash);
@@ -142,7 +145,7 @@ test('save roundtrips preserve the economy and guard invalid imported values', (
   const loaded = deserialize(serialize(s));
   assert.equal(loaded.skills.design, 77); assert.equal(loaded.items.macro, 3); assert.equal(loaded.mode, 'study');
   const malformed = deserialize(JSON.stringify({ ...s, cash: 'Infinity', skills: { syntax: -9 }, items: { keyboard: 1e6 }, projectIndex: -1, dayElapsed: 1e9 }));
-  assert.equal(malformed.cash, 1200); assert.equal(malformed.skills.syntax, 0); assert.equal(malformed.items.keyboard, 0); assert.equal(malformed.projectIndex, 0);
+  assert.equal(malformed.cash, INITIAL_CASH); assert.equal(malformed.skills.syntax, 0); assert.equal(malformed.items.keyboard, 0); assert.equal(malformed.projectIndex, 0);
   assert.throws(() => deserialize('{'));
   assert.throws(() => deserialize('{"version":999}'));
   assert.throws(() => deserialize('x'.repeat(500001)));
@@ -161,20 +164,41 @@ test('all authored projects and ten endless generations can actually be released
 });
 
 test('a fresh player can fund books and finish the first game without injected resources', () => {
-  const s = createState();
-  let releasedAt = 0;
-  for (let t = 0; t < 600 && !releasedAt; t++) {
-    for (const id of ['macro', 'book-syntax', 'keyboard', 'monitor']) {
-      const item = SHOP.find(i => i.id === id);
-      if (s.cash > itemCost(s, item) + 250 && (!s.items[id] || s.cash > itemCost(s, item) * 4)) buy(s, id);
-    }
-    s.mode = !s.items['book-syntax'] ? 'work' : s.skills.syntax < 12 ? 'study' : 'dev';
-    for (let tap = 0; tap < 4; tap++) input(s);
-    tick(s, 1);
-    assert.ok(s.cash >= 0);
-    if (s.progress >= projectAt(0).target && release(s)) releasedAt = t + 1;
-  }
-  assert.ok(releasedAt > 0 && releasedAt < 600);
-  assert.equal(s.projectIndex, 1);
-  assert.ok(s.items.macro > 0);
+  const result = simulate(SCENARIOS[0], { horizon: 3600, stopAfter: 1 });
+  assert.equal(result.reached, 1);
+  assert.ok(result.milestones[0].seconds > 20 * 60 && result.milestones[0].seconds < 60 * 60);
+  assert.ok(result.purchases['book-syntax'] >= 5 * 60);
+});
+
+test('learning takes sustained work and slows as knowledge increases', () => {
+  const s = createState(); s.items['book-syntax'] = 1;
+  assert.equal(studyMultiplier(s), 2);
+  input(s, { mode: 'study', chars: 19 });
+  assert.ok(s.skills.syntax < 1);
+  input(s, { mode: 'study', chars: 6900 });
+  assert.ok(s.skills.syntax < 12);
+  input(s, { mode: 'study', chars: 20 });
+  assert.ok(s.skills.syntax >= 12);
+  const early = studyGain(s, 10); s.skills.syntax = 100;
+  assert.ok(studyGain(s, 10) < early);
+});
+test('macro income begins near subsistence instead of funding exponential upgrades', () => {
+  const s = createState(); s.items.macro = 1;
+  assert.equal(unitRate(s, 'macro'), .25);
+  const cash = s.cash; tick(s, 1800);
+  assert.ok(s.cash - cash > 80 && s.cash - cash < 100);
+});
+test('research redirects to missing subjects while manual study remains selectable', () => {
+  const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';
+  assert.equal(autoStudySubject(s), 'design');
+  tick(s, 10);
+  assert.ok(s.skills.design > 0 && s.skills.graphics > 0);
+  assert.equal(s.subject, 'syntax');
+});
+test('previous saves retain earned resources and acquire safe typing defaults', () => {
+  const previous = { ...createState(), cash: 98765, balanceVersion: 1, skills: { syntax: 123, design: 45, graphics: 6, systems: 7 }, projectIndex: 2 };
+  delete previous.typing; delete previous.inputStyle;
+  const loaded = deserialize(JSON.stringify(previous));
+  assert.equal(loaded.cash, 98765); assert.equal(loaded.skills.syntax, 123); assert.equal(loaded.projectIndex, 2);
+  assert.equal(loaded.inputStyle, 'click'); assert.equal(loaded.typing.language, 'cpp'); assert.equal(loaded.balanceVersion, 2);
 });
