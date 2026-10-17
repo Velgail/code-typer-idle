@@ -7,8 +7,8 @@
   <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と制作資金をやりくりする無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./build/style.971c7baf404a937b.css">
-  <script type="module" src="./build/app.971c7baf404a937b.js"></script>
+  <link rel="stylesheet" href="./build/style.440a596e7bd9c0c1.css">
+  <script type="module" src="./build/app.440a596e7bd9c0c1.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -63,9 +63,9 @@
               <div id="quick-actions"><div id="manual-actions"><div class="work-output"><span id="output-label">このクリックで得られるもの</span><strong id="output-rate">+1 作業量 <small>/ クリック</small></strong></div><button id="type-button" class="type-button"><span class="type-button-icon" data-icon="keyboard"></span><span><b id="type-label">クリックして働く</b><small id="type-hint">タイピングなら完入力で報酬アップ</small></span><span class="keycap">↵</span></button><div id="job-progress" class="job-progress"><div><span id="job-progress-label">0 / 100 作業量</span><strong id="job-payment">納品で ¥100</strong></div><progress id="job-progress-bar" max="100" value="0" aria-label="納品までの作業量"></progress></div></div></div>
               <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>OCR・入力マクロを導入すると、原票の読み取りと入力を自動化できます。</small></section>
               <p id="lesson-title" class="lesson-title hidden"></p><section id="reading-panel" class="reading-panel hidden" aria-label="参考コードを読む"></section>
-              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">invoices.csv</span><span id="editor-language">CSV</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><label id="typing-label" for="typing-input" class="typing-label">伝票入力</label><textarea rows="3" id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><p id="input-feedback" class="input-feedback" role="status" aria-live="polite"></p><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
+              <div class="editor" id="code-editor"><div class="editor-toolbar"><div class="traffic-lights"><i></i><i></i><i></i></div><span id="editor-file">invoices.csv</span><span id="editor-language">CSV</span></div><div class="editor-content" id="editor-content" aria-label="出題コード"></div><section id="typing-comment-notes" class="typing-comment-notes hidden" aria-label="入力済みコメントの対訳" aria-live="polite"></section><label id="typing-label" for="typing-input" class="typing-label">伝票入力</label><textarea rows="3" id="typing-input" class="typing-input" aria-label="コード入力" aria-describedby="typing-instructions" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" wrap="off" hidden></textarea><p id="input-feedback" class="input-feedback" role="status" aria-live="polite"></p><div class="editor-bottom"><span><i></i><span id="editor-status">CLICK PREVIEW</span></span><span id="editor-cursor">Ln 1, Col 1</span></div><span id="input-float" class="input-float" aria-hidden="true"></span></div>
               <div class="typing-summary hidden" id="typing-summary"><span id="typing-round">0文字 / 0文字</span><span id="typing-accuracy">正確率 100%</span><span id="typing-completed">完入力 0問</span></div>
-              <div id="typing-actions"></div><section id="completed-notes" class="completed-notes hidden" aria-label="入力を終えたコードのコメント"></section>
+              <div id="typing-actions"></div><section id="completed-notes" class="completed-notes hidden" aria-label="入力を終えたコードの結果"></section>
               <div class="input-note"><span class="live-dot"></span><span id="typing-instructions">伝票番号 → 日付 → 品名 → 数量 → 単価</span><span id="manual-rate">手動入力待機中</span></div>
               <div id="dev-actions" class="hidden"><p id="release-cost" class="contract-note"></p><div class="dev-actions"><button id="refactor-button" class="secondary-button">リファクタリングに切替</button><button id="release-button" class="primary-button" disabled>ビルドして公開 ↗</button></div></div>
             </div>
@@ -81,7 +81,7 @@
       <section id="roadmap-view" class="hidden secondary-view"></section>
       <section id="achievements-view" class="hidden secondary-view"></section>
     </main>
-    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.5.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">自動保存</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
+    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.5.1</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">自動保存</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
   </div>
   <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
   <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>

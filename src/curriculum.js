@@ -234,7 +234,9 @@ export function lessonAt(language, subject, index) {
  const code=specific?specific.code:language==='sql'?renderSQL(topic,variant):renderTopic(language,topic,variant);
  const metadata=specific||topic, topicId=specific?specific.topicId:topic.id;
  const explanation=specific?specific.explanation:language==='sql'?`${topic.comments[0].ja} 結果は ${answer}。`:trace.join('\n');
- return {id:`${language}/${subject}/${topicId}/${variant}`,baseId:`${language}/${subject}/${topicId}`,version:CURRICULUM_VERSION,language,subject,index:number,topicId,title:metadata.title,english:metadata.english,code,comments:metadata.comments.map(x=>({...x})),answer,explanation};
+ const lines=[...code.matchAll(/^[ \t]*(?:\/\/|--|#) ([^\n]*)/gm)];
+ const comments=metadata.comments.flatMap(note=>lines.filter(line=>line[1]===note.en).map(line=>({...note,start:line.index+line[0].length-note.en.length,end:line.index+line[0].length})));
+ return {id:`${language}/${subject}/${topicId}/${variant}`,baseId:`${language}/${subject}/${topicId}`,version:CURRICULUM_VERSION,language,subject,index:number,topicId,title:metadata.title,english:metadata.english,code,comments,answer,explanation};
 }
 export function questionFor(lesson) {
  let seed=0;for(const char of lesson.id)seed=(Math.imul(seed,31)+char.charCodeAt(0))>>>0;

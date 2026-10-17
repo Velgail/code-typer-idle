@@ -20,6 +20,23 @@ if '--download' in sys.argv:
 EXT={'.cpp':'cpp','.h':'cpp','.cs':'csharp','.rs':'rust','.go':'go','.py':'python','.java':'java','.lua':'lua','.sql':'sql'}
 FUNCTIONS={'function_definition','function_item','function_declaration','method_declaration','constructor_declaration'}
 course={}; comments={};licenses=[]
+def sql_comments(code):
+ """Return comment spans, skipping SQLite strings and quoted identifiers."""
+ i=0
+ while i<len(code):
+  if code[i] in "'\"`[":
+   close=']' if code[i]=='[' else code[i];i+=1
+   while i<len(code):
+    if code[i]==close:
+     i+=1
+     if i<len(code) and code[i]==close:i+=1;continue
+     break
+    i+=1
+  elif code.startswith('--',i) or code.startswith('/*',i):
+   end=code.find('\n',i) if code.startswith('--',i) else code.find('*/',i+2)
+   end=len(code) if end<0 else end if code.startswith('--',i) else end+2
+   yield i,end,code[i:end];i=end
+  else:i+=1
 translations=json.loads((ROOT/'data/course-comments-ja.json').read_text()) if (ROOT/'data/course-comments-ja.json').exists() else {}
 for source in sources:
  track=source['track'];lang='sql' if track=='sqlite' else track
@@ -51,7 +68,9 @@ for source in sources:
      n=stack.pop();stack.extend(reversed(n.children))
      if n.type in FUNCTIONS:nodes.append(n)
      is_doc = lang=='python' and n.type=='string' and n.parent and n.parent.type in ('block','module') and next((c for c in n.parent.named_children if c.type!='comment'),None)==n
-     if is_doc or 'comment' in n.type and (not n.parent or 'comment' not in n.parent.type):file_comments.append((n.start_byte,n.end_byte,raw[n.start_byte:n.end_byte].decode()))
+     if is_doc or 'comment' in n.type and (not n.parent or 'comment' not in n.parent.type):
+      text=raw[n.start_byte:n.end_byte].decode()
+      if not re.fullmatch(r'[\s/*#-]+',text):file_comments.append((n.start_byte,n.end_byte,text))
     for node in nodes:
      start,end=node.start_byte,node.end_byte;snippet=raw[start:end].decode();line_start=code.rfind('\n',0,len(raw[:start].decode()))+1
      name=node.child_by_field_name('name');label=raw[name.start_byte:name.end_byte].decode() if name else snippet.splitlines()[0][:90]
@@ -68,10 +87,11 @@ for source in sources:
      buffer+=line
      if sqlite3.complete_statement(buffer):
       uid=f'{lang}/{entry["uuid"]}/{hashlib.sha256((filename+str(start_line)+hashlib.sha256(raw).hexdigest()).encode()).hexdigest()[:16]}'
-      own=[]
-      for c in re.findall(r'--[^\n]*|/\*[\s\S]*?\*/',buffer):
-       key=hashlib.sha256(c.encode()).hexdigest()[:16];comments[key]=c;own.append(key)
-      exercise_units.append(len(units));units.append({'id':uid,'exercise':len(exercises),'file':fid,'label':f'SQL {start_line}–{lineno}','line':start_line,'code':buffer.strip(),'comments':own,'subject':subject})
+      own=[];ranges=[];leading=len(buffer)-len(buffer.lstrip())
+      for a,z,c in sql_comments(buffer):
+       if re.fullmatch(r'[\s/*#-]+',c):continue
+       key=hashlib.sha256(c.encode()).hexdigest()[:16];comments[key]=c;own.append(key);ranges.append((key,a-leading,z-leading))
+      exercise_units.append(len(units));units.append({'id':uid,'exercise':len(exercises),'file':fid,'label':f'SQL {start_line}–{lineno}','line':start_line,'code':buffer.strip(),'comments':own,'ranges':ranges,'subject':subject})
       buffer='';start_line=lineno+1
    exercise_files.append(fid);files.append(file_record)
   if not exercise_units:
@@ -96,13 +116,16 @@ for source in sources:
    buffer+=line
   if buffer:pieces.append((buffer.rstrip('\n'),position,position+len(buffer)))
   for part,(code,start,end) in enumerate(pieces):
-   keys=[key for key,_,offset in unit.get('ranges',[]) if start<offset<=end] if 'ranges' in unit else [key for key in unit['comments'] if re.sub(r'\s+',' ',comments[key]) in re.sub(r'\s+',' ',code)]
-   block={**unit,'id':unit['id'].rsplit('/',1)[0]+'/'+hashlib.sha256((unit['id']+code).encode()).hexdigest()[:16]+f'/{part}','code':code,'comments':keys,'part':part+1,'parts':len(pieces),'key':hashlib.sha256((unit['id']+code+f'/{part}').encode()).hexdigest()[:16]}
+   spans=[]
+   for key,a,z in unit.get('ranges',[]):
+    if start<=a and z<=start+len(code):
+     assert code[a-start:z-start]==comments[key],unit['id']
+     # JavaScript cursors count UTF-16 code units, not Python code points.
+     spans.append({'en':comments[key],'ja':translations.get(key,''),'start':len(code[:a-start].encode('utf-16-le'))//2,'end':len(code[:z-start].encode('utf-16-le'))//2})
+   block={**unit,'id':unit['id'].rsplit('/',1)[0]+'/'+hashlib.sha256((unit['id']+code).encode()).hexdigest()[:16]+f'/{part}','code':code,'comments':spans,'part':part+1,'parts':len(pieces),'key':hashlib.sha256((unit['id']+code+f'/{part}').encode()).hexdigest()[:16]}
    block.pop('ranges',None);blocks.append(block)
  for e in exercises:e['units']=[]
  for i,unit in enumerate(blocks):exercises[unit['exercise']]['units'].append(i)
- for unit in blocks:
-  unit['comments']=[{'en':comments[key],'ja':translations.get(key,'')} for key in unit['comments']]
  course[lang]={'sha':source['sha'],'track':track,'exercises':exercises,'files':files,'functionCount':len(units),'units':blocks}
  print(lang,len(exercises),'exercises',len(units),'functions/statements',len(blocks),'blocks')
 notices='Exercism source code, exercise text, and excerpts: MIT.\nProject-authored Japanese translations and metadata transformations: Boost Software License 1.0.\nSources and pinned commits: data/course-sources.json\n\n'+'\n\n'.join(licenses)+'\n\n'+(ROOT/'LICENSE').read_text()

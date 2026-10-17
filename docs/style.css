@@ -2880,6 +2880,11 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 .comment-note p { margin:6px 0; font-size:12px; line-height:1.7; }
 .comment-note [lang=en] { font-family:var(--mono); color:var(--muted); }
 .comment-note + .comment-note { margin-top:12px; }
+.typing-comment-notes { margin:8px 16px 0; padding:10px 12px; max-height:160px; overflow:auto; border-left:2px solid var(--green); background:rgba(164,231,181,.04); overflow-wrap:anywhere; }
+.typing-comment-notes h3 { margin:0 0 6px; color:var(--green); font-size:12px; }
+.typing-comment-notes h3 small { display:block; margin-top:3px; color:var(--muted); font-size:10px; font-weight:400; }
+.typing-comment-notes p { margin:6px 0 0; font:13px/1.65 var(--sans); white-space:pre-wrap; }
+.typing-comment-notes [lang=en] { font-family:var(--mono); font-size:11px; }
 .reference-code { max-height:440px; overflow:auto; padding:18px; background:var(--bg); border:1px solid var(--border); border-radius:8px; font-family:var(--mono); font-size:12px; line-height:1.8; tab-size:4; }
 .reading-choices { display:flex; flex-wrap:wrap; gap:10px; }
 .reading-choices button { min-width:65px; }
