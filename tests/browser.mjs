@@ -28,28 +28,64 @@ try {
   await page.goto(url);
   await page.waitForSelector('.buy-button');
   assert.match(await page.title(), /Code Typer Idle/);
-  assert.match(await page.locator('#cash').textContent(), /1,200/);
-  await page.locator('[data-mode=dev]').click();
+  assert.equal(await page.locator('#cash').textContent(), '¥100');
   await page.locator('#type-button').click();
-  assert.match(await page.locator('#project-progress').textContent(), /0 \/ 3,000/);
-  await page.keyboard.press('1');
-  await page.keyboard.type('a'.repeat(25));
-  await page.locator('[data-buy=book-syntax]').click();
-  await page.keyboard.press('2');
-  await page.keyboard.type('s'.repeat(20));
-  assert.match(await page.locator('#skills').textContent(), /13/);
-  await page.keyboard.press('3');
-  await page.locator('#type-button').click();
-  assert.match(await page.locator('#project-progress').textContent(), /1 \/ 3,000/);
+  await page.keyboard.type('arbitrary_keyboard_spam_12345');
   await page.locator('#save-button').click();
-  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
-  assert.ok(saved.skills.syntax >= 13);
-  assert.ok(saved.progress > 0);
+  let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(saved.cash, 101, 'arbitrary keys must never produce rewards');
+  await page.locator('[data-mode=work]').click();
+  await page.locator('[data-input-style=typing]').click();
+  assert.equal(await page.locator('#typing-input').isVisible(), true);
+  const prompt = await page.locator('#editor-content').getAttribute('data-prompt');
+  const wrong = prompt[0] === 'x' ? 'y' : 'x';
+  await page.keyboard.type(wrong);
+  assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
+  assert.equal(await page.locator('#cash').textContent(), '¥101');
+  // Programmatic clipboard events exercise the real paste/beforeinput guards.
+  await page.locator('#typing-input').evaluate(el => {
+    const clipboard = new DataTransfer(); clipboard.setData('text/plain', 'injected paste');
+    el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: clipboard, bubbles: true, cancelable: true }));
+    el.dispatchEvent(new InputEvent('beforeinput', { inputType: 'insertFromPaste', data: 'injected paste', bubbles: true, cancelable: true }));
+  });
+  assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
+  const lines = prompt.split('\n');
+  for (let line = 0; line < lines.length; line++) {
+    if (line) {
+      await page.keyboard.press('Enter');
+      assert.match(await page.locator('#editor-cursor').textContent(), new RegExp(`Ln ${line + 1}, Col 1`));
+    }
+    await page.keyboard.type(lines[line]);
+  }
+  assert.match(await page.locator('#typing-completed').textContent(), /1問/);
+  await page.locator('#save-button').click();
+  saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+  assert.equal(saved.typing.correct, prompt.length);
+  assert.equal(saved.typing.errors, 1);
+  assert.ok(saved.cash > 101 + prompt.length * 1.25);
+  assert.ok(saved.cash < 101 + prompt.length * 1.5, 'a mistake reduces the completion bonus');
+  assert.equal(saved.mode, 'work', 'digits within a prompt must not trigger mode shortcuts');
+  // Holding a correct key advances once; repeated keydown is rejected.
+  const secondPrompt = await page.locator('#editor-content').getAttribute('data-prompt');
+  await page.locator('#typing-input').focus();
+  await page.keyboard.down(secondPrompt[0]);
+  await page.keyboard.down(secondPrompt[0]);
+  await page.keyboard.up(secondPrompt[0]);
+  assert.match(await page.locator('#typing-round').textContent(), /^1 \/ /);
+  // Changing languages changes the actual target, then correctly typed input works.
+  for (const language of ['csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua', 'cpp']) {
+    await page.locator('#language-select').selectOption(language);
+    const target = await page.locator('#editor-content').getAttribute('data-prompt');
+    await page.keyboard.type(target.slice(0, 12));
+    assert.match(await page.locator('#typing-round').textContent(), /^12 \/ /, language);
+  }
+  await page.locator('#save-button').click();
   await page.reload();
   await page.waitForSelector('#task-title');
-  assert.match(await page.locator('#task-title').textContent(), /数当て/);
-  // Completed-project fixture exercises publishing, next project, and royalties UI.
-  const complete = createState(); complete.mode = 'dev'; complete.skills.syntax = 12; complete.progress = projectAt(0).target;
+  assert.match(await page.locator('#typing-round').textContent(), /^12 \/ /);
+  // Completed-project fixture tests publishing independently of the balance clock.
+  const complete = createState(); complete.mode = 'dev'; complete.skills.syntax = 12;
+  complete.progress = projectAt(0).target; complete.cash = 20000;
   await context.close();
   const seededContext = await browser.newContext({ viewport: { width: 1440, height: 1100 }, reducedMotion: 'reduce' });
   await seededContext.addInitScript(({ data }) => {
@@ -66,6 +102,7 @@ try {
   assert.match(await seeded.locator('#modal-body').textContent(), /数当てゲーム/);
   await seeded.locator('#modal-close').click();
   await seeded.locator('[data-view=roadmap]').click();
+  assert.match(await seeded.locator('.pacing-panel').textContent(), /3〜7日/);
   assert.equal(await seeded.locator('.roadmap-card').count(), 10);
   await seeded.locator('[data-view=achievements]').click();
   assert.equal(await seeded.locator('.achievement-card').count(), 9);
@@ -73,7 +110,7 @@ try {
   await seeded.locator('[data-mode=work]').click();
   await seeded.locator('[data-shop=auto]').click();
   await seeded.locator('[data-buy=macro]').click();
-  assert.match(await seeded.locator('#auto-work').textContent(), /4/);
+  assert.match(await seeded.locator('#auto-work').textContent(), /0.25/);
   await seeded.locator('[data-shop=books]').click();
   await seeded.locator('#settings-button').click();
   await seeded.locator('#motion-setting').check();
@@ -88,7 +125,10 @@ try {
     const overflow = await seeded.evaluate(() => document.documentElement.scrollWidth > innerWidth);
     assert.equal(overflow, false, `No horizontal page overflow at ${width}px`);
   }
+  await seeded.locator('[data-input-style=typing]').click();
+  await seeded.locator('#language-select').selectOption('rust');
   await seeded.screenshot({ path: 'work/mobile.png', fullPage: true });
+  assert.equal(await seeded.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   await seeded.locator('[data-view=roadmap]').click();
   await seeded.locator('[data-view=workspace]').click();
   assert.ok(await seeded.locator('#type-button').isVisible());
@@ -109,6 +149,6 @@ try {
   await duplicate.waitForFunction(() => document.querySelector('#type-button').disabled);
   assert.match(await duplicate.locator('#save-status').textContent(), /別タブで起動中/);
   assert.deepEqual(errors, []);
-  console.log('Browser checks passed: input, knowledge gate, shop, save/reload, release, catalog, roadmap, automation, settings, export/import, mobile layouts and navigation, dialog keyboard access, and duplicate-tab protection.');
+  console.log('Browser checks passed: click income, rejection of arbitrary keys/paste/repeat/wrong characters, exact multiline typing and completion bonuses, all eight languages, cursor persistence, release, pacing guide, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
 } finally { await browser.close(); if (server) await new Promise(r => server.close(r)); }

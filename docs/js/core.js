@@ -1,24 +1,29 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
+import { createTypingState, normalizeTypingState } from './typing.js';
 export const VERSION = 1;
+export const BALANCE_VERSION = 2;
+export const INITIAL_CASH = 100;
+export const STUDY_XP = 0.003;
+export const SKILL_EXPONENT = 1.5;
 export const DAY = 60;
 export const OFFLINE_LIMIT = 8 * 60 * 60;
 const LIMIT = 1e250;
 const bounded = n => Math.max(0, Math.min(LIMIT, Number.isFinite(n) ? n : LIMIT));
 const add = (a, b) => bounded(a + b);
 export const SKILLS = [
-  { id: 'syntax', name: '基礎文法', short: '文法', color: '#a4e7b5', label: '01', file: 'fundamentals.js', lesson: '変数、条件分岐、そして最初の関数。' },
-  { id: 'design', name: '設計・構造', short: '設計', color: '#b9a4ec', label: '02', file: 'architecture.js', lesson: '動いたコードを、直せるコードへ。' },
-  { id: 'graphics', name: '描画・演出', short: '描画', color: '#edc591', label: '03', file: 'render.js', lesson: '画面の向こうに、遊べる世界を。' },
-  { id: 'systems', name: '最適化・基盤', short: '基盤', color: '#8cbce1', label: '04', file: 'systems.js', lesson: '1フレームのために、できること。' }
+  { id: 'syntax', name: '基礎文法', short: '文法', color: '#a4e7b5', label: '01', file: 'fundamentals', lesson: '変数、条件分岐、そして最初の関数。' },
+  { id: 'design', name: '設計・構造', short: '設計', color: '#b9a4ec', label: '02', file: 'architecture', lesson: '動いたコードを、直せるコードへ。' },
+  { id: 'graphics', name: '描画・演出', short: '描画', color: '#edc591', label: '03', file: 'render', lesson: '画面の向こうに、遊べる世界を。' },
+  { id: 'systems', name: '最適化・基盤', short: '基盤', color: '#8cbce1', label: '04', file: 'systems', lesson: '1フレームのために、できること。' }
 ];
 export const PROJECTS = [
   { name: '小さな数当てゲーム', genre: 'CONSOLE / FIRST BUILD', target: 3000, req: { syntax: 12 }, payout: 0, royalty: 0, desc: '最初の一本。売上はゼロ。でも、完成させた経験は残る。', icon: '01' },
-  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 18000, req: { syntax: 50, design: 20, graphics: 20 }, payout: 35000, royalty: 30, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
-  { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 800000, royalty: 700, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
-  { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 2e7, royalty: 16000, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
-  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 1e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 1e9, royalty: 800000, desc: '1億文字の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
-  { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 2e11, royalty: 1.5e8, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
-  { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 5e13, royalty: 4e10, desc: '物理法則を仕様書に書き起こす。仕様変更は受け付けない。', icon: '07' }
+  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 18000, req: { syntax: 50, design: 20, graphics: 20 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
+  { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
+  { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
+  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 1e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1億文字の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
+  { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
+  { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 3e12, royalty: 1.5e8, desc: '物理法則を仕様書に書き起こす。仕様変更は受け付けない。', icon: '07' }
 ];
 export function projectAt(index) {
   if (index < PROJECTS.length) return PROJECTS[index];
@@ -29,17 +34,17 @@ export function projectAt(index) {
   return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '宇宙をリリースした翌日、次の宇宙の要件定義が届いた。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
-  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['はじめてのJavaScript', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習効率 ×3 / Lv。最初の1冊は ×10`, base: [1500, 6000, 8000, 30000][i], growth: 6, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
-  { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 ×2 / Lv', base: 1800, growth: 3.5, type: 'gear', glyph: 'keyboard', gate: 0 },
-  { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習効率 ×2 / Lv', base: 5000, growth: 4, type: 'gear', glyph: 'monitor', gate: 0 },
-  { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 ×3 / Lv（理解度100%時）', base: 10000, growth: 5, type: 'gear', glyph: 'code', gate: 1 },
+  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
+  { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
+  { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
+  { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: '自炊セット', desc: '食費と家賃を25%削減。買い切り', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'coffee', gate: 0 },
-  { id: 'macro', tab: 'auto', name: 'データ入力マクロ', desc: '日銭ワーク +4文字/秒。各Lvで ×2.5', base: 900, growth: 3, type: 'auto', glyph: 'terminal', gate: 0 },
-  { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +20文字/秒。各Lvで ×3', base: 8000, growth: 4.5, type: 'auto', glyph: 'layers', gate: 1 },
-  { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +300文字/秒。各Lvで ×4。要レビュー', base: 40000, growth: 5, type: 'auto', glyph: 'spark', gate: 1 },
-  { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +8,000文字/秒。各Lvで ×5', base: 900000, growth: 6, type: 'auto', glyph: 'users', gate: 2 },
-  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '選択分野の学習 +12文字/秒。各Lvで ×3', base: 60000, growth: 5, type: 'auto', glyph: 'flask', gate: 1 },
-  { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +1,000,000文字/秒。各Lvで ×8', base: 6e7, growth: 8, type: 'auto', glyph: 'server', gate: 4 }
+  { id: 'macro', tab: 'auto', name: 'データ入力マクロ', desc: '日銭 +0.25文字/秒。各Lvで ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
+  { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
+  { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
+  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '不足分野を学習 +8文字/秒。各Lvで ×1.8', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
+  { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +500文字/秒。各Lvで ×2', base: 12e6, growth: 3, type: 'auto', glyph: 'server', gate: 4 }
 ];
 export const ACHIEVEMENTS = [
   { id: 'first-input', name: '最初の一文字', hint: '1回入力する', test: s => s.stats.manual > 0 },
@@ -53,14 +58,14 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, cash: 1200, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, time: 0 }, day: 1, dayElapsed: 0, savedAt: now, settings: { sound: false, reducedMotion: false }, log: [{ text: '開発環境を起動しました。最初の一文字をどうぞ。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, time: 0 }, day: 1, dayElapsed: 0, savedAt: now, settings: { sound: false, reducedMotion: false }, log: [{ text: '開発環境を起動しました。最初の一文字をどうぞ。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
-export const livingCost = s => 120 * (level(s, 'kitchen') ? 0.75 : 1);
-export const rentCost = s => 3600 * (level(s, 'kitchen') ? 0.75 : 1);
-export const workRate = s => 12 * (1 + Math.min(8, s.projectIndex) * 0.65);
-export const handPower = s => bounded(2 ** Math.min(800, level(s, 'keyboard')) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
+export const livingCost = s => 6 * (level(s, 'kitchen') ? 0.75 : 1);
+export const rentCost = s => 180 * (level(s, 'kitchen') ? 0.75 : 1);
+export const workRate = s => [1, 2, 3, 5, 8, 12, 18, 24, 30][Math.min(8, s.projectIndex)];
+export const handPower = s => bounded((1 + level(s, 'keyboard') * 0.25) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
 export function knowledgeRatio(s) {
   return Math.min(...Object.entries(projectAt(s.projectIndex).req).map(([id, req]) => s.skills[id] / req));
 }
@@ -74,11 +79,29 @@ export const royaltyRate = s => bounded(s.catalog.reduce((sum, p) => sum + p.roy
 export function unitRate(s, id) {
   const l = level(s, id);
   if (!l) return 0;
-  const config = { macro: [4, 2.5], library: [20, 3], assistant: [300, 4], engineer: [8000, 5], lab: [12, 3], cluster: [1e6, 8] }[id];
+  const config = { macro: [0.25, 1.5], library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [500, 2] }[id];
   return bounded(config[0] * Math.pow(config[1], Math.min(800, l - 1)) * metaBonus(s));
 }
 export const devRate = s => s.autoEnabled ? bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0)) : 0;
-export const studyMultiplier = (s, id = s.subject) => bounded((level(s, `book-${id}`) ? 10 * 3 ** Math.min(500, level(s, `book-${id}`) - 1) : 1) * 2 ** Math.min(800, level(s, 'monitor')));
+export const studyMultiplier = (s, id = s.subject) => bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25));
+export const ideMultiplier = s => 1 + level(s, 'ide') * 0.35;
+export function studyGain(s, chars = handPower(s), subject = s.subject) {
+  const before = s.skills[subject];
+  const xp = bounded(chars * STUDY_XP * studyMultiplier(s, subject));
+  if (!xp) return 0;
+  if (!before) return xp ** (1 / SKILL_EXPONENT);
+  // Ratio form avoids overflowing K^1.5 and preserves small incremental gains.
+  const ratio = xp / before / before ** (SKILL_EXPONENT - 1);
+  return bounded(Number.isFinite(ratio) ? before * Math.expm1(Math.log1p(ratio) / SKILL_EXPONENT) : xp ** (1 / SKILL_EXPONENT));
+}
+export function autoStudySubject(s) {
+  let subject = s.subject, lowest = 1;
+  for (const [id, requirement] of Object.entries(projectAt(s.projectIndex).req)) {
+    const ratio = s.skills[id] / requirement;
+    if (ratio < lowest) { lowest = ratio; subject = id; }
+  }
+  return subject;
+}
 export const itemCost = (s, item) => bounded(item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
 export const netIncome = s => unitRate(s, 'macro') * workRate(s) + royaltyRate(s) - livingCost(s) / DAY - rentCost(s) / (DAY * 30);
 export function log(s, text, kind = 'info') {
@@ -103,10 +126,10 @@ function earn(s, money) {
   s.cash = Math.min(LIMIT, s.cash + money);
   s.stats.earned = add(s.stats.earned, money);
 }
-export function input(s, { mode = s.mode, chars = handPower(s), manual = true } = {}) {
+export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
   chars = Math.min(LIMIT, chars);
-  if (manual) s.stats.manual = add(s.stats.manual, 1);
+  if (manual && countManual) s.stats.manual = add(s.stats.manual, 1);
   s.stats.chars = add(s.stats.chars, chars);
   if (mode === 'work') {
     const money = bounded(chars * workRate(s));
@@ -114,10 +137,10 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true } 
     return { kind: 'work', amount: money };
   }
   if (mode === 'study') {
-    const xp = bounded(chars * 0.065 * studyMultiplier(s));
-    s.skills[s.subject] = add(s.skills[s.subject], xp);
+    const before = s.skills[subject];
+    s.skills[subject] = add(before, studyGain(s, chars, subject));
     s.stats.study = add(s.stats.study, chars);
-    return { kind: 'study', amount: xp };
+    return { kind: 'study', amount: s.skills[subject] - before };
   }
   const ratio = knowledgeRatio(s);
   if (s.refactor) {
@@ -141,7 +164,7 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true } 
       return { kind: 'crash', amount: 0 };
     }
   }
-  const ide = manual && ratio >= 1 ? 3 ** Math.min(500, level(s, 'ide')) : 1;
+  const ide = manual && ratio >= 1 ? ideMultiplier(s) : 1;
   const amount = bounded(chars * rate * abstraction(s) * ide * (1 - s.debt / debtLimit(s) * 0.8));
   const accepted = Math.min(amount, projectAt(s.projectIndex).target - s.progress);
   s.progress = add(s.progress, accepted);
@@ -171,7 +194,7 @@ export function tick(s, seconds) {
     s.dayElapsed += dt;
     earn(s, bounded(royaltyRate(s) * dt));
     if (unitRate(s, 'macro')) input(s, { mode: 'work', chars: bounded(unitRate(s, 'macro') * dt), manual: false });
-    if (unitRate(s, 'lab')) input(s, { mode: 'study', chars: bounded(unitRate(s, 'lab') * dt), manual: false });
+    if (unitRate(s, 'lab')) input(s, { mode: 'study', subject: autoStudySubject(s), chars: bounded(unitRate(s, 'lab') * dt), manual: false });
     if (devRate(s) && s.progress < projectAt(s.projectIndex).target) automateDevelopment(s, bounded(devRate(s) * dt));
     while (s.dayElapsed >= DAY) {
       s.dayElapsed -= DAY;
@@ -227,7 +250,9 @@ export function prestige(s, now = Date.now()) {
   fresh.achievements = [...s.achievements];
   fresh.stats = { ...s.stats };
   fresh.settings = { ...s.settings };
-  fresh.cash = 1200 * metaBonus(fresh);
+  fresh.cash = INITIAL_CASH * metaBonus(fresh);
+  fresh.inputStyle = s.inputStyle;
+  fresh.typing.language = s.typing.language;
   log(fresh, `コード資産 +${gain}。${fresh.resets + 1}回目の開発人生を始めます。`, 'success');
   return fresh;
 }
@@ -255,6 +280,8 @@ export function deserialize(raw) {
   for (const item of SHOP) s.items[item.id] = Math.floor(num(x.items?.[item.id], 0, 0, item.max || 800));
   if (['work', 'study', 'dev'].includes(x.mode)) s.mode = x.mode;
   if (SKILLS.some(k => k.id === x.subject)) s.subject = x.subject;
+  if (['click', 'typing'].includes(x.inputStyle)) s.inputStyle = x.inputStyle;
+  s.typing = normalizeTypingState(x.typing);
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
   for (const k of Object.keys(s.settings)) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
   s.progress = Math.min(s.progress, projectAt(s.projectIndex).target);
@@ -264,5 +291,6 @@ export function deserialize(raw) {
   s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => ({ name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), index: num(p.index, 0, 0, 1e6) })) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
+  if (x.balanceVersion !== BALANCE_VERSION) log(s, 'バランス更新を適用しました。資金・理解度・作品・設備は引き継いでいます。');
   return s;
 }

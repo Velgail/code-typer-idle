@@ -1,11 +1,12 @@
 {
   "name": "code-typer-idle",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 4173 --directory docs",
     "test": "node --test tests/*.test.js",
-    "test:browser": "node tests/browser.mjs"
+    "test:browser": "node tests/browser.mjs",
+    "balance": "node scripts/simulate-balance.mjs"
   }
 }
