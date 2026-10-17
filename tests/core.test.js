@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject } from '../docs/js/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, businessStage, operatingCost, rentCost, netIncome } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
@@ -71,7 +71,7 @@ test('commercial releases earn persistent royalties only above the quality and u
   const title = release(s);
   assert.ok(title.royalty > 0);
   const cash = s.cash; tick(s, 1);
-  assert.ok(Math.abs(s.cash - cash - title.royalty) < 1e-8);
+  assert.ok(Math.abs(s.cash + s.rentFund - cash - title.royalty) < 1e-8);
   const low = createState(); low.projectIndex = 1; understand(low, .75); low.progress = projectAt(1).target;
   assert.equal(release(low).royalty, 0);
 });
@@ -88,24 +88,29 @@ test('purchases respect money, gates and one-time equipment', () => {
   assert.equal(buy(s, 'kitchen'), false);
   assert.equal(buy(s, 'not-an-item'), false);
 });
-test('food and monthly rent are charged on their exact days', () => {
+test('daily business costs are settled exactly without charging personal living expenses', () => {
   const s = createState(); s.cash = 10000;
-  tick(s, 59); assert.equal(s.cash, 10000); assert.equal(s.day, 1);
-  tick(s, 1); assert.equal(s.cash, 9994); assert.equal(s.day, 2);
-  tick(s, 29 * 60); assert.equal(s.day, 31); assert.equal(s.cash, 9640);
+  tick(s, DAY - 1); assert.equal(s.cash, 10000); assert.equal(s.day, 1);
+  tick(s, 1); assert.ok(Math.abs(s.cash - 9400) < 1e-7); assert.equal(s.day, 2);
+  assert.equal(rentCost(s), 0); assert.equal(operatingCost(s), 600);
+  const fractional = createState(); fractional.cash = 10000;
+  tick(fractional, DAY - .25); tick(fractional, .5);
+  assert.ok(Math.abs(fractional.cash - 9400) < 1e-7);
+  assert.equal(fractional.dayElapsed, .25);
+  assert.ok(Math.abs(fractional.dailyAccrued - 600 / DAY * .25) < 1e-9);
 });
 test('bankruptcy is recoverable and halves manual efficiency', () => {
   const s = createState(); s.cash = 0;
-  tick(s, 60); assert.equal(s.cash, -6); assert.equal(handPower(s), .5);
-  for (let i = 0; i < 13; i++) input(s, { mode: 'work' });
+  tick(s, DAY); assert.ok(Math.abs(s.cash + 600) < 1e-7); assert.equal(handPower(s), .5);
+  input(s, { mode: 'work', chars: 700 });
   assert.ok(s.cash > 0); assert.equal(handPower(s), 1);
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
   const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1;
-  tick(s, 2); assert.ok(s.cash > INITIAL_CASH); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
+  tick(s, 2); assert.equal(s.job.progress, .5); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
   s.autoEnabled = false;
-  const progress = s.progress, knowledge = s.skills.syntax, cash = s.cash;
-  tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.cash > cash);
+  const progress = s.progress, knowledge = s.skills.syntax, work = s.job.progress;
+  tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.job.progress > work);
 });
 test('offline results match foreground simulation and cap at eight hours', () => {
   const now = 1e12, a = createState(now), b = createState(now);
@@ -148,6 +153,7 @@ test('save roundtrips preserve the economy and guard invalid imported values', (
   assert.equal(malformed.cash, INITIAL_CASH); assert.equal(malformed.skills.syntax, 0); assert.equal(malformed.items.keyboard, 0); assert.equal(malformed.projectIndex, 0);
   assert.throws(() => deserialize('{'));
   assert.throws(() => deserialize('{"version":999}'));
+  assert.throws(() => deserialize(JSON.stringify({ ...s, balanceVersion: BALANCE_VERSION + 1 })), /更新/);
   assert.throws(() => deserialize('x'.repeat(500001)));
 });
 test('all authored projects and ten endless generations can actually be released', () => {
@@ -175,18 +181,19 @@ test('learning takes sustained work and slows as knowledge increases', () => {
   assert.equal(studyMultiplier(s), 2);
   input(s, { mode: 'study', chars: 19 });
   assert.ok(s.skills.syntax < 1);
-  input(s, { mode: 'study', chars: 6900 });
+  input(s, { mode: 'study', chars: 6600 });
   assert.ok(s.skills.syntax < 12);
-  input(s, { mode: 'study', chars: 20 });
+  input(s, { mode: 'study', chars: 100 });
   assert.ok(s.skills.syntax >= 12);
   const early = studyGain(s, 10); s.skills.syntax = 100;
   assert.ok(studyGain(s, 10) < early);
 });
-test('macro income begins near subsistence instead of funding exponential upgrades', () => {
+test('a first macro covers solo business costs without funding exponential upgrades', () => {
   const s = createState(); s.items.macro = 1;
   assert.equal(unitRate(s, 'macro'), .25);
   const cash = s.cash; tick(s, 1800);
-  assert.ok(s.cash - cash > 80 && s.cash - cash < 100);
+  assert.equal(s.cash - cash, 400); assert.equal(s.job.progress, 50);
+  assert.ok(netIncome(s) > .08 && netIncome(s) < .09);
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';
@@ -200,5 +207,75 @@ test('previous saves retain earned resources and acquire safe typing defaults', 
   delete previous.typing; delete previous.inputStyle;
   const loaded = deserialize(JSON.stringify(previous));
   assert.equal(loaded.cash, 98765); assert.equal(loaded.skills.syntax, 123); assert.equal(loaded.projectIndex, 2);
-  assert.equal(loaded.inputStyle, 'click'); assert.equal(loaded.typing.language, 'cpp'); assert.equal(loaded.balanceVersion, 2);
+  assert.equal(loaded.inputStyle, 'click'); assert.equal(loaded.typing.language, 'cpp'); assert.equal(loaded.balanceVersion, BALANCE_VERSION);
+});
+
+test('independence follows commercial success, while free releases retain the solo cost scale', () => {
+  const s = createState(); s.projectIndex = 2;
+  s.catalog.push({ index: 1, name: 'free', royalty: 0 });
+  assert.equal(businessStage(s).name, '実家で個人制作');
+  s.catalog[0].royalty = 2;
+  assert.equal(operatingCost(s), 1500); assert.equal(rentCost(s), 60000);
+  s.items.kitchen = 1;
+  assert.equal(operatingCost(s), 1125); assert.equal(rentCost(s), 60000);
+  s.catalog.push({ index: 3, name: '3D', royalty: 200 });
+  assert.equal(businessStage(s).name, '開発スタジオ');
+});
+
+test('monthly office reserves conserve money, never double charge, and survive save/offline', () => {
+  const s = createState(); s.catalog = [{ name: 'commercial', index: 1, royalty: 1.6 }]; s.cash = 1e6;
+  for (let i = 0; i < 3; i++) tick(s, 8 * DAY);
+  tick(s, 5 * DAY);
+  const loaded = deserialize(serialize(s, 0));
+  assert.ok(Math.abs(loaded.rentFund - 58000) < .001);
+  assert.ok(Math.abs(loaded.rentAccrued - loaded.rentFund) < 1e-7);
+  tick(s, DAY); applyOffline(loaded, DAY * 1000);
+  const expected = 1e6 + 1.6 * 30 * DAY - 1500 * 30 - 60000;
+  assert.ok(Math.abs(s.cash - expected) < .001);
+  assert.equal(s.billingDays, 0); assert.equal(s.rentFund, 0); assert.equal(s.rentAccrued, 0);
+  assert.ok(Math.abs(s.cash - loaded.cash) < 1e-7);
+});
+
+test('midday business growth accrues only its actual share of day and office costs', () => {
+  const s = createState(); s.cash = 1e6;
+  tick(s, DAY / 2);
+  s.catalog = [{ name: 'commercial', index: 1, royalty: 1.6 }];
+  tick(s, DAY / 2);
+  assert.ok(Math.abs(s.cash + s.rentFund - (1e6 + 1.6 * DAY / 2 - 300 - 750)) < 1e-6);
+  assert.ok(Math.abs(s.rentAccrued - 1000) < 1e-6);
+});
+
+test('unfunded bills remain as full debt rather than disappearing at the old floor', () => {
+  const s = createState(); s.cash = 0;
+  for (let i = 0; i < 4; i++) tick(s, 8 * DAY);
+  assert.ok(Math.abs(s.cash + 19200) < 1e-6);
+  assert.equal(deserialize(serialize(s)).cash, s.cash);
+  assert.equal(handPower(s), .5);
+  const independent = createState(); independent.cash = 0;
+  independent.catalog = [{ name: 'commercial', index: 1, royalty: 1e-12 }];
+  for (let i = 0; i < 3; i++) tick(independent, 8 * DAY);
+  tick(independent, 6 * DAY);
+  assert.ok(Math.abs(independent.cash + 105000) < .001, 'all 30 daily bills and unfunded office rent remain payable');
+  assert.equal(independent.rentFund, 0);
+});
+
+test('a completed work order pays its accepted quote and carries progress across modes and saves', () => {
+  const s = createState();
+  assert.equal(input(s, { mode: 'work', chars: 99 }).amount, 0);
+  assert.equal(s.cash, 100);
+  s.projectIndex = 1;
+  input(s, { mode: 'study', chars: 1 });
+  const loaded = deserialize(serialize(s));
+  assert.equal(input(loaded, { mode: 'work', chars: 251 }).amount, 500);
+  assert.equal(loaded.job.progress, 50); assert.equal(loaded.job.rate, 2);
+  assert.equal(loaded.stats.jobs, 3); assert.equal(loaded.cash, 600);
+});
+
+test('legacy calendar migration preserves day fraction without backdating new expenses', () => {
+  const old = { ...createState(), balanceVersion: 2, day: 901, dayElapsed: 30, cash: -4321, billingDays: 29, rentAccrued: 1e6, rentFund: 1e6 };
+  const s = deserialize(JSON.stringify(old));
+  assert.equal(s.day, 901); assert.equal(s.dayElapsed, DAY / 2); assert.equal(s.cash, -4321);
+  assert.equal(s.billingDays, 0); assert.equal(s.rentAccrued, 0); assert.equal(s.rentFund, 0);
+  tick(s, DAY / 2);
+  assert.ok(Math.abs(s.cash + 4621) < 1e-7);
 });

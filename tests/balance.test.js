@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
-import { PACING_REPORT } from '../docs/js/pacing.js';
+import { PACING_REPORT } from '../src/pacing.js';
 
 for (const scenario of SCENARIOS) test(`first AAA pacing: ${scenario.name}`, () => {
   const result = simulate(scenario);
   assert.equal(result.reached, 5, 'AAA must remain reachable without resource injection');
   assert.equal(result.milestones.length, 5);
+  assert.ok(result.minimumCash >= 0, 'The benchmark must fund its bills without relying on business debt');
   const aaa = result.milestones[4];
   const reference = PACING_REPORT.scenarios.find(s => s.id === scenario.id);
   for (let index = 0; index < 5; index++) assert.ok(Math.abs(reference.milestones[index].seconds - result.milestones[index].seconds) <= 60, 'Regenerate the in-game pacing table after changing balance');

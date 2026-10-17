@@ -5,17 +5,27 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
-import { createState, projectAt } from '../docs/js/core.js';
+import { createState, projectAt } from '../src/core.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
+const currentRelease = JSON.parse(await readFile(resolve(root, 'version.json'), 'utf8'));
+const nextVersion = `${currentRelease.version}+cache-test`;
+const nextId = currentRelease.id === 'ffffffffffffffff' ? 'eeeeeeeeeeeeeeee' : 'ffffffffffffffff';
+let nextDeployment = false, legacyHTML = false;
+const requests = [];
 let server;
 const url = process.env.CTI_TEST_URL || await new Promise(resolveUrl => {
   server = createServer(async (req, res) => {
     try {
-      const path = resolve(root, `.${decodeURIComponent(new URL(req.url, 'http://local').pathname)}` + (req.url.endsWith('/') ? 'index.html' : ''));
+      const requested = new URL(req.url, 'http://local');
+      const pathname = decodeURIComponent(requested.pathname);
+      requests.push(req.url);
+      const path = resolve(root, `.${pathname.replace(nextId, currentRelease.id)}` + (pathname.endsWith('/') ? 'index.html' : ''));
       if (!path.startsWith(root + '/')) throw Error('Invalid path');
-      const data = await readFile(path);
-      res.writeHead(200, { 'Content-Type': { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml' }[extname(path)] || 'text/plain' }); res.end(data);
+      let data = await readFile(path);
+      if (pathname.endsWith('/') && legacyHTML && !requested.searchParams.has('v')) data = Buffer.from('<!doctype html><html lang="ja"><body>Cached legacy HTML<script type="module" src="./js/app.js"></script></body></html>');
+      else if ((nextDeployment && (pathname.endsWith('/') || pathname.endsWith('/version.json'))) || pathname.includes(nextId)) data = Buffer.from(data.toString().replaceAll(currentRelease.id, nextId).replaceAll(currentRelease.version, nextVersion));
+      res.writeHead(200, { 'Content-Type': { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' }[extname(path)] || 'text/plain', 'Cache-Control': 'public, max-age=31536000, immutable' }); res.end(data);
     } catch { res.writeHead(404); res.end('Not found'); }
   }).listen(0, '127.0.0.1', () => resolveUrl(`http://127.0.0.1:${server.address().port}`));
 });
@@ -33,7 +43,7 @@ try {
   await page.keyboard.type('arbitrary_keyboard_spam_12345');
   await page.locator('#save-button').click();
   let saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
-  assert.equal(saved.cash, 101, 'arbitrary keys must never produce rewards');
+  assert.equal(saved.cash, 100); assert.equal(saved.job.progress, 1, 'arbitrary keys must never produce rewards');
   await page.locator('[data-mode=work]').click();
   await page.locator('[data-input-style=typing]').click();
   assert.equal(await page.locator('#typing-input').isVisible(), true);
@@ -41,7 +51,7 @@ try {
   const wrong = prompt[0] === 'x' ? 'y' : 'x';
   await page.keyboard.type(wrong);
   assert.match(await page.locator('#typing-round').textContent(), /^0 \/ /);
-  assert.equal(await page.locator('#cash').textContent(), '¥101');
+  assert.equal(await page.locator('#cash').textContent(), '¥100');
   // Programmatic clipboard events exercise the real paste/beforeinput guards.
   await page.locator('#typing-input').evaluate(el => {
     const clipboard = new DataTransfer(); clipboard.setData('text/plain', 'injected paste');
@@ -62,8 +72,9 @@ try {
   saved = await page.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
   assert.equal(saved.typing.correct, prompt.length);
   assert.equal(saved.typing.errors, 1);
-  assert.ok(saved.cash > 101 + prompt.length * 1.25);
-  assert.ok(saved.cash < 101 + prompt.length * 1.5, 'a mistake reduces the completion bonus');
+  const workValue = saved.cash + saved.job.progress * saved.job.rate;
+  assert.ok(workValue > 101 + prompt.length * 1.25);
+  assert.ok(workValue < 101 + prompt.length * 1.5, 'a mistake reduces the completion bonus');
   assert.equal(saved.mode, 'work', 'digits within a prompt must not trigger mode shortcuts');
   // Holding a correct key advances once; repeated keydown is rejected.
   const secondPrompt = await page.locator('#editor-content').getAttribute('data-prompt');
@@ -151,4 +162,76 @@ try {
   assert.deepEqual(errors, []);
   console.log('Browser checks passed: click income, rejection of arbitrary keys/paste/repeat/wrong characters, exact multiline typing and completion bonuses, all eight languages, cursor persistence, release, pacing guide, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
+  if (server) {
+    // A cached legacy shell takes the migration entry without clearing storage.
+    legacyHTML = true;
+    const cached = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const oldSave = { ...createState(), balanceVersion: 2, cash: 98765, projectIndex: 2, day: 901, dayElapsed: 30, skills: { syntax: 123, design: 45, graphics: 6, systems: 7 } };
+    await cached.addInitScript(data => {
+      if (!sessionStorage.getItem('seeded')) { localStorage.setItem('code-typer-idle:save:v1', JSON.stringify(data)); sessionStorage.setItem('seeded', '1'); }
+    }, oldSave);
+    const updating = await cached.newPage();
+    updating.on('pageerror', e => errors.push(e.message));
+    await updating.goto(url);
+    await updating.waitForURL(`**?v=${currentRelease.id}`);
+    await updating.waitForSelector('#business-stage');
+    assert.equal(await updating.locator('.version').textContent(), `v${currentRelease.version}`);
+    // Keep old module URLs in the actual HTTP cache, alongside the current build.
+    await updating.evaluate(async () => { await fetch('./js/core.js'); await fetch('./js/typing.js'); });
+    await updating.locator('#save-button').click();
+    let preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+    assert.equal(preserved.cash, 98765); assert.equal(preserved.skills.syntax, 123); assert.equal(preserved.projectIndex, 2);
+    assert.equal(preserved.day, 901); assert.ok(preserved.dayElapsed >= 1800);
+    // Same origin, same profile, long-lived HTML/JS/CSS/version caches. Deploy B.
+    nextDeployment = true;
+    await updating.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await updating.locator('#update-banner:not(.hidden)').waitFor();
+    await updating.evaluate(() => { window.originalStorageWrite = Storage.prototype.setItem; Storage.prototype.setItem = () => { throw new Error('quota'); }; });
+    await updating.locator('#update-button').click();
+    assert.equal(new URL(updating.url()).searchParams.get('v'), currentRelease.id, 'failed save must prevent reload');
+    await updating.evaluate(() => { Storage.prototype.setItem = window.originalStorageWrite; });
+    await Promise.all([updating.waitForURL(`**?v=${nextId}`), updating.locator('#update-button').click()]);
+    await updating.waitForSelector('#business-stage');
+    assert.equal(await updating.locator('.version').textContent(), `v${nextVersion}`);
+    await updating.locator('#save-button').click();
+    preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+    assert.equal(preserved.cash, 98765); assert.equal(preserved.skills.syntax, 123); assert.equal(preserved.projectIndex, 2);
+    assert.equal(preserved.balanceVersion, 3); assert.equal(preserved.day, 901);
+    assert.ok(requests.some(path => path.includes(`app.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`style.${nextId}.css`)));
+    assert.ok(requests.filter(path => path === '/version.json').length >= 3, 'version checks must bypass a previously cached version response');
+    await cached.setOffline(true);
+    await updating.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await updating.locator('#type-button').click();
+    await updating.locator('#save-button').click();
+    preserved = await updating.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
+    assert.equal(preserved.job.progress, 1, 'offline update checks must leave the game playable');
+    assert.deepEqual(errors, []);
+    await cached.close();
+    // A stale app must keep a newer-format save, even if its backup is readable.
+    nextDeployment = legacyHTML = false;
+    const futureContext = await browser.newContext();
+    const futureData = JSON.stringify({ ...oldSave, balanceVersion: 999, cash: 7654321 });
+    await futureContext.addInitScript(({ data, backup }) => {
+      if (!sessionStorage.getItem('seeded')) {
+        localStorage.setItem('code-typer-idle:save:v1', data);
+        localStorage.setItem('code-typer-idle:save:v1:backup', backup);
+        sessionStorage.setItem('seeded', '1');
+      }
+    }, { data: futureData, backup: JSON.stringify(createState()) });
+    const futurePage = await futureContext.newPage();
+    futurePage.on('pageerror', e => errors.push(e.message));
+    await futurePage.goto(url);
+    await futurePage.waitForFunction(() => document.querySelector('#toasts').textContent.includes('新しい版のセーブ'));
+    nextDeployment = true;
+    await futurePage.evaluate(() => window.dispatchEvent(new Event('focus')));
+    await futurePage.locator('#update-banner:not(.hidden)').waitFor();
+    await Promise.all([futurePage.waitForURL(`**?v=${nextId}`), futurePage.locator('#update-button').click()]);
+    await futurePage.waitForFunction(() => document.querySelector('#toasts').textContent.includes('新しい版のセーブ'));
+    assert.equal(await futurePage.evaluate(() => localStorage.getItem('code-typer-idle:save:v1')), futureData);
+    await futureContext.close();
+    assert.deepEqual(errors, []);
+    console.log('Cache update checks passed: cached legacy shell, immutable old modules and version response, deployment change, save-before-reload, failed-save protection, new complete module graph and CSS, legacy save preservation, offline play.');
+  }
 } finally { await browser.close(); if (server) await new Promise(r => server.close(r)); }

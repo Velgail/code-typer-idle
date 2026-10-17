@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111815">
-  <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と生活費をやりくりする無料の放置型ゲーム、Code Typer Idle。">
+  <meta name="description" content="日銭を稼ぎ、コードを学び、ゲームを作る。理解度と事業費をやりくりする無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./js/app.js"></script>
+  <link rel="stylesheet" href="./build/style.af89c08f3eaafa0e.css">
+  <script type="module" src="./build/app.af89c08f3eaafa0e.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -23,15 +23,17 @@
     </header>
 
     <main>
-      <section class="page-heading"><div><div class="eyebrow">YOUR DEVELOPER JOURNEY</div><h1 id="page-title">一文字から、どこまでも<span class="title-dot">.</span></h1><p id="page-subtitle">今日の生活を支えて、明日のゲームをつくろう。</p></div><div class="day-indicator"><span class="live-dot"></span><span>DAY <b id="day">001</b><small id="phase-name">ひとりの開発者</small></span></div></section>
+      <section class="page-heading"><div><div class="eyebrow">YOUR DEVELOPER JOURNEY</div><h1 id="page-title">一文字から、どこまでも<span class="title-dot">.</span></h1><p id="page-subtitle">小さな受託から、ゲームを作る事業へ。</p></div><div class="day-indicator"><span class="live-dot"></span><span>DAY <b id="day">001</b><small id="phase-name">ひとりの開発者</small></span></div></section>
 
       <section class="resource-strip" aria-label="リソース">
-        <div class="resource"><span class="resource-icon" data-icon="wallet"></span><div><span class="metric-label">所持金</span><strong id="cash">¥100</strong><small id="net-income">収支 −¥0.2 / 秒</small></div><span class="metric-tag" id="finance-tag">生活を維持しよう</span></div>
-        <div class="resource"><span class="resource-icon" data-icon="clock"></span><div><span class="metric-label">生活費 <span class="tiny">/ 60秒で1日</span></span><strong id="living">−¥6<em> / 日</em></strong><small id="bill-next">次の引き落としまで 60秒</small></div><div class="mini-clock"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16"/><circle id="day-ring" cx="20" cy="20" r="16"/></svg></div></div>
+        <div class="resource"><span class="resource-icon" data-icon="wallet"></span><div><span class="metric-label">所持金</span><strong id="cash">¥100</strong><small id="net-income">収支 −¥0.17 / 秒</small></div><span class="metric-tag" id="finance-tag">運転資金を確保しよう</span></div>
+        <div class="resource"><span class="resource-icon" data-icon="clock"></span><div><span class="metric-label">事業維持費 <span class="tiny">/ 実時間1時間で1日</span></span><strong id="living">−¥600<em> / 日</em></strong><small id="bill-next">日次精算まで 1時間</small></div><div class="mini-clock"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16"/><circle id="day-ring" cx="20" cy="20" r="16"/></svg></div></div>
         <div class="resource"><span class="resource-icon" data-icon="keyboard"></span><div><span class="metric-label">累計入力</span><strong id="total-chars">0<em> chars</em></strong><small id="input-power">1文字 / 打鍵</small></div><div class="tiny-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
         <div class="resource"><span class="resource-icon" data-icon="trend"></span><div><span class="metric-label">ゲームの売上</span><strong id="royalty">¥0<em> / 秒</em></strong><small id="published-count">まだ、最初の一歩。</small></div><span class="metric-badge" id="release-count">0 RELEASES</span></div>
       </section>
 
+      <div id="update-banner" class="alert-banner hidden" role="status"><span id="update-message"></span> <button id="update-button" class="secondary-button">保存して更新</button></div>
+      <section class="panel business-panel" aria-label="事業の費用"><b id="business-stage">実家で個人制作</b><p id="business-detail"></p><p id="office-budget"></p><small id="business-next"></small></section>
       <div id="bankrupt-banner" class="alert-banner hidden" role="status">資金不足で手動入力の効率が50%になっています。日銭ワークで資金をプラスに戻しましょう。</div>
 
       <section id="workspace-view" class="workspace">
@@ -51,7 +53,7 @@
               <button class="work-tab" role="tab" aria-selected="false" data-mode="study"><span data-icon="book"></span>写経・学習<kbd>2</kbd></button>
               <button class="work-tab" role="tab" aria-selected="false" data-mode="dev"><span data-icon="code"></span>ゲーム開発<kbd>3</kbd></button>
             </div>
-            <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">FREELANCE WORK</div><h2 id="task-title">アンケートのデータ入力</h2></div><span class="status-pill" id="task-status"><i></i>作業受付中</span></div><p class="task-description" id="task-description">小さな仕事も、大事な開発資金。まずは今日の生活から。</p>
+            <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">FREELANCE WORK</div><h2 id="task-title">アンケートのデータ入力</h2></div><span class="status-pill" id="task-status"><i></i>作業受付中</span></div><p class="task-description" id="task-description">小さな仕事も、大事な開発資金。まずは開発の資金から。</p>
               <div id="subject-picker" class="subject-picker hidden" aria-label="学習分野"></div>
               <div id="project-progress" class="project-progress hidden"></div>
               <div class="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
@@ -74,7 +76,7 @@
       <section id="roadmap-view" class="hidden secondary-view"></section>
       <section id="achievements-view" class="hidden secondary-view"></section>
     </main>
-    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.1.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">このブラウザに自動保存されます</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
+    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v1.2.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">このブラウザに自動保存されます</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
   </div>
   <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
   <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>

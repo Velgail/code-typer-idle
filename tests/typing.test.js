@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, input, handPower, serialize, deserialize } from '../docs/js/core.js';
-import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../docs/js/typing.js';
+import { createState, input, handPower, serialize, deserialize } from '../src/core.js';
+import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../src/typing.js';
 
 test('the embedded curriculum contains 2,048 distinct prompts across eight languages and four subjects', () => {
   const prompts = new Set();
@@ -33,7 +33,7 @@ test('a perfect prompt pays 1.5 times the equivalent click work including its co
     input(s, { chars: p * TYPING_REWARD.character });
     if (result.complete) input(s, { chars: result.bonus, countManual: false });
   }
-  assert.equal(s.cash - cash, text.length * 1.5);
+  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 1.5);
   assert.equal(s.typing.completed, 1); assert.equal(s.typing.offset, 0);
   assert.equal(s.stats.manual, text.length);
 });

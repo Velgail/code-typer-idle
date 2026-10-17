@@ -2856,3 +2856,8 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
   animation:none!important;
   transition:none!important;
 }
+
+.business-panel { margin-bottom: 20px; padding: 16px 20px; }
+.business-panel p { margin: 6px 0; color: var(--muted); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.business-panel small { font-size: 11px; line-height: 1.7; color: var(--green); }
+#update-banner { gap: 14px; flex-wrap: wrap; }
