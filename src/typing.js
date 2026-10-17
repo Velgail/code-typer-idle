@@ -1,6 +1,6 @@
 // 128 curated templates, each with 16 deterministic data sets: 2,048 prompts.
 // English ASCII prompts keep programming practice independent of an IME.
-import { officeOrderAt } from './office.js';
+import { OFFICE_DATA_VERSION, officeOrderAt } from './office.js';
 export const LANGUAGES = [
   { id: 'cpp', name: 'C++', extension: 'cpp', description: 'ゲームエンジン、描画、メモリ管理' },
   { id: 'csharp', name: 'C#', extension: 'cs', description: 'Unity、ゲームロジック、業務API' },
@@ -11,7 +11,8 @@ export const LANGUAGES = [
   { id: 'sql', name: 'SQL', extension: 'sql', description: 'データ分析、集計、ストア運用' },
   { id: 'lua', name: 'Lua', extension: 'lua', description: 'ゲームスクリプト、イベント、描画' }
 ];
-export const TYPING_REWARD = { character: 1.25, completion: 0.25 };
+export const TYPING_REWARD = { character: 1.5, completion: 0.5, officeCompletion: 0.75 };
+export const typingCompletionMultiplier = mode => mode === 'work' ? TYPING_REWARD.officeCompletion : TYPING_REWARD.completion;
 const VARIANTS = 16;
 const DATA = {
   cpp: {
@@ -239,11 +240,12 @@ export function promptAt(language, subject, index) {
   return pool[number % pool.length].replace(/\$(\w+)\$/g, (_, key) => data[key]);
 }
 export function createTypingState() {
-  return { language: 'cpp', index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+  return { language: 'cpp', officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
 }
 export function normalizeTypingState(value) {
   const s = createTypingState();
   if (!value || typeof value !== 'object') return s;
+  s.officeVersion = value.officeVersion === OFFICE_DATA_VERSION ? OFFICE_DATA_VERSION : 1;
   if (LANGUAGES.some(l => l.id === value.language)) s.language = value.language;
   for (const key of ['index', 'offset', 'errors', 'correct', 'completed', 'roundErrors']) if (Number.isSafeInteger(value[key]) && value[key] >= 0 && value[key] < 1e12) s[key] = value[key];
   s.offset = Math.min(2000, s.offset);
@@ -265,7 +267,8 @@ export function currentPrompt(state) {
     state.typing.roundErrors = 0;
     state.typing.bonusBase = 0;
   }
-  const text = state.mode === 'work' ? officeOrderAt(state.typing.index).input : promptAt(state.typing.language, subject, state.typing.index);
+  if (state.mode === 'work' && !state.typing.offset) state.typing.officeVersion = OFFICE_DATA_VERSION;
+  const text = state.mode === 'work' ? officeOrderAt(state.typing.index, state.typing.officeVersion).input : promptAt(state.typing.language, subject, state.typing.index);
   state.typing.offset = Math.min(state.typing.offset, text.length - 1);
   return text;
 }
@@ -283,7 +286,7 @@ export function acceptCharacter(state, character, basePower = 1) {
   t.bonusBase = Math.min(1e250, t.bonusBase + basePower);
   if (t.offset < text.length) return { correct: true, complete: false, bonus: 0 };
   const accuracy = text.length / (text.length + t.roundErrors);
-  const bonus = t.bonusBase * TYPING_REWARD.completion * accuracy ** 2;
+  const bonus = t.bonusBase * typingCompletionMultiplier(state.mode) * accuracy ** 2;
   t.completed++;
   t.index++;
   t.offset = 0;

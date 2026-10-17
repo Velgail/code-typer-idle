@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, input, handPower, serialize, deserialize } from '../src/core.js';
 import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../src/typing.js';
-import { OFFICE_PROMPT_COUNT, officeOrderAt } from '../src/office.js';
+import { OFFICE_PROMPT_COUNT, OFFICE_DATA_VERSION, officeOrderAt } from '../src/office.js';
 
 test('the embedded curriculum contains 2,048 distinct prompts across eight languages and four subjects', () => {
   const prompts = new Set();
@@ -45,7 +45,7 @@ test('administrative work normalizes image invoice fields, independent of progra
   assert.equal(currentPrompt(s), promptAt('rust', 'syntax', 0));
   assert.equal(s.typing.offset, 0);
 });
-test('a perfect prompt pays 1.5 times the equivalent click work including its completion bonus', () => {
+test('a perfect invoice pays 2.25 times the equivalent click work including its completion bonus', () => {
   const s = createState(), text = currentPrompt(s), cash = s.cash;
   for (const char of text) {
     const p = handPower(s), result = acceptCharacter(s, char, p);
@@ -53,9 +53,18 @@ test('a perfect prompt pays 1.5 times the equivalent click work including its co
     input(s, { chars: p * TYPING_REWARD.character });
     if (result.complete) input(s, { chars: result.bonus, countManual: false });
   }
-  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 1.5);
+  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 2.25);
   assert.equal(s.typing.completed, 1); assert.equal(s.typing.offset, 0);
   assert.equal(s.stats.manual, text.length);
+});
+test('study and development code pay a total of 2 times base input with a perfect completion', () => {
+  for (const mode of ['study', 'dev']) {
+    const s = createState(); s.mode = mode;
+    const text = currentPrompt(s);
+    let bonus = 0;
+    for (const char of text) bonus += acceptCharacter(s, char).bonus;
+    assert.equal(text.length * TYPING_REWARD.character + bonus, text.length * 2, mode);
+  }
 });
 test('errors reduce the completion bonus, and an unfinished prompt never grants it', () => {
   const clean = createState(), imperfect = createState(), text = currentPrompt(clean);
@@ -74,4 +83,31 @@ test('switching work context discards pending bonuses and typing cursors survive
   assert.equal(currentPrompt(loaded), text); assert.equal(loaded.typing.offset, 10); assert.equal(loaded.typing.bonusBase, 20);
   loaded.mode = 'study'; currentPrompt(loaded);
   assert.equal(loaded.typing.offset, 0); assert.equal(loaded.typing.bonusBase, 0);
+});
+test('an unfinished legacy receipt keeps its original source and answer until completion', () => {
+  const s = createState();
+  s.inputStyle = 'typing';
+  s.typing.officeVersion = 1;
+  s.typing.context = 'work/office/0';
+  const old = officeOrderAt(0, 1).input;
+  Object.assign(s.typing, { offset: 25, correct: 25, bonusBase: 25 });
+  input(s, { chars: 25 * 1.25 }); // Work already paid by v1.2.2.
+  const raw = JSON.parse(serialize(s));
+  delete raw.typing.officeVersion; // Saves made before receipt versioning.
+  const loaded = deserialize(JSON.stringify(raw)), previousWork = loaded.job.progress;
+  assert.equal(currentPrompt(loaded), old);
+  assert.equal(loaded.typing.offset, 25);
+  assert.equal(loaded.typing.bonusBase, 25);
+  for (const char of old.slice(25)) assert.equal(acceptCharacter(loaded, char).correct, true);
+  assert.equal(loaded.typing.completed, 1);
+  assert.equal(loaded.job.progress, previousWork, 'migration must not re-award accepted letters');
+  assert.equal(currentPrompt(loaded), officeOrderAt(1).input);
+  assert.equal(loaded.typing.officeVersion, OFFICE_DATA_VERSION);
+});
+test('a legacy save with no pending receipt starts with the new dataset immediately', () => {
+  const raw = createState();
+  delete raw.typing.officeVersion;
+  const loaded = deserialize(JSON.stringify(raw));
+  assert.equal(currentPrompt(loaded), officeOrderAt(0).input);
+  assert.equal(loaded.typing.officeVersion, OFFICE_DATA_VERSION);
 });
