@@ -5,6 +5,9 @@ Download the pinned archives under work/tracks before running this importer.
 import json, pathlib, hashlib, sqlite3, re, sys, urllib.request, tarfile
 from tree_sitter_language_pack import get_parser
 ROOT=pathlib.Path(__file__).resolve().parent.parent
+# The eight pinned track licenses were audited against Exercism's Community
+# Content terms. A changed license must be reviewed before importing new data.
+MIT_LICENSE_SHA256='e52f804e74f0fbd34e8927962319df346166b8194094309a0aee318693df44df'
 sources=json.loads((ROOT/'data/course-sources.json').read_text())
 if '--download' in sys.argv:
  for source in sources:
@@ -20,7 +23,9 @@ course={}; comments={};licenses=[]
 translations=json.loads((ROOT/'data/course-comments-ja.json').read_text()) if (ROOT/'data/course-comments-ja.json').exists() else {}
 for source in sources:
  track=source['track'];lang='sql' if track=='sqlite' else track
- root=ROOT/source['root']; config=json.loads((root/'config.json').read_text()); license=(root/'LICENSE').read_text();licenses.append(f'Exercism/{track} @ {source["sha"]}\nhttps://github.com/exercism/{track}\n\n{license}')
+ root=ROOT/source['root']; config=json.loads((root/'config.json').read_text()); license_bytes=(root/'LICENSE').read_bytes()
+ if hashlib.sha256(license_bytes).hexdigest()!=MIT_LICENSE_SHA256:raise RuntimeError(f'Unreviewed license: Exercism/{track}; stop before importing')
+ license=license_bytes.decode('utf8');licenses.append(f'Exercism/{track} @ {source["sha"]}\nhttps://github.com/exercism/{track}\n\n{license}')
  entries=[]; learned=set();pending=list(config['exercises'].get('concept',[]))
  while pending:
   available=[e for e in pending if set(e.get('prerequisites',[]))<=learned]
@@ -100,6 +105,9 @@ for source in sources:
   unit['comments']=[{'en':comments[key],'ja':translations.get(key,'')} for key in unit['comments']]
  course[lang]={'sha':source['sha'],'track':track,'exercises':exercises,'files':files,'functionCount':len(units),'units':blocks}
  print(lang,len(exercises),'exercises',len(units),'functions/statements',len(blocks),'blocks')
-(ROOT/'src/course.js').write_text('// MIT reference implementations. See docs/licenses/exercism-MIT.txt and data/course-sources.json.\nexport const COURSE = '+json.dumps(course,ensure_ascii=False,separators=(',',':'))+';\n')
+notices='Exercism source code, exercise text, and excerpts: MIT.\nProject-authored Japanese translations and metadata transformations: Boost Software License 1.0.\nSources and pinned commits: data/course-sources.json\n\n'+'\n\n'.join(licenses)+'\n\n'+(ROOT/'LICENSE').read_text()
+# Keep the full notices in the independently downloadable browser module too.
+header='/*\n'+notices.replace('*/','* /')+'\n*/\n'
+(ROOT/'src/course.js').write_text(header+'export const COURSE = '+json.dumps(course,ensure_ascii=False,separators=(',',':'))+';\n')
 (ROOT/'work/tracks/course-comments.json').write_text(json.dumps(comments,ensure_ascii=False,indent=2))
 (ROOT/'docs/licenses/exercism-MIT.txt').write_text('\n\n'.join(licenses))

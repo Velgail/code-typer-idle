@@ -167,7 +167,11 @@ npm run test:browser
 
 ## ライセンス
 
-自作部分は既存リポジトリのBoost Software License 1.0を維持しています。詳細は `LICENSE` を参照してください。言語別講座の参考実装・課題はExercismのMITライセンスです。[著作権・ライセンス](docs/licenses/exercism-MIT.txt)と[取得元・固定コミット](data/course-sources.json)を同梱しています。
+ゲーム本体・独自教材・日本語対訳・変換処理は、既存リポジトリの[Boost Software License 1.0](LICENSE)です。GitHub Pagesにも[ライセンス全文](docs/licenses/Boost-1.0.txt)を配信し、本体の配信JS・CSSに全文を保持します。
+
+言語別講座に取り込んだExercismの参考実装・課題文・その抜粋はMITのままです。Boostへの一括変更はしません。[原著作権表示・MIT全文](docs/licenses/exercism-MIT.txt)と[取得元・固定コミット](data/course-sources.json)を同梱し、独立して配信する講座JSにも両ライセンスの全文を保持します。MITとBoostはどちらも、著作権表示・許諾文などを維持して組み合わせられるライセンスです。
+
+Exercismの[公式利用規約](https://github.com/exercism/docs/blob/d1868a3f21dc9c5bfaeb5f8dd160a01e8dba56d8/using/legal/terms-of-service.md#content-permissions-and-licensing)は、演習の「Community Content」（主にMIT、個別リポジトリの指定に従う）と、利用者の提出解答・講評の「User Contributed Content」（[CC BY-NC-SA 4.0](https://exercism.org/ja/docs/using/licenses/cc-by-nc-sa)）を分けています。本作の取得対象は固定した8トラックの `.meta` に指定された参考実装、`.docs/instructions.md`、演習メタデータのみです。Web上の利用者の提出解答・講評は取得していません。8トラックのMIT本文と、採用ファイル・メタデータ3,303件、および階層内の別ライセンス指定を照合しました。インポーターは確認済みLICENSEのハッシュが変われば停止します。CC BY-NC-SA素材を取り込む場合、このMIT／Boostの扱いは適用できません。
 
 到達時間の設計条件と計測結果は開発資料の[DESIGN.md](DESIGN.md)へ記載しています。ゲーム内の遊び方は操作と進行の説明に限定し、検証用の比較表や前提は表示しません。
 
