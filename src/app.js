@@ -79,6 +79,7 @@ async function loadCourses(forState = state) {
 let lastCourseKey = '';
 let lastReadingKey = '';
 let lastOfficeOrder = '';
+let lastOCRReviewHTML = '';
 let inputContext = '', draftBeforeInput = '';
 let loadingNotice = '', futureSave = false;
 try {
@@ -375,7 +376,13 @@ function renderTask() {
     const row=review.order.input.split(',');row[review.fieldIndex]=review.ocrValue;
     const work=typing?Math.max(100,(state.typing.bonusBase+(review.correctValue.length-state.typing.offset)*typingPower(state))*16):power;
     const preview=correctOCR(structuredClone(state.ocr),work);
-    $('ocr-review').innerHTML=`<b>OCRの誤認識：${esc(review.fieldLabel)}</b><div class="ocr-row">${row.map((value,i)=>i===review.fieldIndex?`<mark>${esc(value)}</mark>`:esc(value)).join(',')}</div><p>原票の${esc(review.fieldLabel)}だけを訂正</p><strong>${typing?'完入力で':'このクリックで'}最大${format(preview.completed,0)}件再納品 · ${yen(preview.recovered)}回収</strong><details><summary>訂正と精算</summary><p>同形式の誤認識をまとめて再処理します。完入力で未受取報酬を回収。再提出手数料は返りません。</p></details>`;
+    const reviewHTML=`<b>OCRの誤認識：${esc(review.fieldLabel)}</b><div class="ocr-row">${row.map((value,i)=>i===review.fieldIndex?`<mark>${esc(value)}</mark>`:esc(value)).join(',')}</div><p>原票の${esc(review.fieldLabel)}だけを訂正</p><strong>${typing?'完入力で':'このクリックで'}最大${format(preview.completed,0)}件再納品 · ${yen(preview.recovered)}回収</strong><details><summary>訂正と精算</summary><p>同形式の誤認識をまとめて再処理します。完入力で未受取報酬を回収。再提出手数料は返りません。</p></details>`;
+    if(lastOCRReviewHTML!==reviewHTML){
+      const panel=$('ocr-review'),details=panel.querySelector('details'),open=details?.open,focused=document.activeElement===details?.querySelector('summary');
+      panel.innerHTML=reviewHTML;panel.querySelector('details').open=!!open;
+      if(focused)panel.querySelector('summary').focus({preventScroll:true});
+      lastOCRReviewHTML=reviewHTML;
+    }
   }
   document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-selected', b.dataset.mode === mode); });
   document.querySelectorAll('[data-input-style]').forEach(b => { b.classList.toggle('active', b.dataset.inputStyle === state.inputStyle); b.setAttribute('aria-pressed', b.dataset.inputStyle === state.inputStyle); });
@@ -883,7 +890,7 @@ function handleAction(action) {
     state = fresh; invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast(`再出発しました。すべての入力と自動化が ×${metaBonus(state).toFixed(2)} に。`);
   }
 }
-function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; dirty = true; lastFrame = performance.now(); }
+function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; lastOCRReviewHTML = ''; dirty = true; lastFrame = performance.now(); }
 $('import-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file || blocked) return;
