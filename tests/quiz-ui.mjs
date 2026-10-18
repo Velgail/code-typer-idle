@@ -265,6 +265,11 @@ export async function verifyQuizReviewUI(browser, url, errors, capture) {
     assert.equal(await reviewToggle.isVisible(), false, 'the same topic in a different language is not credited');
     assert.equal(await review.isVisible(), false);
     await page.locator('#language-select').selectOption('lua');
+    await page.locator('[data-subject=design]').click();
+    await page.locator('#study-lock [data-action=open-online-material]').click();
+    await run(page, quizAt('lua', 'design', 0).starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), false, 'material completion in another subject does not unlock this exercise');
+    await page.locator('[data-subject=syntax]').click();
     await page.locator('.quiz-topic-picker select').selectOption('0');
     await run(page, quiz.starterSource, 'failed');
     assert.equal(await reviewToggle.isVisible(), true);
