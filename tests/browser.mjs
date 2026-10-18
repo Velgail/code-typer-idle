@@ -230,7 +230,7 @@ try {
   }
   await seeded.locator('[data-subject=design]').click();
   assert.equal(await seeded.locator('#type-button').isDisabled(), true, 'a syntax textbook must not unlock design study');
-  assert.match(await seeded.locator('#study-lock-message').textContent(), /設計パターンの教科書.*6,000/);
+  assert.match(await seeded.locator('#study-lock-message').textContent(), /設計・構造.*オンライン教材.*無料/);
   await seeded.locator('[data-subject=syntax]').click();
   assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true);
   const studyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');
