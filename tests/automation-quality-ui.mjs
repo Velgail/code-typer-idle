@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { experienceRequirements } from '../src/career.js';
 import { createState, tick, projectAt, typingPower, skillKnowledge, readingLesson, input, BALANCE_VERSION } from '../src/core.js';
 import { currentOCRReview, TYPING_REWARD } from '../src/typing.js';
 
@@ -54,6 +55,7 @@ function ocrState() {
   s.autoEnabled = false;
   s.inputStyle = 'typing';
   s.job = { progress: 37, rate: 1 };
+  s.office.remaining-=37;
   // Pick a multi-character price correction, so partial input can be tested.
   s.ocr.cursor = 1;
   return s;
@@ -211,6 +213,33 @@ async function verifyLegacyOCR(browser, url, errors, capture) {
   }finally{await context.close();}
 }
 
+async function verifyContractCompletion(browser,url,errors){
+  const seed=ocrState();
+  tick(seed,500);
+  assert.equal(seed.office.remaining,0);
+  const {context,page}=await open(browser,url,errors,seed);
+  try{
+    assert.match(await page.locator('#office-contract').innerText(),/納品(?:は)?完了|契約完了/);
+    assert.equal(await page.locator('#type-button').isDisabled(),true,'finished contracts explain why ordinary office entry stops');
+    assert.equal(await page.locator('#typing-input').isVisible(),false);
+    assert.equal(await page.locator('#goal-action').isDisabled(),false,'learning remains available when office work is finished');
+    const before=await snapshot(page);
+    await page.clock.fastForward(3600000);
+    const after=await snapshot(page);
+    assert.equal(after.office.remaining,0,'a new game day does not invent new contracts');
+    assert.equal(after.stats.jobs,before.stats.jobs);
+    assert.equal(after.cash,before.cash);
+    await page.locator('[data-work-task=correction]').click();
+    await focus(page);
+    const reviewing=await snapshot(page),review=currentOCRReview(reviewing);assert.ok(review);
+    await focus(page);
+    await page.keyboard.type(review.correctValue);
+    const fixed=await snapshot(page);
+    assert.equal(fixed.cash,after.cash+100,'finished contracts still permit correction of already submitted invoices');
+    assert.equal(fixed.office.remaining,0);
+  }finally{await context.close();}
+}
+
 async function verifyStudy(browser, url, errors, capture) {
   const seed = createState();
   Object.assign(seed, { mode: 'study', inputStyle: 'typing', autoEnabled: false });
@@ -260,6 +289,7 @@ async function verifyStudy(browser, url, errors, capture) {
 async function verifyCapacityAndQuality(browser, url, errors, capture) {
   const seed = createState();
   Object.assign(seed, { projectIndex: 4, mode: 'dev', inputStyle: 'typing', autoEnabled: false });
+  const access=experienceRequirements(4);seed.experience={...access.experience};Object.assign(seed.items,access.items);
   seed.items.cluster = 4;
   for (const [id, required] of Object.entries(projectAt(4).req)) { seed.skills[id] = required; seed.items[`book-${id}`] = 1; }
   const { context, page } = await open(browser, url, errors, seed, { width: 1440, height: 1100 });
@@ -269,8 +299,9 @@ async function verifyCapacityAndQuality(browser, url, errors, capture) {
     const before = await snapshot(page);
     const display = await page.locator('#input-power').innerText();
     assert.match(display, /正解キー/);
-    const displayed = Number(display.match(/[\d,.]+/)[0].replaceAll(',',''));
-    assert.ok(Math.abs(displayed - expected) <= .01, 'the displayed key power includes owned cluster capacity');
+    const match=display.match(/([\d,.]+)(万|億|兆)?/),scale=({万:1e4,億:1e8,兆:1e12})[match[2]] || 1;
+    const displayed = Number(match[1].replaceAll(',',''))*scale;
+    assert.ok(Math.abs(displayed - expected) <= .01*scale, 'the displayed key power includes owned cluster capacity, with its displayed rounding');
     await page.locator('#automation-toggle').click();
     assert.equal(await page.locator('#input-power').innerText(), display, 'turning automatic development on must not increase typing pay');
     await page.locator('#automation-toggle').click();
@@ -306,6 +337,7 @@ async function verifyCapacityAndQuality(browser, url, errors, capture) {
 export async function verifyAutomationQuality(browser, url, errors, { capture } = {}) {
   await verifyOCR(browser, url, errors, capture);
   await verifyLegacyOCR(browser, url, errors, capture);
+  await verifyContractCompletion(browser,url,errors);
   await verifyStudy(browser, url, errors, capture);
   await verifyCapacityAndQuality(browser, url, errors, capture);
   console.log('Automation quality checks passed: OCR cancellation/fee, field-only resubmission and one-time recovery, mobile source/error/caret, save/version/quote, confirmed learning and finite reading, equipment-aware typing and automatic code quality.');

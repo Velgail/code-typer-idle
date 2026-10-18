@@ -5,10 +5,11 @@ import {
   projectAt, knowledgeRatio, validity, developmentReadiness, learningGoal,
   autoStudySubject, skillKnowledge, studyGain, studyPreview, developmentGain,
   answerReading, readingLesson, READING_UNITS, serialize, deserialize,
-  quality, applyOffline, BALANCE_VERSION, needsBuild, runBuild, defectLimit, buy, workRate, release, netIncome, STORE_FEE_RATE
+  quality, applyOffline, BALANCE_VERSION, needsBuild, runBuild, defectLimit, buy, workRate, release, netIncome, STORE_FEE_RATE, finiteSalesGross, projectAccess
 } from '../src/core.js';
 import {acceptCharacter, currentPrompt, TYPING_REWARD, TYPING_REFERENCE_RATE} from '../src/typing.js';
 import {recordOCR} from '../src/officequality.js';
+import {experienceRequirements} from '../src/career.js';
 
 const near=(a,b,message)=>assert.ok(Math.abs(a-b)<=Math.max(1,Math.abs(a),Math.abs(b))*1e-10,message || `${a} != ${b}`);
 const student=()=>{const s=createState(0);s.mode='study';s.items['book-syntax']=1;return s;};
@@ -251,13 +252,15 @@ test('office work stays a fixed-price side job across releases rather than becom
   }
 });
 
-test('the first paid game earns more continuing net sales than the single office OCR tool',()=>{
-  const s=createState(0);s.projectIndex=1;s.progress=projectAt(1).target;s.items.macro=1;
-  Object.assign(s.skills,projectAt(1).req);
-  const title=release(s);assert.ok(title);assert.ok(title.royalty*(1-STORE_FEE_RATE)>8.8);
-  near(title.royalty,projectAt(1).royalty*title.quality/100);
-  const cash=s.cash;tick(s,100);
-  near(s.cash-cash,title.royalty*(1-STORE_FEE_RATE)*100+880);
+test('the first commercial game receives finite customer payments while office income stays a limited side contract',()=>{
+  const s=createState(0);s.projectIndex=2;s.progress=projectAt(2).target;s.items.macro=1;
+  Object.assign(s.experience,experienceRequirements(2).experience);Object.assign(s.skills,projectAt(2).req);
+  assert.equal(projectAccess(s).allowed,true);
+  const title=release(s);assert.ok(title);assert.ok(title.payout>0);assert.ok(title.salesRemaining>0);
+  const sales=finiteSalesGross(s,100),cash=s.cash,office=createState(0);
+  office.items.macro=1;office.experience={...s.experience};const officeCash=office.cash;
+  tick(office,100);tick(s,100);
+  near(s.cash-cash,sales*(1-STORE_FEE_RATE)+office.cash-officeCash);
 });
 
 test('removed OCR expansions are refunded exactly once while the installed tool remains and earned statistics stay settled',()=>{
@@ -305,8 +308,8 @@ test('existing paid titles move to the revised continuing-sales rates once witho
     {name:'archive',index:-1,archived:true,royalty:123,...receipt}
   ];
   const loaded=deserialize(JSON.stringify(old));
-  near(loaded.catalog[0].royalty,1.6*projectAt(1).royalty/2);
-  near(loaded.catalog[1].royalty,16*projectAt(2).royalty/20);
+  near(loaded.catalog[0].royalty,32);assert.ok(loaded.catalog[0].salesRemaining>0,'an old paid block game keeps a finite sales tail after new blocks become free');
+  near(loaded.catalog[1].royalty,64);
   assert.equal(loaded.catalog[2].royalty,0);assert.equal(loaded.catalog[3].royalty,0);
   assert.equal(loaded.catalog[4].royalty,160);assert.equal(loaded.catalog[5].royalty,123);
   for(let index=0;index<old.catalog.length;index++)for(const key of ['quality','payout','grossPayout','salesFee'])assert.equal(loaded.catalog[index][key],old.catalog[index][key]);

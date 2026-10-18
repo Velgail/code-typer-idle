@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE, STUDY_XP, learningGoal, needsBuild, runBuild } from '../src/core.js';
+import { createState, projectAt, PROJECTS, SHOP, buy, input, tick, knowledgeRatio, validity, debtLimit, defectLimit, release, prestige, prestigeGain, applyOffline, serialize, deserialize, checkAchievements, handPower, royaltyRate, itemCost, OFFLINE_LIMIT, INITIAL_CASH, studyGain, studyMultiplier, unitRate, autoStudySubject, DAY, BALANCE_VERSION, operatingCost, serverCost, expenseLines, setPublicationActive, netIncome, STORE_FEE_RATE, STUDY_XP, learningGoal, needsBuild, runBuild, projectAccess, selectProject, finiteSalesGross, remainingSales } from '../src/core.js';
 import { simulate, SCENARIOS } from '../scripts/simulate-balance.mjs';
 import { acceptCharacter, currentPrompt, TYPING_REWARD } from '../src/typing.js';
+import {experienceRequirements} from '../src/career.js';
 
+function unlock(s,index=s.projectIndex){const req=experienceRequirements(index);Object.assign(s.experience,req.experience);Object.assign(s.items,req.items);s.autoEnabled=false;assert.equal(projectAccess(s,index).allowed,true);}
 function understand(s, ratio = 1) { for (const [k, v] of Object.entries(projectAt(s.projectIndex).req)) s.skills[k] = v * ratio; }
 
 test('one million uncomprehended characters cannot complete a game', () => {
@@ -67,15 +69,13 @@ test('a release requires a complete and sufficiently repaired project', () => {
   assert.equal(s.progress, 0);
   assert.equal(s.stats.releases, 1);
 });
-test('commercial releases earn persistent royalties only above the quality and understanding gates', () => {
-  const s = createState(); s.projectIndex = 1; understand(s);
-  s.progress = projectAt(1).target;
-  const title = release(s);
-  assert.ok(title.royalty > 0);
-  const cash = s.cash; tick(s, 1);
-  assert.ok(Math.abs(s.cash - cash - title.royalty * (1 - STORE_FEE_RATE)) < 1e-8);
-  const low = createState(); low.projectIndex = 1; understand(low, .75); low.progress = projectAt(1).target;
-  assert.equal(release(low).royalty, 0);
+test('commercial releases earn a finite sales tail only above the quality and understanding gates', () => {
+  const s=createState();s.projectIndex=2;unlock(s);understand(s);s.progress=projectAt(2).target;
+  const title=release(s);assert.ok(remainingSales(title)>0);
+  const gross=finiteSalesGross(s,1),cash=s.cash;tick(s,1);
+  assert.ok(Math.abs(s.cash-cash-gross*(1-STORE_FEE_RATE))<1e-8);
+  const low=createState();low.projectIndex=2;unlock(low);understand(low,.75);low.progress=projectAt(2).target;
+  assert.equal(remainingSales(release(low)),0);
 });
 test('purchases respect money, gates and one-time equipment', () => {
   const s = createState();
@@ -127,16 +127,16 @@ test('offline results match foreground simulation and cap at eight hours', () =>
   assert.equal(capped.stats.time, OFFLINE_LIMIT);
   assert.equal(applyOffline(capped, now).seconds, 0);
 });
-test('prestige preserves achievements and cumulative statistics, resets run progress', () => {
-  const s = createState();
-  assert.equal(prestige(s), null);
-  s.runBest = 3; s.projectIndex = 3; s.stats.releases = 3; s.stats.valid = 221000; s.skills.syntax = 200;
-  s.items.keyboard = 4; s.achievements = ['first-release'];
-  const gain = prestigeGain(s), fresh = prestige(s);
-  assert.ok(gain > 0); assert.equal(fresh.assets, gain); assert.ok(handPower(fresh) > 1);
-  assert.equal(fresh.projectIndex, 0); assert.equal(fresh.skills.syntax, 0); assert.deepEqual(fresh.items, {});
-  assert.deepEqual(fresh.achievements, s.achievements); assert.equal(fresh.stats.releases, 3);
-  assert.equal(prestigeGain(fresh), 0);
+test('prestige commits the three earned experiences and preserves confirmed learning, achievements and cumulative statistics', () => {
+  const s=createState();assert.equal(prestige(s),null);
+  s.runBest=2;s.projectIndex=2;s.stats.releases=2;s.stats.valid=12000;s.skills.syntax=200;s.studyGaps.syntax=20;
+  s.runExperience={craft:5,design:2,audience:1};s.completedProjects=[0,1];s.experiencedProjects=[0,1];
+  s.items.keyboard=4;s.achievements=['first-release'];
+  const gain=prestigeGain(s),fresh=prestige(s);
+  assert.equal(gain,8);assert.deepEqual(fresh.experience,{craft:5,design:2,audience:1});assert.equal(fresh.assets,s.assets);
+  assert.ok(handPower(fresh)>handPower(createState()));assert.equal(fresh.projectIndex,2);
+  assert.equal(fresh.skills.syntax,180);assert.equal(fresh.studyGaps.syntax,0);assert.deepEqual(fresh.items,{});
+  assert.deepEqual(fresh.achievements,s.achievements);assert.equal(fresh.stats.releases,2);assert.equal(prestigeGain(fresh),0);
 });
 test('post-AAA and procedural generations keep getting larger without NaN or Infinity', () => {
   assert.ok(projectAt(5).target > projectAt(4).target);
@@ -161,25 +161,26 @@ test('save roundtrips preserve the economy and guard invalid imported values', (
   assert.throws(() => deserialize(JSON.stringify({ ...s, balanceVersion: BALANCE_VERSION + 1 })), /更新/);
   assert.throws(() => deserialize('x'.repeat(500001)));
 });
-test('all authored projects and ten endless generations can actually be released', () => {
-  const s = createState();
-  for (let i = 0; i < 17; i++) {
-    understand(s);
-    const p = projectAt(i);
-    input(s, { mode: 'dev', chars: p.target });
-    assert.equal(s.progress, p.target);
-    assert.ok(release(s)); assert.equal(s.projectIndex, i + 1);
+test('all authored projects and ten endless generations remain releasable with the required career experience and team', () => {
+  const s=createState();
+  for(let index=0;index<17;index++){
+    unlock(s,index);if(s.projectIndex!==index)assert.equal(selectProject(s,index),true);
+    understand(s);const p=projectAt(index);
+    for(let attempt=0;attempt<8 && s.progress<p.target;attempt++){
+      s.refactor=s.crashed || s.defects>defectLimit(s)*.1;input(s,{mode:'dev',chars:p.target});
+    }
+    s.refactor=false;assert.equal(s.progress,p.target);
+    const title=release(s);assert.ok(title);assert.equal(title.index,index);assert.equal(s.stats.releases,index+1);
   }
-  assert.ok(prestigeGain(s) > 1e7);
-  assert.ok(checkAchievements(s).some(a => a.id === 'universe'));
+  assert.ok(prestigeGain(s)>0);assert.ok(checkAchievements(s).some(a=>a.id==='universe'));
 });
 
-test('a fresh player can fund books and finish the first game without injected resources', () => {
-  const result = simulate(SCENARIOS[0], { horizon: 3600, stopAfter: 1 });
-  assert.equal(result.reached, 1);
-  assert.ok(result.milestones[0].seconds >= 15 * 60 && result.milestones[0].seconds <= 25 * 60);
-  assert.ok(result.purchases.macro <= 60, 'the first automation must be reachable within one minute at eight clicks per second');
-  assert.ok(result.purchases['book-syntax'] > result.purchases.macro && result.purchases['book-syntax'] <= 3 * 60);
+test('a fresh player can finish the first practice game without cash work, paid books or injected resources', () => {
+  const result=simulate(SCENARIOS[0],{horizon:3600,stopAfter:1});
+  assert.equal(result.status,'release-limit');assert.equal(result.milestones.length,1);assert.equal(result.milestones[0].index,0);
+  assert.equal(result.milestones[0].payout,0);assert.equal(result.milestones[0].cash,INITIAL_CASH);
+  assert.ok(result.milestones[0].confirmedKnowledge.syntax>=projectAt(0).req.syntax);
+  assert.equal(result.modeSeconds.work,0);assert.deepEqual(result.purchaseHistory,[]);assert.equal(result.route.ocr,false);
 });
 
 test('the first OCR takes four delivered jobs and is a single purchase rather than an investment ladder', () => {
@@ -332,13 +333,13 @@ test('the first local macro pays routine jobs and deducts rejected submissions w
   const s = createState(); s.items.macro = 1;
   assert.equal(unitRate(s, 'macro'), 10);
   const cash = s.cash; tick(s, 1800);
-  assert.equal(s.cash - cash, 15840); assert.equal(s.job.progress, 0); assert.equal(s.ocrJob.progress,0);
-  assert.equal(s.ocr.pending,18);assert.equal(s.ocr.pendingReward,1800);assert.equal(s.ocr.fees,360);
+  assert.equal(s.cash - cash, 4400); assert.equal(s.job.progress, 0); assert.equal(s.ocrJob.progress,0);
+  assert.equal(s.ocr.pending,5);assert.equal(s.ocr.pendingReward,500);assert.equal(s.ocr.fees,100);
   assert.equal(operatingCost(s),0);assert.equal(s.stats.serverFees,0);
-  assert.equal(netIncome(s), 8.8);
+  assert.equal(netIncome(s), 0);
   s.items.macro = 2;assert.equal(unitRate(s,'macro'),10,'invalid extra levels cannot accelerate OCR');
   s.items.macro = 800;assert.equal(unitRate(s,'macro'),10);
-  s.items.macro = 1;s.assets=16;assert.equal(unitRate(s,'macro'),30,'assets still improve the single installed tool');
+  s.items.macro = 1;s.assets=16;assert.equal(unitRate(s,'macro'),30,'legacy assets still improve the single installed tool');
 });
 test('the OCR upgrade refunds removed expansions and preserves partly completed manual invoices', () => {
   const s = createState(); s.balanceVersion = 8; s.cash = 4321; s.items.macro = 2; s.job = { progress: 37, rate: 1 };
@@ -401,21 +402,18 @@ test('previous saves retain earned resources and acquire safe typing defaults', 
   assert.equal(loaded.inputStyle, 'click'); assert.equal(loaded.typing.language, 'cpp'); assert.equal(loaded.balanceVersion, BALANCE_VERSION);
 });
 
-test('store fees apply once to initial and ongoing commercial sales with a named payee', () => {
-  const s = createState(); s.projectIndex = 1; understand(s); s.progress = projectAt(1).target;
-  const before = s.cash, title = release(s);
-  assert.equal(title.salesFee, title.grossPayout * STORE_FEE_RATE);
-  assert.equal(s.cash - before, title.grossPayout * (1 - STORE_FEE_RATE));
-  const afterRelease = s.cash; tick(s, 10);
-  assert.ok(Math.abs(s.cash - afterRelease - title.royalty * 10 * (1 - STORE_FEE_RATE)) < 1e-7);
-  assert.ok(Math.abs(s.stats.storeFees - title.salesFee - title.royalty * 10 * STORE_FEE_RATE) < 1e-7);
-  assert.equal(operatingCost(s), 0, 'an offline sale must not create a server contract');
-  assert.equal(expenseLines(s)[0].payee, 'ゲーム配信ストア');
-  assert.match(expenseLines(s)[0].terms, /25%/);
+test('store fees apply once to launch and finite continuing sales with a named payee', () => {
+  const s=createState();s.projectIndex=2;unlock(s);understand(s);s.progress=projectAt(2).target;
+  const before=s.cash,title=release(s);
+  assert.equal(title.salesFee,title.grossPayout*STORE_FEE_RATE);assert.equal(s.cash-before,title.grossPayout*(1-STORE_FEE_RATE));
+  const afterRelease=s.cash,continuing=finiteSalesGross(s,10);tick(s,10);
+  assert.ok(Math.abs(s.cash-afterRelease-continuing*(1-STORE_FEE_RATE))<1e-7);
+  assert.ok(Math.abs(s.stats.storeFees-title.salesFee-continuing*STORE_FEE_RATE)<1e-7);
+  assert.equal(operatingCost(s),0);assert.equal(expenseLines(s)[0].payee,'ゲーム配信ストア');assert.match(expenseLines(s)[0].terms,/25%/);
 });
 
 test('only published online titles create fixed server costs, even with no sales', () => {
-  const s = createState(); s.projectIndex = 5; s.cash = 1e8;
+  const s = createState(); s.projectIndex = 5; s.cash = 1e8;unlock(s);
   assert.equal(operatingCost(s), 0, 'development alone must not rent a server');
   s.progress = projectAt(5).target;
   const free = release(s);
@@ -442,13 +440,13 @@ test('server bills accrue only while a title is live and retain fees incurred be
 
 test('server fees and sales are identical in foreground and offline play', () => {
   const s = createState(0); s.cash = 1e8;
-  s.catalog = [{ ...projectAt(5), index: 5, royalty: 100, active: true }];
-  const loaded = deserialize(serialize(s, 0));
+  s.catalog = [{ ...projectAt(5), id:'release-1', index:5, royalty:100, salesRemaining:1e6, salesHalfLife:DAY, unitPrice:100, totalCopies:10000, soldCopies:0, active:true }];
+  const loaded = deserialize(serialize(s, 0)),gross=finiteSalesGross(s,DAY);
   tick(s, DAY); applyOffline(loaded, DAY * 1000);
-  const expected = 1e8 + 100 * (1 - STORE_FEE_RATE) * DAY - 3e6;
+  const expected = 1e8 + gross*(1-STORE_FEE_RATE)-3e6;
   assert.ok(Math.abs(s.cash - expected) < .001);
   assert.ok(Math.abs(loaded.cash - s.cash) < .001);
-  assert.equal(netIncome(s), 100 * (1 - STORE_FEE_RATE) - 3e6 / DAY);
+  assert.equal(netIncome(s),royaltyRate(s)*(1-STORE_FEE_RATE)-3e6/DAY);
 });
 
 test('new contracts do not backdate fees and old unspent rent reserves are returned once', () => {
@@ -456,23 +454,23 @@ test('new contracts do not backdate fees and old unspent rent reserves are retur
     catalog: [{ ...projectAt(5), index: 5, royalty: 1, active: true }] };
   const s = deserialize(JSON.stringify(old));
   assert.equal(s.cash, 1800); assert.equal(s.dailyAccrued, 0);
-  applyOffline(s, DAY * 1000);
-  assert.ok(Math.abs(s.cash - (1800 + DAY)) < 1e-7, 'the first migrated absence must not apply a new fee retroactively');
+  const firstGross=finiteSalesGross(s,DAY);applyOffline(s, DAY * 1000);
+  assert.ok(Math.abs(s.cash - (1800 + firstGross)) < 1e-7, 'the first migrated absence must not apply a new fee retroactively');
   const loaded = deserialize(serialize(s, DAY * 1000));
   assert.equal(loaded.cash, s.cash, 'loading the migrated save must not refund again');
-  const cash = loaded.cash; tick(loaded, DAY);
-  assert.ok(Math.abs(loaded.cash - cash - DAY * (1 - STORE_FEE_RATE) + 3e6) < .001);
+  const cash = loaded.cash,nextGross=finiteSalesGross(loaded,DAY); tick(loaded, DAY);
+  assert.ok(Math.abs(loaded.cash-cash-nextGross*(1-STORE_FEE_RATE)+3e6)<.001);
 });
 
 test('archiving an old portfolio preserves active server bills and selling income', () => {
   const s = createState();
-  s.catalog = Array.from({ length: 100 }, (_, index) => ({ name: `old-${index}`, index: index + 5, royalty: 100, online: true, serverDaily: 3000, active: true }));
+  s.catalog = Array.from({ length: 100 }, (_, index) => ({ name: `old-${index}`, index: index + 5, id:`release-${index+1}`,royalty:100,salesRemaining:100*DAY,salesHalfLife:DAY,unitPrice:10,totalCopies:36000,soldCopies:0,online:true,serverDaily:3000,active:true }));
   const costs = operatingCost(s), sales = royaltyRate(s);
   understand(s); s.progress = projectAt(0).target; release(s);
   assert.equal(s.catalog.length, 100); assert.equal(operatingCost(s), costs); assert.equal(royaltyRate(s), sales);
   assert.equal(s.catalog[0].archived, true);
   setPublicationActive(s, -1, false);
-  assert.equal(operatingCost(s), costs - 6000); assert.equal(royaltyRate(s), sales - 200);
+  assert.equal(operatingCost(s), costs - 6000);assert.ok(Math.abs(royaltyRate(s)-(sales-200*Math.LN2))<1e-8);
 });
 
 test('a completed work order pays its accepted quote and carries progress across modes and saves', () => {

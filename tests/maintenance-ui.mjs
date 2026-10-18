@@ -16,6 +16,7 @@ export async function verifyMaintenanceUI(browser,url,errors){
   };
   const developer=(index=0)=>{
     const s=createState();s.mode='dev';s.projectIndex=index;s.autoEnabled=false;
+    if(index>=2)s.experience={craft:5,design:2,audience:1};
     for(const [id,value] of Object.entries(projectAt(index).req))s.skills[id]=value;
     return s;
   };
@@ -109,7 +110,7 @@ export async function verifyMaintenanceUI(browser,url,errors){
     }finally{await context.close();}
   }
 
-  const commercial=developer(1);commercial.progress=projectAt(1).target;commercial.debt=3500;commercial.cash=100000;
+  const commercial=developer(2);commercial.progress=projectAt(2).target;commercial.debt=3500;commercial.cash=100000;
   const {context:second,page:publisher}=await open(commercial,{width:390,height:844});
   try{
     assert.equal(await publisher.locator('#release-button').isDisabled(),false);
@@ -121,7 +122,7 @@ export async function verifyMaintenanceUI(browser,url,errors){
     await publisher.locator('#modal-close').click();
     const released=await saved(publisher);assert.ok(released.catalog[0].royalty>0);assert.equal(released.debt,0);
     await publisher.locator('[data-shop=auto]').click();
-    assert.match(await publisher.locator('#library-reuse-note').innerText(),/ネオン・ブロック崩し.*25%.*875/);
+    assert.match(await publisher.locator('#library-reuse-note').innerText(),/雨のダンジョン.*25%.*875/);
     await publisher.locator('[data-buy=library]').click();const imported=await saved(publisher);
     assert.equal(imported.debt,875);assert.equal(imported.debtSources.reuse,875);
     await publisher.reload();await publisher.waitForSelector('.buy-button');
@@ -158,7 +159,7 @@ export async function verifyMaintenanceUI(browser,url,errors){
     assert.equal((await saved(blockedRelease)).defects,96,'repair must be reachable without first opening technical details');
   }finally{await blockedContext.close();}
 
-  const integration=developer(1);integration.progress=1000;integration.cash=20000;
+  const integration=developer(2);integration.progress=1000;integration.cash=20000;
   const {context:fourth,page:build}=await open(integration,{width:390,height:844});
   try{
     assert.match(await build.locator('#build-status').innerText(),/未検証/);
@@ -168,16 +169,16 @@ export async function verifyMaintenanceUI(browser,url,errors){
     assert.equal(await build.locator('#build-button').isDisabled(),true);
     const before=await saved(build);
     await build.locator('#production-panel summary').click();
-    assert.match(await build.locator('#production-services').innerText(),/アーティスト.*80 → 86/s);
+    assert.match(await build.locator('#production-services').innerText(),/素材ストア.*80 → 86/s);
     await build.locator('[data-order=graphics]').click();
-    const graphics=await saved(build);assert.equal(graphics.cash,before.cash-6000);assert.equal(graphics.progress,before.progress);
-    assert.equal(graphics.production.graphics.paid,6000);assert.ok(graphics.build.revision>before.build.checkedRevision);
+    const graphics=await saved(build);assert.equal(graphics.cash,before.cash-600);assert.equal(graphics.progress,before.progress);
+    assert.equal(graphics.production.graphics.paid,600);assert.ok(graphics.build.revision>before.build.checkedRevision);
     assert.match(await build.locator('#build-status').innerText(),/未検証/);
     assert.equal(await build.locator('[data-order=graphics]').isDisabled(),true);
     await build.locator('#build-button').click();const verified=await saved(build);
     assert.equal(verified.build.revision,verified.build.checkedRevision);
     await build.reload();await build.waitForSelector('.buy-button');
-    const restored=await saved(build);assert.equal(restored.production.graphics.paid,6000);assert.equal(restored.cash,graphics.cash);
+    const restored=await saved(build);assert.equal(restored.production.graphics.paid,600);assert.equal(restored.cash,graphics.cash);
     assert.equal(await build.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   }finally{await fourth.close();}
   console.log('Maintenance UI checks passed: collapsed technical details, neutral first-release guidance, persistent expanded controls, public release, direct repair, reuse, assets and build verification.');

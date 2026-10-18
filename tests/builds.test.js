@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, input, tick, runBuild, needsBuild, buildStep, release, serialize, deserialize, applyOffline, setDevelopmentPolicy } from '../src/core.js';
+import { experienceRequirements } from '../src/career.js';
+import { createState, projectAt, projectAccess, input, tick, runBuild, needsBuild, buildStep, release, serialize, deserialize, applyOffline, setDevelopmentPolicy } from '../src/core.js';
 
 function developer(index=0){
   const s=createState(0);s.mode='dev';s.projectIndex=index;s.autoEnabled=false;
+  const access=experienceRequirements(index);s.experience={...access.experience};Object.assign(s.items,access.items);
+  assert.equal(projectAccess(s).allowed,true,'the fixture meets career and equipment requirements without a legacy permit');
   for(const [id,value] of Object.entries(projectAt(index).req))s.skills[id]=value;
   return s;
 }

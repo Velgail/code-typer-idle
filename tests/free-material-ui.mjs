@@ -30,9 +30,9 @@ async function typeQuestion(page){
 
 // Advance an actual UI save through ordinary study/development rules. This is
 // a checkpoint, not a measurement of human typing speed or a direct K/cash grant.
-export function freeMaterialCheckpoint(seed){
-  const s=structuredClone(seed),project=projectAt(1);
-  assert.equal(s.projectIndex,1);assertNoPurchases(s);
+export function freeMaterialCheckpoint(seed,index=1){
+  const s=structuredClone(seed),project=projectAt(index);
+  assert.equal(s.projectIndex,index);assertNoPurchases(s);
   for(const[id,required]of Object.entries(project.req)){
     assert.equal(hasStudyMaterial(s,id),true,'the UI must have opened each free subject before its checkpoint');
     for(let count=0;skillKnowledge(s,id)<required;count++){
@@ -131,14 +131,43 @@ async function verifyNoOCRRoute(browser,url,errors,capture){
     await p.locator('#type-button').click();await p.keyboard.type(prompt[0]);
     assert.equal(await p.locator('#release-button').isDisabled(),false);
     await p.locator('#release-button').click();
-    assert.match(await p.locator('#modal-body').innerText(),/NOW ON SALE/);
-    if(capture)await capture(p,'free-material-first-commercial');
-    await p.locator('[data-action=next-project]').click();
-    const published=await snapshot(p);assertNoPurchases(published);assert.equal(published.projectIndex,2);
-    assert.ok(published.cash>100,'the first paid game finances future investment without office work');
-    assert.ok(published.catalog.some(title=>title.index===1 && title.royalty>0));
-    return {published,firstPublished};
+    assert.match(await p.locator('#modal-body').innerText(),/FREE TO PLAY/);
+    if(capture)await capture(p,'free-material-second-free-release');
+    const published=await p.evaluate(key=>JSON.parse(localStorage.getItem(key)),SAVE);assertNoPurchases(published);
+    assert.equal(published.cash,100,'a practice breakout has no guaranteed commercial income');
+    assert.ok(published.catalog.every(title=>!title.royalty && !title.payout));
+    await p.locator('#modal-body [data-action=prestige]').click();
+    assert.match(await p.locator('#modal-body').innerText(),/制作経験/);
+    await p.locator('[data-action=confirm-prestige]').click();
+    const nextLife=await snapshot(p);assertNoPurchases(nextLife);
+    assert.equal(nextLife.resets,1);
+    assert.deepEqual(nextLife.onlineMaterials,published.onlineMaterials,'opened materials survive a new life');
+    for(const id of ['syntax','design','graphics'])assert.ok(skillKnowledge(nextLife,id)>=skillKnowledge(published,id),'confirmed knowledge survives a new life');
+    assert.equal(nextLife.catalog.length,0,'past sales and cash do not survive a new life');
+    assert.equal(nextLife.projectIndex,2,'remembering both practice games opens the small commercial project directly');
+    const commercial=freeMaterialCheckpoint(nextLife,2);
+    return {commercial,firstPublished};
   }finally{await finish.context.close();}
+}
+
+async function verifyFirstCommercial(browser,url,errors,seed,capture){
+  const {context,page}=await open(browser,url,errors,seed);
+  try{
+    await page.locator('#goal-action').click();
+    const prompt=await page.locator('#editor-content').getAttribute('data-prompt');
+    await page.locator('#type-button').click();await page.keyboard.type(prompt[0]);
+    assert.equal(await page.locator('#release-button').isDisabled(),false);
+    await page.locator('#release-button').click();
+    assert.match(await page.locator('#modal-body').innerText(),/NOW ON SALE/);
+    if(capture)await capture(page,'free-material-first-commercial');
+    await page.locator('[data-action=next-project]').click();
+    const published=await snapshot(page);assertNoPurchases(published);
+    assert.ok(published.cash>100,'a paid game funds investment without OCR or office work');
+    const title=published.catalog.find(title=>title.index===2);
+    assert.ok(title && title.unitPrice>0 && title.totalCopies>0 && title.salesRemaining>0);
+    assert.ok(title.payout>0 && title.payout<title.unitPrice*title.totalCopies,'launch receipts are part of a finite sales budget');
+    return published;
+  }finally{await context.close();}
 }
 
 async function verifySQLFallback(browser,url,errors,firstPublished){
@@ -196,7 +225,8 @@ async function verifyBookInvestment(browser,url,errors,published,capture){
 }
 
 export async function verifyFreeMaterialUI(browser,url,errors,{capture}={}){
-  const {published,firstPublished}=await verifyNoOCRRoute(browser,url,errors,capture);
+  const {commercial,firstPublished}=await verifyNoOCRRoute(browser,url,errors,capture);
+  const published=await verifyFirstCommercial(browser,url,errors,commercial,capture);
   await verifySQLFallback(browser,url,errors,firstPublished);
   await verifyBookInvestment(browser,url,errors,published,capture);
   console.log('Free material checks passed: explicit material selection, actual sources, free practice/reading/course, saved subjects, OCR-free first two releases, and optional book efficiency across all learning styles.');

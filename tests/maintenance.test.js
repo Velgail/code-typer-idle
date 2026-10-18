@@ -1,10 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createState, projectAt, input, tick, release, quality, buy, debtLimit, defectLimit, developmentEfficiency, setDevelopmentPolicy, libraryDebtImport, serialize, deserialize, applyOffline, DAY, prestige } from '../src/core.js';
+import { experienceRequirements } from '../src/career.js';
+import { createState, projectAt, projectAccess, input, tick, release, quality, buy, debtLimit, defectLimit, developmentEfficiency, setDevelopmentPolicy, libraryDebtImport, serialize, deserialize, applyOffline, DAY, prestige } from '../src/core.js';
 import { debtBreakdown, debtAgeDays, changeDefectRate } from '../src/maintenance.js';
 
 function developer(index=0){
   const s=createState(0);s.projectIndex=index;s.mode='dev';
+  const access=experienceRequirements(index);s.experience={...access.experience};Object.assign(s.items,access.items);
+  assert.equal(projectAccess(s).allowed,true,'the fixture meets career and equipment requirements without a legacy permit');
   for(const [id,required] of Object.entries(projectAt(index).req))s.skills[id]=required;
   return s;
 }
@@ -27,13 +30,24 @@ test('understood code incurs deferred work with actionable causes; policies trad
 });
 
 test('debt and repaired historical mistakes neither block a commercial release nor reduce quality',()=>{
-  const s=developer(1);s.progress=projectAt(1).target;s.debt=debtLimit(s);s.mistakes=1e6;
+  const s=developer(2);s.progress=projectAt(2).target;s.debt=debtLimit(s);s.mistakes=1e6;
   assert.equal(quality(s),80);
   const result=release(s);
-  assert.ok(result.royalty>0);assert.equal(result.technicalDebt,projectAt(1).target*.25);
+  assert.ok(result.royalty>0);assert.ok(result.salesRemaining>0);assert.equal(result.technicalDebt,projectAt(2).target*.25);
   assert.equal(s.debt,0,'an isolated project is not forcibly reused');
-  const bugs=developer(1);bugs.progress=projectAt(1).target;bugs.defects=defectLimit(bugs)*.11;
+  const bugs=developer(2);bugs.progress=projectAt(2).target;bugs.defects=defectLimit(bugs)*.11;
   assert.equal(release(bugs),null);
+});
+
+test('both free exercises can ship working code with deferred cleanup and no fabricated sales',()=>{
+  for(const index of [0,1]){
+    const s=developer(index);s.progress=projectAt(index).target;s.debt=debtLimit(s);s.mistakes=1e6;
+    const cash=s.cash,qualityBefore=quality(s),title=release(s);
+    assert.ok(title);assert.equal(title.quality,qualityBefore);assert.equal(title.quality,80);
+    assert.equal(title.technicalDebt,projectAt(index).target*.25);assert.equal(title.defects,0);
+    assert.equal(title.payout,0);assert.equal(title.royalty,0);assert.equal(title.salesRemaining,0);assert.equal(s.cash,cash);
+    assert.equal(s.defects,0);assert.equal(s.debt,0);
+  }
 });
 
 test('inexperienced developers accumulate unnoticed debt, and existing debt makes later additions buggy',()=>{
