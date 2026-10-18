@@ -6,6 +6,7 @@ import { resolve, extname } from 'node:path';
 import { existsSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { createState, projectAt, typingPower, BALANCE_VERSION } from '../src/core.js';
+import { experienceRequirements } from '../src/career.js';
 import { COURSE } from '../src/course.js';
 import { lessonAt, questionFor } from '../src/curriculum.js';
 import { verifyCommentTranslations } from './comment-translations.mjs';
@@ -195,7 +196,7 @@ try {
   await seeded.locator('[data-view=roadmap]').click();
   assert.equal(await seeded.locator('.pacing-panel').count(), 0);
   assert.doesNotMatch(await seeded.locator('#roadmap-view').textContent(), /FIRST RUN|BALANCE|シミュレーション|3〜7日|旧セーブ|300打鍵/);
-  assert.equal(await seeded.locator('.roadmap-card').count(), 10);
+  assert.ok(await seeded.locator('.roadmap-card').count() >= 2, 'the roadmap shows the current scale and its next step');
   await seeded.locator('[data-view=achievements]').click();
   assert.equal(await seeded.locator('.achievement-card').count(), 9);
   await seeded.locator('[data-view=workspace]').click();
@@ -359,9 +360,10 @@ try {
   console.log('Browser checks passed: direct entry, direct inline input, immediate acceptance and editable errors, no duplicate rewards on edits, click income, paste/repeat guards, multiline typing, eight languages, cursor persistence, release, textbook requirements, shop, automation, export/import, five viewport sizes, mobile typing, and duplicate-tab protection.');
   await seededContext.close();
   // Actual publication controls must match the accounting shown before release.
-  for (const index of [1, 5]) {
+  for (const index of [2, 5]) {
     const ready = createState(); ready.mode = 'dev'; ready.cash = 1e8; ready.projectIndex = index;
     const project = projectAt(index); ready.progress = project.target;
+    const access=experienceRequirements(index);ready.experience={...access.experience};ready.items={...access.items};
     Object.assign(ready.skills, project.req);
     const finance = await browser.newContext({ viewport: { width: 1440, height: 1100 } });
     try {
@@ -392,12 +394,12 @@ try {
       if (index === 5) {
         assert.match(await publishing.locator('#expense-lines').textContent(), /ホスティング会社/);
         await publishing.locator('[data-action=catalog]').click();
-        await publishing.locator('[data-publication="5"][data-active="false"]').click();
+        await publishing.locator('[data-publication][data-active="false"]').click();
         let stopped = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
         assert.equal(stopped.catalog[0].active, false);
         assert.match(await publishing.locator('#living').textContent(), /¥0/);
-        assert.match(await publishing.locator('#catalog-list').textContent(), /公開停止中/);
-        assert.equal(await publishing.locator('#published-count').textContent(), '公開作品の継続売上なし');
+        assert.match(await publishing.locator('#catalog-list').textContent(), /販売停止中/);
+        assert.equal(await publishing.locator('#published-count').textContent(), '現在、ゲームの売上なし');
         if (stopped.dailyAccrued > 0) {
           assert.match(await publishing.locator('#expense-summary').textContent(), /本日精算予定/);
           assert.doesNotMatch(await publishing.locator('#expense-lines').textContent(), /支払いはありません/);
@@ -409,7 +411,7 @@ try {
         assert.equal(afterStop.stats.storeFees, stopped.stats.storeFees);
         assert.equal(afterStop.dailyAccrued, stopped.dailyAccrued);
         await publishing.locator('[data-action=catalog]').click();
-        await publishing.locator('[data-publication="5"][data-active="true"]').click();
+        await publishing.locator('[data-publication][data-active="true"]').click();
         await publishing.locator('#modal-close').click();
         await publishing.reload();
         await publishing.waitForSelector('.buy-button');
@@ -515,6 +517,7 @@ try {
     assert.equal(preserved.balanceVersion, BALANCE_VERSION); assert.equal(preserved.day, 901);
     assert.ok(requests.some(path => path.includes(`app.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
+    assert.ok(requests.some(path => path.includes(`career.${nextId}.js`)), 'career rules must update with the rest of the cached module graph');
     assert.ok(requests.some(path => path.includes(`curriculum.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`idioms.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`builds.${nextId}.js`)));

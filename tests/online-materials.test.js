@@ -131,11 +131,11 @@ test('save normalization keeps only distinct known online subjects and old saves
   assert.equal(hasStudyMaterial(restored,'design'),false,'the new route must not silently unlock unregistered subjects in old saves');
 });
 
-test('a new career clears online access and textbooks while preserving established career rewards and preferences',()=>{
+test('a new career preserves online access and preferences while leaving purchased textbooks behind',()=>{
   const s=createState(0);for(const {id} of SKILLS){openOnlineMaterial(s,id);s.items[`book-${id}`]=1;}
-  s.runBest=3;s.achievements=['first-book'];s.settings.commentLocale='en';s.stats.study=1234;
-  const fresh=prestige(s,1000);assert.ok(fresh);assert.deepEqual(fresh.onlineMaterials,[]);assert.deepEqual(fresh.items,{});
-  for(const {id} of SKILLS){assert.equal(hasStudyMaterial(fresh,id),false);assert.equal(hasTextbook(fresh,id),false);}
+  s.runBest=2;s.runExperience={craft:5,design:2,audience:1};s.achievements=['first-book'];s.settings.commentLocale='en';s.stats.study=1234;
+  const fresh=prestige(s,1000);assert.ok(fresh);assert.deepEqual(fresh.onlineMaterials,s.onlineMaterials);assert.deepEqual(fresh.items,{});
+  for(const {id} of SKILLS){assert.equal(hasStudyMaterial(fresh,id),true);assert.equal(hasTextbook(fresh,id),false);}
   assert.deepEqual(fresh.achievements,s.achievements);assert.equal(fresh.settings.commentLocale,'en');assert.equal(fresh.stats.study,1234);
-  assert.ok(fresh.assets>0);assert.equal(openOnlineMaterial(fresh,'syntax'),true);assert.equal(studyMultiplier(fresh,'syntax'),1);
+  assert.ok(fresh.experience.craft>0);assert.equal(openOnlineMaterial(fresh,'syntax'),false);assert.equal(studyMultiplier(fresh,'syntax'),1);
 });

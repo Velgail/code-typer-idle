@@ -3015,3 +3015,57 @@ body.reduce-motion *,body.reduce-motion *:before,body.reduce-motion *:after {
 @media(max-width:480px) { .learning-guide { padding:12px; } .binding-list>div { grid-template-columns:minmax(75px,1fr) minmax(0,2fr); gap:8px; } }
 
 .translated-comment { color:var(--green); }
+
+
+/* The career view keeps current choices next to the experience they require. */
+.career-heading { display:flex; align-items:baseline; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.career-heading p, .career-heading>span { color:var(--muted); font-size:12px; }
+.career-heading>span { white-space:nowrap; font-family:var(--mono); }
+.roadmap-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); }
+.roadmap-card { display:flex; flex-direction:column; min-width:0; }
+.roadmap-card.locked { background:var(--bg); }
+.project-select { width:100%; margin-top:auto; }
+.project-requirements { list-style:none; padding:0; margin:16px 0 8px; }
+.project-requirements li { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px; font-size:11px; padding:5px 0; color:var(--yellow); }
+.project-requirements li.met { color:var(--muted); }
+.project-requirements b { font-family:var(--mono); font-weight:400; }
+.project-knowledge { color:var(--muted); font-size:11px; margin-top:12px; }
+.project-knowledge summary { cursor:pointer; }
+.roadmap-card .project-experience-note { font-size:10px; margin-bottom:18px; }
+.career-horizon { display:flex; gap:16px; align-items:center; padding:20px; margin-top:20px; border:1px dashed var(--border); border-radius:9px; }
+.career-horizon>span { width:28px; flex-shrink:0; color:var(--green); }
+.career-horizon svg { width:100%; fill:none; stroke:currentColor; stroke-width:1.5; }
+.career-horizon b { font-size:13px; font-weight:500; }
+.career-horizon p { font-size:11px; color:var(--muted); margin:5px 0 0; line-height:1.9; }
+.prestige-card>div { flex:1; min-width:0; }
+.career-experience { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.career-experience>div { padding:10px 0; border-top:1px solid var(--border); }
+.career-experience span, .career-experience small { display:block; color:var(--muted); font-size:11px; }
+.career-experience b { display:block; font:19px var(--mono); color:var(--green); margin:6px 0; }
+.career-experience b small { display:inline; }
+.career-effects { color:var(--muted); font-size:11px; line-height:2; padding-left:18px; margin:8px 0 0; }
+.career-effects b { color:var(--green); font-weight:400; }
+.release-title { font-size:22px; margin-top:6px; }
+.release-detail { flex-wrap:wrap; }
+.release-detail b span { font-size:11px; }
+.catalog-entry .contract-note { display:block; }
+#office-contract button { margin-top:10px; }
+@media(max-width:720px) {
+  .career-heading { display:block; }
+  .career-experience { gap:9px; }
+  .career-experience b { font-size:16px; }
+}
+
+.office-contract { margin-top:12px; padding-top:10px; border-top:1px solid var(--border); color:var(--muted); font-size:11px; line-height:1.8; }
+.office-contract b { font-weight:400; }
+.office-contract details { margin-top:4px; }
+.office-contract summary { cursor:pointer; }
+.office-contract p { margin:6px 0; }
+
+.modal-actions { flex-wrap:wrap; }
+@media(max-width:720px) { .modal-actions button { max-width:100%; white-space:normal; } .milestone-actions>button { min-width:0; } }
+
+.practice-revisit { margin-top:18px; font-size:11px; color:var(--muted); }
+.practice-revisit summary { cursor:pointer; }
+.practice-revisit p { margin:10px 0; line-height:1.8; }
+.practice-revisit>div { display:flex; gap:8px; flex-wrap:wrap; }

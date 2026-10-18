@@ -5,7 +5,7 @@ const PIPELINE_VERSION = 3;
 const root = new URL('../docs/', import.meta.url);
 const license = await readFile(new URL('../LICENSE', root), 'utf8');
 const licenseHeader = `/*\n${license}\n*/\n`;
-const modules = ['app', 'core', 'typing', 'updates', 'office', 'officequality', 'curriculum', 'idioms', 'courses', 'learningguide', 'maintenance', 'builds', 'course'];
+const modules = ['app', 'core', 'career', 'typing', 'updates', 'office', 'officequality', 'curriculum', 'idioms', 'courses', 'learningguide', 'maintenance', 'builds', 'course'];
 const sources = await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, root), 'utf8')));
 const css = await readFile(new URL('style.css', root), 'utf8');
 const htmlPath = new URL('index.html', root);

@@ -50,7 +50,7 @@ test('reading is textbook-gated, pays only the first correct answer, and persist
   const restored=deserialize(serialize(loaded));
   assert.equal(readingLesson(restored).id,next.id); assert.equal(answerReading(restored,next.answer).kind,'answered');
 });
-test('reading exposes each subject separately, rejects malformed state, and resets with a new career', () => {
+test('reading exposes each subject separately, rejects malformed state, and retains answered questions in a new career', () => {
   const s=createState(); s.items['book-syntax']=1;
   for(let i=0;i<16;i++) {answerReading(s,readingLesson(s).answer);nextReading(s);}
   assert.equal(s.stats.study,16*READING_UNITS);
@@ -59,7 +59,8 @@ test('reading exposes each subject separately, rejects malformed state, and rese
   const raw=JSON.parse(serialize(s));raw.reading.answers.__proto__={evil:1};raw.reading.answers['cpp/syntax/invalid']=0;raw.reading.cursors['cpp/design']=1e20;
   const restored=deserialize(JSON.stringify(raw));
   assert.equal(Object.keys(restored.reading.answers).length,16); assert.equal(restored.reading.cursors['cpp/design'],undefined);
-  s.runBest=3; const fresh=prestige(s); assert.deepEqual(fresh.reading,{cursors:{},answers:{}});
+  s.runBest=2;s.runExperience={craft:5,design:2,audience:1}; const fresh=prestige(s); assert.ok(fresh);assert.deepEqual(fresh.reading,s.reading);
+  assert.equal(answerReading(fresh,readingLesson(fresh).answer).kind,'textbook','reading credit remains answered while materials still gate access');
 });
 test('finite reading bonuses cannot bypass later knowledge requirements', () => {
   const s=createState();s.items['book-syntax']=1;
