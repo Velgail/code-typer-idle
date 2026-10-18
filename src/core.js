@@ -1,11 +1,15 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
-import { createTypingState, normalizeTypingState } from './typing.js';
+import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier } from './typing.js';
 import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceEfficiency, incurredDebt, changeDefectRate, addDebt, repayDebt, debtBreakdown } from './maintenance.js';
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
+import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMISSION_FEE, OCR_ERROR_INTERVAL } from './officequality.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 10;
+export const BALANCE_VERSION = 12;
+export const AUTO_STUDY_UNVERIFIED = .25;
+export const AUTO_DEVELOPMENT_DEFECTS = 2;
+export const TYPING_AUTOMATION_SHARE = .5;
 export const STORE_FEE_RATE = 0.25;
 export const PRODUCTION_SERVICES=[
   {id:'graphics',name:'グラフィック制作',payee:'イラストレーター・3Dアーティスト',share:.6,bonus:6},
@@ -31,10 +35,10 @@ export const SKILLS = [
 ];
 export const PROJECTS = [
   { name: '小さな数当てゲーム', genre: 'CONSOLE / FIRST BUILD', target: 3000, req: { syntax: 12 }, payout: 0, royalty: 0, desc: '最初の一本。売上はゼロ。でも、完成させた経験は残る。', icon: '01' },
-  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 18000, req: { syntax: 50, design: 20, graphics: 20 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
+  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 9000, req: { syntax: 24, design: 8, graphics: 8 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
   { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
   { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
-  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 4e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1,000万行相当の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
+  { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 6.2e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1,550万行相当の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
   { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', online: true, serverDaily: 3e6, target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
   { name: '現実コンパイラ', genre: 'SIMULATION / REALITY SCALE', online: true, serverDaily: 3e8, target: 1e13, req: { syntax: 2e5, design: 4e5, graphics: 3e5, systems: 5e5 }, payout: 3e12, royalty: 1.5e8, desc: 'クラウド上で物理法則を書き起こす。動き続ける世界を、プレイヤーへ配信する。', icon: '07' }
 ];
@@ -52,11 +56,11 @@ export const SHOP = [
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: 'サーバー運用の最適化', desc: '公開中のオンライン作品のサーバー代を25%削減', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'server', gate: 5 },
-  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '原票の読み取り・入力を自動化。導入時10作業量/秒。増設分のみLvごと ×1.5', base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '導入時10作業量/秒。増設分のみLvごと ×1.5。誤読率10%。誤納品は報酬取消と依頼元への再提出手数料20%。訂正で報酬を回収', initial: 500, base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
-  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '教材のある不足分野を学習 +8文字/秒。各Lvで ×1.8', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
+  { id: 'lab', tab: 'auto', name: '研究ラボ', desc: '教材のある不足分野を学習 +8文字/秒。各Lvで ×1.8。25%は未確認で残り、手入力・読解で確かめる', base: 12000, growth: 3, type: 'auto', glyph: 'flask', gate: 1 },
   { id: 'cluster', tab: 'auto', name: '自律開発クラスタ', desc: '開発 +3,500文字/秒。各Lvで ×2', base: 12e6, growth: 3, type: 'auto', glyph: 'server', gate: 4 }
 ];
 export const ACHIEVEMENTS = [
@@ -71,7 +75,7 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
@@ -80,8 +84,9 @@ export const operatingCost = s => bounded(s.catalog.reduce((total, title) => tot
 export const dailyBillEstimate = s => s.dailyAccrued + operatingCost(s) * (DAY - s.dayElapsed) / DAY;
 export const workRate = s => [1, 2, 3, 5, 8, 12, 18, 24, 30][Math.min(8, s.projectIndex)];
 export const handPower = s => bounded((1 + level(s, 'keyboard') * 0.25) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
+export const skillKnowledge = (s,id) => Math.max(0,s.skills[id]-(s.studyGaps?.[id] || 0));
 export function knowledgeRatio(s) {
-  return Math.min(...Object.entries(projectAt(s.projectIndex).req).map(([id, req]) => s.skills[id] / req));
+  return Math.min(...Object.entries(projectAt(s.projectIndex).req).map(([id, req]) => skillKnowledge(s,id) / req));
 }
 export function validity(s) {
   const ratio = knowledgeRatio(s);
@@ -89,9 +94,16 @@ export function validity(s) {
 }
 // Uses the same boundaries as code conversion, including exactly 50% = zero.
 export function developmentReadiness(s) {
-  const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: s.skills[id], missing: Math.max(0, required - s.skills[id]) }));
+  const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: skillKnowledge(s,id), missing: Math.max(0, required - skillKnowledge(s,id)) }));
   const stage = s.crashed || s.defects > defectLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
   return { stage, requirements };
+}
+export function learningGoal(s) {
+  const requirements=Object.entries(projectAt(s.projectIndex).req).map(([id,required])=>({id,required,current:skillKnowledge(s,id)}));
+  const missing=requirements.filter(r=>r.current<r.required).sort((a,b)=>a.current/a.required-b.current/b.required);
+  // Finish the subject the player chose before suggesting another one.
+  const next=(s.mode==='study' && missing.find(r=>r.id===s.subject)) || missing[0] || null;
+  return {next,completed:requirements.length-missing.length,total:requirements.length,progress:requirements.reduce((sum,r)=>sum+Math.min(1,r.current/r.required),0)/requirements.length};
 }
 export const READING_UNITS = 120;
 export function readingLesson(s) {
@@ -194,10 +206,17 @@ export function unitRate(s, id) {
   const startup = id === 'macro' ? OCR_BASE_RATE - config[0] : 0;
   return bounded((startup + config[0] * Math.pow(config[1], Math.min(800, l - 1))) * metaBonus(s));
 }
-export const devRate = s => s.autoEnabled ? bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0)) : 0;
+export const devCapacity = s => bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0));
+export const devRate = s => s.autoEnabled ? devCapacity(s) : 0;
 export const hasTextbook = (s, id = s.subject) => level(s, `book-${id}`) > 0;
 export const studyMultiplier = (s, id = s.subject) => hasTextbook(s, id) ? bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25)) : 0;
 export const ideMultiplier = s => 1 + level(s, 'ide') * 0.35;
+export function typingPower(s,mode=s.mode,subject=s.subject){
+  const capacity=mode==='work'?unitRate(s,'macro'):mode==='study'?(hasTextbook(s,subject)?unitRate(s,'lab'):0):devCapacity(s);
+  const ide=mode==='dev' && !s.refactor && knowledgeRatio(s)>=1?ideMultiplier(s):1;
+  const perSecond=TYPING_REFERENCE_RATE*(TYPING_REWARD.character+typingCompletionMultiplier(mode));
+  return bounded(handPower(s)+capacity*TYPING_AUTOMATION_SHARE/perSecond/ide*(s.cash<0 ? .5 : 1));
+}
 export function studyGain(s, chars = handPower(s), subject = s.subject) {
   let before = s.skills[subject];
   let xp = bounded(chars * STUDY_XP * studyMultiplier(s, subject));
@@ -217,18 +236,22 @@ export function studyGain(s, chars = handPower(s), subject = s.subject) {
   const ratio = xp / before / before ** (SKILL_EXPONENT - 1);
   return bounded(foundationGain + (Number.isFinite(ratio) ? before * Math.expm1(Math.log1p(ratio) / SKILL_EXPONENT) : xp ** (1 / SKILL_EXPONENT)));
 }
+export function studyPreview(s,chars=handPower(s),subject=s.subject){
+  const gain=studyGain(s,chars,subject);
+  return gain+Math.min(s.studyGaps?.[subject] || 0,gain);
+}
 export function autoStudySubject(s) {
   let subject = null, lowest = 1, missing = false;
   for (const [id, requirement] of Object.entries(projectAt(s.projectIndex).req)) {
-    const ratio = s.skills[id] / requirement;
+    const ratio = skillKnowledge(s,id) / requirement;
     if (ratio < 1) missing = true;
     if (hasTextbook(s, id) && ratio < lowest) { lowest = ratio; subject = id; }
   }
   if (missing) return subject;
   return hasTextbook(s) ? s.subject : SKILLS.find(skill => hasTextbook(s, skill.id))?.id || null;
 }
-export const itemCost = (s, item) => bounded(item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
-export const netIncome = s => unitRate(s, 'macro') * workRate(s) + netRoyaltyRate(s) - operatingCost(s) / DAY;
+export const itemCost = (s, item) => bounded(!level(s, item.id) && item.initial !== undefined ? item.initial : item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
+export const netIncome = s => unitRate(s, 'macro') * workRate(s)*(1-(1+OCR_RESUBMISSION_FEE)/OCR_ERROR_INTERVAL) + netRoyaltyRate(s) - operatingCost(s) / DAY;
 export function log(s, text, kind = 'info') {
   if (s.log.at(-1)?.text === text) return;
   s.log.push({ text, kind, day: s.day });
@@ -259,13 +282,32 @@ function earn(s, money) {
   s.cash = Math.min(LIMIT, s.cash + money);
   s.stats.earned = add(s.stats.earned, money);
 }
-export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject } = {}) {
+export const ocrReserve = s => level(s,'macro')?JOB_SIZE*Math.max(workRate(s),s.ocrJob?.rate || workRate(s))*OCR_RESUBMISSION_FEE:0;
+function automateOffice(s,chars){
+  const job=s.ocrJob,rate=workRate(s),remaining=JOB_SIZE-job.progress;
+  s.stats.chars=add(s.stats.chars,chars);
+  if(!job.progress)job.rate=rate;
+  if(chars<remaining){job.progress+=chars;return;}
+  const rest=chars-remaining,jobs=Math.floor(rest/JOB_SIZE);
+  const money=bounded(JOB_SIZE*job.rate+bounded(jobs*JOB_SIZE*rate));
+  const first=recordOCR(s.ocr,1,job.rate),bulk=recordOCR(s.ocr,jobs,rate);
+  const deduction=add(first.deduction,bulk.deduction),errors=first.errors+bulk.errors;
+  job.progress=rest%JOB_SIZE;job.rate=rate;
+  s.stats.jobs=add(s.stats.jobs,1+jobs);earn(s,money);
+  s.cash=Math.max(-LIMIT,s.cash-deduction);s.stats.earned=Math.max(0,s.stats.earned-deduction);
+  if(errors)log(s,`OCRの誤納品 ${errors}件。報酬 ${first.cancelled+bulk.cancelled}円を取消し、依頼元へ再提出手数料 ${first.fee+bulk.fee}円。訂正すると未受取報酬を回収できます。`,'error');
+}
+export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
   if (mode === 'study' && !hasTextbook(s, subject)) return { kind: 'textbook', amount: 0 };
   chars = Math.min(LIMIT, chars);
   if (manual && countManual) s.stats.manual = add(s.stats.manual, 1);
   s.stats.chars = add(s.stats.chars, chars);
   if (mode === 'work') {
+    if(s.workTask==='correction'){
+      const result=correctOCR(s.ocr,chars);earn(s,result.recovered);
+      return {kind:'correction',amount:result.recovered,completed:result.completed,work:result.workUsed};
+    }
     const rate = workRate(s);
     if (!s.job.progress) s.job.rate = rate;
     const remaining = JOB_SIZE - s.job.progress;
@@ -279,10 +321,13 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
     return { kind: 'work', amount: money, work: chars };
   }
   if (mode === 'study') {
-    const before = s.skills[subject];
-    s.skills[subject] = add(before, studyGain(s, chars, subject));
+    const before = skillKnowledge(s,subject),gain=studyGain(s,chars,subject);
+    s.skills[subject] = add(s.skills[subject],gain);
+    s.studyGaps ||= Object.fromEntries(SKILLS.map(k=>[k.id,0]));
+    const gap=s.studyGaps[subject] || 0,verified=automation?0:Math.min(gap,gain);
+    s.studyGaps[subject]=Math.min(s.skills[subject],automation?add(gap,gain*AUTO_STUDY_UNVERIFIED):Math.max(0,gap-verified));
     s.stats.study = add(s.stats.study, chars);
-    return { kind: 'study', amount: s.skills[subject] - before };
+    return { kind: 'study', amount: skillKnowledge(s,subject) - before, verified };
   }
   const ratio = knowledgeRatio(s);
   if (s.refactor) {
@@ -315,8 +360,10 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
   }
   const accepted=developmentGain(s,chars,manual);
   if(!s.progress && !s.debt)s.reviewedAt=s.stats.time;
-  const introducedDefects=accepted*changeDefectRate(s,debtLimit(s));
-  const debtAdded=addDebt(s,incurredDebt(s,accepted,projectAt(s.projectIndex).target),LIMIT);
+  const introducedDefects=accepted*changeDefectRate(s,debtLimit(s))*(automation?AUTO_DEVELOPMENT_DEFECTS:1);
+  const sources=incurredDebt(s,accepted,projectAt(s.projectIndex).target);
+  if(automation)sources.generated=Object.values(sources).reduce((sum,n)=>sum+n,0);
+  const debtAdded=addDebt(s,sources,LIMIT);
   s.defects=Math.min(defectLimit(s),s.defects+introducedDefects);
   s.progress = add(s.progress, accepted);
   s.stats.valid = add(s.stats.valid, accepted);
@@ -339,7 +386,7 @@ function automateDevelopment(s, chars) {
     checkChangedCode(s,chars,'automatic',s.crashed);
     return;
   }
-  input(s, { mode: 'dev', chars, manual: false });
+  input(s, { mode: 'dev', chars, manual: false, automation: true });
 }
 export function tick(s, seconds, { chargeExpenses = true } = {}) {
   seconds = Math.max(0, Math.min(OFFLINE_LIMIT, seconds));
@@ -353,9 +400,9 @@ export function tick(s, seconds, { chargeExpenses = true } = {}) {
     const gross = bounded(royaltyRate(s) * dt), fee = chargeExpenses ? gross * STORE_FEE_RATE : 0;
     earn(s, gross - fee);
     s.stats.storeFees = add(s.stats.storeFees, fee);
-    if (unitRate(s, 'macro')) input(s, { mode: 'work', chars: bounded(unitRate(s, 'macro') * dt), manual: false });
+    if (unitRate(s, 'macro')) automateOffice(s,bounded(unitRate(s, 'macro') * dt));
     const studySubject = unitRate(s, 'lab') ? autoStudySubject(s) : null;
-    if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false });
+    if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false, automation: true });
     if (devRate(s) && (s.progress < projectAt(s.projectIndex).target || s.refactor && (s.debt>0 || s.defects>0))) automateDevelopment(s, bounded(devRate(s) * dt));
     if (chargeExpenses) s.dailyAccrued = add(s.dailyAccrued, operatingCost(s) / DAY * dt);
     while (s.dayElapsed >= DAY) {
@@ -435,11 +482,11 @@ export function prestige(s, now = Date.now()) {
 export function applyOffline(s, now = Date.now()) {
   const elapsed = Math.max(0, (now - s.savedAt) / 1000);
   const seconds = Math.min(elapsed, OFFLINE_LIMIT);
-  const before = { cash: s.cash, progress: s.progress, knowledge: s.skills[s.subject] };
+  const before = { cash: s.cash, progress: s.progress, knowledge: skillKnowledge(s,s.subject) };
   if (seconds > 2) tick(s, seconds, { chargeExpenses: !s.skipOfflineExpenses });
   delete s.skipOfflineExpenses;
   s.savedAt = now;
-  return { seconds, capped: elapsed > OFFLINE_LIMIT, cash: s.cash - before.cash, progress: s.progress - before.progress, knowledge: s.skills[s.subject] - before.knowledge };
+  return { seconds, capped: elapsed > OFFLINE_LIMIT, cash: s.cash - before.cash, progress: s.progress - before.progress, knowledge: skillKnowledge(s,s.subject) - before.knowledge };
 }
 export function serialize(s, now = Date.now()) { s.savedAt = now; return JSON.stringify(s); }
 export function deserialize(raw) {
@@ -451,6 +498,11 @@ export function deserialize(raw) {
   const num = (value, fallback = 0, min = 0, max = LIMIT) => typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max ? value : fallback;
   for (const key of ['cash', 'progress', 'debt', 'mistakes', 'assets', 'savedAt']) s[key] = num(x[key], s[key], key === 'cash' ? -LIMIT : 0);
   for (const key of ['resets', 'projectIndex', 'runReleased', 'runBest', 'day']) s[key] = Math.floor(num(x[key], s[key], 0, 1e6));
+  const enlargedAAA=!(x.balanceVersion>=12) && s.projectIndex===4;
+  const scopeScale=!(x.balanceVersion>=11) && s.projectIndex===1 ? .5 : enlargedAAA?1.55:1;
+  if(enlargedAAA)s.progress=bounded(s.progress*scopeScale);
+  const originalDebt=s.debt;
+  s.debt=bounded(s.debt*scopeScale);
   s.day = Math.max(1, s.day);
   const previousDay = x.balanceVersion >= 3 ? DAY : 60;
   s.dayElapsed = num(x.dayElapsed, 0, 0, previousDay - 1e-6) / previousDay * DAY;
@@ -462,8 +514,12 @@ export function deserialize(raw) {
   }
   s.job.progress = num(x.job?.progress, 0, 0, JOB_SIZE - 1e-9);
   s.job.rate = num(x.job?.rate, workRate(s), 1, 30);
+  s.ocrJob.progress=num(x.ocrJob?.progress,0,0,JOB_SIZE-1e-9);
+  s.ocrJob.rate=num(x.ocrJob?.rate,workRate(s),1,30);
+  s.ocr=normalizeOCRLedger(x.ocr);
+  if(x.workTask==='correction')s.workTask='correction';
   for (const k of Object.keys(s.stats)) s.stats[k] = num(x.stats?.[k]);
-  for (const k of Object.keys(s.skills)) s.skills[k] = num(x.skills?.[k]);
+  for (const k of Object.keys(s.skills)) {s.skills[k] = num(x.skills?.[k]);s.studyGaps[k]=num(x.studyGaps?.[k],0,0,s.skills[k]);}
   for (const item of SHOP) s.items[item.id] = Math.floor(num(x.items?.[item.id], 0, 0, item.max || 800));
   if (['work', 'study', 'dev'].includes(x.mode)) s.mode = x.mode;
   if (SKILLS.some(k => k.id === x.subject)) s.subject = x.subject;
@@ -481,19 +537,28 @@ export function deserialize(raw) {
     }
   }
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
+  if(!(x.balanceVersion>=12) && s.refactor && s.typing.context.startsWith('dev/') && !s.typing.context.endsWith('/review'))s.typing.context+='/review';
   for (const k of ['sound','reducedMotion']) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
   s.progress = Math.min(s.progress, projectAt(s.projectIndex).target);
   if(!(x.balanceVersion >= 8)){
     s.defects=Math.min(s.debt,defectLimit(s));s.debt=0;s.debtSources=emptyDebtSources();s.reviewedAt=s.stats.time;
   }else{
-    s.defects=Math.min(num(x.defects),defectLimit(s));
+    s.defects=Math.min(num(x.defects)*scopeScale,defectLimit(s));
     setDevelopmentPolicy(s,x.developmentPolicy);
     s.reviewedAt=Math.min(s.stats.time,num(x.reviewedAt,s.stats.time));
-    s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,num(x.debtSources?.[id],0,0,s.debt)]));
+    s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,num(x.debtSources?.[id],0,0,originalDebt)*scopeScale]));
     const normalized=debtBreakdown(s);s.debtSources=emptyDebtSources();for(const c of normalized)s.debtSources[c.id]=c.amount;
   }
   s.crashed = s.crashed || s.defects >= defectLimit(s);
-  s.build=normalizeBuildState(x.build,s,projectAt(s.projectIndex).target);
+  let savedBuild=x.build;
+  if(scopeScale!==1 && savedBuild && typeof savedBuild==='object'){
+    // Keep validation history aligned when a release changes project scope.
+    const progress=n=>Math.min(num(n)*(enlargedAAA?scopeScale:1),projectAt(s.projectIndex).target);
+    const record=r=>r && typeof r==='object'?{...r,progress:progress(r.progress),defects:num(r.defects)*scopeScale}:r;
+    savedBuild={...savedBuild,checkedProgress:Math.min(progress(savedBuild.checkedProgress),s.progress),knownDefects:num(savedBuild.knownDefects)*scopeScale,last:record(savedBuild.last),history:Array.isArray(savedBuild.history)?savedBuild.history.map(record):[]};
+  }
+  s.build=normalizeBuildState(savedBuild,s,projectAt(s.projectIndex).target);
+  if(scopeScale!==1 && (s.progress || s.debt || s.defects || s.build.last))markBuildChanges(s,1);
   for(const service of PRODUCTION_SERVICES){
     const order=x.production?.[service.id];
     if(s.projectIndex>0 && order && typeof order==='object' && typeof order.paid==='number' && order.paid>0 && order.paid<=LIMIT && Number.isFinite(order.paid))s.production[service.id]={paid:order.paid};

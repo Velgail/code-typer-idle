@@ -30,7 +30,7 @@ test('debt and repaired historical mistakes neither block a commercial release n
   const s=developer(1);s.progress=projectAt(1).target;s.debt=debtLimit(s);s.mistakes=1e6;
   assert.equal(quality(s),80);
   const result=release(s);
-  assert.ok(result.royalty>0);assert.equal(result.technicalDebt,4500);
+  assert.ok(result.royalty>0);assert.equal(result.technicalDebt,projectAt(1).target*.25);
   assert.equal(s.debt,0,'an isolated project is not forcibly reused');
   const bugs=developer(1);bugs.progress=projectAt(1).target;bugs.defects=defectLimit(bugs)*.11;
   assert.equal(release(bugs),null);

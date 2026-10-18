@@ -1503,6 +1503,15 @@ button {
   color:var(--green);
   background:#2d3d2f;
 }
+.subject-button small { display:block; margin-top:3px; font:9px var(--mono); }
+.subject-button small:empty { display:none; }
+.subject-button.subject-complete { color:var(--green); }
+.ocr-review { margin-top:8px; font-size:11px; }
+.ocr-review p { margin:5px 0; }
+.ocr-review strong { color:var(--green); font-size:11px; }
+.ocr-review details { margin-top:5px; color:var(--muted); font-size:10px; }
+.ocr-row { font-family:var(--mono); overflow-wrap:anywhere; margin:5px 0; }
+.ocr-row mark { color:var(--red); background:#e5918622; padding:1px 3px; }
 
 .project-progress {
   margin:-3px 0 16px;

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { createState, projectAt } from '../src/core.js';
+import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge } from '../src/core.js';
+import { TYPING_REWARD } from '../src/typing.js';
 
-async function open(browser, url, errors, viewport, seed) {
+async function open(browser, url, errors, viewport, seed, pausedClock = false) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
   if (seed) await context.addInitScript(data => {
     if (sessionStorage.getItem('early-game-seeded')) return;
@@ -11,6 +12,10 @@ async function open(browser, url, errors, viewport, seed) {
   }, seed);
   const page = await context.newPage();
   page.on('pageerror', error => errors.push(error.message));
+  if (pausedClock) {
+    await page.clock.install({ time: new Date() });
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
+  }
   await page.goto(url);
   // The goal CTA exists in static HTML; shop controls appear only after saved state is loaded.
   await page.waitForSelector('.buy-button');
@@ -47,17 +52,124 @@ async function assertOfficeVisible(page, label) {
   assert.equal(boxes.overflow, false, `${label}: the page must not overflow horizontally`);
 }
 
-export async function verifyEarlyGameUI(browser, url, errors) {
+function secondCycleFixtures() {
+  // Fund and advance fixtures through the ordinary rules; these are checkpoints,
+  // not claims about live typing speed or an optimal purchase sequence.
+  const state = createState();
+  state.autoEnabled = false;
+  for (let count = 0; count < 400; count++) input(state, { mode: 'work' });
+  assert.equal(buy(state, 'macro'), true);
+  tick(state, 181);
+  assert.equal(buy(state, 'book-syntax'), true);
+  const learn = (s, id, target) => {
+    for (let count = 0; skillKnowledge(s,id) < target; count++) {
+      assert.ok(count < 20000, 'the study fixture must converge');
+      input(s, { mode: 'study', subject: id, chars: 10 });
+      tick(s, 1);
+    }
+  };
+  learn(state, 'syntax', projectAt(0).req.syntax);
+  while (state.progress < projectAt(0).target) {
+    input(state, { mode: 'dev', chars: 10 });
+    tick(state, 1);
+  }
+  assert.ok(release(state));
+  assert.equal(state.projectIndex, 1);
+  assert.equal(buy(state, 'book-design'), true);
+  Object.assign(state, { mode: 'study', subject: 'design', inputStyle: 'typing' });
+  const start = structuredClone(state), near = structuredClone(state);
+  const project = projectAt(1);
+  const studyStroke = s => typingPower(s,'study','design') * TYPING_REWARD.character;
+  while (skillKnowledge(near,'design') + studyGain(near, studyStroke(near), 'design') < project.req.design) {
+    input(near, { mode: 'study', subject: 'design', chars: studyStroke(near) });
+    tick(near, .2);
+  }
+
+  const ready = structuredClone(state);
+  learn(ready, 'syntax', project.req.syntax);
+  assert.equal(buy(ready, 'book-graphics'), true);
+  learn(ready, 'design', project.req.design);
+  learn(ready, 'graphics', project.req.graphics);
+  const devStroke = s => typingPower(s,'dev') * TYPING_REWARD.character;
+  while (ready.progress + developmentGain(ready, devStroke(ready)) < project.target) {
+    input(ready, { mode: 'dev', chars: devStroke(ready) });
+    tick(ready, .2);
+  }
+  if (ready.defects > defectLimit(ready) * .1) {
+    ready.refactor = true;
+    while (ready.defects > defectLimit(ready) * .1) input(ready, { mode: 'dev', chars: 10 });
+    ready.refactor = false;
+  }
+  Object.assign(ready, { mode: 'study', subject: 'graphics' });
+  return { start, near, ready };
+}
+
+async function verifySecondCycle(browser, url, errors, capture) {
+  const fixtures = secondCycleFixtures();
+  const first = await open(browser, url, errors, { width: 390, height: 844 }, fixtures.start, true);
+  try {
+    const p = first.page;
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'design');
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
+    const before = await p.locator('#goal-bar').evaluate(el => parseFloat(el.style.width));
+    await p.locator('#type-button').click();
+    const prompt = await p.locator('#editor-content').getAttribute('data-prompt');
+    await p.keyboard.type(prompt[0]);
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'design', 'one correct character must not replace the chosen subject with an unaffordable textbook');
+    const after = await p.locator('#goal-bar').evaluate(el => parseFloat(el.style.width));
+    assert.ok(after > before && after > 0, 'learning a non-bottleneck field must visibly advance preparation');
+    assert.match(await p.locator('[data-subject=design] small').innerText(), /\/ 8/);
+    assert.match(await p.locator('#goal-status').innerText(), /0 \/ 3.*分野/);
+    if (capture) await capture(p, 'second-design-start');
+  } finally { await first.context.close(); }
+
+  const lastCharacter = await open(browser, url, errors, { width: 390, height: 844 }, fixtures.near, true);
+  try {
+    const p = lastCharacter.page;
+    await p.locator('#type-button').click();
+    const prompt = await p.locator('#editor-content').getAttribute('data-prompt');
+    await p.keyboard.type(prompt[0]);
+    assert.match(await p.locator('[data-subject=design] small').innerText(), /✓/);
+    assert.match(await p.locator('#goal-status').innerText(), /1 \/ 3.*分野/);
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'book-graphics', 'completing the chosen field exposes the next unmet requirement');
+  } finally { await lastCharacter.context.close(); }
+
+  const ready = await open(browser, url, errors, { width: 390, height: 844 }, fixtures.ready, true);
+  try {
+    const p = ready.page;
+    for (const id of ['syntax', 'design', 'graphics']) assert.match(await p.locator(`[data-subject=${id}] small`).innerText(), /✓/);
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-kind'), 'dev');
+    await p.locator('#goal-action').click();
+    assert.equal(await p.locator('[data-mode=dev]').getAttribute('aria-selected'), 'true');
+    assert.match(await p.locator('#progress-summary').innerText(), /9,?000/);
+    const prompt = await p.locator('#editor-content').getAttribute('data-prompt');
+    await p.keyboard.type(prompt[0]);
+    assert.equal(await p.locator('#release-button').isDisabled(), false);
+    await p.locator('#release-button').click();
+    assert.match(await p.locator('#modal-body').innerText(), /NOW ON SALE/);
+    if (capture) await capture(p, 'second-release');
+    await p.locator('[data-action=next-project]').click();
+    assert.match(await p.locator('#next-goal').innerText(), /雨のダンジョン/);
+    const published = await snapshot(p);
+    assert.equal(published.projectIndex, 2);
+    assert.ok(published.catalog.some(title => title.index === 1 && title.royalty > 0));
+    assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+  } finally { await ready.context.close(); }
+}
+
+export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) {
   for (const viewport of [{ width: 1440, height: 1100 }, { width: 390, height: 844 }]) {
     const { context, page } = await open(browser, url, errors, viewport);
     try {
       const goal = page.locator('#goal-action');
-      assert.match(await goal.innerText(), /教材.*1,500/);
+      assert.match(await goal.innerText(), /OCR.*500/);
       assert.equal(await goal.getAttribute('data-goal-kind'), 'buy');
-      assert.equal(await goal.isDisabled(), true, 'a new player cannot buy the first textbook before earning enough');
+      assert.equal(await goal.getAttribute('data-goal-item'), 'macro');
+      assert.equal(await goal.isDisabled(), true, 'a new player must earn the first OCR purchase');
       assert.equal(await page.locator('#goal-alternative').isVisible(), true);
-      assert.match(await page.locator('#goal-alternative').innerText(), /OCR.*1,500/);
-      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'the alternative OCR purchase must also require sufficient funds');
+      assert.match(await page.locator('#goal-alternative').innerText(), /教材.*1,500/);
+      assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'book-syntax');
+      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'the textbook-first alternative must also require sufficient funds');
       assert.equal(await page.locator('#cash').isVisible(), true);
       for (const id of ['living', 'total-chars', 'royalty']) {
         assert.equal(await page.locator(`#${id}`).isVisible(), false, `${id}: unused zero metrics must not crowd the initial screen`);
@@ -89,18 +201,37 @@ export async function verifyEarlyGameUI(browser, url, errors) {
     } finally { await context.close(); }
   }
 
-  const affordable = createState();
-  affordable.cash = 1500;
-  const purchase = await open(browser, url, errors, { width: 390, height: 844 }, affordable);
+  let automationState;
+  const purchase = await open(browser, url, errors, { width: 390, height: 844 }, undefined, true);
   try {
     const page = purchase.page;
+    for (let count = 0; count < 400; count++) await page.locator('#type-button').click({ delay: 0 });
+    const earned = await snapshot(page);
+    assert.equal(earned.stats.manual, 400, 'the first investment must come from 400 real pointer clicks');
+    assert.equal(earned.cash, 500);
     assert.equal(await page.locator('#goal-action').isDisabled(), false);
+    await page.locator('#goal-action').click();
+    automationState = await snapshot(page);
+    assert.equal(automationState.items.macro, 1);
+    assert.equal(automationState.cash, 0);
+    assert.equal(automationState.subject, 'syntax', 'an automation purchase must not turn the study subject into macro');
+    assert.equal(automationState.mode, 'work');
+    assert.equal(await page.locator('#goal-alternative').isVisible(), false);
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'book-syntax');
+    assert.equal(await page.locator('#goal-action').isDisabled(), true);
+    assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/);
+    // Advance the clock, not resources: the normal game timer earns the textbook money.
+    await page.clock.fastForward(181000);
+    const automated = await snapshot(page);
+    assert.ok(automated.cash >= 1500, 'OCR income must fund the first textbook without more manual work');
+    assert.equal(automated.stats.manual, 400);
+    if (capture) await capture(page, 'ocr-funded-textbook');
     // The normal purchase CTA must remain keyboard accessible despite the click-farming guard.
     await page.locator('#goal-action').focus();
     await page.keyboard.press('Enter');
     const bought = await snapshot(page);
     assert.equal(bought.items['book-syntax'], 1, 'the goal CTA must buy the actual textbook');
-    assert.equal(bought.cash, 0, 'the purchase must charge the displayed price exactly once');
+    assert.equal(bought.cash, automated.cash - 1500, 'the purchase must charge the displayed price exactly once');
     assert.doesNotMatch(await page.locator('#goal-action').innerText(), /教材を買う/);
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
     await page.locator('[data-mode=study]').click();
@@ -112,18 +243,41 @@ export async function verifyEarlyGameUI(browser, url, errors) {
     assert.match(await page.locator('#development-readiness').innerText(), /あと[\d.]+学ぶ/);
   } finally { await purchase.context.close(); }
 
-  const automate = await open(browser, url, errors, { width: 390, height: 844 }, affordable);
+  const affordable = createState();
+  affordable.cash = 1500;
+  const directBook = await open(browser, url, errors, { width: 390, height: 844 }, affordable, true);
   try {
-    const page = automate.page;
+    const page = directBook.page;
     await page.locator('#goal-alternative').click();
     const bought = await snapshot(page);
-    assert.equal(bought.items.macro, 1, 'the alternative CTA must buy the OCR automation');
-    assert.equal(bought.items['book-syntax'], 0, 'choosing automation must preserve the textbook as a separate purchase');
+    assert.equal(bought.items['book-syntax'], 1, 'the alternative CTA must preserve the textbook-first route');
+    assert.equal(bought.items.macro, 0);
     assert.equal(bought.cash, 0);
-    assert.equal(await page.locator('#goal-alternative').isVisible(), false, 'the one-time early automation shortcut disappears after purchase');
-    assert.equal(await page.locator('#goal-action').isDisabled(), true);
-    assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/, 'the purchased OCR must display its actual 10 work units per second');
-  } finally { await automate.context.close(); }
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
+    assert.equal(await page.locator('#goal-action').isDisabled(), false);
+    assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'macro');
+  } finally { await directBook.context.close(); }
+
+  const combined = await open(browser, url, errors, { width: 390, height: 844 }, automationState, true);
+  try {
+    const page = combined.page;
+    const workValue = s => s.cash + s.job.progress * s.job.rate;
+    const before = await snapshot(page);
+    await page.locator('[data-input-style=typing]').click();
+    await page.locator('#type-button').click();
+    const prompt = await page.locator('#editor-content').getAttribute('data-prompt');
+    await page.keyboard.type(prompt);
+    const typed = await snapshot(page);
+    const expected = prompt.length * typingPower(before,'work') * (TYPING_REWARD.character + TYPING_REWARD.officeCompletion);
+    assert.ok(Math.abs(workValue(typed) - workValue(before) - expected) < .001, 'perfect office completion must earn the current physical-key typing reward and owned-equipment capacity');
+    assert.equal(typed.typing.completed, 1);
+    assert.equal(typed.stats.manual, before.stats.manual + prompt.length);
+    await page.clock.fastForward(10000);
+    const together = await snapshot(page);
+    assert.ok(Math.abs(workValue(together) - workValue(typed) - 100) < .001, 'the first clean OCR delivery must add its own payment independently of manual typing');
+    assert.deepEqual(together.job,typed.job,'OCR must not consume or change the hand-entered contract');
+    assert.equal(together.stats.manual, typed.stats.manual);
+  } finally { await combined.context.close(); }
 
   const ready = createState();
   ready.items['book-syntax'] = 1;
@@ -202,5 +356,6 @@ export async function verifyEarlyGameUI(browser, url, errors) {
     assert.equal(await details.evaluate(el => el.open), false);
     assert.equal(await field.evaluate(el => el === document.activeElement), true);
   } finally { await mobile.context.close(); }
+  await verifySecondCycle(browser, url, errors, capture);
   console.log('Early-game checks passed: visible purchase goal, progressive metrics, textbook purchase and development route, compact invoice/cursor visibility, error correction, next invoice focus and keyboard guards.');
 }

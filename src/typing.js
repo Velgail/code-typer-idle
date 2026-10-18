@@ -3,6 +3,7 @@ import { courseUnit, courseLesson, currentCourseUnit, nextCourseUnit, validCours
 // English ASCII prompts keep programming practice independent of an IME.
 import { CURRICULUM_VERSION, BASE_LESSON_COUNT, LESSON_COUNT, lessonAt, localeForComments } from './curriculum.js';
 import { OFFICE_DATA_VERSION, officeOrderAt } from './office.js';
+import { nextOCRError, ocrErrorFor } from './officequality.js';
 export const LANGUAGES = [
   { id: 'cpp', name: 'C++', extension: 'cpp', description: 'ゲームエンジン、描画、メモリ管理' },
   { id: 'csharp', name: 'C#', extension: 'cs', description: 'Unity、ゲームロジック、業務API' },
@@ -13,7 +14,8 @@ export const LANGUAGES = [
   { id: 'sql', name: 'SQL', extension: 'sql', description: 'データ分析、集計、ストア運用' },
   { id: 'lua', name: 'Lua', extension: 'lua', description: 'ゲームスクリプト、イベント、描画' }
 ];
-export const TYPING_REWARD = { character: 1.5, completion: 0.5, officeCompletion: 0.75 };
+export const TYPING_REWARD = { character: 12, completion: 4, officeCompletion: 4 };
+export const TYPING_REFERENCE_RATE = 5;
 export const typingCompletionMultiplier = mode => mode === 'work' ? TYPING_REWARD.officeCompletion : TYPING_REWARD.completion;
 const VARIANTS = 16;
 const DATA = {
@@ -244,7 +246,7 @@ export function promptAt(language, subject, index, version = CURRICULUM_VERSION)
   return pool[number % pool.length].replace(/\$(\w+)\$/g, (_, key) => data[key]);
 }
 export function createTypingState() {
-  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, correction: null, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
 }
 export function normalizeTypingState(value) {
   const s = createTypingState();
@@ -266,33 +268,50 @@ export function normalizeTypingState(value) {
   if (LANGUAGES.some(l => l.id === value.language)) s.language = value.language;
   for (const key of ['index', 'offset', 'errors', 'correct', 'completed', 'roundErrors']) if (Number.isSafeInteger(value[key]) && value[key] >= 0 && value[key] < 1e12) s[key] = value[key];
   s.offset = Math.min(8192, s.offset);
-  if (typeof value.context === 'string' && /^[a-z]+\/[a-z]+\/\d+$/.test(value.context)) s.context = value.context;
+  if (typeof value.context === 'string' && /^[a-z]+\/[a-z]+\/\d+(?:\/review)?$/.test(value.context)) s.context = value.context;
+  const correction=ocrErrorFor(value.correction);
+  if(correction)s.correction=Object.fromEntries(['index','version','fieldIndex','rate','cursor'].map(key=>[key,correction[key]]));
   if (Number.isFinite(value.bonusBase) && value.bonusBase >= 0) s.bonusBase = Math.min(1e250, value.bonusBase);
   return s;
 }
 export function typingSubject(state) {
   if (state.mode === 'study') return state.subject;
-  if (state.mode === 'work') return 'office';
+  if (state.mode === 'work') return state.workTask==='correction'?'correction':'office';
   return ['syntax', 'design', 'graphics', 'systems'][Math.min(3, Math.floor(state.projectIndex / 2))];
 }
 export function currentPrompt(state) {
   if(state.mode==='study' && state.typing.source==='course' && !coursesLoaded())return '';
   const course = state.mode === 'study' && state.typing.source === 'course' ? currentCourseUnit(state) : null;
   const subject = typingSubject(state);
-  const context = `${state.mode}/${subject}/${state.projectIndex}`;
+  const context = `${state.mode}/${subject}/${state.projectIndex}${state.mode==='dev' && state.refactor?'/review':''}`;
   if (state.typing.context !== context) {
     state.typing.context = context;
     state.typing.offset = 0;
     state.typing.roundErrors = 0;
     state.typing.bonusBase = 0;
+    state.typing.correction=null;
     const resume=course && state.typing.courseCursors[`${state.typing.language}/${subject}`];
     if(course && resume?.id===course.id){state.typing.offset=resume.offset;state.typing.roundErrors=resume.roundErrors;state.typing.bonusBase=resume.bonusBase;}
+  }
+  if(state.mode==='work' && state.workTask==='correction'){
+    const review=currentOCRReview(state);
+    if(!review){state.typing.offset=0;return '';}
+    state.typing.offset=Math.min(state.typing.offset,review.correctValue.length-1);
+    return review.correctValue;
   }
   if (state.mode === 'work' && !state.typing.offset) state.typing.officeVersion = OFFICE_DATA_VERSION;
   if (state.mode !== 'work' && !state.typing.offset) state.typing.curriculumVersion = CURRICULUM_VERSION;
   const text = course ? course.code : state.mode === 'work' ? officeOrderAt(state.typing.index, state.typing.officeVersion).input : promptAt(state.typing.language, subject, state.typing.index, state.typing.curriculumVersion);
   state.typing.offset = Math.min(state.typing.offset, text.length - 1);
   return text;
+}
+export function currentOCRReview(state){
+  if(state.mode!=='work' || state.workTask!=='correction')return null;
+  if(!state.typing.offset || !state.typing.correction){
+    const next=nextOCRError(state.ocr);
+    state.typing.correction=next?Object.fromEntries(['index','version','fieldIndex','rate','cursor'].map(key=>[key,next[key]])):null;
+  }
+  return ocrErrorFor(state.typing.correction);
 }
 // Derive completed comments from the validated cursor, including after reload.
 // This does not award progress or wait for the surrounding code to be finished.
@@ -353,6 +372,7 @@ export function acceptCharacter(state, character, basePower = 1) {
   if (t.offset < text.length) return { correct: true, complete: false, bonus: 0 };
   const accuracy = text.length / (text.length + t.roundErrors);
   const bonus = t.bonusBase * typingCompletionMultiplier(state.mode) * accuracy ** 2;
+  const work=t.bonusBase*TYPING_REWARD.character+bonus;
   if (state.mode === 'study' && t.source === 'course' && courseUnit(t.courseUnit)) {
     t.lastCompleted = {version:CURRICULUM_VERSION,courseUnit:t.courseUnit};
     if (!t.courseCompleted.includes(courseUnit(t.courseUnit).key)) t.courseCompleted.push(courseUnit(t.courseUnit).key);
@@ -368,6 +388,7 @@ export function acceptCharacter(state, character, basePower = 1) {
   t.offset = 0;
   t.roundErrors = 0;
   t.bonusBase = 0;
+  t.correction=null;
   t.context = '';
-  return { correct: true, complete: true, bonus, accuracy };
+  return { correct: true, complete: true, bonus, accuracy, work };
 }

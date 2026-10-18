@@ -45,7 +45,7 @@ test('administrative work normalizes image invoice fields, independent of progra
   assert.equal(currentPrompt(s), promptAt('rust', 'syntax', 0));
   assert.equal(s.typing.offset, 0);
 });
-test('a perfect invoice pays 2.25 times the equivalent click work including its completion bonus', () => {
+test('a perfect invoice pays sixteen times equivalent click work including its completion bonus', () => {
   const s = createState(), text = currentPrompt(s), cash = s.cash;
   for (const char of text) {
     const p = handPower(s), result = acceptCharacter(s, char, p);
@@ -53,17 +53,17 @@ test('a perfect invoice pays 2.25 times the equivalent click work including its 
     input(s, { chars: p * TYPING_REWARD.character });
     if (result.complete) input(s, { chars: result.bonus, countManual: false });
   }
-  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 2.25);
+  assert.equal(s.cash - cash + s.job.progress * s.job.rate, text.length * 16);
   assert.equal(s.typing.completed, 1); assert.equal(s.typing.offset, 0);
   assert.equal(s.stats.manual, text.length);
 });
-test('study and development code pay a total of 2 times base input with a perfect completion', () => {
+test('study and development code pay sixteen times base input with a perfect completion', () => {
   for (const mode of ['study', 'dev']) {
     const s = createState(); s.mode = mode;
     const text = currentPrompt(s);
     let bonus = 0;
     for (const char of text) bonus += acceptCharacter(s, char).bonus;
-    assert.equal(text.length * TYPING_REWARD.character + bonus, text.length * 2, mode);
+    assert.equal(text.length * TYPING_REWARD.character + bonus, text.length * 16, mode);
   }
 });
 test('errors reduce the completion bonus, and an unfinished prompt never grants it', () => {
