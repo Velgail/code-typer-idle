@@ -14,6 +14,7 @@ import { verifyMaintenanceUI } from './maintenance-ui.mjs';
 import { verifyDirectTyping } from './direct-typing.mjs';
 import { verifyEarlyGameUI } from './early-game-ui.mjs';
 import { verifyAutomationQuality } from './automation-quality-ui.mjs';
+import { verifyFreeMaterialUI } from './free-material-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -43,6 +44,7 @@ const errors = [];
 try {
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
+  await verifyFreeMaterialUI(browser, url, errors);
   await verifyAutomationQuality(browser, url, errors);
   await verifyMaintenanceUI(browser, url, errors);
   await verifyDirectTyping(browser, url, errors);
@@ -62,7 +64,8 @@ try {
   assert.equal(await page.locator('#bill-next').textContent(), '契約・支払いなし');
   await page.locator('#help-button').click();
   assert.equal(await page.locator('.help-section').count(), 8);
-  assert.match(await page.locator('#modal-body').textContent(), /教材.*プログラミング基礎教本.*写経・学習/s);
+  assert.match(await page.locator('#modal-body').textContent(), /無料教材を開く.*写経・学習/s);
+  assert.match(await page.locator('#modal-body').textContent(), /有料教本.*2倍/s);
   assert.match(await page.locator('#modal-body').textContent(), /レビュー・整理に切替/);
   assert.match(await page.locator('#modal-body').textContent(), /セーブを書き出す/);
   assert.doesNotMatch(await page.locator('#modal-body').textContent(), /FIRST RUN|BALANCE|3〜7日|300打鍵|旧セーブは/);
@@ -156,7 +159,7 @@ try {
   await page.locator('[data-mode=study]').click();
   assert.equal(await page.locator('#office-source').isVisible(), false);
   assert.equal(await page.locator('#study-lock').isVisible(), true);
-  assert.match(await page.locator('#study-lock-message').textContent(), /プログラミング基礎教本.*1,500/);
+  assert.match(await page.locator('#study-lock-message').textContent(), /オンライン教材.*無料/);
   for (const style of ['click', 'typing']) {
     await page.locator(`[data-input-style=${style}]`).click();
     assert.equal(await page.locator('#type-button').isDisabled(), true);
@@ -227,7 +230,7 @@ try {
   }
   await seeded.locator('[data-subject=design]').click();
   assert.equal(await seeded.locator('#type-button').isDisabled(), true, 'a syntax textbook must not unlock design study');
-  assert.match(await seeded.locator('#study-lock-message').textContent(), /設計パターンの教科書.*6,000/);
+  assert.match(await seeded.locator('#study-lock-message').textContent(), /設計・構造.*オンライン教材.*無料/);
   await seeded.locator('[data-subject=syntax]').click();
   assert.equal(await seeded.locator('#typing-input').evaluate(el => el === document.activeElement), true);
   const studyPrompt = await seeded.locator('#editor-content').getAttribute('data-prompt');

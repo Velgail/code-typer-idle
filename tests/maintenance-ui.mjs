@@ -93,10 +93,10 @@ export async function verifyMaintenanceUI(browser,url,errors){
         await next.click();
         assert.equal(await page.locator('#modal').evaluate(el=>el.open),false);
         assert.match(await page.locator('#next-goal').innerText(),/ネオン・ブロック崩し/);
-        const enabled=cash>=6000;
-        assert.equal(await page.locator('#goal-action').isDisabled(),!enabled);
-        const target=enabled?'goal-action':'next-milestone';
-        assert.equal(await page.locator(`#${target}`).evaluate(el=>el===document.activeElement),true,'the next project must focus its actionable goal or, when blocked, its goal panel');
+        assert.equal(await page.locator('#goal-action').isDisabled(),false,'the next free material must remain accessible even without textbook money');
+        assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'),'material');
+        assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'),'design');
+        assert.equal(await page.locator('#goal-action').evaluate(el=>el===document.activeElement),true,'the next project must focus its free learning action');
         const box=await page.locator('#next-milestone').boundingBox();
         assert.ok(box.y>=-1 && box.y+box.height<=845,'the next project goal must return to the visible viewport');
         assert.equal(await page.locator('#typing-input').evaluate(el=>el===document.activeElement),false,'the handoff must not resume uninformed development');

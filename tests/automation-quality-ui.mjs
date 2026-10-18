@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createState, tick, projectAt, typingPower, skillKnowledge, readingLesson, input } from '../src/core.js';
+import { createState, tick, projectAt, typingPower, skillKnowledge, readingLesson, input, BALANCE_VERSION } from '../src/core.js';
 import { currentOCRReview, TYPING_REWARD } from '../src/typing.js';
 
 const SAVE = 'code-typer-idle:save:v1';
@@ -158,6 +158,8 @@ async function verifyOCR(browser, url, errors, capture) {
   legacy.projectIndex = 1;
   legacy.workTask = 'correction';
   legacy.ocr.buckets[0].version = 1;
+  legacy.ocr.buckets[0].rate = 3;
+  legacy.ocr.pendingReward = 300;
   const oldReview = currentOCRReview(legacy);
   const old = await open(browser, url, errors, legacy);
   try {
@@ -166,9 +168,47 @@ async function verifyOCR(browser, url, errors, capture) {
     await focus(p);
     await p.keyboard.type(oldReview.correctValue);
     const after = await snapshot(p);
-    assert.equal(after.cash, legacy.cash + 100, 'old corrections keep their 100-yen quote after a project raises normal rates to 200');
+    assert.equal(after.cash, legacy.cash + 300, 'old corrections keep their 300-yen quote after new office work is fixed at 100');
     assert.deepEqual(after.job, legacy.job);
   } finally { await old.context.close(); }
+}
+
+async function verifyLegacyOCR(browser, url, errors, capture) {
+  const legacy=ocrState();
+  tick(legacy,100);
+  Object.assign(legacy,{balanceVersion:12,cash:1234,projectIndex:2,items:{macro:3,'book-syntax':1,'book-design':1,'book-graphics':1},job:{progress:37,rate:3},ocrJob:{progress:25,rate:2},runReleased:2,runBest:2});
+  Object.assign(legacy.skills,{syntax:25.2,design:8.4,graphics:8.4});
+  legacy.stats.releases=2;
+  legacy.ocr.buckets[0].rate=3;
+  legacy.ocr.buckets[0].version=1;
+  legacy.ocr.pendingReward=300;
+  legacy.catalog=[{name:projectAt(0).name,index:0,quality:80,royalty:0,payout:0,active:true},{name:projectAt(1).name,index:1,quality:80,royalty:1.6,payout:21000,active:true}];
+  const {context,page}=await open(browser,url,errors,legacy,{width:1100,height:1000});
+  try{
+    const migrated=await snapshot(page);
+    assert.equal(migrated.balanceVersion,BALANCE_VERSION);
+    assert.equal(migrated.items.macro,1,'old OCR expansions become one owned license');
+    assert.equal(migrated.cash,1234+3750+9375,'removed expansions refund their actual historical purchase prices');
+    assert.deepEqual(migrated.job,legacy.job);
+    assert.deepEqual(migrated.ocrJob,legacy.ocrJob);
+    assert.equal(migrated.ocr.pendingReward,300,'unrecovered old contracts keep their agreed value');
+    assert.equal(migrated.catalog.find(title=>title.index===1).royalty,32,'the old commercial title receives the new recurring game revenue');
+    assert.match(await page.locator('#event-log').innerText(),/13,125.*返金/);
+    assert.match(await page.locator('#auto-work').innerText(),/^10(?:\.0+)?\s+作業量\/秒/);
+    assert.match(await page.locator('#royalty').innerText(),/¥24\s*\/ 秒/);
+    assert.match(await page.locator('#net-income').innerText(),/¥32\.8\s*\/ 秒/);
+    await page.locator('[data-shop=auto]').click();
+    assert.equal(await page.locator('[data-buy=macro]').isDisabled(),true);
+    assert.match(await page.locator('[data-buy=macro]').innerText(),/導入済み/);
+    if(capture)await capture(page,'legacy-ocr-license');
+    await page.reload();
+    await page.waitForSelector('.buy-button');
+    const again=await snapshot(page);
+    assert.equal(again.cash,migrated.cash,'reloading a migrated save must not repeat the refund');
+    assert.equal(again.catalog.find(title=>title.index===1).royalty,migrated.catalog.find(title=>title.index===1).royalty,'reloading must not repeat the royalty conversion');
+    assert.equal(again.items.macro,1);
+    assert.equal(again.ocr.pendingReward,300);
+  }finally{await context.close();}
 }
 
 async function verifyStudy(browser, url, errors, capture) {
@@ -265,6 +305,7 @@ async function verifyCapacityAndQuality(browser, url, errors, capture) {
 
 export async function verifyAutomationQuality(browser, url, errors, { capture } = {}) {
   await verifyOCR(browser, url, errors, capture);
+  await verifyLegacyOCR(browser, url, errors, capture);
   await verifyStudy(browser, url, errors, capture);
   await verifyCapacityAndQuality(browser, url, errors, capture);
   console.log('Automation quality checks passed: OCR cancellation/fee, field-only resubmission and one-time recovery, mobile source/error/caret, save/version/quote, confirmed learning and finite reading, equipment-aware typing and automatic code quality.');

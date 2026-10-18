@@ -5,9 +5,10 @@ import {
   projectAt, knowledgeRatio, validity, developmentReadiness, learningGoal,
   autoStudySubject, skillKnowledge, studyGain, studyPreview, developmentGain,
   answerReading, readingLesson, READING_UNITS, serialize, deserialize,
-  quality, applyOffline, BALANCE_VERSION, needsBuild, runBuild, defectLimit
+  quality, applyOffline, BALANCE_VERSION, needsBuild, runBuild, defectLimit, buy, workRate, release, netIncome, STORE_FEE_RATE
 } from '../src/core.js';
 import {acceptCharacter, currentPrompt, TYPING_REWARD, TYPING_REFERENCE_RATE} from '../src/typing.js';
+import {recordOCR} from '../src/officequality.js';
 
 const near=(a,b,message)=>assert.ok(Math.abs(a-b)<=Math.max(1,Math.abs(a),Math.abs(b))*1e-10,message || `${a} != ${b}`);
 const student=()=>{const s=createState(0);s.mode='study';s.items['book-syntax']=1;return s;};
@@ -25,7 +26,7 @@ test('accurate typing at 300 physical keys per minute yields ten times eight cli
 });
 
 test('typing scales with the owned equipment capacity even when automatic development is paused',()=>{
-  const s=developer();Object.assign(s.items,{macro:4,lab:4,library:4,assistant:4,engineer:2,'book-syntax':1,keyboard:2});
+  const s=developer();Object.assign(s.items,{macro:1,lab:4,library:4,assistant:4,engineer:2,'book-syntax':1,keyboard:2});
   const capacities={work:unitRate(s,'macro'),study:unitRate(s,'lab'),dev:devCapacity(s)};
   for(const mode of Object.keys(capacities)){
     near(typingPower(s,mode),handPower(s)+capacities[mode]/160);
@@ -34,7 +35,7 @@ test('typing scales with the owned equipment capacity even when automatic develo
     const restored=deserialize(serialize(s,0));assert.equal(typingPower(restored,mode),before);
     s.autoEnabled=true;
   }
-  delete s.items['book-syntax'];assert.equal(typingPower(s,'study'),handPower(s),'a lab cannot bypass a missing textbook');
+  delete s.items['book-syntax'];assert.equal(typingPower(s,'study'),handPower(s),'a lab cannot bypass missing learning materials');
 });
 
 test('the automation share in typing is counted once through IDE development and fully supports manual repairs',()=>{
@@ -59,7 +60,7 @@ test('completion uses the power earned at each accepted character without repric
   let s=createState(0);s.inputStyle='typing';const text=currentPrompt(s),split=Math.floor(text.length/2);
   for(const char of text.slice(0,split))assert.ok(acceptCharacter(s,char,typingPower(s)).correct);
   assert.equal(s.typing.bonusBase,split);
-  s.items.macro=5;s.autoEnabled=false;s=deserialize(serialize(s,0));
+  s.items.macro=1;s.autoEnabled=false;s=deserialize(serialize(s,0));
   assert.equal(s.typing.bonusBase,split);const laterPower=typingPower(s),savedBase=s.typing.bonusBase;
   assert.equal(acceptCharacter(s,'!').correct,false);assert.equal(s.typing.bonusBase,savedBase);
   // Correcting a typo changes accuracy, but cannot revise the previous power.
@@ -139,10 +140,10 @@ test('lab ticks retain unverified knowledge through reload and produce the same 
 });
 
 test('pre-quality saves preserve earned knowledge, money, equipment, and unfinished manual work without retroactive fees',()=>{
-  const old=student();old.balanceVersion=BALANCE_VERSION-1;old.cash=4321;old.skills.syntax=34;old.items.macro=2;old.job={progress:37,rate:1};
+  const old=student();old.balanceVersion=11;old.cash=4321;old.skills.syntax=34;old.items.macro=2;old.job={progress:37,rate:1};
   delete old.studyGaps;delete old.ocr;delete old.ocrJob;delete old.workTask;
   const loaded=deserialize(JSON.stringify(old));
-  assert.equal(loaded.cash,4321);assert.equal(skillKnowledge(loaded,'syntax'),34);assert.equal(loaded.items.macro,2);
+  assert.equal(loaded.cash,8071);assert.equal(skillKnowledge(loaded,'syntax'),34);assert.equal(loaded.items.macro,1);
   assert.deepEqual(loaded.job,{progress:37,rate:1});assert.deepEqual(loaded.ocrJob,{progress:0,rate:1});
   assert.equal(loaded.ocr.failures,0);assert.equal(loaded.ocr.pending,0);assert.equal(loaded.ocr.fees,0);
   for(const value of Object.values(loaded.studyGaps))assert.equal(value,0);
@@ -192,9 +193,9 @@ test('the expanded AAA scope preserves old completion and upkeep ratios and inva
   }
   assert.equal(loaded.build.last.progress,recent.progress*1.55);assert.equal(loaded.build.last.defects,recent.defects*1.55);
   assert.equal(needsBuild(loaded),true,'a changed scope must not inherit stale successful certification');
-  assert.equal(loaded.cash,old.cash);assert.deepEqual(loaded.skills,old.skills);
-  assert.equal(loaded.items.macro,3);assert.ok(Object.entries(loaded.items).every(([id,n])=>id==='macro' || n===0));
-  assert.deepEqual(loaded.job,old.job);assert.deepEqual(loaded.ocrJob,{progress:0,rate:8});
+  assert.equal(loaded.cash,old.cash+13125);assert.deepEqual(loaded.skills,old.skills);
+  assert.equal(loaded.items.macro,1);assert.ok(Object.entries(loaded.items).every(([id,n])=>id==='macro' || n===0));
+  assert.deepEqual(loaded.job,old.job);assert.deepEqual(loaded.ocrJob,{progress:0,rate:1});
   assert.equal(loaded.ocr.pending,0);assert.equal(loaded.ocr.failures,0);assert.equal(loaded.ocr.fees,0);
   for(const [id,n] of Object.entries(old.skills))assert.equal(skillKnowledge(loaded,id),n);
   const reloaded=deserialize(serialize(loaded,0));
@@ -234,4 +235,108 @@ test('switching between implementation and repair cannot move pending typing rew
   s.refactor=false;assert.equal(currentPrompt(s),implementation);
   assert.doesNotMatch(s.typing.context,/\/review$/);assert.equal(s.typing.offset,0);assert.equal(s.typing.bonusBase,0);
   s.refactor=true;currentPrompt(s);assert.equal(s.typing.offset,0);assert.equal(s.typing.bonusBase,0);
+});
+
+
+test('office work stays a fixed-price side job across releases rather than becoming the business growth engine',()=>{
+  for(const index of [0,1,2,3,4,5,6,1000]){
+    const s=createState(0);s.projectIndex=index;s.items.macro=1;
+    assert.equal(workRate(s),1);assert.equal(unitRate(s,'macro'),10);
+    assert.equal(input(s,{mode:'work',chars:100}).amount,100);
+    const cash=s.cash;tick(s,100);
+    assert.equal(s.cash-cash,880,'the same OCR output cannot earn more merely because a new game was released');
+    assert.equal(s.ocr.pending,1);assert.equal(s.ocr.pendingReward,100);assert.equal(s.ocr.fees,20);
+    near(netIncome(s),8.8);
+    s.cash=1e9;assert.equal(buy(s,'macro'),false);assert.equal(unitRate(s,'macro'),10);
+  }
+});
+
+test('the first paid game earns more continuing net sales than the single office OCR tool',()=>{
+  const s=createState(0);s.projectIndex=1;s.progress=projectAt(1).target;s.items.macro=1;
+  Object.assign(s.skills,projectAt(1).req);
+  const title=release(s);assert.ok(title);assert.ok(title.royalty*(1-STORE_FEE_RATE)>8.8);
+  near(title.royalty,projectAt(1).royalty*title.quality/100);
+  const cash=s.cash;tick(s,100);
+  near(s.cash-cash,title.royalty*(1-STORE_FEE_RATE)*100+880);
+});
+
+test('removed OCR expansions are refunded exactly once while the installed tool remains and earned statistics stay settled',()=>{
+  for(const [count,refund] of [[0,0],[1,0],[2,3750],[3,13125],[6,241640.625],[800,1e250]]){
+    const old=createState(0);old.balanceVersion=12;old.items.macro=count;old.cash=4321;old.stats.earned=12345;
+    const loaded=deserialize(JSON.stringify(old)),expected=Math.min(1e250,4321+refund);
+    assert.equal(loaded.cash,expected);assert.equal(loaded.items.macro,count?1:0);assert.equal(loaded.stats.earned,12345);
+    assert.equal(unitRate(loaded,'macro'),count?10:0);
+    const twice=deserialize(serialize(loaded,0));assert.equal(twice.cash,expected);assert.equal(twice.items.macro,loaded.items.macro);
+  }
+  for(const invalid of [-1,1e6,Infinity,NaN,'3']){
+    const old=createState(0);old.balanceVersion=12;old.items.macro=invalid;old.cash=4321;
+    const loaded=deserialize(JSON.stringify(old));assert.equal(loaded.items.macro,0);assert.equal(loaded.cash,4321);
+  }
+  const current=createState(0);current.items.macro=4;current.cash=4321;
+  const capped=deserialize(JSON.stringify(current));assert.equal(capped.items.macro,1);assert.equal(capped.cash,4321,'current saves cannot claim removed-expansion refunds');
+});
+
+test('legacy invoice quotes and unpaid OCR corrections settle at their accepted rates before new work uses the fixed price',()=>{
+  const old=createState(0);old.balanceVersion=12;old.projectIndex=2;old.items.macro=2;old.cash=4321;
+  old.job={progress:70,rate:3};old.ocrJob={progress:90,rate:3};recordOCR(old.ocr,10,3);
+  old.studyGaps.syntax=2;old.skills.syntax=10;
+  const loaded=deserialize(JSON.stringify(old)),before=loaded.cash;
+  assert.equal(before,8071);assert.deepEqual(loaded.job,old.job);assert.deepEqual(loaded.ocrJob,old.ocrJob);
+  assert.deepEqual(loaded.ocr,old.ocr);assert.equal(loaded.studyGaps.syntax,2);
+  assert.equal(input(loaded,{mode:'work',chars:40}).amount,300);assert.deepEqual(loaded.job,{progress:10,rate:1});
+  tick(loaded,1);assert.equal(loaded.cash-before,600);assert.deepEqual(loaded.ocrJob,{progress:0,rate:1});
+  loaded.workTask='correction';assert.equal(input(loaded,{mode:'work',chars:100}).amount,300);
+  assert.equal(loaded.ocr.pending,0);assert.equal(loaded.ocr.fees,60,'correcting an old case restores the quoted reward but leaves its paid fee');
+  assert.equal(loaded.cash-before,900);
+  loaded.workTask='entry';assert.equal(input(loaded,{mode:'work',chars:90}).amount,100);
+  tick(loaded,10);assert.equal(loaded.cash-before,1100);assert.equal(loaded.ocr.fees,60);
+  const again=deserialize(serialize(loaded,0));assert.equal(again.cash,loaded.cash);assert.deepEqual(again.ocr,loaded.ocr);
+});
+
+test('existing paid titles move to the revised continuing-sales rates once without changing free releases or settled receipts',()=>{
+  const old=createState(0);old.balanceVersion=12;old.cash=1234;old.stats.earned=5678;old.stats.storeFees=910;
+  const receipt={quality:80,payout:26250,grossPayout:35000,salesFee:8750};
+  old.catalog=[
+    {name:'first paid',index:1,royalty:1.6,...receipt},
+    {name:'indie',index:2,royalty:16,...receipt},
+    {name:'free first',index:1,royalty:0,...receipt,payout:0,grossPayout:0,salesFee:0},
+    {name:'free indie',index:2,royalty:0,...receipt,payout:0,grossPayout:0,salesFee:0},
+    {name:'later',index:3,royalty:160,...receipt},
+    {name:'archive',index:-1,archived:true,royalty:123,...receipt}
+  ];
+  const loaded=deserialize(JSON.stringify(old));
+  near(loaded.catalog[0].royalty,1.6*projectAt(1).royalty/2);
+  near(loaded.catalog[1].royalty,16*projectAt(2).royalty/20);
+  assert.equal(loaded.catalog[2].royalty,0);assert.equal(loaded.catalog[3].royalty,0);
+  assert.equal(loaded.catalog[4].royalty,160);assert.equal(loaded.catalog[5].royalty,123);
+  for(let index=0;index<old.catalog.length;index++)for(const key of ['quality','payout','grossPayout','salesFee'])assert.equal(loaded.catalog[index][key],old.catalog[index][key]);
+  assert.equal(loaded.cash,old.cash);assert.equal(loaded.stats.earned,old.stats.earned);assert.equal(loaded.stats.storeFees,old.stats.storeFees);
+  const reloaded=deserialize(serialize(loaded,0));assert.deepEqual(reloaded.catalog,loaded.catalog);assert.equal(reloaded.cash,loaded.cash);
+  assert.equal(reloaded.stats.storeFees,loaded.stats.storeFees);
+});
+
+test('an unfinished legacy OCR contract can be followed by new lower-price failures without losing their cancellation or correction across saves',()=>{
+  const old=createState(0);old.balanceVersion=12;old.projectIndex=2;old.items.macro=2;old.cash=4321;
+  old.ocrJob={progress:90,rate:3};recordOCR(old.ocr,10,3);
+  let loaded=deserialize(JSON.stringify(old));const cash=loaded.cash;
+  assert.equal(loaded.ocr.pending,1);assert.equal(loaded.ocr.pendingReward,300);assert.equal(loaded.ocr.fees,60);
+  tick(loaded,1);
+  assert.equal(loaded.cash-cash,300);assert.deepEqual(loaded.ocrJob,{progress:0,rate:1});
+  assert.equal(loaded.ocr.pending,1,'settling the partly entered invoice must not dispose of its old unpaid correction');
+  tick(loaded,100);
+  assert.equal(loaded.cash-cash,300+1000-120,'one new bad order cancels its 100 payment and charges 20 even while older higher-price work is pending');
+  assert.equal(loaded.ocr.failures,2);assert.equal(loaded.ocr.pending,2);
+  assert.equal(loaded.ocr.pendingReward,400);assert.equal(loaded.ocr.fees,80);
+  assert.deepEqual(loaded.ocr.buckets.map(b=>[b.rate,b.count]),[[3,1],[1,1]]);
+  const beforeSave=structuredClone(loaded.ocr);loaded=deserialize(serialize(loaded,0));
+  assert.deepEqual(loaded.ocr,beforeSave,'reload must preserve both legacy and lower-price cases in arrival order');
+  assert.equal(loaded.cash-cash,1180,'loading cannot repeat the cancellation, fee, or removed-expansion refund');
+  loaded.workTask='correction';
+  assert.equal(input(loaded,{mode:'work',chars:100}).amount,300);
+  assert.equal(loaded.ocr.pending,1);assert.equal(loaded.ocr.pendingReward,100);
+  assert.equal(input(loaded,{mode:'work',chars:100}).amount,100);
+  assert.equal(loaded.ocr.pending,0);assert.equal(loaded.ocr.pendingReward,0);assert.equal(loaded.ocr.corrected,2);
+  assert.equal(loaded.cash-cash,1580);assert.equal(loaded.ocr.fees,80,'manual corrections restore payments without refunding either resubmission fee');
+  assert.equal(input(loaded,{mode:'work',chars:1000}).amount,0);
+  const corrected=deserialize(serialize(loaded,0));assert.equal(corrected.cash,loaded.cash);assert.deepEqual(corrected.ocr,loaded.ocr);
 });

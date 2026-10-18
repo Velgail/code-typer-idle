@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge } from '../src/core.js';
+import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge, itemCost, SHOP, netRoyaltyRate, unitRate, workRate } from '../src/core.js';
 import { TYPING_REWARD } from '../src/typing.js';
 
 async function open(browser, url, errors, viewport, seed, pausedClock = false) {
@@ -56,6 +56,14 @@ function secondCycleFixtures() {
   // Fund and advance fixtures through the ordinary rules; these are checkpoints,
   // not claims about live typing speed or an optimal purchase sequence.
   const state = createState();
+  const buyWithOCR = (s,id) => {
+    const item=SHOP.find(item=>item.id===id);
+    for(let count=0;s.cash<itemCost(s,item);count++){
+      assert.ok(count<10000,'OCR income must eventually fund the next textbook');
+      tick(s,10);
+    }
+    assert.equal(buy(s,id),true);
+  };
   state.autoEnabled = false;
   for (let count = 0; count < 400; count++) input(state, { mode: 'work' });
   assert.equal(buy(state, 'macro'), true);
@@ -75,7 +83,7 @@ function secondCycleFixtures() {
   }
   assert.ok(release(state));
   assert.equal(state.projectIndex, 1);
-  assert.equal(buy(state, 'book-design'), true);
+  buyWithOCR(state, 'book-design');
   Object.assign(state, { mode: 'study', subject: 'design', inputStyle: 'typing' });
   const start = structuredClone(state), near = structuredClone(state);
   const project = projectAt(1);
@@ -87,7 +95,7 @@ function secondCycleFixtures() {
 
   const ready = structuredClone(state);
   learn(ready, 'syntax', project.req.syntax);
-  assert.equal(buy(ready, 'book-graphics'), true);
+  buyWithOCR(ready, 'book-graphics');
   learn(ready, 'design', project.req.design);
   learn(ready, 'graphics', project.req.graphics);
   const devStroke = s => typingPower(s,'dev') * TYPING_REWARD.character;
@@ -130,8 +138,9 @@ async function verifySecondCycle(browser, url, errors, capture) {
     const prompt = await p.locator('#editor-content').getAttribute('data-prompt');
     await p.keyboard.type(prompt[0]);
     assert.match(await p.locator('[data-subject=design] small').innerText(), /✓/);
-    assert.match(await p.locator('#goal-status').innerText(), /1 \/ 3.*分野/);
-    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'book-graphics', 'completing the chosen field exposes the next unmet requirement');
+    assert.match(await p.locator('#goal-status').innerText(), /無料.*描画/);
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'graphics', 'completing the chosen field exposes the next free material');
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-kind'), 'material');
   } finally { await lastCharacter.context.close(); }
 
   const ready = await open(browser, url, errors, { width: 390, height: 844 }, fixtures.ready, true);
@@ -153,6 +162,14 @@ async function verifySecondCycle(browser, url, errors, capture) {
     const published = await snapshot(p);
     assert.equal(published.projectIndex, 2);
     assert.ok(published.catalog.some(title => title.index === 1 && title.royalty > 0));
+    const gameIncome=netRoyaltyRate(published),ocrIncome=unitRate(published,'macro')*workRate(published)*.98;
+    assert.ok(gameIncome>ocrIncome,'the first commercial game must out-earn even fully corrected OCR deliveries');
+    const displayedYen=async locator=>Number((await locator.innerText()).match(/¥([\d,.]+)/)[1].replaceAll(',',''));
+    assert.ok(Math.abs(await displayedYen(p.locator('#royalty'))-gameIncome)<.01,'the game income metric shows actual receipts after store fees');
+    assert.ok(Math.abs(await displayedYen(p.locator('#catalog-list small').first())-gameIncome)<.01,'the latest catalog entry uses the same net income as the wallet metric');
+    const expectedNet=gameIncome+unitRate(published,'macro')*workRate(published)*.88;
+    assert.ok(Math.abs(await displayedYen(p.locator('#net-income'))-expectedNet)<.01,'combined passive income includes game receipts and OCR loss-adjusted income exactly once');
+    if(capture){await p.locator('#royalty').scrollIntoViewIfNeeded();await capture(p,'second-published-income');}
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   } finally { await ready.context.close(); }
 }
@@ -162,14 +179,14 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     const { context, page } = await open(browser, url, errors, viewport);
     try {
       const goal = page.locator('#goal-action');
-      assert.match(await goal.innerText(), /OCR.*500/);
-      assert.equal(await goal.getAttribute('data-goal-kind'), 'buy');
-      assert.equal(await goal.getAttribute('data-goal-item'), 'macro');
-      assert.equal(await goal.isDisabled(), true, 'a new player must earn the first OCR purchase');
+      assert.match(await goal.innerText(), /無料教材を開く/);
+      assert.equal(await goal.getAttribute('data-goal-kind'), 'material');
+      assert.equal(await goal.getAttribute('data-goal-item'), 'syntax');
+      assert.equal(await goal.isDisabled(), false, 'a new player can start learning without earning money');
       assert.equal(await page.locator('#goal-alternative').isVisible(), true);
-      assert.match(await page.locator('#goal-alternative').innerText(), /教材.*1,500/);
-      assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'book-syntax');
-      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'the textbook-first alternative must also require sufficient funds');
+      assert.match(await page.locator('#goal-alternative').innerText(), /(?:OCR|事務.*自動化).*500/);
+      assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'macro');
+      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'OCR remains an optional paid investment');
       assert.equal(await page.locator('#cash').isVisible(), true);
       for (const id of ['living', 'total-chars', 'royalty']) {
         assert.equal(await page.locator(`#${id}`).isVisible(), false, `${id}: unused zero metrics must not crowd the initial screen`);
@@ -182,7 +199,7 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
       const box = await goal.boundingBox();
       assert.ok(box.y >= 0 && box.y + box.height <= viewport.height, 'the first purchase goal must be in the initial viewport');
       const start = await page.locator('#type-button').boundingBox();
-      assert.ok(start.y >= 0 && start.y + start.height <= viewport.height, 'a new player must also be able to start working without first scrolling');
+      assert.ok(start.y >= -1 && start.y + start.height <= viewport.height + 1, 'a new player must also be able to start working without first scrolling (allow subpixel layout rounding)');
 
       if (viewport.width === 1440) {
         await page.locator('#type-button').click();
@@ -209,28 +226,36 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     const earned = await snapshot(page);
     assert.equal(earned.stats.manual, 400, 'the first investment must come from 400 real pointer clicks');
     assert.equal(earned.cash, 500);
-    assert.equal(await page.locator('#goal-action').isDisabled(), false);
-    await page.locator('#goal-action').click();
+    assert.equal(await page.locator('#goal-alternative').isDisabled(), false);
+    await page.locator('#goal-alternative').click();
     automationState = await snapshot(page);
     assert.equal(automationState.items.macro, 1);
     assert.equal(automationState.cash, 0);
     assert.equal(automationState.subject, 'syntax', 'an automation purchase must not turn the study subject into macro');
     assert.equal(automationState.mode, 'work');
     assert.equal(await page.locator('#goal-alternative').isVisible(), false);
-    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'book-syntax');
-    assert.equal(await page.locator('#goal-action').isDisabled(), true);
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'syntax');
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'material');
+    assert.equal(await page.locator('#goal-action').isDisabled(), false);
     assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/);
+    await page.locator('[data-shop=auto]').click();
+    const ownedOCR=page.locator('[data-buy=macro]');
+    assert.equal(await ownedOCR.isDisabled(),true,'OCR is a single purchase, not an expandable business');
+    assert.match(await ownedOCR.innerText(),/導入済み/);
+    assert.doesNotMatch(await ownedOCR.locator('..').innerText(),/増設分|Lvごと/);
+    if(capture)await capture(page,'ocr-owned');
     // Advance the clock, not resources: the normal game timer earns the textbook money.
     await page.clock.fastForward(181000);
     const automated = await snapshot(page);
     assert.ok(automated.cash >= 1500, 'OCR income must fund the first textbook without more manual work');
     assert.equal(automated.stats.manual, 400);
     if (capture) await capture(page, 'ocr-funded-textbook');
-    // The normal purchase CTA must remain keyboard accessible despite the click-farming guard.
-    await page.locator('#goal-action').focus();
+    // Optional shop purchases stay keyboard accessible despite the click-farming guard.
+    await page.locator('[data-shop=books]').click();
+    await page.locator('.shop-panel [data-buy=book-syntax]').focus();
     await page.keyboard.press('Enter');
     const bought = await snapshot(page);
-    assert.equal(bought.items['book-syntax'], 1, 'the goal CTA must buy the actual textbook');
+    assert.equal(bought.items['book-syntax'], 1, 'the optional shop purchase buys the actual textbook');
     assert.equal(bought.cash, automated.cash - 1500, 'the purchase must charge the displayed price exactly once');
     assert.doesNotMatch(await page.locator('#goal-action').innerText(), /教材を買う/);
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
@@ -248,14 +273,14 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
   const directBook = await open(browser, url, errors, { width: 390, height: 844 }, affordable, true);
   try {
     const page = directBook.page;
-    await page.locator('#goal-alternative').click();
+    await page.locator('.shop-panel [data-buy=book-syntax]').click();
     const bought = await snapshot(page);
-    assert.equal(bought.items['book-syntax'], 1, 'the alternative CTA must preserve the textbook-first route');
+    assert.equal(bought.items['book-syntax'], 1, 'the shop preserves the textbook-first route');
     assert.equal(bought.items.macro, 0);
     assert.equal(bought.cash, 0);
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
     assert.equal(await page.locator('#goal-action').isDisabled(), false);
-    assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'macro');
+    assert.equal(await page.locator('#goal-alternative').isVisible(), false);
   } finally { await directBook.context.close(); }
 
   const combined = await open(browser, url, errors, { width: 390, height: 844 }, automationState, true);
@@ -306,9 +331,10 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     await page.locator('#modal[open]').waitFor();
     const message = await page.locator('#modal-body').innerText();
     assert.match(message, /無料公開/);
-    assert.match(message, /次の依頼は100作業量で\s*¥200/);
+    assert.match(message, /はじめての有料作品へ/);
+    assert.match(message, /設計と描画を学び.*ブロック崩し/);
+    assert.match(message, /ゲームの売上で.*次の制作/);
     assert.match(message, /自作ライブラリと研究ラボが解禁/);
-    assert.match(message, /進行中の案件は受注時の単価で納品/);
     await page.locator('[data-action=next-project]').click();
     await page.locator('[data-mode=work]').click();
     assert.match(await page.locator('#job-payment').innerText(), /¥100/, 'the existing half-finished contract keeps its original payment');
