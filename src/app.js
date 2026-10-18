@@ -15,7 +15,7 @@ import {
 } from './core.js';
 import { developmentPolicy, debtBreakdown, debtAgeDays, changeDefectRate } from './maintenance.js';
 import { CURRICULUM_VERSION, lessonAt, questionFor, localeForComments } from './curriculum.js';
-import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, currentOCRReview, acceptCharacter, typingCodeView } from './typing.js';
+import { LANGUAGES, PROMPT_COUNT, TYPING_REWARD, typingCompletionMultiplier, currentPrompt, currentOCRReview, acceptCharacter, typingCodeView, completedLesson } from './typing.js';
 import { watchForUpdates } from './updates.js';
 import { officeOrderAt, drawOfficeSource } from './office.js';
 import { nextOCRError, correctOCR } from './officequality.js';
@@ -136,8 +136,19 @@ function renderQuiz() {
   $('quiz-panel').classList.toggle('hidden', !activeQuiz());
   if (!activeQuiz()) return;
   const quiz = quizLesson(state);
+  const completed = completedLesson(state, quiz.lessonBaseId);
+  let reviewLesson = null;
+  if (completed) {
+    let code = completed.code;
+    if (localeForComments(state.settings.commentLocale) === 'ja') {
+      for (const comment of [...completed.comments].sort((a,b)=>b.start-a.start)) {
+        if (comment.ja) code = code.slice(0,comment.start) + comment.ja + code.slice(comment.end);
+      }
+    }
+    reviewLesson = { ...completed, code };
+  }
   const topics = Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: state.quiz.completed.includes(q.id) }; });
-  renderQuizUI({ root: $('quiz-panel'), quiz, draft: state.quiz.drafts[quiz.id] ?? quiz.starterSource, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
+  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, draft: state.quiz.drafts[quiz.id] ?? quiz.starterSource, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
     position: `この分野 ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題クリア · ${state.quiz.completed.includes(quiz.id) ? '理解度は獲得済み' : `初回全件成功 +${format(studyPreview(state,QUIZ_UNITS),3)} K`}`,
     onDraft: source => { if (blocked || paused || !activeQuiz()) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
     onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },

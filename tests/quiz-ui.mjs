@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { quizAt } from '../src/quizcatalog.js';
 import { skillKnowledge, QUIZ_UNITS } from '../src/core.js';
+import { CURRICULUM_VERSION, lessonAt } from '../src/curriculum.js';
 
 const SAVE = 'code-typer-idle:save:v1';
 const rows = ['cpp', 'lua', 'python'].flatMap(language => [0, 1].map(index => {
@@ -165,5 +166,126 @@ export async function verifyQuizUI(browser, url, errors, capture) {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `Quiz fits ${width}px`);
     }
     if (capture) await capture(page, 'quiz-all-passed');
+  } finally { await context.close(); }
+  await verifyQuizReviewUI(browser, url, errors, capture);
+}
+
+// Enter the material through the actual typing input: review eligibility must
+// come from completed work, never a seeded level, counter, or an opened page.
+export async function verifyQuizReviewUI(browser, url, errors, capture) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
+  await context.route(/\/quizworker(?:\.[a-f0-9]+)?\.js(?:\?.*)?$/, route => route.fulfill({ status: 200, contentType: 'text/javascript', body: fixtureWorker }));
+  const page = await context.newPage();
+  page.on('pageerror', error => errors.push(error.message));
+  await page.clock.install({ time: new Date() });
+  await page.clock.pauseAt(new Date(Date.now() + 1000));
+  const quiz = quizAt('lua', 'syntax', 0), lesson = lessonAt('lua', 'syntax', 0);
+  const reviewToggle = page.locator('.quiz-review-toggle');
+  const review = page.locator('.quiz-review');
+  const reviewCode = page.locator('.quiz-review-code');
+  const evidence = save => ({
+    skills: save.skills,
+    studyGaps: save.studyGaps,
+    stats: save.stats,
+    typing: save.typing,
+    quiz: save.quiz,
+  });
+  try {
+    await page.goto(url);
+    await page.waitForSelector('.buy-button');
+    await page.locator('[data-mode=study]').click();
+    await page.locator('[data-study-style=quiz]').click();
+    await page.locator('#study-lock [data-action=open-online-material]').click();
+    await page.locator('#language-select').selectOption('lua');
+    await page.locator('.quiz-source').waitFor({ state: 'visible' });
+    assert.equal(await reviewToggle.isVisible(), false, 'unattempted quizzes do not push a review');
+    await run(page, quiz.starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), false, 'failure alone cannot unlock material that was never typed');
+    assert.equal(await review.isVisible(), false);
+    assert.deepEqual((await snapshot(page)).typing.completedLessons, {});
+
+    await page.locator('[data-study-style=practice]').click();
+    await page.locator('[data-input-style=typing]').click();
+    const prompt = await page.locator('#editor-content').getAttribute('data-prompt');
+    assert.equal(prompt, lesson.code, 'the corresponding native material is the work being completed');
+    await page.locator('#typing-input').click();
+    // An unfinished prefix must not unlock the review.
+    await page.keyboard.type(prompt.slice(0, 5));
+    assert.deepEqual((await snapshot(page)).typing.completedLessons, {});
+    await page.locator('#typing-input').click();
+    for (const part of prompt.slice(5).split(/(\t|\n)/)) {
+      if (part === '\t') await page.keyboard.press('Tab');
+      else if (part === '\n') await page.keyboard.press('Enter');
+      else if (part) await page.keyboard.type(part);
+    }
+    const typed = await snapshot(page);
+    assert.deepEqual(typed.typing.completedLessons[lesson.baseId], { version: CURRICULUM_VERSION, index: lesson.index });
+    assert.equal(Object.keys(typed.typing.completedLessons).length, 1, 'only the completed topic receives evidence');
+    await page.locator('[data-study-style=quiz]').click();
+    assert.equal(await reviewToggle.isVisible(), false, 'returning to Quiz clears the previous failed result');
+    await run(page, quiz.starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), true, 'a failure can offer the exact topic that was already typed');
+    assert.equal(await review.isVisible(), false, 'the material starts closed instead of replacing the implementation');
+
+    const beforeReview = await snapshot(page);
+    const sourceBefore = await page.locator('.quiz-source').inputValue();
+    const casesBefore = await page.locator('.quiz-case').allTextContents();
+    await reviewToggle.click();
+    assert.equal(await review.isVisible(), true);
+    assert.match(await reviewCode.innerText(), new RegExp(quiz.functionName));
+    assert.ok((await reviewCode.innerText()).includes(lesson.comments[0].ja), 'completed English comments are translated for review');
+    assert.equal(await page.locator('.quiz-source').inputValue(), sourceBefore, 'reading material never fills or replaces the submission');
+    assert.deepEqual(await page.locator('.quiz-case').allTextContents(), casesBefore, 'reviewing preserves the failed test evidence');
+    assert.deepEqual(evidence(await snapshot(page)), evidence(beforeReview), 'opening review awards no work and changes neither drafts nor learning records');
+    await reviewToggle.click();
+    assert.equal(await review.isVisible(), false);
+    assert.deepEqual(evidence(await snapshot(page)), evidence(beforeReview), 'closing review has no reward or save side effects');
+    await reviewToggle.click();
+    for (const width of [360, 390]) {
+      await page.setViewportSize({ width, height: 844 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0, `review material fits ${width}px`);
+    }
+    if (capture) await capture(page, 'quiz-review-material');
+
+    await page.locator('.quiz-source').fill(`${sourceBefore}\n-- check the boundary`);
+    assert.equal(await page.locator('#quiz-panel').getAttribute('data-quiz-status'), 'stale');
+    assert.equal(await review.isVisible(), true, 'the relevant material stays available while fixing the failed implementation');
+    await run(page, `${quiz.starterSource}\n-- CTI_COMPILE_ERROR`, 'compile-error');
+    assert.equal(await reviewToggle.isVisible(), true, 'a compiler error may also offer completed relevant material');
+    assert.equal(await review.isVisible(), false, 'a new execution resets the open review');
+    await reviewToggle.click();
+
+    await page.locator('.quiz-topic-picker select').selectOption('1');
+    assert.equal(await review.isVisible(), false, 'switching topics closes old review');
+    assert.equal(await reviewCode.textContent(), '', 'old material is cleared when the new topic has no completion record');
+    await run(page, quizAt('lua', 'syntax', 1).starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), false, 'another topic in the same language is not credited');
+    await page.locator('#language-select').selectOption('python');
+    await run(page, quizAt('python', 'syntax', 0).starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), false, 'the same topic in a different language is not credited');
+    assert.equal(await review.isVisible(), false);
+    await page.locator('#language-select').selectOption('lua');
+    await page.locator('.quiz-topic-picker select').selectOption('0');
+    await run(page, quiz.starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), true);
+    await reviewToggle.click();
+    await snapshot(page);
+    await page.reload();
+    await page.locator('.quiz-source').waitFor({ state: 'visible' });
+    const restored = await snapshot(page);
+    assert.deepEqual(restored.typing.completedLessons[lesson.baseId], typed.typing.completedLessons[lesson.baseId], 'reload restores the exact completion evidence');
+    assert.equal(await reviewToggle.isVisible(), false, 'a saved draft does not resurrect an old failure or open review');
+    await run(page, quiz.starterSource, 'failed');
+    assert.equal(await reviewToggle.isVisible(), true, 'restored completion evidence makes the review available after another failure');
+    assert.equal(await review.isVisible(), false, 'the restored review starts closed');
+    await reviewToggle.click();
+    await run(page, `${quiz.referenceSource}\n-- CTI_TEST_CORRECT`, 'passed');
+    assert.equal(await reviewToggle.isVisible(), false, 'success removes the failure-only review offer');
+    assert.equal(await review.isVisible(), false);
+    assert.equal(await reviewCode.textContent(), '', 'success clears old review code');
+    const passed = await snapshot(page);
+    assert.ok(passed.quiz.completed.includes(quiz.id));
+    assert.deepEqual(passed.typing.completedLessons, typed.typing.completedLessons, 'Quiz success does not fabricate additional typing completions');
+    console.log('Quiz review checks passed: actual completed typing, exact language/topic, no prefix credit, optional translated material, no draft/test/reward side effects, reload, success cleanup, and mobile widths.');
   } finally { await context.close(); }
 }

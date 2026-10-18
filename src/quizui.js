@@ -29,6 +29,7 @@ const labels = {
 };
 const successStates = new Set(['pass', 'passed', 'success', 'all-passed']);
 const errorStates = new Set(['compile-error', 'syntax-error', 'type-error', 'runtime-error', 'timeout', 'engine-error', 'internal-error', 'error']);
+const reviewFailureStates = new Set(['fail', 'failed', 'wrong-answer', 'compile-error', 'syntax-error', 'type-error', 'runtime-error', 'timeout']);
 
 function textValue(value) {
   if (typeof value === 'string') return value;
@@ -153,6 +154,22 @@ function mount(root) {
   const diagnostics = create('pre', 'quiz-diagnostics');
   diagnostics.tabIndex = 0;
   diagnostics.hidden = true;
+  const reviewTools = create('div', 'quiz-review-tools');
+  reviewTools.hidden = true;
+  const reviewToggle = create('button', 'secondary-button quiz-review-toggle', '写経した教材を見直す');
+  reviewToggle.type = 'button';
+  reviewToggle.setAttribute('aria-expanded', 'false');
+  reviewToggle.setAttribute('aria-controls', `${editorId}-review`);
+  const review = create('section', 'quiz-review');
+  review.id = `${editorId}-review`;
+  review.setAttribute('aria-label', '写経した教材');
+  review.hidden = true;
+  const reviewTitle = create('h4', 'quiz-review-title');
+  const reviewExplanation = create('p', 'quiz-review-explanation');
+  const reviewCode = create('pre', 'reference-code quiz-review-code');
+  reviewCode.tabIndex = 0;
+  review.append(reviewTitle, reviewExplanation, reviewCode);
+  reviewTools.append(reviewToggle, review);
   const caseHeading = create('h4', 'quiz-cases-heading', 'テストケース');
   const cases = create('ol', 'quiz-cases');
   const moreCases = create('details', 'quiz-more-cases');
@@ -168,8 +185,8 @@ function mount(root) {
   const referenceCode = create('pre', 'reference-code');
   referenceCode.tabIndex = 0;
   reference.append(referenceHeading, referenceCode);
-  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, actions, status, progress, diagnostics, caseHeading, cases, moreCases, reference);
-  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, run, cancel, next, referenceToggle, status, progress, diagnostics, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
+  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
+  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
   mounted.set(root, ui);
   const updateCursor = () => {
     const before = editor.value.slice(0, editor.selectionStart).split('\n');
@@ -205,7 +222,33 @@ function mount(root) {
     write(referenceToggle, ui.referenceOpen ? '解答例を閉じる' : '解答例を見る');
     ui.model.onReference?.(ui.referenceOpen);
   });
+  reviewToggle.addEventListener('click', () => {
+    if (reviewToggle.disabled || reviewTools.hidden) return;
+    ui.reviewOpen = !ui.reviewOpen;
+    review.hidden = !ui.reviewOpen;
+    reviewToggle.setAttribute('aria-expanded', String(ui.reviewOpen));
+    write(reviewToggle, ui.reviewOpen ? '写経した教材を閉じる' : '写経した教材を見直す');
+  });
   return ui;
+}
+
+function renderReview(ui, quiz, lesson, result, running, disabled) {
+  const available = !!quiz && !running && reviewFailureStates.has(result?.status) && typeof lesson?.code === 'string' && lesson.code.length > 0;
+  const explanation = available ? Array.isArray(lesson.explanation) ? lesson.explanation.join('\n') : String(lesson.explanation || '') : '';
+  const key = available ? JSON.stringify([quiz.id, lesson.id, lesson.title, lesson.code, explanation]) : null;
+  if (ui.reviewKey !== key) {
+    ui.reviewKey = key;
+    ui.reviewOpen = false;
+    ui.review.hidden = true;
+    ui.reviewToggle.setAttribute('aria-expanded', 'false');
+    write(ui.reviewToggle, '写経した教材を見直す');
+  }
+  ui.reviewTools.hidden = !available;
+  ui.reviewToggle.disabled = !!disabled;
+  write(ui.reviewTitle, available ? lesson.title || '写経した教材' : '');
+  write(ui.reviewExplanation, explanation);
+  ui.reviewExplanation.hidden = !explanation;
+  write(ui.reviewCode, available ? lesson.code : '');
 }
 
 function renderCases(ui, quiz, result, stale, running) {
@@ -279,6 +322,8 @@ function renderCases(ui, quiz, result, stale, running) {
  * result: {status, cases:[{id, passed, actual, message}], message, diagnostics}.
  * A result.source differing from draft is displayed as stale, never as a pass.
  * progress: {phase:'download'|'prepare'|'compile'|'execute', loaded?, total?}.
+ * reviewLesson: null or {title, code, explanation:string|string[]}; only the
+ * caller's previously copied material for this topic, separate from its answer.
  * No calls in this module award progress or evaluate the supplied source.
  */
 export function renderQuizUI(options) {
@@ -373,6 +418,7 @@ export function renderQuizUI(options) {
   })].filter(Boolean).join('\n').slice(0, 16000) : '';
   write(ui.diagnostics, diagnosticText);
   ui.diagnostics.hidden = !diagnosticText;
+  renderReview(ui, quiz, options.reviewLesson, result, running, disabled);
   renderCases(ui, quiz, result, stale, running);
 }
 
