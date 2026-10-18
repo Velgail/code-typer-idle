@@ -1,0 +1,24 @@
+Code Typer Idle Java source compiler distribution
+
+OpenJDK javac components: Copyright Oracle and/or its affiliates and other
+OpenJDK contributors. GPL version 2 with the designated Classpath Exception.
+The original LICENSE, ADDITIONAL_LICENSE_INFO, ASSEMBLY_EXCEPTION, compiler
+source headers, and corresponding sources accompany this distribution.
+
+TeaVM and TeaVM-javac components: Copyright Alexey Andreev and contributors,
+Apache License 2.0. Original source notices remain in the supplied source
+archive. Dependency-specific notices extracted from the exact build artifacts
+are in maven-notices/, with version and SHA-256 inventory maven-artifacts.json.
+Source-header notices (including ASM/JZlib terms) are preserved in
+maven-source-notices.txt, and the actual source JARs are supplied in the source
+directory. OpenJDK's jopt-simple and Unicode CLDR37 data notices are supplied
+separately. CLDR37 JSON source: https://github.com/unicode-org/cldr-json/tree/37.0.0.
+
+No upstream compiler logic was changed. Build repository/version-catalog
+adjustments and complete rebuild instructions are in the corresponding source
+archive and runtime-assets/java/teavm-javac-208d4c97/BUILD.md.
+Large binaries are gzip-compressed without modifying decoded contents.
+
+The compiler remains a separate third-party component under its original
+licenses. It is not covered by the game's Boost-1.0 license. Its Java/TeaVM
+class library is not a complete JVM implementation.

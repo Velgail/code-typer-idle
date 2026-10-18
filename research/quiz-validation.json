@@ -1,0 +1,3199 @@
+{
+  "version": "2.2.0",
+  "build": "7de65c1274b7ae82",
+  "browser": "154.0.8037.57",
+  "transport": "ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath",
+  "results": [
+    {
+      "language": "cpp",
+      "loadMs": 934,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/cpp/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 4648
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 2562
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 4334
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 3103
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 2102
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 2187
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 2044
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 2064
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 2175
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 2087
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 2155
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 2010
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 2038
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 1903
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/cpp_vector_sum",
+          "passed": true,
+          "cases": 16,
+          "ms": 2109
+        },
+        {
+          "id": "quiz/v1/cpp/syntax/cpp_map_lookup",
+          "passed": true,
+          "cases": 16,
+          "ms": 2508
+        },
+        {
+          "id": "quiz/v1/cpp/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 2199
+        },
+        {
+          "id": "quiz/v1/cpp/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 2178
+        },
+        {
+          "id": "quiz/v1/cpp/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 2099
+        },
+        {
+          "id": "quiz/v1/cpp/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 1946
+        },
+        {
+          "id": "quiz/v1/cpp/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 1835
+        },
+        {
+          "id": "quiz/v1/cpp/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 1858
+        },
+        {
+          "id": "quiz/v1/cpp/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 1960
+        },
+        {
+          "id": "quiz/v1/cpp/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 1970
+        },
+        {
+          "id": "quiz/v1/cpp/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 1782
+        },
+        {
+          "id": "quiz/v1/cpp/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 1869
+        },
+        {
+          "id": "quiz/v1/cpp/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 1959
+        },
+        {
+          "id": "quiz/v1/cpp/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 1962
+        },
+        {
+          "id": "quiz/v1/cpp/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 2360
+        },
+        {
+          "id": "quiz/v1/cpp/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 2224
+        },
+        {
+          "id": "quiz/v1/cpp/design/cpp_struct_method",
+          "passed": true,
+          "cases": 16,
+          "ms": 2147
+        },
+        {
+          "id": "quiz/v1/cpp/design/cpp_lambda_policy",
+          "passed": true,
+          "cases": 16,
+          "ms": 2301
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 2193
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 1912
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 1880
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 1910
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 1854
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 1976
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 2019
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 2181
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 2091
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 2079
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 2088
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 2361
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 2268
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 2043
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/cpp_pixel_array",
+          "passed": true,
+          "cases": 16,
+          "ms": 2422
+        },
+        {
+          "id": "quiz/v1/cpp/graphics/cpp_sprite_sort",
+          "passed": true,
+          "cases": 16,
+          "ms": 2380
+        },
+        {
+          "id": "quiz/v1/cpp/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 2276
+        },
+        {
+          "id": "quiz/v1/cpp/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 2285
+        },
+        {
+          "id": "quiz/v1/cpp/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 1871
+        },
+        {
+          "id": "quiz/v1/cpp/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 2108
+        },
+        {
+          "id": "quiz/v1/cpp/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 2454
+        },
+        {
+          "id": "quiz/v1/cpp/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 2205
+        },
+        {
+          "id": "quiz/v1/cpp/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 2162
+        },
+        {
+          "id": "quiz/v1/cpp/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 2122
+        },
+        {
+          "id": "quiz/v1/cpp/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 2215
+        },
+        {
+          "id": "quiz/v1/cpp/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 2053
+        },
+        {
+          "id": "quiz/v1/cpp/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 2015
+        },
+        {
+          "id": "quiz/v1/cpp/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 1927
+        },
+        {
+          "id": "quiz/v1/cpp/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 1965
+        },
+        {
+          "id": "quiz/v1/cpp/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 2076
+        },
+        {
+          "id": "quiz/v1/cpp/systems/cpp_unique_owner",
+          "passed": true,
+          "cases": 16,
+          "ms": 2160
+        },
+        {
+          "id": "quiz/v1/cpp/systems/cpp_raii_scope",
+          "passed": true,
+          "cases": 16,
+          "ms": 1919
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "csharp",
+      "loadMs": 1482,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/csharp/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 1846
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 104
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 68
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 41
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 42
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 49
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 44
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 63
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 42
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 40
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 39
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 37
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 39
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 42
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/csharp_list_filter",
+          "passed": true,
+          "cases": 16,
+          "ms": 79
+        },
+        {
+          "id": "quiz/v1/csharp/syntax/csharp_nullable_value",
+          "passed": true,
+          "cases": 16,
+          "ms": 66
+        },
+        {
+          "id": "quiz/v1/csharp/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 79
+        },
+        {
+          "id": "quiz/v1/csharp/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 39
+        },
+        {
+          "id": "quiz/v1/csharp/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 44
+        },
+        {
+          "id": "quiz/v1/csharp/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 32
+        },
+        {
+          "id": "quiz/v1/csharp/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 73
+        },
+        {
+          "id": "quiz/v1/csharp/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/csharp/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 32
+        },
+        {
+          "id": "quiz/v1/csharp/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 42
+        },
+        {
+          "id": "quiz/v1/csharp/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 30
+        },
+        {
+          "id": "quiz/v1/csharp/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/csharp/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 27
+        },
+        {
+          "id": "quiz/v1/csharp/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 33
+        },
+        {
+          "id": "quiz/v1/csharp/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 31
+        },
+        {
+          "id": "quiz/v1/csharp/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 33
+        },
+        {
+          "id": "quiz/v1/csharp/design/csharp_delegate",
+          "passed": true,
+          "cases": 16,
+          "ms": 73
+        },
+        {
+          "id": "quiz/v1/csharp/design/csharp_interface_map",
+          "passed": true,
+          "cases": 16,
+          "ms": 50
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 36
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 34
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 34
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 26
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 30
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 32
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 55
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 25
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 27
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 23
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/csharp_linq_pixels",
+          "passed": true,
+          "cases": 16,
+          "ms": 55
+        },
+        {
+          "id": "quiz/v1/csharp/graphics/csharp_rect_tuple",
+          "passed": true,
+          "cases": 16,
+          "ms": 30
+        },
+        {
+          "id": "quiz/v1/csharp/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 38
+        },
+        {
+          "id": "quiz/v1/csharp/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/csharp/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/csharp/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/csharp/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 36
+        },
+        {
+          "id": "quiz/v1/csharp/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/csharp/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 25
+        },
+        {
+          "id": "quiz/v1/csharp/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 34
+        },
+        {
+          "id": "quiz/v1/csharp/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 33
+        },
+        {
+          "id": "quiz/v1/csharp/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 37
+        },
+        {
+          "id": "quiz/v1/csharp/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 31
+        },
+        {
+          "id": "quiz/v1/csharp/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 35
+        },
+        {
+          "id": "quiz/v1/csharp/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 33
+        },
+        {
+          "id": "quiz/v1/csharp/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 30
+        },
+        {
+          "id": "quiz/v1/csharp/systems/csharp_dictionary_cache",
+          "passed": true,
+          "cases": 16,
+          "ms": 33
+        },
+        {
+          "id": "quiz/v1/csharp/systems/csharp_queue_order",
+          "passed": true,
+          "cases": 16,
+          "ms": 35
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "rust",
+      "loadMs": 1351,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/rust/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 1236
+        },
+        {
+          "id": "quiz/v1/rust/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 402
+        },
+        {
+          "id": "quiz/v1/rust/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 372
+        },
+        {
+          "id": "quiz/v1/rust/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 358
+        },
+        {
+          "id": "quiz/v1/rust/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 248
+        },
+        {
+          "id": "quiz/v1/rust/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 219
+        },
+        {
+          "id": "quiz/v1/rust/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 282
+        },
+        {
+          "id": "quiz/v1/rust/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 407
+        },
+        {
+          "id": "quiz/v1/rust/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 320
+        },
+        {
+          "id": "quiz/v1/rust/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 294
+        },
+        {
+          "id": "quiz/v1/rust/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 327
+        },
+        {
+          "id": "quiz/v1/rust/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 316
+        },
+        {
+          "id": "quiz/v1/rust/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 303
+        },
+        {
+          "id": "quiz/v1/rust/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 301
+        },
+        {
+          "id": "quiz/v1/rust/syntax/rust_vector_iter",
+          "passed": true,
+          "cases": 16,
+          "ms": 271
+        },
+        {
+          "id": "quiz/v1/rust/syntax/rust_option",
+          "passed": true,
+          "cases": 16,
+          "ms": 250
+        },
+        {
+          "id": "quiz/v1/rust/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 271
+        },
+        {
+          "id": "quiz/v1/rust/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 267
+        },
+        {
+          "id": "quiz/v1/rust/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 287
+        },
+        {
+          "id": "quiz/v1/rust/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 264
+        },
+        {
+          "id": "quiz/v1/rust/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 242
+        },
+        {
+          "id": "quiz/v1/rust/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 321
+        },
+        {
+          "id": "quiz/v1/rust/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 281
+        },
+        {
+          "id": "quiz/v1/rust/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 328
+        },
+        {
+          "id": "quiz/v1/rust/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 263
+        },
+        {
+          "id": "quiz/v1/rust/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 231
+        },
+        {
+          "id": "quiz/v1/rust/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 214
+        },
+        {
+          "id": "quiz/v1/rust/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 207
+        },
+        {
+          "id": "quiz/v1/rust/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 205
+        },
+        {
+          "id": "quiz/v1/rust/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 198
+        },
+        {
+          "id": "quiz/v1/rust/design/rust_result",
+          "passed": true,
+          "cases": 16,
+          "ms": 204
+        },
+        {
+          "id": "quiz/v1/rust/design/rust_enum_state",
+          "passed": true,
+          "cases": 16,
+          "ms": 193
+        },
+        {
+          "id": "quiz/v1/rust/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 230
+        },
+        {
+          "id": "quiz/v1/rust/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 207
+        },
+        {
+          "id": "quiz/v1/rust/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 255
+        },
+        {
+          "id": "quiz/v1/rust/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 258
+        },
+        {
+          "id": "quiz/v1/rust/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 298
+        },
+        {
+          "id": "quiz/v1/rust/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 262
+        },
+        {
+          "id": "quiz/v1/rust/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 213
+        },
+        {
+          "id": "quiz/v1/rust/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 199
+        },
+        {
+          "id": "quiz/v1/rust/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 225
+        },
+        {
+          "id": "quiz/v1/rust/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 248
+        },
+        {
+          "id": "quiz/v1/rust/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 226
+        },
+        {
+          "id": "quiz/v1/rust/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 239
+        },
+        {
+          "id": "quiz/v1/rust/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 217
+        },
+        {
+          "id": "quiz/v1/rust/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 226
+        },
+        {
+          "id": "quiz/v1/rust/graphics/rust_slice_pixels",
+          "passed": true,
+          "cases": 16,
+          "ms": 215
+        },
+        {
+          "id": "quiz/v1/rust/graphics/rust_iterator_filter",
+          "passed": true,
+          "cases": 16,
+          "ms": 213
+        },
+        {
+          "id": "quiz/v1/rust/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 225
+        },
+        {
+          "id": "quiz/v1/rust/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 199
+        },
+        {
+          "id": "quiz/v1/rust/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 220
+        },
+        {
+          "id": "quiz/v1/rust/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 219
+        },
+        {
+          "id": "quiz/v1/rust/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 240
+        },
+        {
+          "id": "quiz/v1/rust/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 222
+        },
+        {
+          "id": "quiz/v1/rust/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 226
+        },
+        {
+          "id": "quiz/v1/rust/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 252
+        },
+        {
+          "id": "quiz/v1/rust/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 232
+        },
+        {
+          "id": "quiz/v1/rust/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 229
+        },
+        {
+          "id": "quiz/v1/rust/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 237
+        },
+        {
+          "id": "quiz/v1/rust/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 239
+        },
+        {
+          "id": "quiz/v1/rust/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 199
+        },
+        {
+          "id": "quiz/v1/rust/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 198
+        },
+        {
+          "id": "quiz/v1/rust/systems/rust_move_owner",
+          "passed": true,
+          "cases": 16,
+          "ms": 200
+        },
+        {
+          "id": "quiz/v1/rust/systems/rust_box_value",
+          "passed": true,
+          "cases": 16,
+          "ms": 190
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "go",
+      "loadMs": 167,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/go/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 136
+        },
+        {
+          "id": "quiz/v1/go/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 13
+        },
+        {
+          "id": "quiz/v1/go/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 50
+        },
+        {
+          "id": "quiz/v1/go/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/go/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 35
+        },
+        {
+          "id": "quiz/v1/go/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 29
+        },
+        {
+          "id": "quiz/v1/go/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 27
+        },
+        {
+          "id": "quiz/v1/go/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 25
+        },
+        {
+          "id": "quiz/v1/go/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 18
+        },
+        {
+          "id": "quiz/v1/go/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 23
+        },
+        {
+          "id": "quiz/v1/go/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 28
+        },
+        {
+          "id": "quiz/v1/go/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 24
+        },
+        {
+          "id": "quiz/v1/go/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 18
+        },
+        {
+          "id": "quiz/v1/go/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 30
+        },
+        {
+          "id": "quiz/v1/go/syntax/go_slice_range",
+          "passed": true,
+          "cases": 16,
+          "ms": 26
+        },
+        {
+          "id": "quiz/v1/go/syntax/go_map_presence",
+          "passed": true,
+          "cases": 16,
+          "ms": 17
+        },
+        {
+          "id": "quiz/v1/go/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 24
+        },
+        {
+          "id": "quiz/v1/go/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 32
+        },
+        {
+          "id": "quiz/v1/go/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 22
+        },
+        {
+          "id": "quiz/v1/go/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 14
+        },
+        {
+          "id": "quiz/v1/go/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 14
+        },
+        {
+          "id": "quiz/v1/go/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 21
+        },
+        {
+          "id": "quiz/v1/go/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 13
+        },
+        {
+          "id": "quiz/v1/go/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 11
+        },
+        {
+          "id": "quiz/v1/go/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 17
+        },
+        {
+          "id": "quiz/v1/go/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 10
+        },
+        {
+          "id": "quiz/v1/go/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 13
+        },
+        {
+          "id": "quiz/v1/go/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/design/go_closure",
+          "passed": true,
+          "cases": 16,
+          "ms": 11
+        },
+        {
+          "id": "quiz/v1/go/design/go_type_assertion",
+          "passed": true,
+          "cases": 16,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 10
+        },
+        {
+          "id": "quiz/v1/go/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 10
+        },
+        {
+          "id": "quiz/v1/go/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 10
+        },
+        {
+          "id": "quiz/v1/go/graphics/go_pixel_slice",
+          "passed": true,
+          "cases": 16,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/graphics/go_rune_frame",
+          "passed": true,
+          "cases": 16,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/go/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/go/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/go/systems/go_buffered_channel",
+          "passed": true,
+          "cases": 16,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/go/systems/go_deferred_cleanup",
+          "passed": true,
+          "cases": 16,
+          "ms": 11
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "python",
+      "loadMs": 2420,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/python/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/python/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/python/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/python/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/python/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 21
+        },
+        {
+          "id": "quiz/v1/python/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/python/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/python/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/syntax/python_list_comprehension",
+          "passed": true,
+          "cases": 16,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/python/syntax/python_dict_default",
+          "passed": true,
+          "cases": 16,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 14
+        },
+        {
+          "id": "quiz/v1/python/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/python/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/python/design/python_dataclass",
+          "passed": true,
+          "cases": 16,
+          "ms": 11
+        },
+        {
+          "id": "quiz/v1/python/design/python_closure",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/graphics/python_zip_pixels",
+          "passed": true,
+          "cases": 16,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/graphics/python_tuple_unpack",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/python/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/python/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/python_counter",
+          "passed": true,
+          "cases": 16,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/python/systems/python_context_cleanup",
+          "passed": true,
+          "cases": 16,
+          "ms": 3
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "java",
+      "loadMs": 259,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/java/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 1591
+        },
+        {
+          "id": "quiz/v1/java/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 990
+        },
+        {
+          "id": "quiz/v1/java/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 1098
+        },
+        {
+          "id": "quiz/v1/java/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 963
+        },
+        {
+          "id": "quiz/v1/java/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 1057
+        },
+        {
+          "id": "quiz/v1/java/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 1030
+        },
+        {
+          "id": "quiz/v1/java/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 1048
+        },
+        {
+          "id": "quiz/v1/java/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 926
+        },
+        {
+          "id": "quiz/v1/java/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 997
+        },
+        {
+          "id": "quiz/v1/java/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 1144
+        },
+        {
+          "id": "quiz/v1/java/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 976
+        },
+        {
+          "id": "quiz/v1/java/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 1014
+        },
+        {
+          "id": "quiz/v1/java/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 1028
+        },
+        {
+          "id": "quiz/v1/java/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 1101
+        },
+        {
+          "id": "quiz/v1/java/syntax/java_array_list",
+          "passed": true,
+          "cases": 16,
+          "ms": 1198
+        },
+        {
+          "id": "quiz/v1/java/syntax/java_optional",
+          "passed": true,
+          "cases": 16,
+          "ms": 996
+        },
+        {
+          "id": "quiz/v1/java/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 987
+        },
+        {
+          "id": "quiz/v1/java/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 872
+        },
+        {
+          "id": "quiz/v1/java/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 975
+        },
+        {
+          "id": "quiz/v1/java/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 952
+        },
+        {
+          "id": "quiz/v1/java/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 980
+        },
+        {
+          "id": "quiz/v1/java/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 914
+        },
+        {
+          "id": "quiz/v1/java/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 899
+        },
+        {
+          "id": "quiz/v1/java/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 989
+        },
+        {
+          "id": "quiz/v1/java/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 956
+        },
+        {
+          "id": "quiz/v1/java/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 936
+        },
+        {
+          "id": "quiz/v1/java/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 907
+        },
+        {
+          "id": "quiz/v1/java/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 929
+        },
+        {
+          "id": "quiz/v1/java/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 981
+        },
+        {
+          "id": "quiz/v1/java/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 1042
+        },
+        {
+          "id": "quiz/v1/java/design/java_local_class",
+          "passed": true,
+          "cases": 16,
+          "ms": 967
+        },
+        {
+          "id": "quiz/v1/java/design/java_function_policy",
+          "passed": true,
+          "cases": 16,
+          "ms": 1060
+        },
+        {
+          "id": "quiz/v1/java/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 1019
+        },
+        {
+          "id": "quiz/v1/java/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 997
+        },
+        {
+          "id": "quiz/v1/java/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 1102
+        },
+        {
+          "id": "quiz/v1/java/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 1270
+        },
+        {
+          "id": "quiz/v1/java/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 998
+        },
+        {
+          "id": "quiz/v1/java/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 1059
+        },
+        {
+          "id": "quiz/v1/java/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 1030
+        },
+        {
+          "id": "quiz/v1/java/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 1079
+        },
+        {
+          "id": "quiz/v1/java/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 1059
+        },
+        {
+          "id": "quiz/v1/java/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 1158
+        },
+        {
+          "id": "quiz/v1/java/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 885
+        },
+        {
+          "id": "quiz/v1/java/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 831
+        },
+        {
+          "id": "quiz/v1/java/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 853
+        },
+        {
+          "id": "quiz/v1/java/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 945
+        },
+        {
+          "id": "quiz/v1/java/graphics/java_int_stream",
+          "passed": true,
+          "cases": 16,
+          "ms": 949
+        },
+        {
+          "id": "quiz/v1/java/graphics/java_copy_pixels",
+          "passed": true,
+          "cases": 16,
+          "ms": 902
+        },
+        {
+          "id": "quiz/v1/java/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 841
+        },
+        {
+          "id": "quiz/v1/java/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 870
+        },
+        {
+          "id": "quiz/v1/java/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 885
+        },
+        {
+          "id": "quiz/v1/java/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 832
+        },
+        {
+          "id": "quiz/v1/java/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 864
+        },
+        {
+          "id": "quiz/v1/java/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 900
+        },
+        {
+          "id": "quiz/v1/java/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 894
+        },
+        {
+          "id": "quiz/v1/java/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 928
+        },
+        {
+          "id": "quiz/v1/java/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 1086
+        },
+        {
+          "id": "quiz/v1/java/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 1056
+        },
+        {
+          "id": "quiz/v1/java/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 914
+        },
+        {
+          "id": "quiz/v1/java/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 899
+        },
+        {
+          "id": "quiz/v1/java/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 1001
+        },
+        {
+          "id": "quiz/v1/java/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 978
+        },
+        {
+          "id": "quiz/v1/java/systems/java_map_merge",
+          "passed": true,
+          "cases": 16,
+          "ms": 1015
+        },
+        {
+          "id": "quiz/v1/java/systems/java_auto_close",
+          "passed": true,
+          "cases": 16,
+          "ms": 976
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "sql",
+      "loadMs": 84,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1280,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/sql/syntax/select_amount",
+          "passed": true,
+          "cases": 20,
+          "ms": 39
+        },
+        {
+          "id": "quiz/v1/sql/syntax/count_enabled",
+          "passed": true,
+          "cases": 20,
+          "ms": 10
+        },
+        {
+          "id": "quiz/v1/sql/syntax/sum_amount",
+          "passed": true,
+          "cases": 20,
+          "ms": 11
+        },
+        {
+          "id": "quiz/v1/sql/syntax/maximum_amount",
+          "passed": true,
+          "cases": 20,
+          "ms": 12
+        },
+        {
+          "id": "quiz/v1/sql/syntax/minimum_amount",
+          "passed": true,
+          "cases": 20,
+          "ms": 9
+        },
+        {
+          "id": "quiz/v1/sql/syntax/integer_average",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/syntax/distinct_groups",
+          "passed": true,
+          "cases": 20,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/sql/syntax/case_discount",
+          "passed": true,
+          "cases": 20,
+          "ms": 7
+        },
+        {
+          "id": "quiz/v1/sql/syntax/coalesce_missing",
+          "passed": true,
+          "cases": 20,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/sql/syntax/between_amounts",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/syntax/in_identifiers",
+          "passed": true,
+          "cases": 20,
+          "ms": 16
+        },
+        {
+          "id": "quiz/v1/sql/syntax/descending_limit",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/syntax/second_highest",
+          "passed": true,
+          "cases": 20,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/sql/syntax/remainder_filter",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/syntax/combine_predicates",
+          "passed": true,
+          "cases": 20,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/sql/syntax/scalar_arithmetic",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/design/group_total",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/design/having_total",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/design/self_join_pairs",
+          "passed": true,
+          "cases": 20,
+          "ms": 8
+        },
+        {
+          "id": "quiz/v1/sql/design/left_join_missing",
+          "passed": true,
+          "cases": 20,
+          "ms": 6
+        },
+        {
+          "id": "quiz/v1/sql/design/exists_group",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/not_exists_later",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/conditional_total",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/design/group_difference",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/design/union_unique",
+          "passed": true,
+          "cases": 20,
+          "ms": 5
+        },
+        {
+          "id": "quiz/v1/sql/design/union_all_events",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/bounded_policy",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/average_threshold",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/unique_enabled_group",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/design/aggregate_pipeline",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/design/all_members_enabled",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/design/weighted_average",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/visible_objects",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/layer_first",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/tile_buckets",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/draw_rank",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/graphics/running_position",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/graphics/neighbor_gap",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/next_position",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/graphics/layer_sum",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/graphics/overlap_pairs",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/screen_transform",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/clamp_positions",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/empty_layer",
+          "passed": true,
+          "cases": 20,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/sql/graphics/layer_minimum",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/frame_wrap",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/graphics/bounding_width",
+          "passed": true,
+          "cases": 20,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/sql/graphics/stable_layer_order",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/ready_jobs",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/first_job",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/top_two_cost",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/recursive_counter",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/deduplicate_queue",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/window_budget",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/systems/keyset_page",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/group_load",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/systems/duplicate_members",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/null_safe_count",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/partition_average",
+          "passed": true,
+          "cases": 20,
+          "ms": 4
+        },
+        {
+          "id": "quiz/v1/sql/systems/enabled_ratio",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/successor_links",
+          "passed": true,
+          "cases": 20,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/sql/systems/running_maximum",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/sql/systems/bounded_rows",
+          "passed": true,
+          "cases": 20,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/sql/systems/ranked_choice",
+          "passed": true,
+          "cases": 20,
+          "ms": 3
+        }
+      ],
+      "pageErrors": []
+    },
+    {
+      "language": "lua",
+      "loadMs": 38,
+      "crossOriginIsolated": false,
+      "referenceCount": 64,
+      "caseCount": 1502,
+      "passed": 64,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "rows": [
+        {
+          "id": "quiz/v1/lua/syntax/clamp_health",
+          "passed": true,
+          "cases": 25,
+          "ms": 16
+        },
+        {
+          "id": "quiz/v1/lua/syntax/apply_armor",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/sum_coins",
+          "passed": true,
+          "cases": 24,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/countdown",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/lua/syntax/combo_reward",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/wrap_slot",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/sum_even",
+          "passed": true,
+          "cases": 24,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/syntax/count_bits",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/syntax/spend_coins",
+          "passed": true,
+          "cases": 23,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/lua/syntax/choose_max",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/nearest_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/range_check",
+          "passed": true,
+          "cases": 28,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/syntax/triangular_sum",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/safe_divide",
+          "passed": true,
+          "cases": 26,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/lua_sequence",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/syntax/lua_table_default",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/inventory_capacity",
+          "passed": true,
+          "cases": 30,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/state_transition",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/command_budget",
+          "passed": true,
+          "cases": 26,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/config_override",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/reward_policy",
+          "passed": true,
+          "cases": 24,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/lua/design/save_version",
+          "passed": true,
+          "cases": 24,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/cooldown_gate",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/damage_pipeline",
+          "passed": true,
+          "cases": 30,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/stack_limit",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/event_filter",
+          "passed": true,
+          "cases": 24,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/retry_policy",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/priority_choice",
+          "passed": true,
+          "cases": 24,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/transaction_check",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/design/progress_snapshot",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/lua_metatable",
+          "passed": true,
+          "cases": 16,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/design/lua_closure",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/viewport_clip",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/tile_column",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/frame_index",
+          "passed": true,
+          "cases": 26,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/alpha_blend",
+          "passed": true,
+          "cases": 26,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/camera_offset",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/parallax_layer",
+          "passed": true,
+          "cases": 23,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/clamp_channel",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/pack_color",
+          "passed": true,
+          "cases": 24,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/flip_sprite",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/sprite_overlap",
+          "passed": true,
+          "cases": 30,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/health_bar",
+          "passed": true,
+          "cases": 25,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/grid_index",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/screen_scale",
+          "passed": true,
+          "cases": 25,
+          "ms": 3
+        },
+        {
+          "id": "quiz/v1/lua/graphics/depth_bucket",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/graphics/lua_pixel_table",
+          "passed": true,
+          "cases": 16,
+          "ms": 2
+        },
+        {
+          "id": "quiz/v1/lua/graphics/lua_frame_string",
+          "passed": true,
+          "cases": 16,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/align_bytes",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/ring_write",
+          "passed": true,
+          "cases": 22,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/cache_expiry",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/retry_backoff",
+          "passed": true,
+          "cases": 26,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/queue_budget",
+          "passed": true,
+          "cases": 29,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/pool_slots",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/token_bucket",
+          "passed": true,
+          "cases": 25,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/bounded_checksum",
+          "passed": true,
+          "cases": 24,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/packet_pages",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/saturating_counter",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/worker_partition",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/generation_guard",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/change_mask",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/batch_remainder",
+          "passed": true,
+          "cases": 23,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/lua_coroutine",
+          "passed": true,
+          "cases": 16,
+          "ms": 1
+        },
+        {
+          "id": "quiz/v1/lua/systems/lua_protected_call",
+          "passed": true,
+          "cases": 16,
+          "ms": 1
+        }
+      ],
+      "pageErrors": []
+    }
+  ],
+  "scope": "Reference/test execution at recorded build. Subsequent UI-only change adds SQL fixture visibility; catalog, runner, worker and adapters unchanged.",
+  "sourceSha256": {
+    "src/quizcatalog.js": "5458c704c16246e341aadb45c7243b486043f586b1f79145f4d5ff4094dd7821",
+    "src/quizrunner.js": "d3d5527adf1cb4417bae0a545d595541d190314d3e76ab9f096026c4a6d61dba",
+    "src/quizworker.js": "ee90b4d49f37f8731501db27ce090b6be60c706c04b53e6ebf9d4aef929a6fb6",
+    "src/runners/cpp.js": "f08eccfe6de53ee8f858f2027d3cd8d16ed5a2f6c9cb55bb674ec0021e8b5323",
+    "src/runners/csharp.js": "83b198919ad9598fb7193d5739e6a93a3778b551e19c02dacf080a60f5a9a031",
+    "src/runners/go.js": "e524f81b4699499e00f006f84a68ba97535d252306f8d7c8bb093cbce020e5e9",
+    "src/runners/java.js": "821158aaf2d477617838de1c23a697d3f1dea5c853c37d07e14e134dfdabbb18",
+    "src/runners/lua.js": "de5b87c151c2058c0110acd5c18b20cfe49c78c09f757df446365a917c15e367",
+    "src/runners/python.js": "9cb38e203d5eec1f73712b4b5b8af2bd6532b7336070c4d43a7c68e3f2feb421",
+    "src/runners/rust.js": "88f960f98f7317ea7a979e20a1252cd7cd5b3aa6d75ed254d58d04576ba10601",
+    "src/runners/sql.js": "59ceeac11f51db35740c7ab50a7371cc867937266782e8cfea23303a78615b2a"
+  },
+  "runtimeManifestSha256": "9c40a234b0df24d2288934c8eb4f140a365baeb97416261f61b94d2e3c713439"
+}

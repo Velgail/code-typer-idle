@@ -1,0 +1,1731 @@
+{
+  "package": "Code Typer Idle Quiz runtimes",
+  "version": 1,
+  "files": [
+    {
+      "path": "cpp/browsercc-0.1.1/BUILD.md",
+      "bytes": 2704,
+      "sha256": "819b9c7b449adeeb7dde4b3ddd607ee66cd41ba1d3d7621e0dfcae6d905a70d9"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/clang.js",
+      "bytes": 74193,
+      "sha256": "27aeadfcdb71f37fdeb6f1ca339de913ef9e2fdd1fd53c238a5decf635d9b129"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/clang.wasm.gz",
+      "bytes": 15131041,
+      "sha256": "835329312eb8684e965f9518e4af8531f85e9d7c1416250a942531e9eb28cafb"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/index.js",
+      "bytes": 5296,
+      "sha256": "0265e7fccbf29facb65db6cc59045bec746fc184fe5f0fdf05aa0150d9699570"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/lld.js",
+      "bytes": 71604,
+      "sha256": "b5054c24942687c744adbadcd549073ce3ecaf69b9fed5fa85a20c046751c1bf"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/lld.wasm.gz",
+      "bytes": 8763921,
+      "sha256": "ee1e70ba4f2b1aab25f601c965956e98d395e09d4a34dd7df08e38d2ae599443"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/manifest.json",
+      "bytes": 3986,
+      "sha256": "fbdc225575a8ea6dddb12d16ae4f15e9f2641fd33d01da2ee24d0faa45f5dc01"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/sysroot.tar.gz",
+      "bytes": 5791798,
+      "sha256": "61010538702ed73772487e6c7e1d57f7bb170fe09ba59862175577ec6affb739"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/debug.js",
+      "bytes": 414,
+      "sha256": "a91848ee180529e2a60c05dfb9584cad19cd4e1c6f391fdb76a938bcae4c0328"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/fd.js",
+      "bytes": 1906,
+      "sha256": "9e82e1fc1bfd3e3573f64349dc42b4b624ed61d24e5c553f2bb4d041444f166c"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/fs_mem.js",
+      "bytes": 12206,
+      "sha256": "85dbc9e0ee784d9ff8b55452644e00bf7058e32355aab974f8b71d7d85772324"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/fs_opfs.js",
+      "bytes": 2280,
+      "sha256": "4b96aaeb5ac5986cf802cbf22b975c656682d22a38248160c96fc2ded5644869"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/index.js",
+      "bytes": 316,
+      "sha256": "7e2fd52ee3f728bb0b1d6e449724e0f13e3d586bb25bde6e02a66366175b5605"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/strace.js",
+      "bytes": 318,
+      "sha256": "ece435d3784d928d02bff4d015b7cb686f8c06de8536ff9f8ebc38a8f403a3be"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/wasi.js",
+      "bytes": 16429,
+      "sha256": "168eb977a826f75ab0c39f9322f78cc58dbd5b233019ad1d6a7e940af8a7c4aa"
+    },
+    {
+      "path": "cpp/browsercc-0.1.1/wasi/wasi_defs.js",
+      "bytes": 9027,
+      "sha256": "0db0f42ba330749a7b05095ea1fd0ff63fd2b30e84cead30fe4c28359d15f194"
+    },
+    {
+      "path": "csharp/Compilation.js",
+      "bytes": 1551,
+      "sha256": "88ffcfa84b9346d97686444f651a3cb0086cfa25eb1616505bf9249257b7d88a"
+    },
+    {
+      "path": "csharp/CompilationInterop.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "csharp/Humanizer.dll.gz",
+      "bytes": 9484,
+      "sha256": "dca6fcbbc3ac2f5104206698b2c9b9e195769243c896727be8db514053936829"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.CSharp.Features.dll.gz",
+      "bytes": 814095,
+      "sha256": "ab2978a3abb537d39f4af7e90ab0cdd8b113a429d9e4524383b6481ef10fcb10"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.CSharp.Workspaces.dll.gz",
+      "bytes": 351444,
+      "sha256": "0117242ee1bed9fb6bd7b89fdb98ab1c2e05b2deeaf6e8142f32bea80dcff155"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.CSharp.dll.gz",
+      "bytes": 2023300,
+      "sha256": "4026527ccd3c74f3d8e1869e87bad1178df4d744cdf1c51dc7f227e46e925849"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.Features.dll.gz",
+      "bytes": 1093883,
+      "sha256": "7a130156a2d8df3843bfe2129141c27f4639d1d2e69002e1dea278584b612396"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.Scripting.dll.gz",
+      "bytes": 12453,
+      "sha256": "7ec890bf1d4530b2896bf10ef2dd61f1923719a767f4014940bbfa3b7e05d7d0"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.Workspaces.dll.gz",
+      "bytes": 1494648,
+      "sha256": "0d7290d2d982fff111cb649583a5dee1d128d77b62bc35fdbe98a1c1bd52a178"
+    },
+    {
+      "path": "csharp/Microsoft.CodeAnalysis.dll.gz",
+      "bytes": 800642,
+      "sha256": "0780fafee4e6a186fe4353c9353d0598b01491754da3de7c9b820af20a8ea69e"
+    },
+    {
+      "path": "csharp/Microsoft.DiaSymReader.dll.gz",
+      "bytes": 29250,
+      "sha256": "921630f4a14611bad50cc6f9c50419791c34c378c4a5e280b17461d7e98402a9"
+    },
+    {
+      "path": "csharp/Microsoft.Extensions.DependencyInjection.Abstractions.dll.gz",
+      "bytes": 3789,
+      "sha256": "0cb392b7c1d34f232906629870b47247ca53e5a126783a761837035f47d82027"
+    },
+    {
+      "path": "csharp/Microsoft.Extensions.Logging.Abstractions.dll.gz",
+      "bytes": 7238,
+      "sha256": "2062e8463a2f90ea43d848f21360e8567b096e6e86284f19d0275443a1da3389"
+    },
+    {
+      "path": "csharp/Roslyn/Text.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "csharp/Roslyn/WellKnownTags.js",
+      "bytes": 5403,
+      "sha256": "9da8e05ce9ca23e5ef46d8cd85282bb75739d162ac945bc4df6629a6b27e42f0"
+    },
+    {
+      "path": "csharp/System.Collections.Concurrent.dll.gz",
+      "bytes": 14977,
+      "sha256": "a917def63898ac4cdc1c15cc0ae7fc523d9cd142b8e0641e9f988ddffa600124"
+    },
+    {
+      "path": "csharp/System.Collections.Immutable.dll.gz",
+      "bytes": 73796,
+      "sha256": "742c164794dfdfc74a09c411151e702fdbe8991b4d121ab668527b3d9dd78c22"
+    },
+    {
+      "path": "csharp/System.Collections.NonGeneric.dll.gz",
+      "bytes": 6436,
+      "sha256": "98fe735b808864b272c95bdf0607e20d38a5641aa8890e45e76d9fe022cae28d"
+    },
+    {
+      "path": "csharp/System.Collections.Specialized.dll.gz",
+      "bytes": 5382,
+      "sha256": "5c1a4661c4c5ae922f06489c668d03c7aa253862a4c5968214098990fae768a7"
+    },
+    {
+      "path": "csharp/System.Collections.dll.gz",
+      "bytes": 22901,
+      "sha256": "2280d1994dc3001192eb52cf85428e86e1271e413baad9b39c27f43398f8b653"
+    },
+    {
+      "path": "csharp/System.ComponentModel.Primitives.dll.gz",
+      "bytes": 3450,
+      "sha256": "4266bd7c288449d589a39125ce1d6d847a5ef9590c6d8605f7e99a9538fdcce3"
+    },
+    {
+      "path": "csharp/System.ComponentModel.TypeConverter.dll.gz",
+      "bytes": 20433,
+      "sha256": "147df6e7834b6191e764493834cb25da7c373404a93c2f981d1e92121fb75504"
+    },
+    {
+      "path": "csharp/System.ComponentModel.dll.gz",
+      "bytes": 1983,
+      "sha256": "a4c4b6133259717fb749ac2f906724d9cbd0c8b52e2b86e2395216b2536066e1"
+    },
+    {
+      "path": "csharp/System.Composition.AttributedModel.dll.gz",
+      "bytes": 3227,
+      "sha256": "baa4fc1c6d86c754e9ab11e650db7232a94d1510bbcee426784ecd2b3fcf8026"
+    },
+    {
+      "path": "csharp/System.Composition.Hosting.dll.gz",
+      "bytes": 16928,
+      "sha256": "5fe511874801b0425e9e983ec29aba013132d91e6300875575ebf2d2c1c2d38f"
+    },
+    {
+      "path": "csharp/System.Composition.Runtime.dll.gz",
+      "bytes": 5449,
+      "sha256": "1afacd78415406ccc3e5270d00ef2958f7d9ac6f88bcf860981a0dc8645e581c"
+    },
+    {
+      "path": "csharp/System.Composition.TypedParts.dll.gz",
+      "bytes": 19185,
+      "sha256": "b203441e8ef22020a73479b8540575eeccccb8854a2eb4fdae2b4674ebac04e6"
+    },
+    {
+      "path": "csharp/System.Console.dll.gz",
+      "bytes": 7784,
+      "sha256": "26f3d6674656d2d99854422d16cb8b298c17ca0e3da68493fcf9e9cf37da8b03"
+    },
+    {
+      "path": "csharp/System.Diagnostics.FileVersionInfo.dll.gz",
+      "bytes": 2311,
+      "sha256": "7b60ce85b41e0f9f5d65ac52a11599c9d6fbadfd0e75eb93729087911d3f995f"
+    },
+    {
+      "path": "csharp/System.Diagnostics.Process.dll.gz",
+      "bytes": 2487,
+      "sha256": "c812b3401bf036326051865075510e1084b566789ff0589f9d353f0938a0081c"
+    },
+    {
+      "path": "csharp/System.Diagnostics.TraceSource.dll.gz",
+      "bytes": 5470,
+      "sha256": "f61cf305c4afa60484db07757dee0a3a07255bb6d90029917b87676db24e0450"
+    },
+    {
+      "path": "csharp/System.Globalization.dll.gz",
+      "bytes": 1829,
+      "sha256": "d6739995acce1d3f938196d33b304101dcea7d2ee90ea85a389288ab0083570b"
+    },
+    {
+      "path": "csharp/System.IO.Compression.dll.gz",
+      "bytes": 14233,
+      "sha256": "45047c31dcfaeb258d5b3beadd9ccd784ccd5d2f09e09578aa916b85d4786739"
+    },
+    {
+      "path": "csharp/System.IO.MemoryMappedFiles.dll.gz",
+      "bytes": 12926,
+      "sha256": "e10602ca48a6166ed12b90a137b33347dc6e984a5a5be7b0ab63def7b20d9c6a"
+    },
+    {
+      "path": "csharp/System.IO.Pipelines.dll.gz",
+      "bytes": 2797,
+      "sha256": "30061c2f3434ff5e322014401795e4d4460be7a4ce8afb853112b6c31d51118d"
+    },
+    {
+      "path": "csharp/System.Linq.Expressions.dll.gz",
+      "bytes": 136214,
+      "sha256": "fbe04350337cea9b65b9380d7ee847a802579b9cd2a1c3a2ab830f835926b38b"
+    },
+    {
+      "path": "csharp/System.Linq.dll.gz",
+      "bytes": 34751,
+      "sha256": "0b0b8edf2b3226681cbbf2aed07846763e4912e90d40af836c1880b02064b6a4"
+    },
+    {
+      "path": "csharp/System.Memory.dll.gz",
+      "bytes": 2412,
+      "sha256": "260a9c2c4419d4da20dff6e818f4600fb6712903f841aeb2bfa734fab4cfd774"
+    },
+    {
+      "path": "csharp/System.Net.Http.dll.gz",
+      "bytes": 60395,
+      "sha256": "476926a5d621c1e30b783eade41bcd6cdd07b9813694445878c13d2d410f11eb"
+    },
+    {
+      "path": "csharp/System.Net.Primitives.dll.gz",
+      "bytes": 3508,
+      "sha256": "f1d45ce013b9b3374088de5fd89ba21f7ebe4bc5ea398342c0df9db7437fe445"
+    },
+    {
+      "path": "csharp/System.ObjectModel.dll.gz",
+      "bytes": 2616,
+      "sha256": "729a6912986245c8f9b9adb49262889edaba53888c2dbd8abc240b4ae740a899"
+    },
+    {
+      "path": "csharp/System.Private.CoreLib.dll.gz",
+      "bytes": 796030,
+      "sha256": "6fc17e42e13ed7ff8b9e37ee047508c446ad987876596e16fceeaf065ea194e5"
+    },
+    {
+      "path": "csharp/System.Private.DataContractSerialization.dll.gz",
+      "bytes": 140420,
+      "sha256": "10eb8e1b595c6b22d42184335309668ac16b526c90f0e592e822d49e877011f5"
+    },
+    {
+      "path": "csharp/System.Private.Uri.dll.gz",
+      "bytes": 35904,
+      "sha256": "3e22a33e8b309774ddf17b0af8a798e2e8e7bcc8aba64dd852d0cd4aaadf3b40"
+    },
+    {
+      "path": "csharp/System.Private.Xml.Linq.dll.gz",
+      "bytes": 24719,
+      "sha256": "5fce904e9de4f35baa9a71caae07f88842c34c3372d9b44351b6f6f83fe27e6f"
+    },
+    {
+      "path": "csharp/System.Private.Xml.dll.gz",
+      "bytes": 231760,
+      "sha256": "2882d6564ed8698ba64a428d848feffe3cdb16502f5b23b6182921630f6f2d06"
+    },
+    {
+      "path": "csharp/System.Reflection.Metadata.dll.gz",
+      "bytes": 117468,
+      "sha256": "f8db372212d30df6d9fda14dc921bdb1a510a10a7b7f68429b794702c951bb60"
+    },
+    {
+      "path": "csharp/System.Runtime.InteropServices.JavaScript.dll.gz",
+      "bytes": 19684,
+      "sha256": "e7de58870c5e4e5230709803ad8361ea569f680e10181fdbcc7bf166ad07317a"
+    },
+    {
+      "path": "csharp/System.Runtime.InteropServices.dll.gz",
+      "bytes": 2719,
+      "sha256": "01144c206d5d9c7005df9a0bd24cc2804dd170a683e38f4508aff13b06787413"
+    },
+    {
+      "path": "csharp/System.Runtime.Numerics.dll.gz",
+      "bytes": 37177,
+      "sha256": "3e769ea50dac50575ff87afa733e2d341e5222ea276bc9c5f9552a62c8403b6e"
+    },
+    {
+      "path": "csharp/System.Runtime.Serialization.Formatters.dll.gz",
+      "bytes": 2560,
+      "sha256": "e9d11e6a14ce1afa4ced51917bf8cb4daf4645baa742528cc4ad56d466e5cdad"
+    },
+    {
+      "path": "csharp/System.Runtime.Serialization.Primitives.dll.gz",
+      "bytes": 3345,
+      "sha256": "94057a0ae1ca71f3fe904a6d418cbb7f11fdef5373ba5ace39b5ff1a84a3f712"
+    },
+    {
+      "path": "csharp/System.Security.Cryptography.dll.gz",
+      "bytes": 11455,
+      "sha256": "401d00cd7084752669c03f959f95fc8fc271a2757ba9f805535562ce5293b600"
+    },
+    {
+      "path": "csharp/System.Text.Encoding.CodePages.dll.gz",
+      "bytes": 507821,
+      "sha256": "a095ea3bf79cfcd26b93b158f7c66fb5de6e50901aa4c425f070cc9637e42261"
+    },
+    {
+      "path": "csharp/System.Text.Encodings.Web.dll.gz",
+      "bytes": 11067,
+      "sha256": "0a7a70e0a419c90fabe271a1b7c11e204080c950649d1428558f427ff3f00ca6"
+    },
+    {
+      "path": "csharp/System.Text.Json.dll.gz",
+      "bytes": 63723,
+      "sha256": "491bdb80108cf974fe0768a9910fe9ed8c321ef3f96406ca7d093d607defeef1"
+    },
+    {
+      "path": "csharp/System.Text.RegularExpressions.dll.gz",
+      "bytes": 120984,
+      "sha256": "8ea1416bd3d541560d3a74dd896f7d226aed952f6d82814253f2528bd0607da1"
+    },
+    {
+      "path": "csharp/System.Threading.Channels.dll.gz",
+      "bytes": 17172,
+      "sha256": "75ce8d9244a99c9069f9d6dee8c0ea411e8fe6cdfd6f0a108867913857ef26d6"
+    },
+    {
+      "path": "csharp/System.Threading.Tasks.Parallel.dll.gz",
+      "bytes": 10785,
+      "sha256": "2a581e60aebd57088e5272083eda8892852ddcd71f4198ab9901ccb52c3f08b1"
+    },
+    {
+      "path": "csharp/System.Xml.Linq.dll.gz",
+      "bytes": 1673,
+      "sha256": "7bc7992caa4d556084900f4ca02a1b7b33e6f612fbec7889c5a9413c6a85bee2"
+    },
+    {
+      "path": "csharp/System.dll.gz",
+      "bytes": 1725,
+      "sha256": "8a29339f343b407f1b0f7a6812473e50880680adc64bad910feae904c2d543b1"
+    },
+    {
+      "path": "csharp/WasmCompiler.js",
+      "bytes": 2161,
+      "sha256": "e0b6dd290e96cff804b5d21341aa66110d57330507e11b11871d9134a0004bb5"
+    },
+    {
+      "path": "csharp/WasmSharp.Core.dll.gz",
+      "bytes": 43126,
+      "sha256": "4a6b069ad8c5d770d2995d637b99fad26be75298fb9cbfd55facaad8148e70cb"
+    },
+    {
+      "path": "csharp/WasmSharpWorker.js",
+      "bytes": 531,
+      "sha256": "449e18ceac48e641ac880e9f8e4e744a2c31a8cfa69251b6f88543824883710c"
+    },
+    {
+      "path": "csharp/comlink.mjs",
+      "bytes": 12629,
+      "sha256": "ba9d0de49a44aa9f42c70d6e98e2f00ef3836ca11b785dccd707917d6a4c719b"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20272,
+      "sha256": "a318a1e712a8c3c615ee760671d663be1d10ca9cb0ecce8df0e91d1108200a4f"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10401,
+      "sha256": "7594097f5d7577ab50f36ed22ec6b9fedad8adc1e8fc669e59de928552f47ce0"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 123736,
+      "sha256": "95d9d8731c5e1550538c2513c20a24228563aa0c0407c9223ea0ea13882f62be"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 59265,
+      "sha256": "a71c0fd5b01f0b717571dda2209ac9fbf17391bb3cb81aff4eb5e2502a19ff6b"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11009,
+      "sha256": "aca5a667b60919c823757079a0c96d882740c017393f6b7135d1e9f6538d568c"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20651,
+      "sha256": "7886fe356bed078ab11f3d16dfc12c927ad57ac1f453ac9636339eba360fbf43"
+    },
+    {
+      "path": "csharp/cs/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22255,
+      "sha256": "eebb60fd4f68a8604fb0614de461f89c63367fc0f5b07634497be7a633781c4b"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20309,
+      "sha256": "348833c5fea289ab7cac783034d891703fa4e14540c41a2a8bdbaa0b1867b535"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10413,
+      "sha256": "85c454bf5cf41ac245f094fd73fa79ef8f18c99215eb0e270b9015d3edd1a702"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 127747,
+      "sha256": "52559a48f261acee9322dc735f65504e57e8afbeb5d1c7396332e966c635dbbf"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 60368,
+      "sha256": "12077f586ae72850ce455a51c40bf5e3de211f3b1d8995d05f8ef16aa6fcd750"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11026,
+      "sha256": "ec25540ee842880ecd0563983b7145bbd9a864693294ca21df1f0b1608bfd7af"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20798,
+      "sha256": "c3937b2b6d5891c81a2bf37816ae9ba25f961386f5f894a13ac0ebb4f3cdf773"
+    },
+    {
+      "path": "csharp/de/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22608,
+      "sha256": "8111636b82c5784410fe8f25d6b8add94ce5720162c4a130788bc210adccb875"
+    },
+    {
+      "path": "csharp/dotnet.js",
+      "bytes": 106519,
+      "sha256": "e7b55d6644f0f565cfe7b1a1620ca12bcb13359b2349de7622da085adea6c08b"
+    },
+    {
+      "path": "csharp/dotnet.native.js",
+      "bytes": 263205,
+      "sha256": "0b775e4303e6163a66a8e2c64d977450d166b02fcbe24292a9729119933c6fdf"
+    },
+    {
+      "path": "csharp/dotnet.native.wasm.gz",
+      "bytes": 1161662,
+      "sha256": "67f729776e557b3dc75cca1489e5e865bf054a72a537b2818587ce56ff105b6e"
+    },
+    {
+      "path": "csharp/dotnet.runtime.js",
+      "bytes": 197998,
+      "sha256": "8dddcac5c09593877de84669b6cc79ed9713b125a7193ebfb8bdc1783ac09597"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20191,
+      "sha256": "fd3494674de3b03d8cccc28e1c184527dc9dc16f4656f7154eae71286b14426c"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10363,
+      "sha256": "3ff2258f5dd1e271ed90d901f8312718424fa360e31082d86c9731fa57924b9c"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 122527,
+      "sha256": "9068b268b4ac156f7d2657566ab008dfff9d5d36eaab93eb28202c22302ad93e"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 58782,
+      "sha256": "c055ea7e0cf156faf2b27197e9d870e133e031869b0227c201a05de989fbe1ca"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10962,
+      "sha256": "9ed9c61a4a09cd00a6aed334512913781fa5ae71b6e73f9b5768952e1796dce5"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20485,
+      "sha256": "5375aee7c76bc284998ff5d5fbfb9c08ffc043bc788a4ea3e8574a297a9b4c01"
+    },
+    {
+      "path": "csharp/es/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22049,
+      "sha256": "7fc30fe6e6ddf32a7f19b9f1b4122f64c69476b03c1d34cffcecdd39c514fc3e"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20253,
+      "sha256": "64de5a2b03bfc7caa448860fe99833224062daca0a7a797d57e38d1bb7e12097"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10397,
+      "sha256": "362f64d384870755a1007ac8bf8c9b84af0eb6c5314a300f45de9e7c0f66e8a8"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 124587,
+      "sha256": "778e51eea3c3c5292c7e7b2248e104bdd4b8f99875ec4f7456a9da2dab92561d"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 59854,
+      "sha256": "77a566d549a4847adcef650588d7a7293e2b82cc9682c5fc5b43a092c0e28516"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11022,
+      "sha256": "7c16ab633ec175742b3387fd9682cc83f87fce2e5f134ad2bcf51139874cf9ee"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20732,
+      "sha256": "23d4744f40ec1e6b750f84aabb45afabdf6bc793337edb4e91c8be312e4dfd8b"
+    },
+    {
+      "path": "csharp/fr/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22281,
+      "sha256": "93cbd4b6a8c0d134dd53fbcba650a1eb5b1cf6112c5d94d284d6ef909d7c0c84"
+    },
+    {
+      "path": "csharp/icudt_CJK.dat.gz",
+      "bytes": 356658,
+      "sha256": "4365f9a61f1fe0f5fe3e496e3a7d7015173e800713de75d2a2e90048077eb36f"
+    },
+    {
+      "path": "csharp/icudt_EFIGS.dat.gz",
+      "bytes": 219880,
+      "sha256": "cbb5b56a98397c0861cb8ddcf6c96a577e0a1c42c21274e19f2a75a403efebc5"
+    },
+    {
+      "path": "csharp/icudt_no_CJK.dat.gz",
+      "bytes": 346775,
+      "sha256": "8c330dc22d3da7e973c68b38d0ce7ca8cde5f8230e535263a9d4a77ee84986af"
+    },
+    {
+      "path": "csharp/index.js",
+      "bytes": 35,
+      "sha256": "e0f1eb76ab028271ff0c2bf1bdd7e39e3c41ec35fa8f48be0618a3de8ea321ac"
+    },
+    {
+      "path": "csharp/initializeWasmSharpModule.js",
+      "bytes": 3270,
+      "sha256": "31087ee43684d5e923f421cf353e89b0a172d27c86c994c91a1f7a0ba5708860"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20107,
+      "sha256": "982dc076b535494ddae78f46e7e61727ce86a517397db81b1b19c23160d136ff"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10388,
+      "sha256": "9a93e0f7dfbaa6a294af50a7feee001745ad5d336d00b31c20a276a5b42cd860"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 121151,
+      "sha256": "2bf1c106a1a2612fa6e006ae8ed4b7ce51ded74720996e0494dacdea1a2db5fa"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 58621,
+      "sha256": "dfb7b46a9b5b55befc00106f8982c1ac1693575a7ee61a869d0008a166d91621"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10963,
+      "sha256": "3d7563bdcbfd96d0e3ba433028170f71b2d6491f5405df1d63d83b8e28f29cce"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20443,
+      "sha256": "ee328a32038fd4fade47fce3389074b6889690a2874965bab320a11922dc6841"
+    },
+    {
+      "path": "csharp/it/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 21974,
+      "sha256": "68fc1be937a9a6ca225c5842a5c5054d9d95ce83cef0d5c83a17c345cc597f4d"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20472,
+      "sha256": "ab332f99705e6817ccca534281f62095dd84d987e9b0528f51de99dce9734531"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10495,
+      "sha256": "ca72fe87af15b231f19a039175ec7424f2718e3426215e5550bcac3a76f73f76"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 125168,
+      "sha256": "13a98d4af1b9768720a7798dbe01debe118c9aca225d17babb274955f818b603"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 59544,
+      "sha256": "4b4f516cf46c3263eecf5aeff01b5eb66ff7ee0e2b6e8afb5d3c492169bcf298"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11109,
+      "sha256": "41054d0a8d45a098313b16efa287271b849d7fdbb81d70d2e0e0829a84fa0ca3"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20709,
+      "sha256": "1c40f7234d28d550274506ccbea52936c4f90d7e92db1311b0e3d2b165823305"
+    },
+    {
+      "path": "csharp/ja/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22421,
+      "sha256": "57a47b7d9054336f4579eb21f08617bece54314bd101dec226dbf448a1346343"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20035,
+      "sha256": "e65837ca9604da9c4d7bc37538457f94a92f62c18b421c2d5db1b9b24eba20fc"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10409,
+      "sha256": "e493ea9491b5247069e2f1d049cf9c3e219f97dade81cf004551816327affeb2"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 120111,
+      "sha256": "634aad265382c071b290879309655de3a709f9e06d6d68f612d322d8a0360169"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 57551,
+      "sha256": "0f4174eade8490c5874e6220b3f0d39fca110cfec06aedd1ba2ca490695d5c77"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11053,
+      "sha256": "e9b65e090b5d8fe2e7963efaeddfcbc9b4259ddc9e230633fe2548a97add36b8"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20389,
+      "sha256": "cd0c776cb526a403cd0bc83f7d961b178114c3ed66863a0693d8de2068eb2b58"
+    },
+    {
+      "path": "csharp/ko/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 21929,
+      "sha256": "8b994a978f63f1fb1481b3874ec2a82a9e7864664d606b6fa334aad04bcbd621"
+    },
+    {
+      "path": "csharp/main.js",
+      "bytes": 1672,
+      "sha256": "d93b9b00145dfe644bff3e3901a8e3acef02462b53e534e291854a781b69b9d1"
+    },
+    {
+      "path": "csharp/manifest.json",
+      "bytes": 35451,
+      "sha256": "ce65db487718ea94d1d24121c7903c90fb9f0c1269a4af423e0022e9f6a5de98"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20499,
+      "sha256": "ab15e50fccd11a85491d6fb8f05ec0876df7d9121b3ffe1304bd6161962b3d45"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10454,
+      "sha256": "aea47fe777ddb1ed471447dbc8d6ac7655d3534c3c4d40968804df1ff7fe3c86"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 127349,
+      "sha256": "f612ddb71b5b69ade3fe728a55da153814b24289fd023f552f545b226fb2506d"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 60302,
+      "sha256": "9a218204da5cfcfa42fac540620f83ef447d53754a0c11b2b0600b6d79b8246e"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11095,
+      "sha256": "957787ca814a30eaa11c8b504d03a518b576ec48d27cbb0aae39a5dd133e53f2"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20903,
+      "sha256": "e9bf63c69f2b73dc27592ca13e2d07a6aa8d7eef82ae5b12d8ccc3aec1287473"
+    },
+    {
+      "path": "csharp/pl/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22586,
+      "sha256": "9d917c249fef0f788d33e69fa3b277b9e87c340f35fb6db5a2b08bbb0c0e5f17"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20107,
+      "sha256": "8da321de2e565a57666a060e202d6db1a72d19b53b03b5838c7194767b5f88f3"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10394,
+      "sha256": "55b0e1caaad4c88ace37573dbcde52964d67981ed7d48c9e04a2ef1e96e05c27"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 122199,
+      "sha256": "4cb3fd1a89229680ee9877d1d2597cc83b1a80d30f57282494a0209a4e6a1d33"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 58533,
+      "sha256": "83654801c7abb999f30c23ce39f9b40a78ab3c3a61ca806a30d450b6a698a105"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10968,
+      "sha256": "edc5e43b4b9493dfd9c05fd48dc8586c055212c7e00833afdba4e5f50df09add"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20409,
+      "sha256": "fac9a926cb2cd5f4d647cdde5c02022c42f6e187a3b13c53a8613e5791a701e1"
+    },
+    {
+      "path": "csharp/pt-BR/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 22030,
+      "sha256": "423f24512729d8fe69c7b38e32c77401a420b4ce006d651c2a6a20d302423178"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20999,
+      "sha256": "43dd158fe8342cbb42e6fdc825ed45767c7e2388acd427a73bc119bd2c37ca3e"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10564,
+      "sha256": "092ea5570218d340e17024b96b49b582541e54c1c669ad2451557c2fb9d378a5"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 138532,
+      "sha256": "397572f2e230bac10f312ea3fc15256fcb8a556df5adb3460cb6383d465e938b"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 64059,
+      "sha256": "3440fc4920a95437500524a4140bfbfcccbf7f191df4713c55aa0555e51a9f32"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 11286,
+      "sha256": "171a93378164e1405ef795fbbeafa7d23938f1d9cab6cf557bf9b48e418a2063"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 21523,
+      "sha256": "eacd5438e0b402cf6df42f11a4efdef05a91eed2eddc22e0b8cb1a5c36d441b3"
+    },
+    {
+      "path": "csharp/ru/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 23601,
+      "sha256": "74a5144cc69accaece64666bd2340c5ca6bb63e76af92000a4db4783e9ffea48"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 20154,
+      "sha256": "ea1398cd317fee41060370b81db74f22ed3498318d7dce5fed1b66ac5c93776d"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10386,
+      "sha256": "37bcc51efd1d98c385dc1afa197f6576e052370817f58ba2f32a3d7e8f092f60"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 121634,
+      "sha256": "ab4f06efeeedd9412a8f22ef9c3bc3c18bd7beef26bc9afc15453df2d8a61d78"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 58756,
+      "sha256": "2c56b94b07db84af0c0091bf054aebabddf08ee0e182555ebb3c1d72a6bd9fae"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10978,
+      "sha256": "941fe30bfb5f0e8554d1a974afd6fff20cc3fba4b56208b4981a7f69f0c8da82"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20330,
+      "sha256": "4d1b17b5a34661474b2f67e9c300859f4f6b2cc62eea0d53c93a59a714f6a93a"
+    },
+    {
+      "path": "csharp/tr/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 21874,
+      "sha256": "2acb1d11b5b12976182f7340b4d73b5d85dcbdb39016a3003a1c583c9205fcdf"
+    },
+    {
+      "path": "csharp/worker.js",
+      "bytes": 1217,
+      "sha256": "886cf11760c5f0cd6e4f7b79349ece6d86d544050db5b025d1b800fc8c64dc56"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 19949,
+      "sha256": "55877cd552d97a7b9a9f6ac803820297e912a0130c045a56f5f61d171a498ec7"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10376,
+      "sha256": "418655b49a02b741c7875d3037ffc9dcb08093fd78119cde6e1063bd1956a673"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 117449,
+      "sha256": "8e256c886dfa572c9e3ac092ea2d002e4437ef06c5444884458d806a5ad96f5b"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 56923,
+      "sha256": "63f72234f98cb3e98f64771b478b6952c76f8748386bb42764c2486101e81fa7"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10952,
+      "sha256": "649fe45ca0ca7e104e0b934fea1786fd7fb72eb7d7832a961bebcfc01c860605"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20195,
+      "sha256": "e87e8b5f0edc10ece167fbe4afb463435e0af6c1d46aaa045905ec37369421cd"
+    },
+    {
+      "path": "csharp/zh-Hans/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 21653,
+      "sha256": "28ba8eea9a6f5db76a7825a42ff25eea9d256cf74861dcba830aa5ed008d6939"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.CSharp.Features.resources.dll.gz",
+      "bytes": 19927,
+      "sha256": "0ccdda514b6eec7cae340e14dfe489bbbb3a50af51d0b571d36f2ae74aa98b4f"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll.gz",
+      "bytes": 10381,
+      "sha256": "350045720d6f6103e805322797eba1fadeda2083e5b027a846c9e0928684b6b9"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.CSharp.resources.dll.gz",
+      "bytes": 118054,
+      "sha256": "77795a6df1e23557b3a02509d2e0926cad8b7e4cf1562375a6514557236e9e41"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.Features.resources.dll.gz",
+      "bytes": 57501,
+      "sha256": "6ec999017a94a65d6cecf6f67470e15864e3d67131a7e6d7ab23a6c0d0211caf"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.Scripting.resources.dll.gz",
+      "bytes": 10930,
+      "sha256": "08c676a286c09f4d4f84b66a817cc23edb90fb7af5dcd46c5938cd2f9974713b"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.Workspaces.resources.dll.gz",
+      "bytes": 20143,
+      "sha256": "23314989db390e0c43b62875628e1f43d3e624e921ddb4f166af81dfbe9b4d8a"
+    },
+    {
+      "path": "csharp/zh-Hant/Microsoft.CodeAnalysis.resources.dll.gz",
+      "bytes": 21625,
+      "sha256": "8e2714f2777f48b07dc4c292502152df34e0838e383af30a94a2d517fe07a41f"
+    },
+    {
+      "path": "go/manifest.json",
+      "bytes": 1017,
+      "sha256": "ac5b209e01853ceb001d27e82af3330de9eb56074e89e0dac9c3b1dd4e1208bf"
+    },
+    {
+      "path": "go/source/go.mod",
+      "bytes": 87,
+      "sha256": "4a05c3235a69ea9f61c649c5a6a0f136893003994c4896c87f86a13a6078ad5a"
+    },
+    {
+      "path": "go/source/go.sum",
+      "bytes": 169,
+      "sha256": "e2952ddf883dd6eca9930286b2ba7a7f4033137d8884728672eaf2608d787406"
+    },
+    {
+      "path": "go/source/main.go",
+      "bytes": 5402,
+      "sha256": "52ef0a56bedfddd4a804417542d958f45cbef10507e2c444b8eddb2539d999e6"
+    },
+    {
+      "path": "go/wasm_exec.js",
+      "bytes": 16992,
+      "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+    },
+    {
+      "path": "go/yaegi.wasm.gz",
+      "bytes": 2645976,
+      "sha256": "60e3e2bb024f7b963d5067fe445ba0d719524dd0398c37cb6d72296d96092e17"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/BUILD.md",
+      "bytes": 3548,
+      "sha256": "ef551a3969ef5dbd90310f7f22da14e801370365f5fbb594febd2537c6a03907"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/compile-classlib-teavm.bin.gz",
+      "bytes": 213958,
+      "sha256": "39e90b355f4d1b59f491a7520f904ce6fc0f7f221cd5c59efa80db676af2e291"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/compiler.wasm-runtime.js",
+      "bytes": 16425,
+      "sha256": "d4fc035b410f444f79f49e3890643b8bfd644a02dcfc597e3fcaa8a07bafca08"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/compiler.wasm.gz",
+      "bytes": 1834768,
+      "sha256": "c95e90bb6d488e4ec6b52f685853712b13c2c6fb2c4451bd41e24c3dd57b2d93"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/manifest.json",
+      "bytes": 5344,
+      "sha256": "8679b26c8c8c9324498b1a38d2181b27ff70eaffebfccc646c850e8469cc0ab6"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/runtime-classlib-teavm.bin.gz",
+      "bytes": 2302434,
+      "sha256": "67d902398504e8e10211481cfba90e0e9a62095dc86067b35103203e74106bfa"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/asm-9.8-sources.jar",
+      "bytes": 184826,
+      "sha256": "c6294794f956f21e2b252a9bf65a96ce0489fb4c0f978447d85c8a75e485b633"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/joda-time-2.12.2-sources.jar",
+      "bytes": 836012,
+      "sha256": "c1ef010a5e5ac3790f4d2d44c18f52d260ffbf810ed92e2b38d50c4c443603e2"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/jzlib-1.1.3-sources.jar",
+      "bytes": 75560,
+      "sha256": "35ebd67941ce7024e6e7d80b60a4252a9687fa0f909a7079ac904bef6c1658cf"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-classlib-0.16.0-sources.jar",
+      "bytes": 1795165,
+      "sha256": "da6f83c1436c87a9ad683b6143aaa9c172b08c3974c9a7d5741a479d0d60092e"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-core-0.16.0-sources.jar",
+      "bytes": 1670879,
+      "sha256": "687cabf23e0d17a15be30fbc070809c2931714340aca224120fe31579f95519b"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-extension-apis-0.16.0-sources.jar",
+      "bytes": 16330,
+      "sha256": "673f0b5c6d2d067096b947c5551b7652c4e2820aff1ca92d40171c8df1c6ea9b"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-extension-spi-0.16.0-sources.jar",
+      "bytes": 10724,
+      "sha256": "2e37b059006abfeb2fd7b89309b402d5ad9bb06893a975ea467d9406831a4079"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-interop-0.16.0-sources.jar",
+      "bytes": 17853,
+      "sha256": "c6ed7124d174894ae704b8ebf478fb3d8b9c35abea30006ca0fc2b39ce1667f1"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-jso-0.16.0-sources.jar",
+      "bytes": 16071,
+      "sha256": "4eea43da38308742fbd3fcf47b1104dc270ec5c868f64f1ab76623567bc1a19b"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-jso-apis-0.16.0-sources.jar",
+      "bytes": 224060,
+      "sha256": "8cfefc9ef047c0648837b26f9bc1b5da289cda129dd3b6a58b7ccc20bd0e037d"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-jso-impl-0.16.0-sources.jar",
+      "bytes": 103302,
+      "sha256": "0f9202f11990730ef08295d5d4e96593f27f1a44d212112674172a0783519e7d"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-metaprogramming-api-0.16.0-sources.jar",
+      "bytes": 18188,
+      "sha256": "2b96cda76c9e4aa28898053043abe5ba8120218d21ae8d64a00c1766e42e5173"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-metaprogramming-impl-0.16.0-sources.jar",
+      "bytes": 59662,
+      "sha256": "feda6b243138058b97919c81d63092947c68568da827f40d266946ee7477ab7d"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-platform-0.16.0-sources.jar",
+      "bytes": 69210,
+      "sha256": "3633de0245c2b8f3832f892e23380d2f4536a76cb359551eef3c4d11c0e1900b"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/dependencies/teavm-tooling-0.16.0-sources.jar",
+      "bytes": 39583,
+      "sha256": "eb94cbc173b49ba9b985a1700086ec1b3703314decf6bdf19ce8595e0be1abe6"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/openjdk-javac-corresponding-source.tar.gz",
+      "bytes": 2462941,
+      "sha256": "f5d1aba0cf2c01880a80a5d12c9d3c684c6bc37520b38610bbea77ec26871c26"
+    },
+    {
+      "path": "java/teavm-javac-208d4c97/sources/teavm-javac-source.tar.gz",
+      "bytes": 170701,
+      "sha256": "3278f9afffcb4065e9115f70864adb72948b7589322e77fb0c4da9e9735de89b"
+    },
+    {
+      "path": "licenses/cpp/Emscripten.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "licenses/cpp/LLVM-20.1.2.txt",
+      "bytes": 15141,
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "licenses/cpp/NOTICE.txt",
+      "bytes": 1014,
+      "sha256": "42dbe5d4301fc18ffd76dd4092db8bfd60dfaf2c89c5a47e672a943e0b2c4b6d"
+    },
+    {
+      "path": "licenses/cpp/WASI-SDK-25.txt",
+      "bytes": 12243,
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    {
+      "path": "licenses/cpp/browser-wasi-shim-APACHE.txt",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "licenses/cpp/browser-wasi-shim-MIT.txt",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "licenses/cpp/browsercc-MIT.txt",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "licenses/cpp/dlmalloc-CC0.txt",
+      "bytes": 477,
+      "sha256": "c9c0f4879df94f00413079bdd2d4730a292d6dd0e0886dc0cedc6559d3a36e35"
+    },
+    {
+      "path": "licenses/cpp/emmalloc-MIT.txt",
+      "bytes": 1697,
+      "sha256": "7183e99e2e38682c7c602c86ada92c686a84eb99aea346fc8ba8a44f3b3684f6"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-LICENSE-APACHE-LLVM.txt",
+      "bytes": 12243,
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-LICENSE-APACHE.txt",
+      "bytes": 10847,
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-LICENSE-MIT.txt",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-LICENSE.txt",
+      "bytes": 910,
+      "sha256": "2711a8b5a5cdfef0e639f96c1aca12ae23d7d64a02d0507f1bdf14d2b27bbc3a"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-fts-COPYING.txt",
+      "bytes": 1514,
+      "sha256": "55af87e4017668f54467a3380e7ebbac5e672d8c763bfe95e6fc882a6fdc4046"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-libc-bottom-half_cloudlibc_LICENSE.txt",
+      "bytes": 1292,
+      "sha256": "c8b789cf5a746611e6300a0cc7750dbf92b61912a709d04e639245f7290656d0"
+    },
+    {
+      "path": "licenses/cpp/wasi-libc-libc-top-half_musl_COPYRIGHT.txt",
+      "bytes": 6204,
+      "sha256": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af"
+    },
+    {
+      "path": "licenses/csharp-comlink-APACHE-2.0.txt",
+      "bytes": 11341,
+      "sha256": "bcf29b4fd3ec2cb5f9d40a0866da446f6da62170d2ccedf4aeca9cf9406dd20c"
+    },
+    {
+      "path": "licenses/csharp-dotnet-MIT.txt",
+      "bytes": 1116,
+      "sha256": "cfc21f5e8bd655ae997eec916138b707b1d290b83272c02a95c9f821b8c87310"
+    },
+    {
+      "path": "licenses/csharp-dotnet-THIRD-PARTY-NOTICES.txt",
+      "bytes": 76623,
+      "sha256": "66f1d4e44973185519bb4aa8a9718eb22fc7af2cc532e3ae9cfc4c127ee7fc54"
+    },
+    {
+      "path": "licenses/csharp-humanizer-MIT.txt",
+      "bytes": 1565,
+      "sha256": "e24ec7f2eea5c5f4b3e2c08308109ba99b49b4b56ea7ff0e0a178f2bdd4bbce8"
+    },
+    {
+      "path": "licenses/csharp-roslyn-MIT.txt",
+      "bytes": 1115,
+      "sha256": "ae48df11a335dc1a615f4f938b69cba73bcf4485c4f97af49b38efb0f216353b"
+    },
+    {
+      "path": "licenses/csharp-roslyn-THIRD-PARTY-NOTICES.rtf",
+      "bytes": 2183,
+      "sha256": "ef4678850e7e3aaf9297f07e5c4060d477854e545ccf8e2ef8452d65a7b2efaf"
+    },
+    {
+      "path": "licenses/csharp-wasmsharp-APACHE-2.0.txt",
+      "bytes": 11558,
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+    },
+    {
+      "path": "licenses/go-BSD-3-Clause.txt",
+      "bytes": 1453,
+      "sha256": "911f8f5782931320f5b8d1160a76365b83aea6447ee6c04fa6d5591467db9dad"
+    },
+    {
+      "path": "licenses/go-NOTICE.md",
+      "bytes": 1876,
+      "sha256": "66600d6368d351d6570fcf247ad6453ad3660d82242eff7569bbb074290cb4be"
+    },
+    {
+      "path": "licenses/go-yaegi-Apache-2.0.txt",
+      "bytes": 11379,
+      "sha256": "9aaa5d967b90e8e460c31214618517a1fb49810fbc79ebc78df0c7c81259aff6"
+    },
+    {
+      "path": "licenses/java/NOTICE.txt",
+      "bytes": 1459,
+      "sha256": "75b1caecfe9538554d9944cb28f2b09e770cbac1e9d65a7ec7ea53daa9e112f0"
+    },
+    {
+      "path": "licenses/java/OpenJDK-ADDITIONAL_LICENSE_INFO.txt",
+      "bytes": 2114,
+      "sha256": "a69bce275ba7a3570af6579cb0f55682cd75fedfcd49e0e8e9022270c447c916"
+    },
+    {
+      "path": "licenses/java/OpenJDK-ASSEMBLY_EXCEPTION.txt",
+      "bytes": 1514,
+      "sha256": "75292f03bf23d3db7c985aecc191029b93883200721ed23ed34a2e601463df33"
+    },
+    {
+      "path": "licenses/java/OpenJDK-LICENSE.txt",
+      "bytes": 19274,
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    {
+      "path": "licenses/java/OpenJDK-jopt-jopt-simple.md",
+      "bytes": 1122,
+      "sha256": "99bc67f93cf57d6d20e6047731c93fbb267d70fbdd4115d119e0f85c6efe5c05"
+    },
+    {
+      "path": "licenses/java/TeaVM-Apache-2.0.txt",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "licenses/java/Unicode-CLDR-37.txt",
+      "bytes": 2931,
+      "sha256": "e4744baca763c01b159c0b733e5b206ad489d45a913ec868dd2478108b2601b8"
+    },
+    {
+      "path": "licenses/java/maven-artifacts.json",
+      "bytes": 10970,
+      "sha256": "79d28f314a71bd75e4e30c6b01aacb76356db0685376e0d89b384916970e5811"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-annotations/2.14.2/META-INF/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-annotations/2.14.2/META-INF/NOTICE",
+      "bytes": 667,
+      "sha256": "e1e98bd0b4c0b313defed877c4e438fd57dfa26eecfd9ea7b7634a5ffa85ff19"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-core/2.14.2/META-INF/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-core/2.14.2/META-INF/NOTICE",
+      "bytes": 667,
+      "sha256": "e1e98bd0b4c0b313defed877c4e438fd57dfa26eecfd9ea7b7634a5ffa85ff19"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-databind/2.14.2/META-INF/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/com.fasterxml.jackson.core/jackson-databind/2.14.2/META-INF/NOTICE",
+      "bytes": 667,
+      "sha256": "e1e98bd0b4c0b313defed877c4e438fd57dfa26eecfd9ea7b7634a5ffa85ff19"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-cli/commons-cli/1.3.1/META-INF/LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-cli/commons-cli/1.3.1/META-INF/NOTICE.txt",
+      "bytes": 172,
+      "sha256": "87c9ed14897b3fd4895961890c5a2f553737c77a85f6b4f436b99c0dd4c9786a"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-configuration/commons-configuration/1.10/META-INF/LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-configuration/commons-configuration/1.10/META-INF/NOTICE.txt",
+      "bytes": 182,
+      "sha256": "c4b756bc63aaf37a72a64f04ab46198985591659e03a7f39cb02961f0c538ab6"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-io/commons-io/2.14.0/META-INF/LICENSE.txt",
+      "bytes": 11359,
+      "sha256": "8c6db340475136df3c1201d458fa5755698eace76e510471ecc9d857d6083dac"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-io/commons-io/2.14.0/META-INF/NOTICE.txt",
+      "bytes": 172,
+      "sha256": "d881568c91b929923350fa3b9db693a0b1e6ae9de972087822e4e87802561c6a"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-lang/commons-lang/2.6/META-INF/LICENSE.txt",
+      "bytes": 11560,
+      "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-lang/commons-lang/2.6/META-INF/NOTICE.txt",
+      "bytes": 178,
+      "sha256": "6f75cf3152b2f503cc0627b9d24342da6ac65766cee18d17eb927f15108d7ad7"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-logging/commons-logging/1.1.1/META-INF/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/commons-logging/commons-logging/1.1.1/META-INF/NOTICE",
+      "bytes": 541,
+      "sha256": "157ffe64ce931b9d789ce62ff3a91d056444094dd893b2b443a542ed81cfd137"
+    },
+    {
+      "path": "licenses/java/maven-notices/de.undercouch/gradle-download-task/5.6.0/META-INF/LICENSE",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/de.undercouch/gradle-download-task/5.6.0/META-INF/NOTICE",
+      "bytes": 174,
+      "sha256": "4ad1973880c25e0c41fdf45fb47fbb3cb935b322982cca535d4dbf8062cc5a47"
+    },
+    {
+      "path": "licenses/java/maven-notices/joda-time/joda-time/2.12.2/META-INF/LICENSE.txt",
+      "bytes": 11560,
+      "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5"
+    },
+    {
+      "path": "licenses/java/maven-notices/joda-time/joda-time/2.12.2/META-INF/NOTICE.txt",
+      "bytes": 317,
+      "sha256": "315d297e4ea0fb5b638854e4bfddb598e48d40944a9fa93fd0346a6e0e66b079"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.apache.commons/commons-compress/1.21/META-INF/LICENSE.txt",
+      "bytes": 11357,
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.apache.commons/commons-compress/1.21/META-INF/NOTICE.txt",
+      "bytes": 2226,
+      "sha256": "4b23560a504770a90d629fd835f4a2b70d775f8364a20c74b96392feeb6ae043"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.apache.commons/commons-lang3/3.12.0/META-INF/LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.apache.commons/commons-lang3/3.12.0/META-INF/NOTICE.txt",
+      "bytes": 174,
+      "sha256": "ee00a9534f25e735b92676cff420aa33d3ea196c8642ec93daa264225f3457df"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.bouncycastle/bcprov-jdk18on/1.81/org/bouncycastle/LICENSE.class",
+      "bytes": 2001,
+      "sha256": "f9e6b01128a66b9887432db0397034793bcb1667770990c27fd4fd04ffc0c12a"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.bouncycastle/bcprov-jdk18on/1.81/org/bouncycastle/asn1/x509/NoticeReference.class",
+      "bytes": 2963,
+      "sha256": "032b53b7b7ee506858c069e961bd7d059480281df743599e47296c22e0561bef"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.slf4j/slf4j-api/2.0.17/META-INF/LICENSE.txt",
+      "bytes": 1178,
+      "sha256": "4e7f90c86ab51278228bce153122f1d8df30149d13ce9ef524c8444a84c32dcc"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework/spring-core/5.3.15/META-INF/license.txt",
+      "bytes": 15391,
+      "sha256": "37aabe1f22741fb48abfa2710910130789354e3bf2ae82a8bc3518b6d7f73659"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework/spring-core/5.3.15/META-INF/notice.txt",
+      "bytes": 477,
+      "sha256": "553233f2de3540aed83cc6f1d05b71bd937fc98f851d6826976713cc3933e634"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework/spring-jcl/5.3.15/META-INF/license.txt",
+      "bytes": 15391,
+      "sha256": "37aabe1f22741fb48abfa2710910130789354e3bf2ae82a8bc3518b6d7f73659"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework/spring-jcl/5.3.15/META-INF/notice.txt",
+      "bytes": 477,
+      "sha256": "553233f2de3540aed83cc6f1d05b71bd937fc98f851d6826976713cc3933e634"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework.boot/spring-boot-loader-tools/2.6.3/META-INF/LICENSE.txt",
+      "bytes": 11359,
+      "sha256": "7200000367e0e8b47822d563a5ddd2dd3a97cc05b32bd7dbcc7b4eeb92b76628"
+    },
+    {
+      "path": "licenses/java/maven-notices/org.springframework.boot/spring-boot-loader-tools/2.6.3/META-INF/NOTICE.txt",
+      "bytes": 211,
+      "sha256": "249b3349174bacf581171be279283b1e7b9b9d5bc57fe8bab54104180666f21c"
+    },
+    {
+      "path": "licenses/java/maven-source-notices.txt",
+      "bytes": 50918,
+      "sha256": "b59f18de86c8831269bf4745a758fb60d19df63c894083fb6ce4ca97892c9724"
+    },
+    {
+      "path": "licenses/lua-Emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "licenses/lua-Lua-MIT.txt",
+      "bytes": 1066,
+      "sha256": "b5412fd42e0763f0ee941a527e95f874a57597c26a87bfab41ec65000748c6ae"
+    },
+    {
+      "path": "licenses/lua-Wasmoon-MIT.txt",
+      "bytes": 1074,
+      "sha256": "9ed9226c0138819a0859cf3c55a3414b4a186a17a4eaf4b5a51ceed7937615ac"
+    },
+    {
+      "path": "licenses/python-CPython-LICENSE.txt",
+      "bytes": 13804,
+      "sha256": "b0e25a78cffb43f4d92de8b61ccfa1f1f98ecbc22330b54b5251e7b6ba010231"
+    },
+    {
+      "path": "licenses/python-Emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "licenses/python-Pyodide-MPL-2.0.txt",
+      "bytes": 16725,
+      "sha256": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5"
+    },
+    {
+      "path": "licenses/rust-Apache-2.0.txt",
+      "bytes": 9723,
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a"
+    },
+    {
+      "path": "licenses/rust-COPYRIGHT.txt",
+      "bytes": 21109,
+      "sha256": "bd0581fef622b3d8b25836cf70feb7e1a7a6171ea9e440b46dfda74c46a0ed0d"
+    },
+    {
+      "path": "licenses/rust-Cranelift-LICENSE.txt",
+      "bytes": 12243,
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5"
+    },
+    {
+      "path": "licenses/rust-MIT.txt",
+      "bytes": 1023,
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3"
+    },
+    {
+      "path": "licenses/rust-NOTICE.md",
+      "bytes": 2736,
+      "sha256": "7ff96a78a84562186489a39bab33a447b348d6819a0cd45a77ed1351415e8013"
+    },
+    {
+      "path": "licenses/rust-rubri-MIT.txt",
+      "bytes": 1067,
+      "sha256": "ea85a7021389d89e999d2b2ddd98e7f766d5e8587ae2b778acde56f0fa9dc20d"
+    },
+    {
+      "path": "licenses/sql-Apache-2.0.txt",
+      "bytes": 11359,
+      "sha256": "b1d2870f1a00e4d7f56576e5f0870cba109e041f8af66866cf5b499478e654e7"
+    },
+    {
+      "path": "licenses/sql-Emscripten-LICENSE.txt",
+      "bytes": 5093,
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "path": "licenses/sql-SQLite-NOTICE.txt",
+      "bytes": 935,
+      "sha256": "5cd1320b663c1b10e635f19c8c397488d5b48b85460177b575ac5d1b4d7ce88a"
+    },
+    {
+      "path": "lua/glue.wasm",
+      "bytes": 271581,
+      "sha256": "95f3f19ddb740125883bc41d5ec670cd0828e7b58c8bdad385323cbff497b55c"
+    },
+    {
+      "path": "lua/index.js",
+      "bytes": 151652,
+      "sha256": "dc2dcf019449008bb224370052473dc760db28b3ba14fc604e1ca3e8646af35d"
+    },
+    {
+      "path": "lua/source.json",
+      "bytes": 1251,
+      "sha256": "4f4984446692bed0c98fd2a5cf36acba33ddf7a73c7adaac8a69adf37e68ef09"
+    },
+    {
+      "path": "python/pyodide-lock.json",
+      "bytes": 119077,
+      "sha256": "5dc2fc119108bc148c7457dc86e7675b5c87e1cafd420b9c34c1eaef7b36c010"
+    },
+    {
+      "path": "python/pyodide.asm.mjs",
+      "bytes": 1250344,
+      "sha256": "f7cdc8ece80678ceb712f8e65ebe6d3a83203a180c399865f49612a051693635"
+    },
+    {
+      "path": "python/pyodide.asm.wasm",
+      "bytes": 9598218,
+      "sha256": "cc36e3cab04fdfc9a63ff13eb52eae2b911bf46c025cc7b281f394bd3de1d5e6"
+    },
+    {
+      "path": "python/pyodide.mjs",
+      "bytes": 17931,
+      "sha256": "6f1d60f7bf529beb300f0f47983c921d3982363640ba20af0e38efdddbc66109"
+    },
+    {
+      "path": "python/python_stdlib.zip",
+      "bytes": 2545637,
+      "sha256": "fa1957e5777068fc4f7437f96d860ae2fbe9c19732ba06c84e004ec16dd7dd7a"
+    },
+    {
+      "path": "python/source.json",
+      "bytes": 1722,
+      "sha256": "a658a5ab6ddaec4dbfd62ca4dc6d73f683b9c67e7973b6fb3ad62341b5834eae"
+    },
+    {
+      "path": "rust/lib/libaddr2line-b8754aeb03c02354.rlib.gz",
+      "bytes": 208345,
+      "sha256": "6aa2565e3a7144087b25bc0144afce5f80c74197822b6445dc7e8dd69af45f9d"
+    },
+    {
+      "path": "rust/lib/libadler-05c3545f6cd12159.rlib.gz",
+      "bytes": 27446,
+      "sha256": "5dbf801abbdfa9c8489ea6c2c1be20898560b69e0b07280d08d78f422af0dbad"
+    },
+    {
+      "path": "rust/lib/liballoc-0dab879bc41cd6bd.rlib.gz",
+      "bytes": 2230011,
+      "sha256": "1d39b5356f57be487fa96651bf2f30e03a33610ff6ecb1a1265ee80d694d7d05"
+    },
+    {
+      "path": "rust/lib/libcfg_if-c7fd2cef50341546.rlib.gz",
+      "bytes": 5422,
+      "sha256": "2b5e114b7c8e73f0644aaf5ec27929b0a4ac84a61d6c9d69afe4c2bde6d44c83"
+    },
+    {
+      "path": "rust/lib/libcompiler_builtins-a99947d020d809d6.rlib.gz",
+      "bytes": 410174,
+      "sha256": "007eb41abaff616df2395192b2ac522121772c2709d1afeaa6313fd189933da8"
+    },
+    {
+      "path": "rust/lib/libcore-4b8e8a815d049db3.rlib.gz",
+      "bytes": 15188291,
+      "sha256": "dccbed0b7c2a384bf9a4dc95016b9d34982961ade3a8c1acf12106d27333e0cd"
+    },
+    {
+      "path": "rust/lib/libgetopts-bbb75529e85d129d.rlib.gz",
+      "bytes": 256891,
+      "sha256": "0b5bb54b4b9e5be72790d1209b59dc34d4619d14c9930d65a257d1c042d4f12c"
+    },
+    {
+      "path": "rust/lib/libgimli-598847d27d7a3cbf.rlib.gz",
+      "bytes": 2539365,
+      "sha256": "66dcc04059ccd06cff028fa77c8f6ac6a0887cb845478f2f0bacce92bae0f145"
+    },
+    {
+      "path": "rust/lib/libhashbrown-d2ff91fdf93cacb2.rlib.gz",
+      "bytes": 597427,
+      "sha256": "fa489e08969e853f49e0cbff72314ae97954c8ea553a0295bb24a63f7cb7c568"
+    },
+    {
+      "path": "rust/lib/liblibc-dc63949c664c3fce.rlib.gz",
+      "bytes": 1090771,
+      "sha256": "7bae15147998cbe49890d04bab9a079ebb758653ae08cab80b75096c530f643f"
+    },
+    {
+      "path": "rust/lib/libmemchr-2d3a423be1a6cb96.rlib.gz",
+      "bytes": 419326,
+      "sha256": "895884862b42959b1ad1f7df2a579c6f247fc123055256f7e2b51e3a2bfacacb"
+    },
+    {
+      "path": "rust/lib/libminiz_oxide-b109506a0ccc4c6a.rlib.gz",
+      "bytes": 213366,
+      "sha256": "f22c977da7db32c09b77c961eb44ebfa15b52c9972ebce885cc4b570f78bbd87"
+    },
+    {
+      "path": "rust/lib/libobject-7b48def7544c748b.rlib.gz",
+      "bytes": 3053556,
+      "sha256": "8b65b0498a8f943f103a0c3008f6eae99bf352c7a4aa83fac4c334c0d2fdc10e"
+    },
+    {
+      "path": "rust/lib/libpanic_abort-c93441899b93b849.rlib.gz",
+      "bytes": 5725,
+      "sha256": "59f9c1400df84c377528fc783343ce98028ad69f243ef782de3d12905ae44867"
+    },
+    {
+      "path": "rust/lib/libpanic_unwind-11d9ba05b60bf694.rlib.gz",
+      "bytes": 16234,
+      "sha256": "e031e0f4c65b385c0a9e6cb30c91cb1e1ae947bd9c45db69f51fc7aad0461858"
+    },
+    {
+      "path": "rust/lib/libproc_macro-1a7f7840bb9983dc.rlib.gz",
+      "bytes": 1321670,
+      "sha256": "3bb678aa21dc5cbf08598cc4b5dc86dc8bdba67f06f61888d2c0c0358ef85fa4"
+    },
+    {
+      "path": "rust/lib/librustc_demangle-59342a335246393d.rlib.gz",
+      "bytes": 309090,
+      "sha256": "59f788cd46ceb87625d9ca00ec23a31ececa6b1ac0313bb68eaf9e77442b7ce5"
+    },
+    {
+      "path": "rust/lib/librustc_std_workspace_alloc-552b185085090ff6.rlib.gz",
+      "bytes": 3200,
+      "sha256": "b415b61f6e9e58cbae32f7e09e3c04580f6c7ec6b87b6e0fca89e3b2e42afdc9"
+    },
+    {
+      "path": "rust/lib/librustc_std_workspace_core-5d8a121daa7eeaa9.rlib.gz",
+      "bytes": 4235,
+      "sha256": "db42699d8dffb4439975457b4efc3065b5290aaeffeb05d72791285ab57d76bf"
+    },
+    {
+      "path": "rust/lib/librustc_std_workspace_std-97f43841ce452f7d.rlib.gz",
+      "bytes": 5466,
+      "sha256": "e4641ed19986947ac4d44dc2a8fc755c83370487eb27be38aaf84936b91e77e4"
+    },
+    {
+      "path": "rust/lib/libstd-bdedb7706a556da2.rlib.gz",
+      "bytes": 5198335,
+      "sha256": "082c49f2cf26519345d6c3e27ad2ef7f21eb15f2660ea02ec872cfecc662e196"
+    },
+    {
+      "path": "rust/lib/libstd-bdedb7706a556da2.so.gz",
+      "bytes": 4334825,
+      "sha256": "c67b0539fd931f54529edcbcd835ce2f20a146d10a25e5e1b6d762e6bef24925"
+    },
+    {
+      "path": "rust/lib/libstd_detect-cca21eebc4281add.rlib.gz",
+      "bytes": 155034,
+      "sha256": "539e642fb31a9c81d23190f8a4c97488a07c89ca01aaa94128b9e1ae86e4968a"
+    },
+    {
+      "path": "rust/lib/libsysroot-f654e185be3ffebd.rlib.gz",
+      "bytes": 3455,
+      "sha256": "50e609702f9a4df9ecf952e0695100cd542ca56aa5f359589491506bf12b7628"
+    },
+    {
+      "path": "rust/lib/libtest-f06fa3fbc201c558.rlib.gz",
+      "bytes": 1673691,
+      "sha256": "2dff6831e7d89c681e079442ad1a830a051c1f655dd06a6a5aef89b834310a56"
+    },
+    {
+      "path": "rust/lib/libunicode_width-19a0dcd589fa0877.rlib.gz",
+      "bytes": 16493,
+      "sha256": "c993489de8da8ebe03495f28bbf87edf55c5a9c49f750f395bccddeff77d7502"
+    },
+    {
+      "path": "rust/lib/libunwind-747b693f90af9445.rlib.gz",
+      "bytes": 16995,
+      "sha256": "cb07489a777b963904945d364210c28d5bfa34aa630960969d297c5f6016b29d"
+    },
+    {
+      "path": "rust/manifest.json",
+      "bytes": 14394,
+      "sha256": "3a059505ed1a3dfab234fb5248b56903e492fe9f7ab4b4dec557c3b2365a0278"
+    },
+    {
+      "path": "rust/miri.wasm.gz",
+      "bytes": 15074685,
+      "sha256": "af6f3772c599c9e6c83dd5dca5811f9c2d4609633c0ff28a9fe28bd22425f636"
+    },
+    {
+      "path": "rust/runtime.js",
+      "bytes": 52822,
+      "sha256": "19c6d7ae936940ff43fc6a33c5be7197781ba420e8d77c39e1e60ccbadaadbbf"
+    },
+    {
+      "path": "rust/source/UPSTREAM.json",
+      "bytes": 13310,
+      "sha256": "d3077b904537448af199b572ce806de22fc146b9c6fcfea162e594e8d1327ee4"
+    },
+    {
+      "path": "rust/source/driver.js",
+      "bytes": 4537,
+      "sha256": "e919d82acbe09dc52735fc39d0506aa2e86b8cb10c564ec551cc6e1449b7061f"
+    },
+    {
+      "path": "rust/source/wasi/debug.ts",
+      "bytes": 940,
+      "sha256": "57c50ebae5884e5074d13ce71bc13b1ff368038c7561f0e7dd21a8f34dab0d9a"
+    },
+    {
+      "path": "rust/source/wasi/fd.ts",
+      "bytes": 3683,
+      "sha256": "f33a42a7c117d6291fa735c55d46f73fdedc3960edd3c98a1af1d0e5014b8229"
+    },
+    {
+      "path": "rust/source/wasi/fs_mem.ts",
+      "bytes": 20333,
+      "sha256": "8f46b505c934a8c3f08c66c082dfc9dba69597b5897449e1b47415918bc4a722"
+    },
+    {
+      "path": "rust/source/wasi/wasi.ts",
+      "bytes": 28153,
+      "sha256": "ef0cb694274ef32f0306b4e7362861c0ec50d30c23d6343967bd1e9ed9c8c93f"
+    },
+    {
+      "path": "rust/source/wasi/wasi_defs.ts",
+      "bytes": 10800,
+      "sha256": "881c15715c796b91c8f1ec53e0da75b7b932c4598e956ffc1ecceeebf063a27e"
+    },
+    {
+      "path": "sql/index.mjs",
+      "bytes": 642742,
+      "sha256": "a6d3fe46aa3f924e7686329f97b0564549ef1f787e0c19924179aef7f72bcc01"
+    },
+    {
+      "path": "sql/source.json",
+      "bytes": 1408,
+      "sha256": "21fb522e241268542bb917afd722897f76fc0c7352333953e9867699235dae3a"
+    },
+    {
+      "path": "sql/sqlite3.wasm",
+      "bytes": 868907,
+      "sha256": "2ee8f3dab694532afc8840e07703127287662d08b74e6ff50491ce63f00d5752"
+    }
+  ]
+}

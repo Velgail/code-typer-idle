@@ -1,11 +1,12 @@
 import { coursesLoaded, installCourses, installLegacyCourses, needsLegacyCourses, courseTrack, courseUnit, courseLesson, currentCourseUnit, firstCourseUnit, rememberCourseCursor } from './courses.js';
 import {
-  DAY, JOB_SIZE, OFFICE_CONTRACT_WORK, STORE_FEE_RATE, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, currentProject, level,
+  DAY, JOB_SIZE, OFFICE_CONTRACT_WORK, STORE_FEE_RATE, MAX_SAVE_BYTES, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, currentProject, level,
   operatingCost, expenseLines, serverCost, setPublicationActive, workRate, handPower, typingPower, skillKnowledge, knowledgeRatio, validity, debtLimit,
   royaltyRate, netRoyaltyRate, unitRate, devRate, studyGain, studyPreview, studyMultiplier, hasTextbook, hasStudyMaterial, openOnlineMaterial, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, prestige, prestigePreview, applyOffline,
   projectAccess, projectExperience, selectProject, salesForecast, titleSalesRate, remainingSales, availableOfficeWork, shopUnlocked,
   developmentReadiness, learningGoal, readingLesson, nextReading, answerReading, READING_UNITS,
+  quizLesson, nextQuiz, setQuizDraft, completeQuiz, QUIZ_UNITS,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
   productionOptions, productionCost, orderProduction,
@@ -21,6 +22,9 @@ import { nextOCRError, correctOCR } from './officequality.js';
 import { learningGuide } from './learningguide.js';
 import { PLANNING_CATALOG } from './planningcatalog.js';
 import { amendPlan } from './planning.js';
+import { quizAt, QUIZ_TOPICS_PER_SUBJECT } from './quizcatalog.js';
+import { QuizRunner } from './quizrunner.js';
+import { renderQuizUI } from './quizui.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -100,6 +104,47 @@ let lastFrame = performance.now(), sinceSave = 0, dirty = true, offlineResult;
 let lastManualTimes = [], tapNumber = 0, soundContext;
 let courseLoading;
 let legacyCourseLoading;
+const quizRunner = new QuizRunner();
+let quizRun = 0, quizOwner = null, quizContext = '', quizResult = null, quizRunning = false, quizProgress = '';
+const activeQuiz = () => view === 'workspace' && state.mode === 'study' && state.studyStyle === 'quiz' && hasStudyMaterial(state);
+function cancelQuiz() { quizRun++; quizRunner.cancel(); quizRunning = false; quizProgress = ''; }
+function syncQuizContext() {
+  const key = activeQuiz() ? quizLesson(state).id : '';
+  if (quizOwner !== state || quizContext !== key) {
+    cancelQuiz(); quizOwner = state; quizContext = key; quizResult = null;
+  }
+}
+async function submitQuiz(source) {
+  if (!activeQuiz() || blocked || paused || quizRunning) return;
+  const owner = state, quiz = quizLesson(state);
+  if (!setQuizDraft(state, source)) return;
+  const run = ++quizRun; quizRunning = true; quizResult = null; dirty = true; save(); render();
+  let result;
+  try { result = await quizRunner.run(quiz, source, { onProgress: text => { if (run !== quizRun) return; quizProgress = text; render(); } }); }
+  catch (error) { result = { status: 'error', passed: false, cases: [], error: String(error.message || error) }; }
+  if (run !== quizRun || owner !== state || !activeQuiz() || quizLesson(state).id !== quiz.id || state.quiz.drafts[quiz.id] !== source) return;
+  quizRunning = false; quizProgress = ''; quizResult = { ...result, source };
+  if (result.passed && !blocked && !paused) {
+    const reward = completeQuiz(state, quiz.id);
+    if (reward.kind === 'correct') { toast(`全件成功！ +${format(reward.amount, 3)} K`); unlock(); }
+    dirty = true; save();
+  }
+  render();
+}
+function renderQuiz() {
+  syncQuizContext();
+  $('quiz-panel').classList.toggle('hidden', !activeQuiz());
+  if (!activeQuiz()) return;
+  const quiz = quizLesson(state);
+  const topics = Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: state.quiz.completed.includes(q.id) }; });
+  renderQuizUI({ root: $('quiz-panel'), quiz, draft: state.quiz.drafts[quiz.id] ?? quiz.starterSource, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
+    position: `この分野 ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題クリア · ${state.quiz.completed.includes(quiz.id) ? '理解度は獲得済み' : `初回全件成功 +${format(studyPreview(state,QUIZ_UNITS),3)} K`}`,
+    onDraft: source => { if (blocked || paused || !activeQuiz()) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
+    onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },
+    onNext: () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },
+    onSelect: index => { if (blocked || paused || !Number.isSafeInteger(index) || index<0 || index>=QUIZ_TOPICS_PER_SUBJECT) return; cancelQuiz(); state.quiz.cursors[`${state.typing.language}/${state.subject}`]=index; dirty=true;render();save(); }
+  });
+}
 async function loadCourses(forState = state) {
   if (!coursesLoaded()) {
     courseLoading ||= import('./course.js').then(module=>installCourses(module.COURSE)).catch(error=>{courseLoading=null;throw error;});
@@ -236,7 +281,7 @@ function selectLearningSubject(id=state.subject){
   }
 }
 function focusTypingInput() {
-  if (state.inputStyle === 'typing' && !$('typing-input').disabled && !$('typing-input').hidden && !(state.mode === 'study' && state.studyStyle === 'reading') && !blocked && !paused && view === 'workspace' && !$('modal').open && (state.mode !== 'study' || hasStudyMaterial(state))) $('typing-input').focus({ preventScroll: true });
+  if (state.inputStyle === 'typing' && !$('typing-input').disabled && !$('typing-input').hidden && !(state.mode === 'study' && ['reading','quiz'].includes(state.studyStyle)) && !blocked && !paused && view === 'workspace' && !$('modal').open && (state.mode !== 'study' || hasStudyMaterial(state))) $('typing-input').focus({ preventScroll: true });
 }
 function chooseProject(index) {
   if(blocked || paused)return false;
@@ -259,7 +304,7 @@ function beep(kind) {
   } catch { /* Sound is optional if the browser cannot play it. */ }
 }
 function doInput(options = {}) {
-  if (blocked || paused) return;
+  if (blocked || paused || state.mode==='study' && ['reading','quiz'].includes(state.studyStyle)) return;
   const result = input(state, options);
   if (options.countManual !== false) { tapNumber++; lastManualTimes.push(performance.now()); }
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
@@ -386,12 +431,12 @@ function renderEditor() {
     $('input-feedback').textContent = '';
     $('input-feedback').classList.remove('error');
   }
-  const reading = state.mode === 'study' && state.studyStyle === 'reading';
+  const reading = state.mode === 'study' && ['reading','quiz'].includes(state.studyStyle);
   $('code-editor').classList.toggle('hidden', reading || officeFinished);
   const correctionEmpty=office && state.workTask==='correction' && !prompt;
   $('typing-input').hidden = studyLocked || reading || courseEmpty || correctionEmpty || officeFinished;
   $('typing-input').disabled = blocked || paused || studyLocked || reading || courseEmpty || correctionEmpty || officeFinished;
-  $('typing-summary').classList.toggle('hidden', !typing || studyLocked || officeFinished);
+  $('typing-summary').classList.toggle('hidden', reading || !typing || studyLocked || officeFinished);
   $('code-editor').classList.toggle('typing-active', typing);
   const codeChanged = lastEditorKey !== key;
   if (codeChanged) {
@@ -424,7 +469,7 @@ function renderTask() {
   const viewportBottom = viewportTop + (window.visualViewport?.height || innerHeight);
   const inputWasVisible = fieldRect && fieldRect.bottom > viewportTop && fieldRect.top < viewportBottom;
   const p = currentProject(state), mode = state.mode, ratio = knowledgeRatio(state);
-  const reading = mode === 'study' && state.studyStyle === 'reading';
+  const reading = mode === 'study' && ['reading','quiz'].includes(state.studyStyle);
   const typing = state.inputStyle === 'typing';
   const language = LANGUAGES.find(l => l.id === state.typing.language);
   $('type-button').querySelector('.keycap').classList.toggle('hidden', !typing);
@@ -471,6 +516,7 @@ function renderTask() {
   $('quick-actions').classList.toggle('hidden', reading);
   $('typing-actions').classList.toggle('hidden', reading);
   $('study-style-picker').classList.toggle('hidden', mode !== 'study');
+  document.querySelector('.input-note').classList.toggle('hidden', mode === 'study' && state.studyStyle === 'quiz');
   document.querySelectorAll('[data-study-style]').forEach(b => { b.classList.toggle('active', b.dataset.studyStyle === state.studyStyle); b.setAttribute('aria-pressed', b.dataset.studyStyle === state.studyStyle); });
   document.querySelector('.language-label').classList.toggle('hidden', mode === 'work');
   document.querySelector('[data-input-style=typing]').innerHTML = `${mode === 'work' ? '伝票タイピング' : 'コードタイピング'} <small>報酬UP</small>`;
@@ -490,7 +536,7 @@ function renderTask() {
   $('study-lock-message').textContent = `${lesson.name}のオンライン教材は無料です。公開チュートリアルを開いて学び始めよう。`;
   $('study-material').classList.toggle('hidden',mode!=='study' || studyLocked);
   const materialName=hasTextbook(state)?`${textbook.name} Lv.${level(state,textbook.id)}`:`オンライン教材：${lesson.name}（無料）`;
-  const materialSource=state.studyStyle==='course'?'Exercism / 言語別の講座':state.studyStyle==='reading'?'参考コード読解':'コード演習';
+  const materialSource=state.studyStyle==='course'?'Exercism / 言語別の講座':state.studyStyle==='reading'?'参考コード読解':state.studyStyle==='quiz'?'実装してテストで確かめる':'コード演習';
   $('study-material-label').textContent=`${materialName} · ${materialSource} · 学習 ×${format(studyMultiplier(state),2)}`;
   const upgrade=$('study-material-upgrade'),bookPrice=itemCost(state,textbook);
   upgrade.textContent=`${hasTextbook(state)?'教本を充実させる':'教本で学習効率を上げる'} ${yen(bookPrice)}`;
@@ -561,11 +607,13 @@ function commentNotes(lesson) {
   return lesson.comments.map(comment => `<div class="comment-note"><p lang="en">${esc(comment.en)}</p>${locale === 'ja' ? `<p lang="ja">${esc(comment.ja)}</p>` : ''}</div>`).join('');
 }
 function renderLearning() {
+  renderQuiz();
+  const quiz = state.mode === 'study' && state.studyStyle === 'quiz';
   const reading = state.mode === 'study' && state.studyStyle === 'reading', locked = state.mode === 'study' && !hasStudyMaterial(state);
   $('reading-panel').classList.toggle('hidden', !reading || locked);
   const last = state.typing.lastCompleted;
   const lastLesson = last ? last.courseUnit ? courseLesson(last.courseUnit) : lessonAt(last.language, last.subject, last.index) : null;
-  $('completed-notes').classList.toggle('hidden', !last || state.mode === 'work' || reading);
+  $('completed-notes').classList.toggle('hidden', !last || state.mode === 'work' || reading || quiz);
   if (last) {
     const lesson = lastLesson;
     if (!lesson) return;
@@ -574,7 +622,7 @@ function renderLearning() {
   }
   const t = state.typing;
   const course = state.mode === 'study' && t.source === 'course' ? courseLesson(t.courseUnit) : null;
-  const currentLesson = !reading && state.mode !== 'work' && !locked ? course || (t.curriculumVersion === CURRICULUM_VERSION ? lessonAt(t.language, state.mode === 'study' ? state.subject : ['syntax','design','graphics','systems'][Math.min(3, Math.floor(state.projectIndex / 2))], t.index) : null) : null;
+  const currentLesson = !reading && !quiz && state.mode !== 'work' && !locked ? course || (t.curriculumVersion === CURRICULUM_VERSION ? lessonAt(t.language, state.mode === 'study' ? state.subject : ['syntax','design','graphics','systems'][Math.min(3, Math.floor(state.projectIndex / 2))], t.index) : null) : null;
   const title = currentLesson?.title || '';
   $('lesson-title').classList.toggle('hidden', !title); $('lesson-title').textContent = title;
   renderLearningGuide(currentLesson);
@@ -864,6 +912,7 @@ function renderAchievements() {
   $('achievements-view').innerHTML = `<p class="view-intro">${state.achievements.length} / ${ACHIEVEMENTS.length} 個の実績を解除。実績は再出発後も引き継ぎます。</p><div class="achievement-grid">${ACHIEVEMENTS.map(a => { const done = state.achievements.includes(a.id); return `<article class="achievement-card ${done ? '' : 'locked'}"><span class="achievement-emblem">${icon(done ? 'award' : 'shield')}</span><div><h2>${a.name}</h2><p>${a.hint}</p><small>${done ? 'UNLOCKED ✓' : 'NOT YET'}</small></div></article>`; }).join('')}</div><div class="stats-grid"><div><span>総プレイ時間</span><b>${duration(state.stats.time)}</b></div><div><span>累計有効文字</span><b>${format(state.stats.valid)}</b></div><div><span>公開したゲーム</span><b>${format(state.stats.releases, 0)}</b></div><div><span>開発人生の周回数</span><b>${state.resets + 1}</b></div></div>`;
 }
 function render() {
+  syncQuizContext();
   $('next-milestone').classList.toggle('hidden',view!=='workspace');
   document.body.classList.toggle('reduce-motion', state.settings.reducedMotion);
   const ni = netIncome(state);
@@ -971,7 +1020,7 @@ document.addEventListener('click', async event => {
       try{await loadCourses();}catch{toast('講座の読み込みに失敗しました。もう一度開いてください。','error');b.disabled=false;return;}
       b.disabled=false;
     }
-    if(next!=='reading'){
+    if(!['reading','quiz'].includes(next)){
       const source=next==='course'?'course':'standard';
       if(state.typing.source!==source){state.typing.source=source;state.typing.context='';}
     }
@@ -1000,7 +1049,7 @@ for (const type of ['keydown', 'keyup']) $('type-button').addEventListener(type,
 });
 function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
   if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing' || state.mode==='dev' && state.planner?.active && state.planner.allocation==='assets' && !state.refactor) return;
-  if (state.mode === 'study' && (!hasStudyMaterial(state) || state.studyStyle === 'reading')) return;
+  if (state.mode === 'study' && (!hasStudyMaterial(state) || ['reading','quiz'].includes(state.studyStyle))) return;
   if(state.mode==='work' && state.workTask!=='correction' && availableOfficeWork(state)<=0)return;
   if(state.mode==='study' && state.typing.source==='course' && !courseUnit(state.typing.courseUnit)) return;
   const field = $('typing-input'), prompt = currentPrompt(state), t = state.typing;
@@ -1169,7 +1218,7 @@ function handleAction(action) {
     target.focus({preventScroll:true});
     $('next-milestone').scrollIntoView({block:'start',behavior:'instant'});
   }
-  if (action === 'pause') { paused = !paused; settings(); render(); }
+  if (action === 'pause') { cancelQuiz(); paused = !paused; settings(); render(); }
   if (action === 'export') {
     const data = serialize(state);
     const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
@@ -1200,14 +1249,14 @@ $('import-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file || blocked) return;
   try {
-    if (file.size > 500000) throw new Error('セーブファイルが大きすぎます。');
+    if (file.size > MAX_SAVE_BYTES) throw new Error('セーブファイルが大きすぎます。');
     const imported = deserialize(await file.text());
     if(imported.typing.source==='course' || imported.typing.lastCompleted?.courseUnit) await loadCourses(imported);
     state = imported; applyOffline(state); canSave = true; paused = false;
     invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast('セーブデータを読み込みました。');
   } catch (error) { toast(`読み込めません：${error.message}`, 'error'); }
 });
-window.addEventListener('pagehide', () => save());
+window.addEventListener('pagehide', () => { cancelQuiz(); save(); });
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) save();
   // Interval timing below accounts for throttled/hidden tabs; no double offline grant.

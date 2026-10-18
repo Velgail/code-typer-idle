@@ -17,6 +17,7 @@ import { verifyEarlyGameUI } from './early-game-ui.mjs';
 import { verifyAutomationQuality } from './automation-quality-ui.mjs';
 import { verifyFreeMaterialUI } from './free-material-ui.mjs';
 import { runPlannerChecks } from './planner-ui.mjs';
+import { verifyQuizUI } from './quiz-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -37,13 +38,14 @@ const url = process.env.CTI_TEST_URL || await new Promise(resolveUrl => {
       let data = await readFile(path);
       if (pathname.endsWith('/') && legacyHTML && !requested.searchParams.has('v')) data = Buffer.from('<!doctype html><html lang="ja"><body>Cached legacy HTML<script type="module" src="./js/app.js"></script></body></html>');
       else if ((nextDeployment && (pathname.endsWith('/') || pathname.endsWith('/version.json'))) || pathname.includes(nextId)) data = Buffer.from(data.toString().replaceAll(currentRelease.id, nextId).replaceAll(currentRelease.version, nextVersion));
-      res.writeHead(200, { 'Content-Type': { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' }[extname(path)] || 'text/plain', 'Cache-Control': 'public, max-age=31536000, immutable' }); res.end(data);
+      res.writeHead(200, { 'Content-Type': { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.wasm': 'application/wasm', '.gz': 'application/gzip', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json' }[extname(path)] || 'text/plain', 'Cache-Control': 'public, max-age=31536000, immutable' }); res.end(data);
     } catch { res.writeHead(404); res.end('Not found'); }
   }).listen(0, '127.0.0.1', () => resolveUrl(`http://127.0.0.1:${server.address().port}`));
 });
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox'] });
 const errors = [];
 try {
+  await verifyQuizUI(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
