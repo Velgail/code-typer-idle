@@ -120,6 +120,8 @@ python3 -m http.server 4173 --directory docs
 src/
   core.js           ゲームルール・会計・保存形式
   career.js         持越し経験・企画条件・有限需要
+  planningcatalog.js 開発用のジャンル・機能・基盤・実行先カタログ
+  planning.js       開発用の積み上げ見積り・追加仕様の差分計算
   maintenance.js    技術的負債・不具合・開発方針
   builds.js         途中ビルド・差分検証
   app.js            入力・画面・保存・ブラウザ連携
@@ -137,6 +139,7 @@ docs/               GitHub Pagesの静的配信物
 scripts/            ビルド・教材取込・実行検証・進行計測
 tests/              ルール・会計・教材・保存互換・ブラウザ検証
 DESIGN.md           経験・販売・進行の数式と検証上の制約
+PLANNING.md         企画の積み上げ設計と比較例（ゲームUIへは未接続）
 ```
 
 Node.js 22以降でルールを検証できます。ビルドとルールテストには外部パッケージは不要です。
@@ -147,6 +150,8 @@ npm test
 ```
 
 ソース変更後はビルドし、`docs/` の生成物もコミットしてください。CIは再ビルドとの差分を検査します。進行の計測は `npm run balance -- --write`。固定した購入・再出発方針による比較であり、実プレイの所要時間を保証するものではありません。
+
+ジャンル・機能・自作／既製エンジン・単一／複数OSから制作量を見積もる開発用モデルは、[PLANNING.md](PLANNING.md)にまとめています。`npm run planning` で10構成を比較できます。現在のゲーム進行にはまだ接続していません。
 
 ブラウザテストにはPlaywrightが必要です。
 
