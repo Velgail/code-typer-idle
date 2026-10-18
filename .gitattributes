@@ -1,0 +1,4 @@
+docs/runtime-assets/** linguist-vendored -whitespace
+docs/build/** linguist-generated
+*.wasm binary
+*.gz binary

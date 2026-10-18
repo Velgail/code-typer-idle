@@ -1,0 +1,134 @@
+{
+  "environment": {
+    "browser": "154.0.8037.57",
+    "url": "http://127.0.0.1:37525",
+    "headers": {
+      "coop": false,
+      "coep": false
+    },
+    "note": "Local loopback gzip server. Transfer and timing are environment measurements, not user Internet speed."
+  },
+  "runtimes": {
+    "lua": {
+      "cold": {
+        "version": "Lua 5.4",
+        "loadMs": 27.200000002980232,
+        "cases": {
+          "normal": {
+            "status": "pass",
+            "actual": 5,
+            "expected": 5
+          },
+          "syntax": {
+            "status": "syntax-error",
+            "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+          },
+          "wrong": {
+            "status": "wrong-answer",
+            "actual": -1,
+            "expected": 5
+          },
+          "runtime": {
+            "status": "runtime-error",
+            "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure\nstack traceback:\n\t[string \"error(\"student runtime failure\")\"]:1: in main chunk"
+          }
+        },
+        "semantics": {
+          "integerDivide": 3,
+          "zeroTruthy": true,
+          "utf8": 2,
+          "bitwise": 13,
+          "closeSyntax": 1
+        },
+        "curriculum": {
+          "checked": 1024,
+          "failed": [],
+          "elapsedMs": 36.600000001490116
+        },
+        "crossOriginIsolated": false,
+        "sharedArrayBuffer": "undefined",
+        "resources": [
+          {
+            "name": "http://127.0.0.1:37525/node_modules/wasmoon/dist/glue.wasm",
+            "transferSize": 111310,
+            "encodedBodySize": 111010,
+            "decodedBodySize": 271581,
+            "duration": 12.899999998509884
+          }
+        ],
+        "requests": [
+          {
+            "url": "/worker-lua-async-cleared.mjs",
+            "rawBytes": 2477,
+            "gzipBytes": 1095
+          },
+          {
+            "url": "/node_modules/wasmoon/dist/index.js",
+            "rawBytes": 151652,
+            "gzipBytes": 39480
+          },
+          {
+            "url": "/node_modules/wasmoon/dist/glue.wasm",
+            "rawBytes": 271581,
+            "gzipBytes": 111010
+          }
+        ]
+      },
+      "warm": {
+        "version": "Lua 5.4",
+        "loadMs": 25.700000002980232,
+        "cases": {
+          "normal": {
+            "status": "pass",
+            "actual": 5,
+            "expected": 5
+          },
+          "syntax": {
+            "status": "syntax-error",
+            "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+          },
+          "wrong": {
+            "status": "wrong-answer",
+            "actual": -1,
+            "expected": 5
+          },
+          "runtime": {
+            "status": "runtime-error",
+            "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure\nstack traceback:\n\t[string \"error(\"student runtime failure\")\"]:1: in main chunk"
+          }
+        },
+        "semantics": {
+          "integerDivide": 3,
+          "zeroTruthy": true,
+          "utf8": 2,
+          "bitwise": 13,
+          "closeSyntax": 1
+        },
+        "curriculum": {
+          "checked": 1024,
+          "failed": [],
+          "elapsedMs": 45.100000001490116
+        },
+        "crossOriginIsolated": false,
+        "sharedArrayBuffer": "undefined",
+        "resources": [
+          {
+            "name": "http://127.0.0.1:37525/node_modules/wasmoon/dist/glue.wasm",
+            "transferSize": 0,
+            "encodedBodySize": 111010,
+            "decodedBodySize": 271581,
+            "duration": 3.899999998509884
+          }
+        ],
+        "requests": []
+      },
+      "infiniteLoop": {
+        "terminated": true,
+        "afterReadyMs": 155.5,
+        "mainThreadTicks": 18,
+        "sharedArrayBuffer": "undefined",
+        "crossOriginIsolated": false
+      }
+    }
+  }
+}

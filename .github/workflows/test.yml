@@ -15,6 +15,7 @@ jobs:
       - run: npm run build
       - run: git diff --exit-code -- docs
       - run: npm test
+      - run: npm run test:runtimes
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +26,7 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+      - run: npm run test:quiz
   curriculum:
     runs-on: ubuntu-latest
     steps:

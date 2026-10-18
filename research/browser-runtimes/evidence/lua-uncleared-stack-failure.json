@@ -1,0 +1,167 @@
+{
+  "environment": {
+    "browser": "154.0.8037.57",
+    "url": "http://127.0.0.1:36583",
+    "headers": {
+      "coop": false,
+      "coep": false
+    },
+    "note": "Local loopback gzip server. Transfer and timing are environment measurements, not user Internet speed."
+  },
+  "runtimes": {
+    "lua": {
+      "cold": {
+        "version": "Lua 5.4",
+        "loadMs": 35.19999999552965,
+        "cases": {
+          "normal": {
+            "status": "pass",
+            "actual": 5,
+            "expected": 5
+          },
+          "syntax": {
+            "status": "syntax-error",
+            "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+          },
+          "wrong": {
+            "status": "wrong-answer",
+            "actual": -1,
+            "expected": 5
+          },
+          "runtime": {
+            "status": "runtime-error",
+            "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure\nstack traceback:\n\t[string \"error(\"student runtime failure\")\"]:1: in main chunk"
+          }
+        },
+        "semantics": {
+          "integerDivide": 3,
+          "zeroTruthy": true,
+          "utf8": 2,
+          "bitwise": 13,
+          "closeSyntax": 1
+        },
+        "curriculum": {
+          "checked": 1024,
+          "elapsedMs": 63.79999999701977,
+          "failedCaseCount": 987,
+          "failedExamples": [
+            {
+              "id": "lua/syntax/wrap_slot/2",
+              "error": "[string \"function wrap_slot()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/syntax/sum_even/2",
+              "error": "[string \"function sum_even()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/syntax/count_bits/2",
+              "error": "[string \"function count_bits()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/systems/lua_protected_call/15",
+              "error": "[string \"function lua_protected_call()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            }
+          ],
+          "omittedFailureCount": 983
+        },
+        "crossOriginIsolated": false,
+        "sharedArrayBuffer": "undefined",
+        "resources": [
+          {
+            "name": "http://127.0.0.1:36583/node_modules/wasmoon/dist/glue.wasm",
+            "transferSize": 111310,
+            "encodedBodySize": 111010,
+            "decodedBodySize": 271581,
+            "duration": 14.899999998509884
+          }
+        ],
+        "requests": [
+          {
+            "url": "/worker-lua.mjs",
+            "rawBytes": 2251,
+            "gzipBytes": 977
+          },
+          {
+            "url": "/node_modules/wasmoon/dist/index.js",
+            "rawBytes": 151652,
+            "gzipBytes": 39480
+          },
+          {
+            "url": "/node_modules/wasmoon/dist/glue.wasm",
+            "rawBytes": 271581,
+            "gzipBytes": 111010
+          }
+        ]
+      },
+      "warm": {
+        "version": "Lua 5.4",
+        "loadMs": 16.799999997019768,
+        "cases": {
+          "normal": {
+            "status": "pass",
+            "actual": 5,
+            "expected": 5
+          },
+          "syntax": {
+            "status": "syntax-error",
+            "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+          },
+          "wrong": {
+            "status": "wrong-answer",
+            "actual": -1,
+            "expected": 5
+          },
+          "runtime": {
+            "status": "runtime-error",
+            "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure\nstack traceback:\n\t[string \"error(\"student runtime failure\")\"]:1: in main chunk"
+          }
+        },
+        "semantics": {
+          "integerDivide": 3,
+          "zeroTruthy": true,
+          "utf8": 2,
+          "bitwise": 13,
+          "closeSyntax": 1
+        },
+        "curriculum": {
+          "checked": 1024,
+          "elapsedMs": 64.59999999403954,
+          "failedCaseCount": 987,
+          "failedExamples": [
+            {
+              "id": "lua/syntax/wrap_slot/2",
+              "error": "[string \"function wrap_slot()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/syntax/sum_even/2",
+              "error": "[string \"function sum_even()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/syntax/count_bits/2",
+              "error": "[string \"function count_bits()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            },
+            {
+              "id": "lua/systems/lua_protected_call/15",
+              "error": "[string \"function lua_protected_call()...\"]:1: attempt to index a nil value (upvalue '_ENV')"
+            }
+          ],
+          "omittedFailureCount": 983
+        },
+        "crossOriginIsolated": false,
+        "sharedArrayBuffer": "undefined",
+        "resources": [
+          {
+            "name": "http://127.0.0.1:36583/node_modules/wasmoon/dist/glue.wasm",
+            "transferSize": 0,
+            "encodedBodySize": 111010,
+            "decodedBodySize": 271581,
+            "duration": 2.100000001490116
+          }
+        ],
+        "requests": []
+      }
+    }
+  },
+  "recordNote": "Compact extract: preserve counts and representative failures; full repetitive trace omitted.",
+  "fullRecordSha256": "ed34c73367cc5ddae93c4f57aa6333b1c819089d71962d066952419f2fc9a270"
+}

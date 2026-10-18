@@ -1,0 +1,381 @@
+// A persistent editor: game ticks update results without replacing the textarea.
+// The caller owns questions, drafts, execution and rewards. This module only
+// displays their state and reports explicit user actions.
+import { QUIZ_SOURCE_LIMIT } from './quizrunner.js';
+
+const mounted = new WeakMap();
+let nextEditorId = 0;
+
+const labels = {
+  idle: '未実行',
+  pass: '全件成功',
+  passed: '全件成功',
+  success: '全件成功',
+  'all-passed': '全件成功',
+  fail: '不合格',
+  failed: '不合格',
+  'wrong-answer': '不合格',
+  'compile-error': 'コンパイルエラー',
+  'syntax-error': '構文エラー',
+  'type-error': '型エラー',
+  'runtime-error': '実行時エラー',
+  timeout: '時間切れ',
+  'engine-error': '評価器のエラー',
+  'internal-error': '評価器のエラー',
+  error: '評価器のエラー',
+  unsupported: 'この課題は現在実行できません',
+  cancelled: '実行を中止しました',
+  stale: '編集済み · 再実行してください'
+};
+const successStates = new Set(['pass', 'passed', 'success', 'all-passed']);
+const errorStates = new Set(['compile-error', 'syntax-error', 'type-error', 'runtime-error', 'timeout', 'engine-error', 'internal-error', 'error']);
+
+function textValue(value) {
+  if (typeof value === 'string') return value;
+  if (value === undefined) return '—';
+  try { return JSON.stringify(value) ?? String(value); }
+  catch { return String(value); }
+}
+
+function write(node, value) {
+  const text = String(value ?? '');
+  if (node.textContent !== text) node.textContent = text;
+}
+
+function create(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function caseStatus(row) {
+  if (!row) return 'idle';
+  if (row.passed === true || row.pass === true || row.correct === true) return 'pass';
+  if (row.passed === false || row.pass === false || row.correct === false) return row.status || 'wrong-answer';
+  return row.status || 'idle';
+}
+
+function progressLabel(progress) {
+  if (typeof progress === 'string') return progress || 'テストを実行中';
+  const phase = progress?.phase || progress?.stage || progress?.status;
+  const name = ({ download: '実行環境を読み込んでいます', downloading: '実行環境を読み込んでいます', loading: '実行環境を読み込んでいます', prepare: '実行の準備中', preparing: '実行の準備中', compile: 'コードを確認中', compiling: 'コードを確認中', execute: 'テストを実行中', executing: 'テストを実行中', running: 'テストを実行中' })[phase] || 'テストを実行中';
+  if (Number.isFinite(progress?.loaded) && Number.isFinite(progress?.total) && progress.total > 0) {
+    return `${name} · ${Math.min(100, Math.max(0, Math.floor(progress.loaded / progress.total * 100)))}%`;
+  }
+  return name;
+}
+
+function indentEditor(editor, backwards) {
+  const value = editor.value, start = editor.selectionStart, end = editor.selectionEnd;
+  if (!backwards && start === end) {
+    editor.setRangeText('    ', start, end, 'end');
+    return;
+  }
+  const lineStart = start === 0 ? 0 : value.lastIndexOf('\n', start - 1) + 1;
+  // An end cursor at column 1 belongs to the previous selected line.
+  const endAtNewline = end > start && value[end - 1] === '\n';
+  const rangeEnd = endAtNewline ? end - 1 : end;
+  const selected = value.slice(lineStart, rangeEnd);
+  const lines = selected.split('\n');
+  let firstChange = 0, totalChange = 0;
+  const replacement = lines.map((line, index) => {
+    if (!backwards) {
+      if (!index) firstChange = 4;
+      totalChange += 4;
+      return `    ${line}`;
+    }
+    const count = line.startsWith('\t') ? 1 : (line.match(/^ {1,4}/)?.[0].length || 0);
+    if (!index) firstChange = -count;
+    totalChange -= count;
+    return line.slice(count);
+  }).join('\n');
+  editor.setRangeText(replacement, lineStart, rangeEnd, 'preserve');
+  editor.setSelectionRange(Math.max(lineStart, start + firstChange), Math.max(lineStart, end + totalChange));
+}
+
+function mount(root) {
+  const editorId = `quiz-source-${++nextEditorId}`;
+  const heading = create('div', 'quiz-heading');
+  const title = create('h3', 'quiz-title');
+  const position = create('span', 'quiz-position');
+  heading.append(title, position);
+  const topicPicker = create('div', 'quiz-topic-picker');
+  const topicLabel = create('label', '', '課題');
+  const topicSelect = create('select');
+  topicSelect.id = `${editorId}-topic`;
+  topicLabel.htmlFor = topicSelect.id;
+  topicPicker.append(topicLabel, topicSelect);
+  topicPicker.hidden = true;
+  const description = create('p', 'quiz-description');
+  const parameters = create('dl', 'quiz-parameters');
+  parameters.setAttribute('aria-label', '引数の意味');
+  const editorLabel = create('label', 'quiz-editor-label', 'あなたの実装');
+  editorLabel.htmlFor = editorId;
+  const editor = create('textarea', 'quiz-source');
+  editor.id = editorId;
+  editor.rows = 12;
+  editor.maxLength = QUIZ_SOURCE_LIMIT;
+  editor.spellcheck = false;
+  editor.autocomplete = 'off';
+  editor.autocapitalize = 'off';
+  editor.setAttribute('autocorrect', 'off');
+  editor.setAttribute('aria-describedby', `${editorId}-keys ${editorId}-storage`);
+  editor.wrap = 'off';
+  const editorFooter = create('div', 'quiz-editor-footer');
+  const keyboard = create('span', '', 'Tabで字下げ · Ctrl / ⌘ + Enterで実行');
+  keyboard.id = `${editorId}-keys`;
+  const storage = create('span', 'quiz-save-hint', `${QUIZ_SOURCE_LIMIT.toLocaleString('en-US')}字まで · 直近12題のコードを保存`);
+  storage.id = `${editorId}-storage`;
+  const cursor = create('span', 'quiz-cursor', 'Ln 1, Col 1');
+  editorFooter.append(keyboard, storage, cursor);
+  const actions = create('div', 'quiz-actions');
+  const run = create('button', 'primary-button quiz-run', 'テストを実行');
+  run.type = 'button';
+  const cancel = create('button', 'secondary-button quiz-cancel', '中止');
+  cancel.type = 'button';
+  cancel.hidden = true;
+  const next = create('button', 'secondary-button quiz-next', '次の課題へ →');
+  next.type = 'button';
+  next.hidden = true;
+  const referenceToggle = create('button', 'text-button quiz-reference-toggle', '解答例を見る');
+  referenceToggle.type = 'button';
+  referenceToggle.setAttribute('aria-expanded', 'false');
+  referenceToggle.setAttribute('aria-controls', `${editorId}-reference`);
+  actions.append(run, cancel, next, referenceToggle);
+  const status = create('p', 'quiz-status', '未実行');
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  status.setAttribute('aria-atomic', 'true');
+  const progress = create('progress', 'quiz-progress');
+  progress.setAttribute('aria-label', '実行環境の読込');
+  progress.hidden = true;
+  const diagnostics = create('pre', 'quiz-diagnostics');
+  diagnostics.tabIndex = 0;
+  diagnostics.hidden = true;
+  const caseHeading = create('h4', 'quiz-cases-heading', 'テストケース');
+  const cases = create('ol', 'quiz-cases');
+  const moreCases = create('details', 'quiz-more-cases');
+  const moreCasesLabel = create('summary');
+  const moreCasesList = create('ol', 'quiz-cases');
+  moreCases.append(moreCasesLabel, moreCasesList);
+  moreCases.hidden = true;
+  const reference = create('section', 'quiz-reference');
+  reference.id = `${editorId}-reference`;
+  reference.setAttribute('aria-label', '解答例');
+  reference.hidden = true;
+  const referenceHeading = create('h4', '', '解答例');
+  const referenceCode = create('pre', 'reference-code');
+  referenceCode.tabIndex = 0;
+  reference.append(referenceHeading, referenceCode);
+  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, actions, status, progress, diagnostics, caseHeading, cases, moreCases, reference);
+  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, run, cancel, next, referenceToggle, status, progress, diagnostics, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
+  mounted.set(root, ui);
+  const updateCursor = () => {
+    const before = editor.value.slice(0, editor.selectionStart).split('\n');
+    write(cursor, `Ln ${before.length}, Col ${before.at(-1).length + 1}`);
+  };
+  const sendDraft = () => { updateCursor(); ui.model.onDraft?.(editor.value); };
+  editor.addEventListener('input', sendDraft);
+  for (const type of ['keyup', 'click', 'select']) editor.addEventListener(type, updateCursor);
+  const runCode = () => {
+    if (!ui.model.running && !ui.model.disabled && ui.model.quiz) ui.model.onRun?.(editor.value);
+  };
+  editor.addEventListener('keydown', event => {
+    if (event.isComposing) return;
+    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.altKey) {
+      event.preventDefault(); event.stopPropagation();
+      if (!event.repeat) runCode();
+    } else if (event.key === 'Tab' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault(); event.stopPropagation();
+      indentEditor(editor, event.shiftKey);
+      sendDraft();
+    }
+  });
+  run.addEventListener('click', runCode);
+  cancel.addEventListener('click', () => { if (ui.model.running) ui.model.onCancel?.(); });
+  next.addEventListener('click', () => { if (!next.disabled && !next.hidden) ui.model.onNext?.(); });
+  topicSelect.addEventListener('change', () => {
+    if (!topicSelect.disabled) ui.model.onSelect?.(Number(topicSelect.value));
+  });
+  referenceToggle.addEventListener('click', () => {
+    ui.referenceOpen = !ui.referenceOpen;
+    reference.hidden = !ui.referenceOpen;
+    referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
+    write(referenceToggle, ui.referenceOpen ? '解答例を閉じる' : '解答例を見る');
+    ui.model.onReference?.(ui.referenceOpen);
+  });
+  return ui;
+}
+
+function renderCases(ui, quiz, result, stale, running) {
+  const results = Array.isArray(result?.cases) ? result.cases : Array.isArray(result?.results) ? result.results : [];
+  const questionCases = quiz?.cases || [];
+  const key = JSON.stringify([quiz?.id, questionCases, results, stale, running]);
+  if (ui.caseKey === key) return;
+  ui.caseKey = key;
+  const entries = questionCases.map((test, index) => {
+    const match = results.find(row => row.id === test.id || row.caseId === test.id) || results[index];
+    const testStatus = stale || running ? 'idle' : caseStatus(match);
+    const row = create('li', 'quiz-case');
+    row.dataset.status = testStatus;
+    const heading = create('div', 'quiz-case-heading');
+    const status = create('span', 'quiz-case-status', testStatus === 'idle' ? '未実行' : successStates.has(testStatus) ? '成功' : labels[testStatus] || '不合格');
+    heading.append(create('b', '', test.name || `ケース ${index + 1}`), status);
+    const values = create('dl', 'quiz-case-values');
+    const args = test.input ?? test.args ?? [];
+    const sqlFixture = quiz?.language === 'sql' && Array.isArray(test.fixtureRows);
+    if (sqlFixture) {
+      const entry = create('div', 'quiz-fixture-input');
+      const content = create('dd');
+      const table = create('table', 'quiz-fixture-table');
+      table.append(create('caption', '', 'sample(id, amount, group_id, enabled)'));
+      const head = create('thead'), header = create('tr');
+      for (const name of ['id', 'amount', 'group_id', 'enabled']) {
+        const cell = create('th', '', name);
+        cell.scope = 'col';
+        header.append(cell);
+      }
+      head.append(header);
+      const body = create('tbody');
+      for (const record of test.fixtureRows) {
+        const line = create('tr');
+        for (const value of record) line.append(create('td', '', textValue(value)));
+        body.append(line);
+      }
+      table.append(head, body);
+      content.append(table);
+      entry.append(create('dt', '', '入力DB'), content);
+      values.append(entry);
+    }
+    const pairs = [...(sqlFixture ? [] : [['入力', args]]), ...(sqlFixture && quiz.topicId === 'recursive_counter' ? [['quiz_config.counter_limit', test.counterLimit]] : []), ['期待する結果', test.expected]];
+    if (!stale && !running && match && ('actual' in match || 'output' in match)) pairs.push(['実際の結果', 'actual' in match ? match.actual : match.output]);
+    for (const [label, value] of pairs) {
+      const entry = create('div');
+      entry.append(create('dt', '', label), create('dd', '', textValue(value)));
+      values.append(entry);
+    }
+    row.append(heading, values);
+    if (!stale && !running && match?.message) row.append(create('p', 'quiz-case-message', String(match.message).slice(0, 4000)));
+    return row;
+  });
+  if (!entries.length) entries.push(create('li', 'quiz-case', 'この課題のテストケースは準備中です。'));
+  // A question can have dozens of boundary cases. Keep a useful preview by the
+  // editor and let the player expand the complete, unchanged test list.
+  const failures = entries.filter(row => row.dataset.status && row.dataset.status !== 'idle' && !successStates.has(row.dataset.status));
+  const preview = (failures.length ? failures : entries).slice(0, 3);
+  const remaining = entries.filter(row => !preview.includes(row));
+  ui.cases.replaceChildren(...preview);
+  ui.moreCasesList.replaceChildren(...remaining);
+  ui.moreCases.hidden = !remaining.length;
+  write(ui.moreCasesLabel, `残り${remaining.length}件のテストケース`);
+}
+
+/**
+ * Render a controlled Quiz panel without replacing its editor during game ticks.
+ * Callbacks: onDraft(source), onRun(source), onCancel(), onNext(),
+ * onSelect(index), onReference(isOpen).
+ * topics: [{index, title, completed}], selectedIndex: number.
+ * result: {status, cases:[{id, passed, actual, message}], message, diagnostics}.
+ * A result.source differing from draft is displayed as stale, never as a pass.
+ * progress: {phase:'download'|'prepare'|'compile'|'execute', loaded?, total?}.
+ * No calls in this module award progress or evaluate the supplied source.
+ */
+export function renderQuizUI(options) {
+  const { root, quiz, result = null, running = false, progress = null, disabled = false } = options;
+  if (!root) throw new TypeError('Quiz panel root is required.');
+  const ui = mounted.get(root) || mount(root);
+  ui.model = options;
+  const key = quiz?.id ?? null;
+  const changedQuestion = key !== ui.key;
+  if (changedQuestion) {
+    ui.key = key;
+    ui.referenceOpen = false;
+    ui.reference.hidden = true;
+    ui.moreCases.open = false;
+    ui.referenceToggle.setAttribute('aria-expanded', 'false');
+    write(ui.referenceToggle, '解答例を見る');
+  }
+  const draft = String(options.draft ?? quiz?.starterSource ?? '');
+  if (ui.editor.value !== draft) {
+    const start = ui.editor.selectionStart, end = ui.editor.selectionEnd;
+    const scrollTop = ui.editor.scrollTop, scrollLeft = ui.editor.scrollLeft;
+    ui.editor.value = draft;
+    if (!changedQuestion) {
+      ui.editor.setSelectionRange(Math.min(start, draft.length), Math.min(end, draft.length));
+      ui.editor.scrollTop = scrollTop;
+      ui.editor.scrollLeft = scrollLeft;
+    }
+  }
+  const beforeCursor = ui.editor.value.slice(0, ui.editor.selectionStart).split('\n');
+  write(ui.cursor, `Ln ${beforeCursor.length}, Col ${beforeCursor.at(-1).length + 1}`);
+  const stale = !!result && typeof result.source === 'string' && result.source !== draft;
+  const resultStatus = stale ? 'stale' : result?.status || 'idle';
+  const passed = !running && successStates.has(resultStatus);
+  const results = result?.cases || result?.results || [];
+  const successCount = results.filter(row => successStates.has(caseStatus(row))).length;
+  const total = quiz?.cases?.length || results.length;
+  const summary = successStates.has(resultStatus) || ['wrong-answer', 'fail', 'failed'].includes(resultStatus) ? `${labels[resultStatus]}${results.length ? ` · ${successCount} / ${total}件` : ''}` : labels[resultStatus] || '評価器のエラー';
+  root.dataset.quizStatus = running ? 'running' : resultStatus;
+  root.setAttribute('aria-busy', String(!!running));
+  write(ui.title, quiz?.title || 'コードを実装して解く');
+  write(ui.position, options.position ?? '');
+  ui.position.hidden = !options.position;
+  const topics = Array.isArray(options.topics) ? options.topics : [];
+  const topicKey = JSON.stringify(topics);
+  if (topicKey !== ui.topicKey) {
+    ui.topicKey = topicKey;
+    ui.topicSelect.replaceChildren(...topics.map(topic => {
+      const option = create('option', '', `${topic.completed ? '✓ ' : ''}${topic.title}`);
+      option.value = String(topic.index);
+      return option;
+    }));
+  }
+  ui.topicPicker.hidden = !topics.length || typeof options.onSelect !== 'function';
+  ui.topicSelect.disabled = !!disabled || !!running;
+  if (options.selectedIndex !== undefined) ui.topicSelect.value = String(options.selectedIndex);
+  write(ui.description, quiz?.description || '課題を選んでください。');
+  const parameters = quiz?.parameters || [];
+  const parametersKey = JSON.stringify(parameters);
+  if (ui.parametersKey !== parametersKey) {
+    ui.parametersKey = parametersKey;
+    ui.parameters.replaceChildren(...parameters.map(parameter => {
+      const entry = create('div');
+      const name = typeof parameter === 'string' ? parameter : parameter.name;
+      entry.append(create('dt', '', name), create('dd', '', typeof parameter === 'string' ? '' : parameter.description || parameter.type || ''));
+      return entry;
+    }));
+  }
+  ui.parameters.hidden = !parameters.length;
+  ui.editor.disabled = !!disabled || !quiz;
+  ui.run.disabled = !!disabled || !!running || !quiz;
+  write(ui.run, running ? '実行中…' : 'テストを実行');
+  ui.cancel.hidden = !running || typeof options.onCancel !== 'function';
+  ui.next.hidden = typeof options.onNext !== 'function' || !passed;
+  ui.next.disabled = !!disabled || !!running;
+  ui.referenceToggle.hidden = !quiz?.referenceSource;
+  ui.referenceToggle.disabled = !!disabled;
+  write(ui.referenceCode, quiz?.referenceSource || '');
+  const status = running ? progressLabel(progress) : summary;
+  write(ui.status, status);
+  ui.status.dataset.kind = running ? 'running' : passed ? 'success' : errorStates.has(resultStatus) || ['fail', 'failed', 'wrong-answer'].includes(resultStatus) ? 'error' : 'neutral';
+  ui.progress.hidden = !running;
+  if (running && Number.isFinite(progress?.loaded) && Number.isFinite(progress?.total) && progress.total > 0) {
+    ui.progress.max = progress.total;
+    ui.progress.value = Math.min(progress.total, Math.max(0, progress.loaded));
+  } else ui.progress.removeAttribute('value');
+  const diagnosticRows = Array.isArray(result?.diagnostics) ? result.diagnostics : [];
+  const diagnosticText = !stale && !running ? [result?.message || result?.error, ...diagnosticRows.map(row => {
+    if (typeof row === 'string') return row;
+    const line = row.line ?? row.lineNumber ?? row.location?.line;
+    const column = row.column ?? row.columnNumber ?? row.location?.column;
+    return [line ? `${line}行${column ? ` ${column}列` : ''}` : '', row.id || '', row.message || textValue(row)].filter(Boolean).join(' · ');
+  })].filter(Boolean).join('\n').slice(0, 16000) : '';
+  write(ui.diagnostics, diagnosticText);
+  ui.diagnostics.hidden = !diagnosticText;
+  renderCases(ui, quiz, result, stale, running);
+}
+
+export function quizEditor(root) {
+  return mounted.get(root)?.editor || null;
+}

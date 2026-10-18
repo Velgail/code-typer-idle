@@ -1,6 +1,6 @@
 {
   "name": "code-typer-idle",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,6 +10,8 @@
     "test:browser": "node tests/browser.mjs",
     "balance": "node scripts/simulate-balance.mjs",
     "planning": "node scripts/estimate-projects.mjs",
-    "test:curriculum": "node scripts/validate-curriculum.mjs"
+    "test:curriculum": "node scripts/validate-curriculum.mjs",
+    "test:quiz": "node scripts/validate-quizzes.mjs",
+    "test:runtimes": "node scripts/check-runtime-assets.mjs"
   }
 }

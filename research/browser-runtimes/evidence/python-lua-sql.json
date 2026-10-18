@@ -1,0 +1,511 @@
+{
+  "checkedAtUTC": "2026-10-18T18:25:50.729720+00:00",
+  "scope": "Research only; game tracked files and dependencies unchanged. Real source evaluation in Chromium module Workers served from ordinary local static HTTP without COOP/COEP.",
+  "conclusion": "Python, Lua and SQLite SQL can use existing real browser runtimes; no custom imitation parser/evaluator is needed for the existing generated exercises.",
+  "evidenceFile": "browser-proof.json",
+  "reproduce": "cd work/runtime-research/python-lua-sql && node probe.mjs",
+  "environment": {
+    "browser": "154.0.8037.57",
+    "url": "http://127.0.0.1:44565",
+    "headers": {
+      "coop": false,
+      "coep": false
+    },
+    "note": "Local loopback gzip server. Transfer and timing are environment measurements, not user Internet speed."
+  },
+  "measurementCaveats": [
+    "Timing is one local loopback sample, not Internet download time or a mobile-device benchmark.",
+    "loadMs begins after the worker statically imports the small JS entry module; it includes WASM load/initialization, not all worker creation overhead.",
+    "cold transfer bytes are gzip body lengths served by our test HTTP server; production CDN compression may differ.",
+    "warm is a fresh Worker in the same browser context using immutable HTTP cache. Zero HTTP requests were received by our local server; VM initialization still runs.",
+    "The runtime is loaded on demand per selected language, not all three on initial game load."
+  ],
+  "languages": {
+    "python": {
+      "runtimePackage": "pyodide",
+      "packageVersion": "314.0.7",
+      "languageVersion": "3.14.2 (main, Sep 14 2026, 03:03:51) [Clang 23.0.0git (https:/github.com/llvm/llvm-project e5927fecf8a6ce89e1a4eac5b8",
+      "realLanguageImplementation": true,
+      "staticPagesCompatible": true,
+      "requiresServerCompilation": false,
+      "requiresCOOPCOEP": false,
+      "requiresSharedArrayBuffer": false,
+      "requiresOPFS": false,
+      "proof": {
+        "cold": {
+          "loadMs": 2788.39999999851,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 528, in eval_code\n    CodeRunner(\n    ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"<exec>\", line 1\n    def add(:\n            ^\nSyntaxError: invalid syntax\n"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 539, in eval_code\n    .run(globals, locals)\n     ~~~^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 366, in run\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\nZeroDivisionError: division by zero\n"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 152.79999999701977
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 6
+        },
+        "warm": {
+          "loadMs": 2973.4000000059605,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 528, in eval_code\n    CodeRunner(\n    ~~~~~~~~~~^\n        source,\n        ^^^^^^^\n    ...<6 lines>...\n        dedent=dedent,\n        ^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 294, in __init__\n    self.ast = next(self._gen)\n               ~~~~^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 151, in _parse_and_compile_gen\n    mod = compile(source, filename, mode, flags | ast.PyCF_ONLY_AST)\n  File \"<exec>\", line 1\n    def add(:\n            ^\nSyntaxError: invalid syntax\n"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "Traceback (most recent call last):\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 539, in eval_code\n    .run(globals, locals)\n     ~~~^^^^^^^^^^^^^^^^^\n  File \"/lib/python314.zip/_pyodide/_base.py\", line 366, in run\n    coroutine = eval(self.code, globals, locals)\n  File \"<exec>\", line 1, in <module>\nZeroDivisionError: division by zero\n"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 136.09999999403954
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 0
+        }
+      },
+      "infiniteLoop": {
+        "terminated": true,
+        "afterReadyMs": 150.29999999701977,
+        "mainThreadTicks": 214,
+        "sharedArrayBuffer": "undefined",
+        "crossOriginIsolated": false
+      },
+      "minimalRuntimeAssets": [
+        {
+          "url": "/node_modules/pyodide/pyodide.mjs",
+          "rawBytes": 17931,
+          "gzipBytes": 7196,
+          "sha256": "6f1d60f7bf529beb300f0f47983c921d3982363640ba20af0e38efdddbc66109"
+        },
+        {
+          "url": "/node_modules/pyodide/pyodide-lock.json",
+          "rawBytes": 119077,
+          "gzipBytes": 25716,
+          "sha256": "5dc2fc119108bc148c7457dc86e7675b5c87e1cafd420b9c34c1eaef7b36c010"
+        },
+        {
+          "url": "/node_modules/pyodide/pyodide.asm.mjs",
+          "rawBytes": 1250344,
+          "gzipBytes": 261280,
+          "sha256": "f7cdc8ece80678ceb712f8e65ebe6d3a83203a180c399865f49612a051693635"
+        },
+        {
+          "url": "/node_modules/pyodide/python_stdlib.zip",
+          "rawBytes": 2545637,
+          "gzipBytes": 2503781,
+          "sha256": "fa1957e5777068fc4f7437f96d860ae2fbe9c19732ba06c84e004ec16dd7dd7a"
+        },
+        {
+          "url": "/node_modules/pyodide/pyodide.asm.wasm",
+          "rawBytes": 9598218,
+          "gzipBytes": 3600748,
+          "sha256": "cc36e3cab04fdfc9a63ff13eb52eae2b911bf46c025cc7b281f394bd3de1d5e6"
+        }
+      ],
+      "minimalRuntimeRawBytes": 13531207,
+      "minimalRuntimeGzipBytes": 6398721,
+      "compatibility": {
+        "generatedLessonsPassed": 1024,
+        "stdlibVerified": {
+          "math": 9,
+          "collections": 2,
+          "itertools": [
+            1,
+            3,
+            6
+          ],
+          "functools": 6,
+          "statistics": 2,
+          "re": [
+            "12"
+          ],
+          "datetime": "2026-10-18",
+          "decimal": "0.3",
+          "fractions": "1/2"
+        },
+        "limits": "Browser OS/process/thread/socket limitations remain. Optional binary Python packages require Pyodide-compatible wheels; desktop CPython native extension wheels do not run unchanged."
+      },
+      "compiler": "CPython parser/bytecode compiler compiled into the real CPython WASM VM, not source-string pattern matching.",
+      "licenses": {
+        "runner": "Pyodide MPL-2.0",
+        "languageRuntime": "CPython and stdlib: PSF license plus historical/third-party notices",
+        "BSLCoexistence": "Game own code can remain Boost Software License 1.0. Keep Pyodide covered files MPL-2.0, preserve notices and make the corresponding covered source available; modifications to those files stay MPL. Do not relabel dependencies as BSL. Optional wheel licenses are independent."
+      },
+      "sources": [
+        "https://pyodide.org/en/stable/usage/downloading-and-deploying.html",
+        "https://pyodide.org/en/stable/usage/wasm-constraints.html",
+        "https://github.com/pyodide/pyodide/blob/314.0.7/LICENSE",
+        "https://github.com/python/cpython/blob/3.14/LICENSE",
+        "https://registry.npmjs.org/pyodide/314.0.7"
+      ]
+    },
+    "lua": {
+      "runtimePackage": "wasmoon",
+      "packageVersion": "1.16.0",
+      "languageVersion": "Lua 5.4",
+      "realLanguageImplementation": true,
+      "staticPagesCompatible": true,
+      "requiresServerCompilation": false,
+      "requiresCOOPCOEP": false,
+      "requiresSharedArrayBuffer": false,
+      "requiresOPFS": false,
+      "proof": {
+        "cold": {
+          "loadMs": 32.100000001490116,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 45.79999999701977
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 3
+        },
+        "warm": {
+          "loadMs": 19.100000001490116,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "[string \"local function add( return 5 end\"]:1: <name> or '...' expected near 'return'"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "[string \"error(\"student runtime failure\")\"]:1: student runtime failure"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 41.20000000298023
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 0
+        }
+      },
+      "infiniteLoop": {
+        "terminated": true,
+        "afterReadyMs": 150.89999999850988,
+        "mainThreadTicks": 19,
+        "sharedArrayBuffer": "undefined",
+        "crossOriginIsolated": false
+      },
+      "minimalRuntimeAssets": [
+        {
+          "url": "/node_modules/wasmoon/dist/index.js",
+          "rawBytes": 151652,
+          "gzipBytes": 39480,
+          "sha256": "dc2dcf019449008bb224370052473dc760db28b3ba14fc604e1ca3e8646af35d"
+        },
+        {
+          "url": "/node_modules/wasmoon/dist/glue.wasm",
+          "rawBytes": 271581,
+          "gzipBytes": 111010,
+          "sha256": "95f3f19ddb740125883bc41d5ec670cd0828e7b58c8bdad385323cbff497b55c"
+        }
+      ],
+      "minimalRuntimeRawBytes": 423233,
+      "minimalRuntimeGzipBytes": 150490,
+      "compatibility": {
+        "generatedLessonsPassed": 1024,
+        "verified": {
+          "integerDivide": 3,
+          "zeroTruthy": true,
+          "utf8": 2,
+          "bitwise": 13,
+          "closeSyntax": 1
+        },
+        "limits": "Native OS facilities and C modules need browser/WASM adapters. Lua integers crossing the JS boundary require exactness policy for values above Number.MAX_SAFE_INTEGER."
+      },
+      "compiler": "Real Lua parser/bytecode compiler and Lua 5.4 VM built with Emscripten.",
+      "integrationRequirement": {
+        "reproduced": "Wasmoon1.16.0 doString calls retain return/error values on the Lua stack. Repeated calls without restoring the stack eventually returned _ENV=nil near lesson38 and memory access out of bounds. Closing the poisoned state also trapped.",
+        "resolutionVerified": "Both doStringSync and async doString pass all1024 generated exercises when the wrapper saves/restores the Lua stack around every evaluation. Sync version is used by the main proof.",
+        "failedProof": "lua-async-proof.json",
+        "additionalSuccessProof": "lua-async-cleared-proof.json",
+        "sourceGitHead": "87c783a8d0bf65afeda933fa47d8dc996be53bb3"
+      },
+      "licenses": {
+        "runner": "Wasmoon MIT",
+        "languageRuntime": "Lua MIT",
+        "glue": "Emscripten bundled notices",
+        "BSLCoexistence": "Keep MIT copyrights/license notices and any bundled glue notices; own game code can remain Boost Software License1.0."
+      },
+      "sources": [
+        "https://github.com/ceifa/wasmoon",
+        "https://github.com/ceifa/wasmoon/blob/87c783a8d0bf65afeda933fa47d8dc996be53bb3/build.sh",
+        "https://github.com/ceifa/wasmoon/blob/main/LICENSE",
+        "https://github.com/lua/lua/blob/v5.4.6/lua.h",
+        "https://registry.npmjs.org/wasmoon/1.16.0"
+      ]
+    },
+    "sql": {
+      "runtimePackage": "@sqlite.org/sqlite-wasm",
+      "packageVersion": "3.53.4-build2",
+      "languageVersion": "3.53.4",
+      "realLanguageImplementation": true,
+      "staticPagesCompatible": true,
+      "requiresServerCompilation": false,
+      "requiresCOOPCOEP": false,
+      "requiresSharedArrayBuffer": false,
+      "requiresOPFS": false,
+      "proof": {
+        "cold": {
+          "loadMs": 105.80000000447035,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "SQLITE_ERROR: sqlite3 result code 1: near \"SELEC\": syntax error"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "SQLITE_ERROR: sqlite3 result code 1: no such column: missing_column"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 114.39999999850988
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 3
+        },
+        "warm": {
+          "loadMs": 45.30000000447035,
+          "cases": {
+            "normal": {
+              "status": "pass",
+              "actual": 5,
+              "expected": 5
+            },
+            "syntax": {
+              "status": "syntax-error",
+              "message": "SQLITE_ERROR: sqlite3 result code 1: near \"SELEC\": syntax error"
+            },
+            "wrong": {
+              "status": "wrong-answer",
+              "actual": -1,
+              "expected": 5
+            },
+            "runtime": {
+              "status": "runtime-error",
+              "message": "SQLITE_ERROR: sqlite3 result code 1: no such column: missing_column"
+            }
+          },
+          "generatedCurriculum": {
+            "checked": 1024,
+            "failed": [],
+            "elapsedMs": 105.89999999850988
+          },
+          "crossOriginIsolated": false,
+          "SharedArrayBuffer": "undefined",
+          "serverRequestCount": 0
+        }
+      },
+      "infiniteLoop": {
+        "terminated": true,
+        "afterReadyMs": 153.5,
+        "mainThreadTicks": 23,
+        "sharedArrayBuffer": "undefined",
+        "crossOriginIsolated": false
+      },
+      "minimalRuntimeAssets": [
+        {
+          "url": "/node_modules/@sqlite.org/sqlite-wasm/dist/index.mjs",
+          "rawBytes": 642742,
+          "gzipBytes": 175363,
+          "sha256": "a6d3fe46aa3f924e7686329f97b0564549ef1f787e0c19924179aef7f72bcc01"
+        },
+        {
+          "url": "/node_modules/@sqlite.org/sqlite-wasm/dist/sqlite3.wasm",
+          "rawBytes": 868907,
+          "gzipBytes": 403566,
+          "sha256": "2ee8f3dab694532afc8840e07703127287662d08b74e6ff50491ce63f00d5752"
+        }
+      ],
+      "minimalRuntimeRawBytes": 1511649,
+      "minimalRuntimeGzipBytes": 578929,
+      "compatibility": {
+        "generatedLessonsPassed": 1024,
+        "verified": {
+          "window": [
+            1,
+            2,
+            3
+          ],
+          "recursive": 15,
+          "json": 7,
+          "strict": {
+            "status": "pass"
+          }
+        },
+        "dialect": "SQLite SQL, not MySQL/PostgreSQL/T-SQL universal compatibility.",
+        "limits": "Stored procedures and dialect-specific syntax/extensions need separate lesson variants. DB is transient; persistence belongs to game save, not OPFS."
+      },
+      "compiler": "Real SQLite SQL parser/planner/VDBE compiled to WASM.",
+      "licenses": {
+        "npmWrapperMetadata": "Apache-2.0",
+        "sqliteCoreAndAPIs": "SQLite public-domain terms, as shown in index.mjs preserved header",
+        "glue": "Emscripten MIT/University of Illinois NCSA, as shown in index.mjs header",
+        "BSLCoexistence": "Retain Apache/MIT/NCSA and public-domain notices for distributed components; own game code can remain Boost Software License1.0."
+      },
+      "sources": [
+        "https://github.com/sqlite/sqlite-wasm",
+        "https://sqlite.org/wasm/doc/tip/api-index.md",
+        "https://sqlite.org/wasm/doc/tip/persistence.md",
+        "https://sqlite.org/wasm/doc/tip/building.md",
+        "https://registry.npmjs.org/@sqlite.org/sqlite-wasm/3.53.4-build2"
+      ]
+    }
+  },
+  "alternatives": [
+    {
+      "language": "python",
+      "candidate": "MicroPython WebAssembly",
+      "releaseObserved": "@micropython/micropython-webassembly-pyscript 1.29.0-6",
+      "kind": "real MicroPython VM compiled to WASM",
+      "status": "official browser usage documented; not executed in this investigation",
+      "reasonNotPrimary": "Smaller language/library profile and documented CPython differences. Not a transparent replacement for full Python standard-library lessons.",
+      "licenses": [
+        "MIT for MicroPython",
+        "port-level bundled third-party notices must also be retained"
+      ],
+      "sources": [
+        "https://github.com/micropython/micropython/blob/master/ports/webassembly/README.md",
+        "https://docs.micropython.org/en/latest/genrst/index.html",
+        "https://github.com/micropython/micropython/blob/master/LICENSE"
+      ]
+    },
+    {
+      "language": "python",
+      "candidate": "Skulpt",
+      "releaseObserved": "1.2.0",
+      "kind": "JavaScript Python implementation",
+      "status": "official sources examined; not executed in this investigation",
+      "reasonNotPrimary": "Python 3 behavior is configurable but language/library compatibility is partial; CPython WASM avoids these differences for a broad curriculum.",
+      "licenses": [
+        "MIT",
+        "CPython/PyPy portions carry additional notices in LICENSE"
+      ],
+      "sources": [
+        "https://github.com/skulpt/skulpt",
+        "https://github.com/skulpt/skulpt/blob/master/LICENSE"
+      ]
+    },
+    {
+      "language": "lua",
+      "candidate": "Fengari",
+      "releaseObserved": "0.1.5",
+      "kind": "JavaScript Lua VM",
+      "status": "official sources examined; not executed in this investigation",
+      "reasonNotPrimary": "Lua 5.3 semantics and 32-bit integer configuration; current desired Lua 5.4 constructs such as <close> are not covered.",
+      "licenses": [
+        "MIT"
+      ],
+      "sources": [
+        "https://github.com/fengari-lua/fengari"
+      ]
+    },
+    {
+      "language": "sql",
+      "candidate": "sql.js",
+      "releaseObserved": "1.15.0",
+      "kind": "SQLite compiled to WASM plus JavaScript wrapper",
+      "status": "downloaded official npm package and examined API/license; not browser-executed in this investigation",
+      "reasonNotPrimary": "Also valid for static in-memory grading, but official SQLite WASM already passed all current generated SQL lessons.",
+      "licenses": [
+        "MIT for sql.js",
+        "SQLite public domain",
+        "Emscripten bundled license notices"
+      ],
+      "sources": [
+        "https://github.com/sql-js/sql.js",
+        "https://github.com/sql-js/sql.js/blob/master/LICENSE"
+      ]
+    }
+  ],
+  "unverified": [
+    "Mobile Safari/Firefox and low-memory mobile performance.",
+    "Every Exercism-imported lesson: these are a separate corpus from the 1024 generated exercises per language and lack bundled grading fixtures.",
+    "A complete package-by-package license inventory for optional Pyodide wheels; none are included in this proof.",
+    "Wasmoon Lua patch release number: runtime exposes Lua 5.4; patch version not confirmed."
+  ],
+  "implementationShape": {
+    "python": "Self-host minimal Pyodide files; fresh isolated Worker per submission/session, compile()/exec() submitted source in an explicit namespace, run fixture assertions, destroy on timeout.",
+    "lua": "Self-host Wasmoon index.js/glue.wasm; use doStringSync inside Worker, restore Lua stack after every call and isolate/reset state between submissions. Stack restoration also makes the asynchronous doString path pass all1024 tests; do not retain arbitrary return/error stack values between evaluations.",
+    "sql": "Self-host official SQLite index.mjs/sqlite3.wasm; use :memory: DB, initialize test tables, execute user statement, compare result rows/database state. No OPFS persistence required; save progress in existing game JSON."
+  }
+}

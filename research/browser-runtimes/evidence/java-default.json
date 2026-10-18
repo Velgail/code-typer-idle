@@ -1,0 +1,261 @@
+{
+  "candidate": "TeaVM-javac",
+  "revision": "208d4c97a602ba0df055f16e6882059fb69d0122",
+  "sourceCompilation": true,
+  "browser": "154.0.8037.57",
+  "isolation": {
+    "crossOriginIsolated": false,
+    "sharedArrayBuffer": "undefined"
+  },
+  "assetSizes": [
+    {
+      "name": "compiler.wasm-runtime.js",
+      "raw": 16425,
+      "gzip": 5758,
+      "sha256": "d4fc035b410f444f79f49e3890643b8bfd644a02dcfc597e3fcaa8a07bafca08"
+    },
+    {
+      "name": "compiler.wasm",
+      "raw": 4707682,
+      "gzip": 1839246,
+      "sha256": "ed3e98d3ac91cac0be76f04c45705b2364f53db3fb3b56a9493c72852daa428f"
+    },
+    {
+      "name": "compile-classlib-teavm.bin",
+      "raw": 215265,
+      "gzip": 213958,
+      "sha256": "59819816e258ec5606288c730adf49936b395635db4a386947d39708a6d178da"
+    },
+    {
+      "name": "runtime-classlib-teavm.bin",
+      "raw": 2337967,
+      "gzip": 2302434,
+      "sha256": "0ff08e05f02ce9483775d15fd80bc94a44603c0ba368f4c23be022f48b1375a9"
+    }
+  ],
+  "totalRawBytes": 7277339,
+  "totalGzipBytes": 4361396,
+  "requests": [
+    {
+      "path": "/java-worker.mjs",
+      "bytes": 3047
+    },
+    {
+      "path": "/assets/compiler.wasm-runtime.js",
+      "bytes": 16425
+    },
+    {
+      "path": "/assets/compile-classlib-teavm.bin",
+      "bytes": 215265
+    },
+    {
+      "path": "/assets/compiler.wasm",
+      "bytes": 4707682
+    },
+    {
+      "path": "/assets/runtime-classlib-teavm.bin",
+      "bytes": 2337967
+    }
+  ],
+  "consoleErrors": [],
+  "results": [
+    {
+      "id": "correct-java-collections",
+      "status": "executed",
+      "diagnostics": [],
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": "undefined",
+      "environmentLoadMs": 161.5,
+      "javacSucceeded": true,
+      "javacMs": 92.30000000447035,
+      "teavmSucceeded": true,
+      "teavmMs": 1618.1000000014901,
+      "generatedWasmBytes": 52102,
+      "elapsedMs": 2012.1000000014901,
+      "progress": [
+        {
+          "id": "correct-java-collections",
+          "kind": "progress",
+          "stage": "load-compiler",
+          "elapsedMs": 0.20000000298023224
+        },
+        {
+          "id": "correct-java-collections",
+          "kind": "progress",
+          "stage": "javac",
+          "elapsedMs": 292.70000000298023
+        },
+        {
+          "id": "correct-java-collections",
+          "kind": "progress",
+          "stage": "teavm-to-wasm",
+          "elapsedMs": 385.1000000014901
+        },
+        {
+          "id": "correct-java-collections",
+          "kind": "progress",
+          "stage": "execute",
+          "elapsedMs": 2003.3999999985099
+        }
+      ],
+      "sourceBytes": 223,
+      "passed": true,
+      "expected": "sum=6\n",
+      "stdoutSha256": "13d85fb41e0fb08257e984201c9bdca3491a331eed803104ab0fa90e081038ea",
+      "stdout": "sum=6\n",
+      "stderr": "",
+      "httpRequestCount": 5,
+      "httpBytes": 7280386
+    },
+    {
+      "id": "syntax-invalid",
+      "status": "compile-error",
+      "diagnostics": [
+        {
+          "type": "javac",
+          "severity": "error",
+          "fileName": "Main.java",
+          "lineNumber": 1,
+          "message": "';' expected"
+        }
+      ],
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": "undefined",
+      "environmentLoadMs": 161.5,
+      "javacSucceeded": false,
+      "javacMs": 7.5,
+      "elapsedMs": 109.29999999701977,
+      "progress": [
+        {
+          "id": "syntax-invalid",
+          "kind": "progress",
+          "stage": "load-compiler",
+          "elapsedMs": 0
+        },
+        {
+          "id": "syntax-invalid",
+          "kind": "progress",
+          "stage": "javac",
+          "elapsedMs": 101.79999999701977
+        }
+      ],
+      "sourceBytes": 91,
+      "passed": true,
+      "expected": "compile-error",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "httpRequestCount": 0,
+      "httpBytes": 0
+    },
+    {
+      "id": "wrong-result",
+      "status": "executed",
+      "diagnostics": [],
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": "undefined",
+      "environmentLoadMs": 161.5,
+      "javacSucceeded": true,
+      "javacMs": 9.5,
+      "teavmSucceeded": true,
+      "teavmMs": 989.0999999940395,
+      "generatedWasmBytes": 35159,
+      "elapsedMs": 1099.7000000029802,
+      "progress": [
+        {
+          "id": "wrong-result",
+          "kind": "progress",
+          "stage": "load-compiler",
+          "elapsedMs": 0
+        },
+        {
+          "id": "wrong-result",
+          "kind": "progress",
+          "stage": "javac",
+          "elapsedMs": 99.10000000149012
+        },
+        {
+          "id": "wrong-result",
+          "kind": "progress",
+          "stage": "teavm-to-wasm",
+          "elapsedMs": 108.70000000298023
+        },
+        {
+          "id": "wrong-result",
+          "kind": "progress",
+          "stage": "execute",
+          "elapsedMs": 1097.8999999985099
+        }
+      ],
+      "sourceBytes": 89,
+      "passed": true,
+      "expected": "sum=6\n",
+      "stdoutSha256": "22bac2fe813637998c6bcaa6a647486e10b94eaf6de450c7a3fcbfbef14ba843",
+      "stdout": "sum=7\n",
+      "stderr": "",
+      "httpRequestCount": 0,
+      "httpBytes": 0
+    },
+    {
+      "id": "all-1024-curriculum",
+      "status": "error",
+      "diagnostics": [],
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": "undefined",
+      "environmentLoadMs": 161.5,
+      "javacSucceeded": true,
+      "javacMs": 559.3999999985099,
+      "error": "divide by zero",
+      "elapsedMs": 1874.1999999955297,
+      "progress": [
+        {
+          "id": "all-1024-curriculum",
+          "kind": "progress",
+          "stage": "load-compiler",
+          "elapsedMs": 0
+        },
+        {
+          "id": "all-1024-curriculum",
+          "kind": "progress",
+          "stage": "javac",
+          "elapsedMs": 93.59999999403954
+        },
+        {
+          "id": "all-1024-curriculum",
+          "kind": "progress",
+          "stage": "teavm-to-wasm",
+          "elapsedMs": 653.1999999955297
+        }
+      ],
+      "sourceBytes": 334335,
+      "checked": 0,
+      "passed": false,
+      "expected": "1024 exact lesson answers",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "",
+      "httpRequestCount": 0,
+      "httpBytes": 0
+    }
+  ],
+  "measurementNotes": "Local static HTTP without COOP/COEP headers. Raw bytes transferred; gzip sizes are offline recompression, not measured Pages bandwidth. Compiler build performed separately; Java source compilation and generated Wasm execution happen in the browser Worker.",
+  "primarySources": [
+    "https://github.com/konsoletyper/teavm-javac/tree/208d4c97a602ba0df055f16e6882059fb69d0122",
+    "https://github.com/konsoletyper/teavm-javac/blob/208d4c97a602ba0df055f16e6882059fb69d0122/compiler/src/test/js/harness.js"
+  ],
+  "researchNotes": {
+    "sourceCommit": "208d4c97a602ba0df055f16e6882059fb69d0122",
+    "buildOnlyAdjustmentsFile": "local-build-adjustments.json",
+    "upstreamCompilerLogicChanged": false,
+    "wasmGCRequired": true,
+    "defaultIssue": {
+      "validJavaProgram": "int parts=0; if(parts==0)return 0; return 48/parts;",
+      "stage": "TeaVM compile, before user program execution",
+      "sourceMapOffset": "0x27ef2d",
+      "source": "TeaVM0.16.0 org/teavm/model/transformation/BoundCheckInsertion.java:272",
+      "statement": "r = a / b;",
+      "workaround": "Public generateWebAssembly option strictMode:false; no compiler source edit"
+    },
+    "semanticsLimit": "Both strict true and false failed the tested Java ArrayIndexOutOfBoundsException catch and produced a Wasm out-of-bounds trap. Full JVM equivalence is not established.",
+    "harnessOwnership": "probe.mjs and java-worker.mjs are newly authored harnesses referencing the upstream README and test harness API. Upstream compiler/runtime implementation is loaded unchanged; no implementation body copied into these harnesses."
+  }
+}

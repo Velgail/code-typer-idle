@@ -1,0 +1,86 @@
+{
+  "catalog.json": {
+    "bytes": 8406,
+    "sha256": "578eb076a9203b4b7986cf950906c79a9310a6946c7779ae0b34c82368a8a067"
+  },
+  "evidence/cpp-clang20.json": {
+    "bytes": 8730,
+    "sha256": "3b5491d90f7a5a3cf3f7e671752b94f7cf37dceaa30880ab56000cf4f3e17442"
+  },
+  "evidence/cpp-clang8.json": {
+    "bytes": 5067,
+    "sha256": "08412ed06da70ef89d22857f53fc8b1102fdbce08dd27397f1ccf170e8ea9895"
+  },
+  "evidence/csharp-1008.json": {
+    "bytes": 24348,
+    "sha256": "48bf7fa347ca19d860736c35eba1d9c41264fb1811ccc0d42ed1ef4c12c29b7b"
+  },
+  "evidence/csharp-1024-failure.json": {
+    "bytes": 30353,
+    "sha256": "9076e0b191d77a3bd60bee0d64b4e93c96197b37002a1b47f81c156d7a8691fc"
+  },
+  "evidence/csharp-cases.json": {
+    "bytes": 24091,
+    "sha256": "52b130ac316c7f22c24b403f77333d63e332688207fc27f98b6d789cc97acbd2"
+  },
+  "evidence/csharp-version.json": {
+    "bytes": 24218,
+    "sha256": "ec24fd914310c80587fc0eedb8d47dfaade34065eb9b4c700988ceaefea77250"
+  },
+  "evidence/curriculum-audit.json": {
+    "bytes": 78224,
+    "sha256": "b013da1015c15facd5248f10f6daf6d9c6a3020251c53324ede365d57412ddaa"
+  },
+  "evidence/go-version.json": {
+    "bytes": 254,
+    "sha256": "bb7fe66c2794dc32d3de2652daa88c7e20b6bc22b00c754ccfb7d90323e5b4d2"
+  },
+  "evidence/java-build-adjustments.json": {
+    "bytes": 317,
+    "sha256": "36c7e468aa4896520e5e510fb6ecdd246fa8fea442e8a48b617083e3f6f0999e"
+  },
+  "evidence/java-default-supplement.json": {
+    "bytes": 10961,
+    "sha256": "e2c28806f2ad76ba0cd2a8e7e6665531e590ebf1bea4f0294fdce307e293d0d8"
+  },
+  "evidence/java-default.json": {
+    "bytes": 8043,
+    "sha256": "087c0c060d2d5e432931b1d6f231a935db4d11a4dfcf75d596d12f4545930c93"
+  },
+  "evidence/java-exceptions-default.json": {
+    "bytes": 4599,
+    "sha256": "a706ce03d78d3e97ad47a3deb191e54ee43f0739b65b47f438dba6eeb75cb32d"
+  },
+  "evidence/java-exceptions-relaxed.json": {
+    "bytes": 4604,
+    "sha256": "5630a244478e83abc82be5e187c31dcee7cc82802f11788b5964e7a74eb8f9ec"
+  },
+  "evidence/java-relaxed.json": {
+    "bytes": 8278,
+    "sha256": "ee105e031e6796104f852402c40720d03d1b8ce39080cc40d6ad35901ba54a0f"
+  },
+  "evidence/lua-cleared-stack.json": {
+    "bytes": 3959,
+    "sha256": "6a730260c38ffc57a30808868355522e0caac0fcb7111c6643044bc6d50bd31f"
+  },
+  "evidence/lua-uncleared-stack-failure.json": {
+    "bytes": 5650,
+    "sha256": "592314089ba1d85044000c2b79bae55bc39e16d4a900c2e0216812d8379df5a2"
+  },
+  "evidence/python-lua-sql.json": {
+    "bytes": 22236,
+    "sha256": "97ef04475efad39e192e80f29218aa6bd9f769ad1ecce44d0331db347876ccc3"
+  },
+  "evidence/rust-go-cases.json": {
+    "bytes": 15508,
+    "sha256": "a859c9ed074f793371fd9f080bdf69a90a7bb863245503ba4ceca258acfde749"
+  },
+  "evidence/rust-go-curriculum.json": {
+    "bytes": 121163,
+    "sha256": "1e9965c705d6a182ac4e05521c8ec00f250ac000c5fa46aa85690c79ff32a615"
+  },
+  "evidence/rust-go-timeouts.json": {
+    "bytes": 701,
+    "sha256": "baec46b6767bf379c162558ca6a386d8041415b535c8bcf47a332e1ffc3c21ac"
+  }
+}

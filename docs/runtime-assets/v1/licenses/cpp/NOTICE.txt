@@ -1,0 +1,17 @@
+Code Typer Idle C++ source compiler distribution
+
+browsercc 0.1.1 wrapper: Copyright Daniel Bertalan, MIT.
+LLVM/Clang/LLD 20.1.2: LLVM Project contributors, Apache-2.0 WITH LLVM-exception,
+with legacy and third-party notices retained in LLVM-20.1.2.txt.
+WASI SDK 25 and wasi-libc 574b88da481569b65a237cb80daf9a2d5aeaf82d:
+original Apache/MIT and third-party BSD/CC0 terms in the accompanying files.
+Emscripten generated glue: Emscripten authors, MIT/UIUC terms in Emscripten.txt.
+browser_wasi_shim 0.4.2: Björn Svensson and contributors, MIT OR Apache-2.0.
+
+The upstream binary/JS/sysroot contents are unchanged. This distribution gzip-
+compresses large files and omits the optional precompiled header. The separately
+authored src/runners/cpp.js adapter initializes cached compiler modules and runs
+the generated program with virtual stdin/stdout only. Its application license
+does not replace the licenses of these toolchain artifacts.
+
+Source/build/version details: runtime-assets/cpp/browsercc-0.1.1/BUILD.md.

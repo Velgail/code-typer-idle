@@ -1,0 +1,261 @@
+{
+  "format": 1,
+  "runtime": "rustc-miri",
+  "version": "1.78.0-dev",
+  "upstream": "https://github.com/LyonSyonII/rubri",
+  "commit": "00de75bcec3d8cf5156aef2382c738cbfe069986",
+  "compiler": {
+    "name": "miri.opt.1718474653.wasm",
+    "path": "miri.wasm.gz",
+    "rawBytes": 47210125,
+    "bytes": 14941244,
+    "sha256": "6de61aa6c2ac843ab49f7628e5f01ea4bcf9f76c6b5f1c4e4e43b0a1c34868e4",
+    "rawSha256": "f798916b905aa271292b124e3afceaf4d9f0109a29d2aeb8b027e0d0616f24a5",
+    "upstreamPath": "example/public/wasm-rustc/bin/miri.opt.1718474653.wasm"
+  },
+  "libraries": [
+    {
+      "name": "libaddr2line-b8754aeb03c02354.rlib",
+      "path": "lib/libaddr2line-b8754aeb03c02354.rlib.gz",
+      "rawBytes": 430940,
+      "bytes": 206509,
+      "sha256": "11162b7a1b51656c5f50a0e29ae41f4c47b284e92c5616d8ab9f2aeda0b4410a",
+      "rawSha256": "6a40c89085041fe27c17d6458e20fc2eef1bfecfa758de9696fc3c0bd6bc9d9b",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libaddr2line-b8754aeb03c02354.rlib"
+    },
+    {
+      "name": "libadler-05c3545f6cd12159.rlib",
+      "path": "lib/libadler-05c3545f6cd12159.rlib.gz",
+      "rawBytes": 49972,
+      "bytes": 27058,
+      "sha256": "919de85e5267bcfd02d4b4b9d7d8524be995d449e9f5de809831d5e543cdef02",
+      "rawSha256": "f43096f3192382812e3340623401347b34de99dcec95f77a02224514bb027476",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libadler-05c3545f6cd12159.rlib"
+    },
+    {
+      "name": "liballoc-0dab879bc41cd6bd.rlib",
+      "path": "lib/liballoc-0dab879bc41cd6bd.rlib.gz",
+      "rawBytes": 5628610,
+      "bytes": 2210095,
+      "sha256": "a89f2139fb0931f86f371358a8c3d849fd5cc6a498927194b7f06d919f437592",
+      "rawSha256": "184a1e737a3d4c4327ff8b3c7eab06f8b8a0c3c7266f45652e516c93cb6f459d",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/liballoc-0dab879bc41cd6bd.rlib"
+    },
+    {
+      "name": "libcfg_if-c7fd2cef50341546.rlib",
+      "path": "lib/libcfg_if-c7fd2cef50341546.rlib.gz",
+      "rawBytes": 9270,
+      "bytes": 5308,
+      "sha256": "c544724347081499f8bdd9b76b116e0f0388ff3be860326cf7e96a28ac62a660",
+      "rawSha256": "d47c3e7fc84dedef557705b7b371e780610eb01790bcb9025d0dd5d8bee3a874",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcfg_if-c7fd2cef50341546.rlib"
+    },
+    {
+      "name": "libcompiler_builtins-a99947d020d809d6.rlib",
+      "path": "lib/libcompiler_builtins-a99947d020d809d6.rlib.gz",
+      "rawBytes": 1414176,
+      "bytes": 405059,
+      "sha256": "e67d18ed8e1e2891a9653a7b7b3e238d4cc95b532cec94d869318c082093e199",
+      "rawSha256": "32fceaf5f383a3815c40ceea1ff90ba3da51f7cd8aa87f5bd6e31d3ac389c9af",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcompiler_builtins-a99947d020d809d6.rlib"
+    },
+    {
+      "name": "libcore-4b8e8a815d049db3.rlib",
+      "path": "lib/libcore-4b8e8a815d049db3.rlib.gz",
+      "rawBytes": 46461066,
+      "bytes": 14728464,
+      "sha256": "315f0cc56cb210776d4cda242cc7831edcb66e7d541eb2fc61563c9c7ff4a4e8",
+      "rawSha256": "cc0c9075d213bf42ff0295b59281d431096d184eabaa26cf8e37430cd00a811a",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcore-4b8e8a815d049db3.rlib"
+    },
+    {
+      "name": "libgetopts-bbb75529e85d129d.rlib",
+      "path": "lib/libgetopts-bbb75529e85d129d.rlib.gz",
+      "rawBytes": 613676,
+      "bytes": 254276,
+      "sha256": "df18ad36b119830a4535c3b4e07c31f45ea9c0c7718c99c654134bf56e0fda99",
+      "rawSha256": "c05e3857ac7ab52a78b3b13563d1311b6d3767776ec0f8efb8ad00c2393488f7",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libgetopts-bbb75529e85d129d.rlib"
+    },
+    {
+      "name": "libgimli-598847d27d7a3cbf.rlib",
+      "path": "lib/libgimli-598847d27d7a3cbf.rlib.gz",
+      "rawBytes": 6504952,
+      "bytes": 2508400,
+      "sha256": "bb8bd467aaf7ff761e6b23bdb33a8f05edad8517b956f6dc838d2c50f7e78b98",
+      "rawSha256": "10b1e83f562130d01d2d9beefe7097229dc3d46f842b5cf235224570f1a9668f",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libgimli-598847d27d7a3cbf.rlib"
+    },
+    {
+      "name": "libhashbrown-d2ff91fdf93cacb2.rlib",
+      "path": "lib/libhashbrown-d2ff91fdf93cacb2.rlib.gz",
+      "rawBytes": 1489138,
+      "bytes": 592625,
+      "sha256": "d780a8c4a31560a7bd9bbfca3e2c48bbea3cbc3fd4b02ef8606bff7f1caf7570",
+      "rawSha256": "0ab528c65543f5cecf6b2aa938db18c0e3e4c15f98d1768a3fac9e3a3c101400",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libhashbrown-d2ff91fdf93cacb2.rlib"
+    },
+    {
+      "name": "liblibc-dc63949c664c3fce.rlib",
+      "path": "lib/liblibc-dc63949c664c3fce.rlib.gz",
+      "rawBytes": 3259674,
+      "bytes": 1067349,
+      "sha256": "d03b21e5c43a2bcf0573f95d1c711a22ae418002c4b783102df6f98a6d5a65d3",
+      "rawSha256": "2b97915e7100402f8f585b99cfef407b453e2b36f6408163143a23845b0def55",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/liblibc-dc63949c664c3fce.rlib"
+    },
+    {
+      "name": "libmemchr-2d3a423be1a6cb96.rlib",
+      "path": "lib/libmemchr-2d3a423be1a6cb96.rlib.gz",
+      "rawBytes": 1035988,
+      "bytes": 411817,
+      "sha256": "d096ef8c238e8bba6207e476cf7b0996a3c8600cbdfbad1e314e37a9966f06b5",
+      "rawSha256": "6e937bedc0333f6cc13e680909562a0ac0e1ecb02998b1061e6f38db4f117507",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libmemchr-2d3a423be1a6cb96.rlib"
+    },
+    {
+      "name": "libminiz_oxide-b109506a0ccc4c6a.rlib",
+      "path": "lib/libminiz_oxide-b109506a0ccc4c6a.rlib.gz",
+      "rawBytes": 448294,
+      "bytes": 210700,
+      "sha256": "f3b754c11556a8e8cd76a3e243dfe249f397c8af0ed0111193cad0ad9ae2f55c",
+      "rawSha256": "425a25c0e4185d1999137c538a0664846a8d5fd44f144b6cc3b586dc5a33790c",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libminiz_oxide-b109506a0ccc4c6a.rlib"
+    },
+    {
+      "name": "libobject-7b48def7544c748b.rlib",
+      "path": "lib/libobject-7b48def7544c748b.rlib.gz",
+      "rawBytes": 8334806,
+      "bytes": 3027106,
+      "sha256": "46d41bbd1cb3dfc9fc851fc55a4408f2da3ab2659aa2a8adac9b4d01d2c36fa2",
+      "rawSha256": "8c5b5cbcb09dc054f5525639e9a587389a75b09cf6b6d38345fcab97a27693cb",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libobject-7b48def7544c748b.rlib"
+    },
+    {
+      "name": "libpanic_abort-c93441899b93b849.rlib",
+      "path": "lib/libpanic_abort-c93441899b93b849.rlib.gz",
+      "rawBytes": 10356,
+      "bytes": 5657,
+      "sha256": "50a104d29d33ef0b2cffe0e54d30bb39b1b63d0dde286619d38589e046625ea8",
+      "rawSha256": "4342a4ebbf9f7e6efc469b5eb2f8c0e3e0a3c56321a7521375275806415b9f1e",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libpanic_abort-c93441899b93b849.rlib"
+    },
+    {
+      "name": "libpanic_unwind-11d9ba05b60bf694.rlib",
+      "path": "lib/libpanic_unwind-11d9ba05b60bf694.rlib.gz",
+      "rawBytes": 30462,
+      "bytes": 15978,
+      "sha256": "787579e397326f8741f98f69a618ae0ba1caf24426ff489424706e7729d5063d",
+      "rawSha256": "27b33fdfbc896cfbd31ac958183f9cd5730a010fa906637b2ed49b0005793e49",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libpanic_unwind-11d9ba05b60bf694.rlib"
+    },
+    {
+      "name": "libproc_macro-1a7f7840bb9983dc.rlib",
+      "path": "lib/libproc_macro-1a7f7840bb9983dc.rlib.gz",
+      "rawBytes": 3643370,
+      "bytes": 1305220,
+      "sha256": "4d4e726206d40f3d8e9e9b866fa5e5bb2d2ee48d290d7cb5ef67c4e41237b457",
+      "rawSha256": "9c088a784d9d810f02ee3450984088a768a1215f1395d624b5c0071c0713e9a1",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libproc_macro-1a7f7840bb9983dc.rlib"
+    },
+    {
+      "name": "librustc_demangle-59342a335246393d.rlib",
+      "path": "lib/librustc_demangle-59342a335246393d.rlib.gz",
+      "rawBytes": 685706,
+      "bytes": 304597,
+      "sha256": "77daeeed6d6ce550f4398c14f94acfed4a0eb4c08c5ef7d61daf2a3fdf55d967",
+      "rawSha256": "4559ede5556ccc418e0b8f2934c916a3f4d59c0b08c9e676d9e920c2df3e455c",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_demangle-59342a335246393d.rlib"
+    },
+    {
+      "name": "librustc_std_workspace_alloc-552b185085090ff6.rlib",
+      "path": "lib/librustc_std_workspace_alloc-552b185085090ff6.rlib.gz",
+      "rawBytes": 5620,
+      "bytes": 3157,
+      "sha256": "e1473fc36c81898b44f4c821868b1b644332c9bb8a15ed2bea2b80009c7d6ed4",
+      "rawSha256": "5ac4cd9b4a3c75a201b6716fea4c6c2f0326972d0f2cf8443eb21573d86abd54",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_alloc-552b185085090ff6.rlib"
+    },
+    {
+      "name": "librustc_std_workspace_core-5d8a121daa7eeaa9.rlib",
+      "path": "lib/librustc_std_workspace_core-5d8a121daa7eeaa9.rlib.gz",
+      "rawBytes": 8170,
+      "bytes": 4208,
+      "sha256": "4af8d0d6dc609a18f713c9b924c1ee6c5c1a33b59f4f038f01c7b1e0d3e9cb69",
+      "rawSha256": "9084702378a777ce7400903ca1f4f475c275c1cbe79abc7c175ccb0e66045ad7",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_core-5d8a121daa7eeaa9.rlib"
+    },
+    {
+      "name": "librustc_std_workspace_std-97f43841ce452f7d.rlib",
+      "path": "lib/librustc_std_workspace_std-97f43841ce452f7d.rlib.gz",
+      "rawBytes": 9904,
+      "bytes": 5417,
+      "sha256": "aa705b3d2ea6b02e5cd7fe0cf76905438fca8e87d7f6b71ea7ac4ea07162cff1",
+      "rawSha256": "f517d17fa641f0006d2908e4109b42c7d8c37581a7cd213d87eba58d5d91a6ae",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/librustc_std_workspace_std-97f43841ce452f7d.rlib"
+    },
+    {
+      "name": "libstd-bdedb7706a556da2.rlib",
+      "path": "lib/libstd-bdedb7706a556da2.rlib.gz",
+      "rawBytes": 13351706,
+      "bytes": 5152374,
+      "sha256": "ad09eb8108c6af0ef56c7ba227f904dfb945a2bf681bfff4ec59a9ccd94fc4b2",
+      "rawSha256": "bbed378603a6f70c0972bee550d91d24400bed3ac918d66157942381e51b16ca",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd-bdedb7706a556da2.rlib"
+    },
+    {
+      "name": "libstd-bdedb7706a556da2.so",
+      "path": "lib/libstd-bdedb7706a556da2.so.gz",
+      "rawBytes": 10694856,
+      "bytes": 4284402,
+      "sha256": "c8398a6c90b9413383811497380a00c173db6482502d2a752977117f9525f303",
+      "rawSha256": "eaa9d53bfda9523b06551f1a78a0b7f7d90a12da75f527da8873f163d3099087",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd-bdedb7706a556da2.so"
+    },
+    {
+      "name": "libstd_detect-cca21eebc4281add.rlib",
+      "path": "lib/libstd_detect-cca21eebc4281add.rlib.gz",
+      "rawBytes": 463752,
+      "bytes": 153725,
+      "sha256": "1d5c8d9b9b9553f71b10f29e1e52403d9d4aa0d431d5bc921834d7bd61f62f5d",
+      "rawSha256": "6ea9750164e9c27a5c853c74c5e67972a559af68c4a0aa05e46e236a523481ea",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libstd_detect-cca21eebc4281add.rlib"
+    },
+    {
+      "name": "libsysroot-f654e185be3ffebd.rlib",
+      "path": "lib/libsysroot-f654e185be3ffebd.rlib.gz",
+      "rawBytes": 5608,
+      "bytes": 3400,
+      "sha256": "79f3f0ca78f9f37cbf599e9fce6067c6100a5efc8da0654f2e9e20a8fd41adfb",
+      "rawSha256": "616c307f032c5e10cb0b49c22b060a1f85f98f919b630b4725a21d4b92940bc6",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libsysroot-f654e185be3ffebd.rlib"
+    },
+    {
+      "name": "libtest-f06fa3fbc201c558.rlib",
+      "path": "lib/libtest-f06fa3fbc201c558.rlib.gz",
+      "rawBytes": 4417108,
+      "bytes": 1653544,
+      "sha256": "f7465cba0eb65191aaf75dac036d3fbb8e8b9b2de81e88b02a482d7df52b17b3",
+      "rawSha256": "8713293465d9056b368e66017f2697803dac29b5f92b167e3f4f39e90c4bc606",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libtest-f06fa3fbc201c558.rlib"
+    },
+    {
+      "name": "libunicode_width-19a0dcd589fa0877.rlib",
+      "path": "lib/libunicode_width-19a0dcd589fa0877.rlib.gz",
+      "rawBytes": 43832,
+      "bytes": 16240,
+      "sha256": "7cc0b5978e8d1564318ff50133353c3743743348f7dcb1d919a4d088e01f514e",
+      "rawSha256": "5dbf55bd424b4c6156a646391d6b590526486a804936d9531c4e7ae2f4b78b47",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libunicode_width-19a0dcd589fa0877.rlib"
+    },
+    {
+      "name": "libunwind-747b693f90af9445.rlib",
+      "path": "lib/libunwind-747b693f90af9445.rlib.gz",
+      "rawBytes": 36798,
+      "bytes": 16754,
+      "sha256": "ddd87c6cc491c71de19999b85f2e1e5f67273f6aad443321cf36d7bae4adee64",
+      "rawSha256": "ec66356410ce304b664a0d6baad970e111231fb22337be9906af08944b338b2e",
+      "upstreamPath": "example/public/wasm-rustc/lib/rustlib/x86_64-unknown-linux-gnu/lib/libunwind-747b693f90af9445.rlib"
+    }
+  ]
+}
