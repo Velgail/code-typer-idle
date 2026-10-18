@@ -1,0 +1,124 @@
+{
+  "crossOriginIsolated": false,
+  "runtimes": {
+    "yaegi": {
+      "loaded": {
+        "loaded": true
+      },
+      "loadMs": 725,
+      "cases": [
+        {
+          "id": "correct",
+          "output": "PASS\n",
+          "ms": 183.70000000298023
+        },
+        {
+          "id": "syntax-error",
+          "output": "\n--- ERROR ---\n_.go:2:25: expected operand, found ';'",
+          "ms": 110.20000000298023
+        },
+        {
+          "id": "type-error",
+          "output": "\n--- ERROR ---\n2:25: cannot convert \"bad\" to int",
+          "ms": 97.19999999552965
+        },
+        {
+          "id": "wrong-answer",
+          "output": "4\n",
+          "ms": 114.30000000447035
+        },
+        {
+          "id": "stdlib",
+          "output": "[1 2 3] GO\n",
+          "ms": 87.10000000149012
+        },
+        {
+          "id": "generics",
+          "output": "3\n",
+          "ms": 146.10000000149012
+        }
+      ]
+    },
+    "gc": {
+      "loaded": {
+        "loaded": true
+      },
+      "loadMs": 499,
+      "cases": [
+        {
+          "id": "correct",
+          "compileStatus": 0,
+          "status": 0,
+          "stdout": "",
+          "stderr": "PASS\n",
+          "ms": 1921.8000000044703
+        },
+        {
+          "id": "syntax-error",
+          "compileStatus": 2,
+          "status": 2,
+          "stdout": "main.go:2:25: syntax error: unexpected semicolon, expecting expression\n",
+          "stderr": "",
+          "ms": 186.5
+        },
+        {
+          "id": "type-error",
+          "compileStatus": 2,
+          "status": 2,
+          "stdout": "main.go:2:25: cannot use \"bad\" (type string) as type int in assignment\n",
+          "stderr": "",
+          "ms": 185.5
+        },
+        {
+          "id": "wrong-answer",
+          "compileStatus": 0,
+          "status": 0,
+          "stdout": "",
+          "stderr": "4\n",
+          "ms": 1538.7000000029802
+        },
+        {
+          "id": "stdlib",
+          "compileStatus": 2,
+          "status": 2,
+          "stdout": "main.go:2:8: can't find import: \"fmt\"\n",
+          "stderr": "",
+          "ms": 177.80000000447035
+        }
+      ]
+    },
+    "rust-miri": {
+      "loaded": {
+        "loaded": true
+      },
+      "loadMs": 929,
+      "cases": [
+        {
+          "id": "correct",
+          "result": "PASS\n"
+        },
+        {
+          "id": "syntax-error",
+          "result": "\u001b[0m\u001b[1m\u001b[38;5;9merror\u001b[0m\u001b[0m\u001b[1m: expected expression, found `;`\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--> \u001b[0m\u001b[0mmain.rs:3:19\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m\u001b[1m\u001b[38;5;12m3\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m \u001b[0m\u001b[0mlet player: i32 = ;\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m                  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9m^\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9mexpected expression\u001b[0m\n\n\u001b[0m\u001b[1m\u001b[38;5;9merror\u001b[0m\u001b[0m\u001b[1m: aborting due to 1 previous error\u001b[0m\n\n"
+        },
+        {
+          "id": "type-error",
+          "result": "\u001b[0m\u001b[1m\u001b[38;5;9merror[E0308]\u001b[0m\u001b[0m\u001b[1m: mismatched types\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--> \u001b[0m\u001b[0mmain.rs:3:19\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m\u001b[1m\u001b[38;5;12m3\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m \u001b[0m\u001b[0mlet player: i32 = \"bad\";println!(\"{}\",player);\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m            \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m---\u001b[0m\u001b[0m   \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9m^^^^^\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9mexpected `i32`, found `&str`\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m            \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m            \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12mexpected due to this\u001b[0m\n\n\u001b[0m\u001b[1m\u001b[38;5;9merror\u001b[0m\u001b[0m\u001b[1m: aborting due to 1 previous error\u001b[0m\n\n\u001b[0m\u001b[1mFor more information about this error, try `rustc --explain E0308`.\u001b[0m\n"
+        },
+        {
+          "id": "wrong-answer",
+          "result": "thread 'main' panicked at main.rs:4:1:\nassertion `left == right` failed\n  left: -1\n right: 5\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\nthread 'main' panicked at /home/lyon/Dev/Rust/miri-wasm-rustc/library/panic_unwind/src/gcc.rs:72:12:\nunsupported Miri functionality: can't call foreign function `_Unwind_RaiseException` on OS `linux`\nstack backtrace:\nthread panicked while processing panic. aborting.\n\u001b[0m\u001b[1m\u001b[38;5;9merror\u001b[0m\u001b[0m\u001b[1m: abnormal termination: the program aborted execution\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--> \u001b[0m\u001b[0m/home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys/pal/unix/mod.rs:371:14\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m |\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9m = note: the program aborted execution\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys::pal::unix::abort_internal` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys/pal/unix/mod.rs:371:14: 371:27\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::rust_panic_with_hook` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:766:9: 766:37\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside closure at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:652:13: 658:14\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::__rust_end_short_backtrace::<{closure@std::panicking::begin_panic_handler::{closure#0}}, !>` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:171:18: 171:21\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::begin_panic_handler` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:648:5: 668:7\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::backtrace_rs::backtrace::libunwind::trace` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/../../backtrace/src/backtrace/libunwind.rs:104:5: 104:65\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::backtrace_rs::backtrace::trace_unsynchronized::<{closure@std::sys_common::backtrace::_print_fmt::{closure#1}}>` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/../../backtrace/src/backtrace/mod.rs:66:5: 66:23\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::_print_fmt` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:68:5: 134:7\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `<std::sys_common::backtrace::_print::DisplayBacktrace as std::fmt::Display>::fmt` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:44:22: 44:50\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `core::fmt::rt::Argument::<'_>::fmt` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/core/src/fmt/rt.rs:142:9: 142:40\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::fmt::write` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/core/src/fmt/mod.rs:1120:17: 1120:40\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `<std::sys::pal::unix::stdio::Stderr as std::io::Write>::write_fmt` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/io/mod.rs:1846:15: 1846:43\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::_print` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/core/src/macros/mod.rs:606:9: 606:55\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::print` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:34:9: 34:26\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside closure at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:272:22: 272:80\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::default_hook` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:292:9: 292:24\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::rust_panic_with_hook` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:782:13: 782:32\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside closure at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:652:13: 658:14\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::__rust_end_short_backtrace::<{closure@std::panicking::begin_panic_handler::{closure#0}}, !>` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:171:18: 171:21\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::begin_panic_handler` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:648:5: 668:7\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `panic_unwind::real_imp::panic` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/panic_unwind/src/gcc.rs:72:12: 72:55\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `panic_unwind::__rust_start_panic` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/panic_unwind/src/lib.rs:106:5: 106:24\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::rust_panic` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:834:25: 834:48\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::rust_panic_with_hook` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:804:5: 804:24\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside closure at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:660:13: 666:14\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::sys_common::backtrace::__rust_end_short_backtrace::<{closure@std::panicking::begin_panic_handler::{closure#0}}, !>` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/sys_common/backtrace.rs:171:18: 171:21\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: inside `std::panicking::begin_panic_handler` at /home/lyon/Dev/Rust/miri-wasm-rustc/library/std/src/panicking.rs:648:5: 668:7\u001b[0m\n\u001b[0m\u001b[1m\u001b[38;5;10mnote\u001b[0m\u001b[0m: inside `main`\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--> \u001b[0m\u001b[0mmain.rs:4:1\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m\u001b[1m\u001b[38;5;12m4\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m \u001b[0m\u001b[0massert_eq!(add(2,3),5);\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;10m^^^^^^^^^^^^^^^^^^^^^^\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m= \u001b[0m\u001b[0m\u001b[1mnote\u001b[0m\u001b[0m: this error originates in the macro `assert_eq` (in Nightly builds, run with -Z macro-backtrace for more info)\u001b[0m\n\n\u001b[0m\u001b[1m\u001b[38;5;10mnote\u001b[0m\u001b[0m\u001b[1m: some details are omitted, run with `MIRIFLAGS=-Zmiri-backtrace=full` for a verbose backtrace\u001b[0m\n\n"
+        },
+        {
+          "id": "borrow-error",
+          "result": "\u001b[0m\u001b[1m\u001b[38;5;9merror[E0502]\u001b[0m\u001b[0m\u001b[1m: cannot borrow `values` as mutable because it is also borrowed as immutable\u001b[0m\n\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--> \u001b[0m\u001b[0mmain.rs:3:48\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\n\u001b[0m\u001b[1m\u001b[38;5;12m3\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m \u001b[0m\u001b[0mlet mut values=vec![1];let borrowed=&values[0];values.push(2);println!(\"{}\",borrowed);\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m                                     \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m------\u001b[0m\u001b[0m    \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9m^^^^^^^^^^^^^^\u001b[0m\u001b[0m               \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m--------\u001b[0m\u001b[0m \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12mimmutable borrow later used here\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m                                     \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m         \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9m|\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m                                     \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m|\u001b[0m\u001b[0m         \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;9mmutable borrow occurs here\u001b[0m\n\u001b[0m  \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12m| \u001b[0m\u001b[0m                                     \u001b[0m\u001b[0m\u001b[1m\u001b[38;5;12mimmutable borrow occurs here\u001b[0m\n\n\u001b[0m\u001b[1m\u001b[38;5;9merror\u001b[0m\u001b[0m\u001b[1m: aborting due to 1 previous error\u001b[0m\n\n\u001b[0m\u001b[1mFor more information about this error, try `rustc --explain E0502`.\u001b[0m\n"
+        },
+        {
+          "id": "stdlib",
+          "result": "10\n"
+        }
+      ]
+    }
+  },
+  "errors": []
+}

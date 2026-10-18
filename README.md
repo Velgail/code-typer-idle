@@ -203,4 +203,6 @@ Exercismの[公式利用規約](https://github.com/exercism/docs/blob/d1868a3f21
 
 教材そのものを検証する場合は `npm run test:curriculum -- --all` を実行します。C++、C#（Mono）、Rust、Go、Python、Java、SQLite、Luaの実行環境が必要です。`--all` を省略すると、利用できるコンパイラだけを実行して対象を報告します。CIは8言語すべての8,192問を実行します。
 
+ブラウザ内で入力ソースを実行・採点する処理系の調査結果は [RUNTIME_RESEARCH.md](RUNTIME_RESEARCH.md) にあります。版固定した候補、実ブラウザの検証記録、既存教材との互換性、GitHub Pagesとライセンスの条件を記録しています。ゲームの実行機能への組込みは別の作業です。
+
 講座データの再生成にはPythonと`tree-sitter-language-pack==1.22.1`を使います。`python scripts/import-course.py --download`で固定した取得元を`work/tracks/`へ展開し、生成します。生成時に上流コードやスクリプトを実行しません。概念・前提・難度・作者・ライセンスとコメントの対訳を維持し、同じコード区間のIDは安定させます。出題単位を変更した場合も、公開済みの旧教材を必要時だけ読み込み、入力途中の文字列・カーソル・未確定報酬を保持します。完入力後に新しい区間へ進みます。

@@ -1,0 +1,26 @@
+{
+  "rustVersion": {
+    "version": "rustc 1.78.0-dev\nbinary: rustc\ncommit-hash: unknown\ncommit-date: unknown\nhost: wasm32-wasi\nrelease: 1.78.0-dev\nCranelift version: 0.104.1\n"
+  },
+  "yaegi": {
+    "terminated": true,
+    "elapsedMs": 1000.2000000029802,
+    "mainThreadHeartbeats": 100,
+    "receivedResult": false,
+    "executionStarted": false
+  },
+  "gc": {
+    "terminated": true,
+    "elapsedMs": 3000.2000000029802,
+    "mainThreadHeartbeats": 300,
+    "receivedResult": false,
+    "executionStarted": true
+  },
+  "rust-miri": {
+    "terminated": true,
+    "elapsedMs": 1000.2999999970198,
+    "mainThreadHeartbeats": 96,
+    "receivedResult": false,
+    "executionStarted": false
+  }
+}

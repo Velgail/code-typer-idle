@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "208d4c9",
+  "changes": [
+    "Use declared Maven Central/Plugin Portal repositories; teavm.org repository is unavailable under execution network policy.",
+    "Add missing checkstyle version catalog entry 12.0.1; this value is not used by the createDist task."
+  ],
+  "gameSourceChanged": false
+}

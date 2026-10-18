@@ -1,0 +1,15 @@
+{
+  "yaegi-worker.js": {
+    "id": "version",
+    "output": "go1.25.5\n",
+    "ms": 74
+  },
+  "gc-worker.js": {
+    "id": "version",
+    "compileStatus": 0,
+    "status": 0,
+    "stdout": "",
+    "stderr": "go1.12.6\n",
+    "ms": 1097.6000000014901
+  }
+}
