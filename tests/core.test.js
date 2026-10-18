@@ -360,7 +360,7 @@ test('research redirects to missing subjects while manual study remains selectab
   assert.ok(s.skills.design > 0 && s.skills.graphics > 0);
   assert.equal(s.subject, 'syntax');
 });
-test('every study subject requires its own textbook, including imported knowledge and offline labs', () => {
+test('every study subject requires material access, including imported knowledge and offline labs', () => {
   const s = createState(0); s.items.lab = 1; s.items.monitor = 5;
   for (const subject of ['syntax', 'design', 'graphics', 'systems']) {
     s.subject = subject;
@@ -378,9 +378,9 @@ test('every study subject requires its own textbook, including imported knowledg
   assert.ok(s.skills.syntax > 0);
   assert.equal(studyGain(s, 100, 'design'), 0);
   s.skills.design = 100;
-  assert.equal(studyGain(s, 100, 'design'), 0, 'existing knowledge must not bypass the missing textbook');
+  assert.equal(studyGain(s, 100, 'design'), 0, 'existing knowledge must not bypass missing learning materials');
 });
-test('the lab uses only owned textbooks and pauses when all missing subjects lack materials', () => {
+test('the lab uses available materials and pauses when all missing subjects lack access', () => {
   const s = createState(); s.projectIndex = 1; s.items.lab = 1;
   s.skills.syntax = 50; s.items['book-design'] = 1;
   assert.equal(autoStudySubject(s), 'design');

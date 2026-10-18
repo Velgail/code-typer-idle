@@ -6,7 +6,7 @@ import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalize
 import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMISSION_FEE, OCR_ERROR_INTERVAL } from './officequality.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 13;
+export const BALANCE_VERSION = 14;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
 export const TYPING_AUTOMATION_SHARE = .5;
@@ -51,7 +51,7 @@ export function projectAt(index) {
   return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', online: true, serverDaily: Math.min(LIMIT, 5e11 * pow(50, n - 1)), target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '配信中の宇宙を増やすたび、次の宇宙の要件定義が届く。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
-  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習を解禁。学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
+  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の解説を整理した教本。学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
   { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
@@ -75,7 +75,7 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.projectIndex >= 8 }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。最初の技術書を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
 }
 export const level = (s, id) => s.items[id] || 0;
 export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
@@ -116,7 +116,7 @@ export function nextReading(s) {
   s.reading.cursors[key] = ((s.reading.cursors[key] || 0) + 1) % TOPICS_PER_SUBJECT;
 }
 export function answerReading(s, choice) {
-  if (!hasTextbook(s)) return { kind: 'textbook', amount: 0 };
+  if (!hasStudyMaterial(s)) return { kind: 'textbook', amount: 0 };
   const lesson = readingLesson(s);
   if (Object.hasOwn(s.reading.answers, lesson.baseId)) return { kind: 'answered', amount: 0 };
   if (!Number.isSafeInteger(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
@@ -208,10 +208,19 @@ export function unitRate(s, id) {
 export const devCapacity = s => bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0));
 export const devRate = s => s.autoEnabled ? devCapacity(s) : 0;
 export const hasTextbook = (s, id = s.subject) => level(s, `book-${id}`) > 0;
-export const studyMultiplier = (s, id = s.subject) => hasTextbook(s, id) ? bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25)) : 0;
+export const hasStudyMaterial = (s, id = s.subject) => hasTextbook(s,id) || !!s.onlineMaterials?.includes(id);
+export function openOnlineMaterial(s,id=s.subject){
+  const skill=SKILLS.find(skill=>skill.id===id);
+  if(!skill || s.onlineMaterials?.includes(id))return false;
+  s.onlineMaterials ||= [];
+  s.onlineMaterials.push(id);
+  log(s,`${skill.name}のオンライン教材を開きました。`,'success');
+  return true;
+}
+export const studyMultiplier = (s, id = s.subject) => hasStudyMaterial(s, id) ? bounded((1 + level(s, `book-${id}`)) * (1 + level(s, 'monitor') * 0.25)) : 0;
 export const ideMultiplier = s => 1 + level(s, 'ide') * 0.35;
 export function typingPower(s,mode=s.mode,subject=s.subject){
-  const capacity=mode==='work'?unitRate(s,'macro'):mode==='study'?(hasTextbook(s,subject)?unitRate(s,'lab'):0):devCapacity(s);
+  const capacity=mode==='work'?unitRate(s,'macro'):mode==='study'?(hasStudyMaterial(s,subject)?unitRate(s,'lab'):0):devCapacity(s);
   const ide=mode==='dev' && !s.refactor && knowledgeRatio(s)>=1?ideMultiplier(s):1;
   const perSecond=TYPING_REFERENCE_RATE*(TYPING_REWARD.character+typingCompletionMultiplier(mode));
   return bounded(handPower(s)+capacity*TYPING_AUTOMATION_SHARE/perSecond/ide*(s.cash<0 ? .5 : 1));
@@ -244,10 +253,10 @@ export function autoStudySubject(s) {
   for (const [id, requirement] of Object.entries(projectAt(s.projectIndex).req)) {
     const ratio = skillKnowledge(s,id) / requirement;
     if (ratio < 1) missing = true;
-    if (hasTextbook(s, id) && ratio < lowest) { lowest = ratio; subject = id; }
+    if (hasStudyMaterial(s, id) && ratio < lowest) { lowest = ratio; subject = id; }
   }
   if (missing) return subject;
-  return hasTextbook(s) ? s.subject : SKILLS.find(skill => hasTextbook(s, skill.id))?.id || null;
+  return hasStudyMaterial(s) ? s.subject : SKILLS.find(skill => hasStudyMaterial(s, skill.id))?.id || null;
 }
 export const itemCost = (s, item) => bounded(!level(s, item.id) && item.initial !== undefined ? item.initial : item.base * Math.pow(item.growth, Math.min(800, level(s, item.id))));
 export const netIncome = s => unitRate(s, 'macro') * workRate(s)*(1-(1+OCR_RESUBMISSION_FEE)/OCR_ERROR_INTERVAL) + netRoyaltyRate(s) - operatingCost(s) / DAY;
@@ -298,7 +307,7 @@ function automateOffice(s,chars){
 }
 export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
-  if (mode === 'study' && !hasTextbook(s, subject)) return { kind: 'textbook', amount: 0 };
+  if (mode === 'study' && !hasStudyMaterial(s, subject)) return { kind: 'textbook', amount: 0 };
   chars = Math.min(LIMIT, chars);
   if (manual && countManual) s.stats.manual = add(s.stats.manual, 1);
   s.stats.chars = add(s.stats.chars, chars);
@@ -519,6 +528,7 @@ export function deserialize(raw) {
   if(x.workTask==='correction')s.workTask='correction';
   for (const k of Object.keys(s.stats)) s.stats[k] = num(x.stats?.[k]);
   for (const k of Object.keys(s.skills)) {s.skills[k] = num(x.skills?.[k]);s.studyGaps[k]=num(x.studyGaps?.[k],0,0,s.skills[k]);}
+  s.onlineMaterials=SKILLS.filter(skill=>Array.isArray(x.onlineMaterials) && x.onlineMaterials.includes(skill.id)).map(skill=>skill.id);
   for (const item of SHOP) s.items[item.id] = Math.floor(num(x.items?.[item.id], 0, 0, item.max || 800));
   const legacyMacroLevel = Math.floor(num(x.items?.macro, 0, 0, 800));
   s.items.macro = Math.min(1, legacyMacroLevel);

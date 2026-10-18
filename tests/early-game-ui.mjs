@@ -138,8 +138,9 @@ async function verifySecondCycle(browser, url, errors, capture) {
     const prompt = await p.locator('#editor-content').getAttribute('data-prompt');
     await p.keyboard.type(prompt[0]);
     assert.match(await p.locator('[data-subject=design] small').innerText(), /✓/);
-    assert.match(await p.locator('#goal-status').innerText(), /1 \/ 3.*分野/);
-    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'book-graphics', 'completing the chosen field exposes the next unmet requirement');
+    assert.match(await p.locator('#goal-status').innerText(), /無料.*描画/);
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-item'), 'graphics', 'completing the chosen field exposes the next free material');
+    assert.equal(await p.locator('#goal-action').getAttribute('data-goal-kind'), 'material');
   } finally { await lastCharacter.context.close(); }
 
   const ready = await open(browser, url, errors, { width: 390, height: 844 }, fixtures.ready, true);
@@ -178,14 +179,14 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     const { context, page } = await open(browser, url, errors, viewport);
     try {
       const goal = page.locator('#goal-action');
-      assert.match(await goal.innerText(), /OCR.*500/);
-      assert.equal(await goal.getAttribute('data-goal-kind'), 'buy');
-      assert.equal(await goal.getAttribute('data-goal-item'), 'macro');
-      assert.equal(await goal.isDisabled(), true, 'a new player must earn the first OCR purchase');
+      assert.match(await goal.innerText(), /無料教材を開く/);
+      assert.equal(await goal.getAttribute('data-goal-kind'), 'material');
+      assert.equal(await goal.getAttribute('data-goal-item'), 'syntax');
+      assert.equal(await goal.isDisabled(), false, 'a new player can start learning without earning money');
       assert.equal(await page.locator('#goal-alternative').isVisible(), true);
-      assert.match(await page.locator('#goal-alternative').innerText(), /教材.*1,500/);
-      assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'book-syntax');
-      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'the textbook-first alternative must also require sufficient funds');
+      assert.match(await page.locator('#goal-alternative').innerText(), /(?:OCR|事務.*自動化).*500/);
+      assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'macro');
+      assert.equal(await page.locator('#goal-alternative').isDisabled(), true, 'OCR remains an optional paid investment');
       assert.equal(await page.locator('#cash').isVisible(), true);
       for (const id of ['living', 'total-chars', 'royalty']) {
         assert.equal(await page.locator(`#${id}`).isVisible(), false, `${id}: unused zero metrics must not crowd the initial screen`);
@@ -198,7 +199,7 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
       const box = await goal.boundingBox();
       assert.ok(box.y >= 0 && box.y + box.height <= viewport.height, 'the first purchase goal must be in the initial viewport');
       const start = await page.locator('#type-button').boundingBox();
-      assert.ok(start.y >= 0 && start.y + start.height <= viewport.height, 'a new player must also be able to start working without first scrolling');
+      assert.ok(start.y >= -1 && start.y + start.height <= viewport.height + 1, 'a new player must also be able to start working without first scrolling (allow subpixel layout rounding)');
 
       if (viewport.width === 1440) {
         await page.locator('#type-button').click();
@@ -225,16 +226,17 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     const earned = await snapshot(page);
     assert.equal(earned.stats.manual, 400, 'the first investment must come from 400 real pointer clicks');
     assert.equal(earned.cash, 500);
-    assert.equal(await page.locator('#goal-action').isDisabled(), false);
-    await page.locator('#goal-action').click();
+    assert.equal(await page.locator('#goal-alternative').isDisabled(), false);
+    await page.locator('#goal-alternative').click();
     automationState = await snapshot(page);
     assert.equal(automationState.items.macro, 1);
     assert.equal(automationState.cash, 0);
     assert.equal(automationState.subject, 'syntax', 'an automation purchase must not turn the study subject into macro');
     assert.equal(automationState.mode, 'work');
     assert.equal(await page.locator('#goal-alternative').isVisible(), false);
-    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'book-syntax');
-    assert.equal(await page.locator('#goal-action').isDisabled(), true);
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'syntax');
+    assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'material');
+    assert.equal(await page.locator('#goal-action').isDisabled(), false);
     assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/);
     await page.locator('[data-shop=auto]').click();
     const ownedOCR=page.locator('[data-buy=macro]');
@@ -248,11 +250,12 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     assert.ok(automated.cash >= 1500, 'OCR income must fund the first textbook without more manual work');
     assert.equal(automated.stats.manual, 400);
     if (capture) await capture(page, 'ocr-funded-textbook');
-    // The normal purchase CTA must remain keyboard accessible despite the click-farming guard.
-    await page.locator('#goal-action').focus();
+    // Optional shop purchases stay keyboard accessible despite the click-farming guard.
+    await page.locator('[data-shop=books]').click();
+    await page.locator('.shop-panel [data-buy=book-syntax]').focus();
     await page.keyboard.press('Enter');
     const bought = await snapshot(page);
-    assert.equal(bought.items['book-syntax'], 1, 'the goal CTA must buy the actual textbook');
+    assert.equal(bought.items['book-syntax'], 1, 'the optional shop purchase buys the actual textbook');
     assert.equal(bought.cash, automated.cash - 1500, 'the purchase must charge the displayed price exactly once');
     assert.doesNotMatch(await page.locator('#goal-action').innerText(), /教材を買う/);
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
@@ -270,14 +273,14 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
   const directBook = await open(browser, url, errors, { width: 390, height: 844 }, affordable, true);
   try {
     const page = directBook.page;
-    await page.locator('#goal-alternative').click();
+    await page.locator('.shop-panel [data-buy=book-syntax]').click();
     const bought = await snapshot(page);
-    assert.equal(bought.items['book-syntax'], 1, 'the alternative CTA must preserve the textbook-first route');
+    assert.equal(bought.items['book-syntax'], 1, 'the shop preserves the textbook-first route');
     assert.equal(bought.items.macro, 0);
     assert.equal(bought.cash, 0);
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'), 'study');
     assert.equal(await page.locator('#goal-action').isDisabled(), false);
-    assert.equal(await page.locator('#goal-alternative').getAttribute('data-goal-item'), 'macro');
+    assert.equal(await page.locator('#goal-alternative').isVisible(), false);
   } finally { await directBook.context.close(); }
 
   const combined = await open(browser, url, errors, { width: 390, height: 844 }, automationState, true);

@@ -35,7 +35,7 @@ test('typing scales with the owned equipment capacity even when automatic develo
     const restored=deserialize(serialize(s,0));assert.equal(typingPower(restored,mode),before);
     s.autoEnabled=true;
   }
-  delete s.items['book-syntax'];assert.equal(typingPower(s,'study'),handPower(s),'a lab cannot bypass a missing textbook');
+  delete s.items['book-syntax'];assert.equal(typingPower(s,'study'),handPower(s),'a lab cannot bypass missing learning materials');
 });
 
 test('the automation share in typing is counted once through IDE development and fully supports manual repairs',()=>{
