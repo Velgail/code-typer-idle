@@ -16,6 +16,7 @@ import { verifyDirectTyping } from './direct-typing.mjs';
 import { verifyEarlyGameUI } from './early-game-ui.mjs';
 import { verifyAutomationQuality } from './automation-quality-ui.mjs';
 import { verifyFreeMaterialUI } from './free-material-ui.mjs';
+import { runPlannerChecks } from './planner-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -43,6 +44,7 @@ const url = process.env.CTI_TEST_URL || await new Promise(resolveUrl => {
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined), args: ['--no-sandbox'] });
 const errors = [];
 try {
+  await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
   await verifyFreeMaterialUI(browser, url, errors);
@@ -398,7 +400,7 @@ try {
         let stopped = await publishing.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
         assert.equal(stopped.catalog[0].active, false);
         assert.match(await publishing.locator('#living').textContent(), /¥0/);
-        assert.match(await publishing.locator('#catalog-list').textContent(), /販売停止中/);
+        assert.match(await publishing.locator('#catalog-list').textContent(), /公開停止中/);
         assert.equal(await publishing.locator('#published-count').textContent(), '現在、ゲームの売上なし');
         if (stopped.dailyAccrued > 0) {
           assert.match(await publishing.locator('#expense-summary').textContent(), /本日精算予定/);

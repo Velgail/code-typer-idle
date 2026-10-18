@@ -1,0 +1,203 @@
+// Engine names identify different workflows, not a pricing or support promise
+// about a particular released engine version. Every amount below is fictional
+// game currency. No real engine license, store account, or purchase is issued.
+const K = (syntax = 0, design = 0, graphics = 0, systems = 0) => ({ syntax, design, graphics, systems });
+const payment = (id, name, amount, payee) => ({ id, name, amount, payee, kind: 'upfront', per: 'project' });
+const F = (id, name, category, baseLines, requirements, requires = [], extra = {}) => ({
+  id, name, category, baseLines, requirements, requires, tags: [category], ...extra
+});
+const targets = ['windows', 'linux', 'macos', 'browser', 'android', 'ios', 'console'];
+const provides = prefix => ({
+  runtime: `${prefix}-runtime`, input: `${prefix}-runtime`,
+  tools: `${prefix}-tools`, build: `${prefix}-tools`,
+  render2d: `${prefix}-render2d`, render3d: `${prefix}-render3d`,
+  physics2d: `${prefix}-physics2d`, physics3d: `${prefix}-physics3d`, audio: `${prefix}-audio`
+});
+const provider = (prefix, suffix, name, lines, requirements, requires = [], extra = {}) => F(
+  `${prefix}-${suffix}`, name, 'foundation', lines, requirements, requires,
+  { exclusiveGroup: `provider-${suffix}`, tags: ['foundation', suffix, `${prefix}-workflow`], ...extra }
+);
+const contract = (id, name, amount, payee, notes) => F(id, name, 'contract', 0, K(), [], {
+  costs: amount ? [payment(`${id}-payment`, name, amount, payee)] : [],
+  notes: `${notes} 金額はゲーム内の比較係数であり、実在製品の現行料金・利用条件を表さない。`
+});
+
+const engineProviders = [
+  provider('unity', 'runtime', 'Unity系：実行・コンポーネント接続', 12, K(8, 6)),
+  provider('unity', 'tools', 'Unity系：アセット取込・ビルド設定', 18, K(10, 12, 6, 8)),
+  provider('unity', 'render2d', 'Unity系：2D描画・カメラ設定', 35, K(12, 10, 18), ['capability:runtime']),
+  provider('unity', 'render3d', 'Unity系：3D描画・品質設定', 420, K(65, 70, 100, 35), ['capability:runtime']),
+  provider('unity', 'physics2d', 'Unity系：2D物理とゲーム状態の接続', 35, K(16, 14, 16), ['capability:runtime']),
+  provider('unity', 'physics3d', 'Unity系：3D物理とゲーム状態の接続', 210, K(75, 75, 90, 45), ['capability:runtime']),
+  provider('unity', 'audio', 'Unity系：ミキサー・音源接続', 22, K(10, 8, 8, 6), ['capability:runtime']),
+  provider('unreal', 'runtime', 'Unreal系：実行・オブジェクト接続', 16, K(14, 14, 4, 6)),
+  provider('unreal', 'tools', 'Unreal系：取込・クック・ビルド設定', 28, K(18, 20, 10, 15)),
+  // A flat game can use Unreal. Its 2D adapter still sits on the renderer; this
+  // is additional setup rather than an arbitrary "2D games cannot use it" rule.
+  provider('unreal', 'render2d', 'Unreal系：3D描画上の2D表示接続', 100, K(25, 30, 35), ['capability:render3d']),
+  provider('unreal', 'render3d', 'Unreal系：3D描画・照明設定', 280, K(70, 80, 95, 45), ['capability:runtime']),
+  provider('unreal', 'physics2d', 'Unreal系：平面の衝突・物理接続', 100, K(35, 35, 30), ['capability:runtime']),
+  provider('unreal', 'physics3d', 'Unreal系：3D物理接続', 150, K(70, 80, 85, 45), ['capability:runtime']),
+  provider('unreal', 'audio', 'Unreal系：音声グラフ・ミキサー接続', 30, K(15, 12, 10, 8), ['capability:runtime']),
+  provider('godot', 'runtime', 'Godot系：シーン・ノード接続', 10, K(6, 5)),
+  provider('godot', 'tools', 'Godot系：取込・エクスポート設定', 15, K(8, 10, 4, 7)),
+  provider('godot', 'render2d', 'Godot系：2D描画・カメラ接続', 28, K(10, 10, 15), ['capability:runtime']),
+  provider('godot', 'render3d', 'Godot系：3D描画・品質調整', 500, K(70, 90, 110, 45), ['capability:runtime']),
+  provider('godot', 'physics2d', 'Godot系：2D衝突・物理接続', 30, K(14, 14, 14), ['capability:runtime']),
+  provider('godot', 'physics3d', 'Godot系：3D衝突・物理接続', 240, K(80, 90, 95, 50), ['capability:runtime']),
+  provider('godot', 'audio', 'Godot系：音源・バス接続', 20, K(8, 8, 6, 5), ['capability:runtime']),
+  // Custom implementations remain the existing catalog IDs so inventories can
+  // identify a built foundation and validate it for reuse on a later project.
+  provider('custom', 'runtime', '自作：実行ループ・入力層', 1200, K(80, 100, 20, 100), [], { tags: ['runtime', 'input', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'tools', '自作：編集ツール・ビルド基盤', 3000, K(130, 200, 40, 160), ['capability:runtime'], { tags: ['tools', 'build', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'render2d', '自作：2D描画基盤', 2500, K(120, 140, 180, 80), ['capability:runtime'], { tags: ['render-2d', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'render3d', '自作：3D描画基盤', 30000, K(450, 600, 800, 400), ['capability:runtime'], { tags: ['render-3d', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'physics2d', '自作：2D衝突・物理基盤', 1800, K(100, 130, 120, 80), ['capability:runtime'], { tags: ['physics-2d', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'physics3d', '自作：3D衝突・物理基盤', 12000, K(350, 500, 500, 300), ['capability:runtime'], { tags: ['physics-3d', 'custom-engine', 'reusable-foundation'], reusable: true }),
+  provider('custom', 'audio', '自作：音声処理基盤', 2000, K(100, 120, 100, 140), ['capability:runtime'], { tags: ['audio', 'custom-engine', 'reusable-foundation'], reusable: true })
+];
+
+const engineContracts = [
+  F('engine-contract', 'エンジン開発契約', 'foundation', 0, K(), [], {
+    costs: [payment('engine-license', 'エンジン開発契約', 24000, 'エンジン開発元')],
+    notes: '統合型商用エンジンの企画単位契約。金額はゲーム内の比較係数であり、実在製品の現行料金・利用条件を表さない。'
+  }),
+  contract('unity-project-contract', 'Unity系制作環境・納品手続', 1200, '制作環境・配布支援事業者', 'この世界での企画単位の制作環境手続。実在Unityの料金プランを計算しない。'),
+  contract('unreal-project-contract', 'Unreal系制作環境・納品手続', 1800, '制作環境・配布支援事業者', 'この世界での企画単位の制作環境手続。実在Unrealのロイヤリティを計算しない。'),
+  F('godot-license-notices', 'Godot系：ライセンス表示・同梱物確認', 'contract', 12, K(5, 8), ['capability:tools'], {
+    notes: '利用したエンジンと同梱ライブラリの権利表示を配布物へ組み込む。ゲームのソース公開を自動的に要求する仕組みではない。'
+  }),
+  F('engine-support-contract', '任意のエンジン技術支援契約', 'contract', 30, K(8, 12), ['capability:tools'], {
+    costs: [payment('engine-support-payment', '技術相談・移植支援', 30000, 'エンジン技術支援事業者')],
+    notes: '自力で進める代わりに支援を依頼する契約。追加しただけで品質や実装済み量は増えない。'
+  })
+];
+
+const bridgeFeatures = [
+  F('external-controls', '外部キーボード・ポインタ接続と案内', 'input', 180, K(25, 30, 12, 25), ['capability:input', 'ui-layout'], {
+    tags: ['input', 'external-device'],
+    notes: '外部操作機器が必要なことを起動・配布画面で示し、未接続時の案内・再接続・キー表示を実装する。外部機器は全端末の標準装備ではない。'
+  }),
+  F('console-porting-contract', '家庭用機向け外部移植・出力契約', 'platform', 900, K(70, 85, 20, 100), ['target-console'], {
+    costs: [payment('external-console-port', '移植層・出力対応の依頼', 180000, '家庭用機移植事業者')],
+    notes: '公開エンジンに含まれない家庭用機向け出力層を移植会社へ依頼する。各機種の契約・審査は別のtarget-consoleで数える。'
+  }),
+  F('webxr-adapter', 'ブラウザXR接続・権限・対応案内', 'platform', 1100, K(100, 130, 95, 110), ['target-browser', 'vr-io'], {
+    notes: '対応ブラウザ・対応機器に範囲を絞り、権限要求・姿勢取得・セッション終了を接続する。ブラウザ対応だけで全VR機器対応にはならない。'
+  }),
+  F('mobile-vr-adapter', 'モバイルXR端末・入力・負荷調整', 'platform', 1600, K(130, 160, 160, 120), ['vr-io'], {
+    costs: [payment('mobile-vr-test-device', 'モバイルXR検証機材', 60000, 'XR機器メーカー')],
+    notes: 'XR対応端末を対象とし、姿勢・コントローラ・描画負荷を検証する。通常のスマートフォン全機種で動くという意味ではない。'
+  }),
+  F('full-dive-gateway-client', '感覚I/O機器へのクライアント接続', 'platform', 5000, K(600, 800, 150, 1200), ['capability:runtime'], {
+    notes: '架空世界の感覚I/O機器へ接続するためのクライアント・権限・切断処理。OS出力先とは別に必要なハードウェア接続。'
+  }),
+  F('native-extension', 'ネイティブ拡張・FFI境界', 'foundation', 750, K(80, 120, 20, 130), ['capability:runtime', 'capability:build'], {
+    notes: '外部ネイティブコードを接続し、ABI・所有権・例外境界を扱う。実行先を変える場合は各出力向け検証も必要。'
+  }),
+  F('native-plugin-porting', '外部拡張の制限環境向け移植', 'platform', 1400, K(130, 180, 35, 220), ['native-extension'], {
+    notes: 'WebAssembly・モバイル・家庭用機に合わせて拡張コードと権限・配布方法を調整する。未対応の出力機能そのものを魔法で追加する機能ではない。'
+  }),
+  F('custom-engine-reuse-validation', '既存自作基盤の互換・回帰検証', 'foundation', 180, K(50, 70, 15, 60), ['capability:tools'], {
+    tags: ['foundation', 'custom-engine', 'reuse-validation'],
+    notes: '既に作った基盤を次作へ流用する際のAPI・保存形式・入力・ビルド検証。基盤の保有履歴を別途照合する。これを選ぶだけでは未制作の基盤は手に入らない。'
+  }),
+  F('full-dive-io', 'フルダイブ感覚I/O接続', 'input', 120000, K(3000, 4500, 4000, 6000), ['scene-3d', 'capability:input', 'full-dive-gateway-client'], {
+    costs: [payment('full-dive-sdk', '感覚I/O開発・検証契約', 10000000, 'フルダイブ基盤事業者')], tags: ['full-dive', 'neural-interface'],
+    notes: 'この世界に存在する外部感覚I/O基盤を利用する。脳機器自体の研究開発ではなく、ゲーム側の入出力接続を数える。'
+  })
+];
+
+const constraints = [
+  {
+    id: 'mobile-needs-supported-controls',
+    when: { inputId: ['keyboard-mouse'], targetsAny: ['android', 'ios'], missingAllFeatures: ['touch-controls', 'gamepad-controls', 'external-controls', 'vr-io', 'full-dive-io'] },
+    message: 'モバイル向けに標準のタッチ操作がありません。タッチ・パッド、または外部キーボード必須の案内と接続対応を追加してください。', severity: 'warning'
+  },
+  {
+    id: 'console-needs-supported-controls',
+    when: { inputId: ['keyboard-mouse', 'touch'], targetsAny: ['console'], missingAllFeatures: ['gamepad-controls', 'external-controls', 'vr-io', 'full-dive-io'] },
+    message: '家庭用機向けの操作経路を確認してください。パッド対応、対応する外部機器、または対応XR機器が必要です。', severity: 'warning'
+  },
+  {
+    id: 'godot-console-port-required',
+    when: { engineId: ['godot'], targetsAny: ['console'], missingAllFeatures: ['console-porting-contract'] },
+    message: 'Godot系で家庭用機へ出すには、外部移植・出力契約を追加してください。公開版のエクスポート設定だけでは出力できないモデルです。', severity: 'error'
+  },
+  {
+    id: 'browser-vr-bridge-required',
+    when: { targetsAny: ['browser'], featuresAny: ['vr-io'], missingAllFeatures: ['webxr-adapter'] },
+    message: 'ブラウザVRにはWebXR接続・権限・対応案内が必要です。ブラウザXR接続を追加してください。', severity: 'error'
+  },
+  {
+    id: 'mobile-vr-bridge-required',
+    when: { targetsAny: ['android', 'ios'], featuresAny: ['vr-io'], missingAllFeatures: ['mobile-vr-adapter'] },
+    message: 'モバイルVRには対応XR端末・入力・負荷調整が必要です。モバイルXR対応を追加してください。', severity: 'error'
+  },
+  {
+    id: 'webxr-device-support',
+    when: { featuresAny: ['webxr-adapter'] },
+    message: 'ブラウザXRは対応ブラウザと対応機器を対象にします。全ブラウザ・全機器への一律対応とは扱いません。', severity: 'warning'
+  },
+  {
+    id: 'native-plugin-port-required',
+    when: { targetsAny: ['browser', 'android', 'ios', 'console'], featuresAny: ['native-extension'], missingAllFeatures: ['native-plugin-porting'] },
+    message: 'ネイティブ拡張を制限環境へ配布するには、外部拡張の移植・権限・配布検証を追加してください。', severity: 'error'
+  },
+  {
+    id: 'full-dive-hardware-boundary',
+    when: { featuresAny: ['full-dive-io'] },
+    message: '対応OSとは別に、感覚I/O機器・接続基盤が必要です。フルダイブはこの世界の技術として扱います。', severity: 'warning'
+  }
+];
+
+export const PLANNING_TECHNOLOGY = {
+  engines: [
+    {
+      id: 'toolkit', name: '共通フレームワーク／ライブラリ',
+      features: ['sdk-runtime', 'sdk-tools'], provides: provides('sdk'), supportedTargets: targets,
+      workflow: 'library-composition', contractModel: 'included-libraries', reusableTags: [],
+      notes: '描画・物理・音声など必要なライブラリを接続する。基盤ソースそのものは数えず、ゲームとの接続・統合を数える。'
+    },
+    {
+      id: 'commercial', name: '統合型商用エンジン',
+      features: ['engine-runtime', 'engine-tools', 'engine-contract'], provides: provides('engine'), supportedTargets: targets,
+      workflow: 'integrated-editor', contractModel: 'fictional-project-license', reusableTags: [],
+      notes: '架空の統合済み基盤。企画単位の契約費があり、Unity／Unrealの契約とは別の選択肢。'
+    },
+    {
+      id: 'unity', name: 'Unity系',
+      features: ['unity-runtime', 'unity-tools', 'unity-project-contract'], provides: provides('unity'), supportedTargets: targets,
+      workflow: 'component-editor', contractModel: 'fictional-project-workflow', reusableTags: [],
+      notes: 'コンポーネント・アセット・エディタを使う制作経路。料金と実装量はゲーム内の架空係数。特定バージョンの製品仕様や契約額の再現ではない。'
+    },
+    {
+      id: 'unreal', name: 'Unreal Engine系',
+      features: ['unreal-runtime', 'unreal-tools', 'unreal-project-contract'], provides: provides('unreal'),
+      supportedTargets: targets.filter(id => id !== 'browser'),
+      workflow: 'integrated-3d-editor', contractModel: 'fictional-project-workflow', reusableTags: [],
+      notes: '3D中心の統合制作経路。2Dも3D描画上の接続として制作できる。標準ブラウザ出力は用意しない。料金は実在Unrealのロイヤリティではない。'
+    },
+    {
+      id: 'godot', name: 'Godot系',
+      features: ['godot-runtime', 'godot-tools', 'godot-license-notices'], provides: provides('godot'), supportedTargets: targets,
+      workflow: 'scene-node-editor', contractModel: 'license-notices-with-optional-support', reusableTags: [],
+      notes: 'シーンとノードを組む制作経路。権利表示を同梱し、家庭用機向けは外部移植契約を別に選ぶ。利用費ゼロでも作業がゼロにはならない。'
+    },
+    {
+      id: 'custom', name: 'エンジンから自作',
+      features: ['custom-runtime', 'custom-tools'], provides: provides('custom'), supportedTargets: targets,
+      workflow: 'custom-foundation', contractModel: 'owned-foundation', reusableTags: ['reusable-foundation'],
+      notes: '使用する描画・物理・音声・ツールを自作する。制作済みの自作基盤は保有履歴と互換検証を伴って次作へ流用できる。自作という理由で品質を加点しない。'
+    }
+  ],
+  features: [...engineProviders, ...engineContracts, ...bridgeFeatures],
+  integrations: [
+    { id: 'webxr-runtime-save', name: 'ブラウザXRの中断と保存の整合', requires: ['webxr-adapter', 'save-load'], lines: 250, requirementsAdd: { design: 25, systems: 35 } },
+    { id: 'external-mobile-controls', name: '外部入力とモバイル画面の回帰検証', requires: ['external-controls'], anyOf: ['target-android', 'target-ios'], lines: 160, requirementsAdd: { design: 10, systems: 15 } },
+    { id: 'custom-console-port', name: '自作実行基盤と家庭用機出力の統合', requires: ['custom-runtime', 'target-console'], lines: 2200, requirementsAdd: { design: 50, systems: 120 } },
+    { id: 'custom-browser-runtime', name: '自作実行基盤とブラウザ制約の統合', requires: ['custom-runtime', 'target-browser'], lines: 900, requirementsAdd: { design: 35, systems: 65 } },
+    { id: 'multi-target-native-extension', name: 'ネイティブ拡張の複数出力ABI検証', requires: ['native-extension'], minTargets: 2, lines: 700, requirementsAdd: { design: 35, systems: 70 } }
+  ],
+  constraints
+};
