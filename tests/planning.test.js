@@ -271,6 +271,15 @@ test('browser plus Linux performs browser/native integration once and adding Win
   assert.equal(windows.delta.codeLines,90,'adding Windows reuses browser/native checks and adds its 30-line adapter and 60-line desktop checks');
 });
 
+test('silent audio forbids an explicitly added audio provider even when it differs from the chosen engine default',()=>{
+  for(const engineId of ['toolkit','commercial','custom'])for(const provider of ['sdk-audio','engine-audio','custom-audio']){
+    const plan={...example('small-puzzle'),engineId,features:[{id:provider}]};
+    error(()=>estimatePlan(plan),'CONFLICT');
+    const snapshot=estimatePlan({...example('small-puzzle'),engineId});
+    error(()=>amendPlan(snapshot,{addFeatures:[{id:provider}]}),'CONFLICT');
+  }
+});
+
 test('Linux and macOS include their desktop-pair regression work even when Windows is not targeted',()=>{
   const linux=estimatePlan(example('small-puzzle')),both=estimatePlan({...example('small-puzzle'),targets:['linux','macos']});
   const pair=PLANNING_CATALOG.integrations.find(row=>row.requires?.includes('target-linux') && row.requires?.includes('target-macos'));

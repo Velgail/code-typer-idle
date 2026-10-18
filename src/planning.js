@@ -42,6 +42,16 @@ function resolveDependency(dependency,engine,features){
   if(!features.has(key))fail('UNKNOWN_ID','A dependency refers to an unknown feature',{id:key,dependency,engine:engine.id});
   return key;
 }
+function matchingConstraint(dependency,context,selected){
+  if(typeof dependency==='string' && dependency.startsWith('capability:')){
+    const capability=id(dependency.slice(11),'capability');
+    // Explicit additions can use a different provider from the engine default.
+    // A forbidden capability applies to every implementation of that capability.
+    return context.catalog.engines.map(engine=>engine.provides?.[capability]).find(key=>selected.has(key));
+  }
+  const key=resolveDependency(dependency,context.engine,context.features);
+  return selected.has(key)?key:undefined;
+}
 function quantityFor(feature,requested,path){
   if(feature.quantity!==undefined)object(feature.quantity,`${path}.rule`);
   const rule=feature.quantity || {},min=rule.min ?? 1,max=rule.max ?? 1000000;
@@ -157,16 +167,14 @@ export function estimatePlan(rawPlan,catalog=PLANNING_CATALOG){
   for(const request of roots(context.engine))include(request,`engine:${context.engine.id}`);
   for(const request of plan.features)include(request,'selected');
   for(const axis of context.selectedAxes)for(const forbidden of array(axis.forbids,`${axis.axis}.${axis.id}.forbids`)){
-    if(typeof forbidden==='string' && forbidden.startsWith('capability:') && !context.engine.provides?.[id(forbidden.slice(11),'capability')])continue;
-    const key=resolveDependency(forbidden,context.engine,context.features);
-    if(selected.has(key))fail('CONFLICT','A selected axis forbids a required feature',{axis:axis.axis,selection:axis.id,feature:key});
+    const key=matchingConstraint(forbidden,context,selected);
+    if(key)fail('CONFLICT','A selected axis forbids a required feature',{axis:axis.axis,selection:axis.id,feature:key});
   }
   const groups=new Map();
   for(const [key,feature] of selected){
     if(feature.exclusiveGroup){const previous=groups.get(feature.exclusiveGroup);if(previous && previous!==key)fail('CONFLICT','Mutually exclusive features were selected',{group:feature.exclusiveGroup,features:[previous,key]});groups.set(feature.exclusiveGroup,key);}
     for(const conflict of array(feature.conflicts,`feature.${key}.conflicts`)){
-      if(typeof conflict==='string' && conflict.startsWith('capability:') && !context.engine.provides?.[id(conflict.slice(11),'capability')])continue;
-      if(selected.has(resolveDependency(conflict,context.engine,context.features)))fail('CONFLICT','Selected features conflict',{features:[key,conflict]});
+      if(matchingConstraint(conflict,context,selected))fail('CONFLICT','Selected features conflict',{features:[key,conflict]});
     }
   }
   const requirements=Object.fromEntries(SKILLS.map(skill=>[skill,0])),additionalRequirements=Object.fromEntries(SKILLS.map(skill=>[skill,0])),features=[],integrations=[],assets=[],costs=[],assetWorkUnits=new Set();
