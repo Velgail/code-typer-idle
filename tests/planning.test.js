@@ -31,6 +31,7 @@ function simpleCatalog(){
 }
 const simplePlan=()=>({genreId:'walk',presentationId:'pixel',audioId:'chip',inputId:'keyboard',engineId:'custom',targets:['linux'],features:[],quantities:{},assetSources:{}});
 const example=id=>{const value=PLANNING_EXAMPLES.find(example=>example.id===id);assert.ok(value,id);return copy(value.plan);};
+const graphicalPuzzle=targets=>({genreId:'number-puzzle',presentationId:'pixel-2d',audioId:'silent',inputId:'keyboard-mouse',engineId:'toolkit',targets,features:[{id:'board-rules'},{id:'tutorial-hints'}]});
 function reconcile(snapshot){
   near(snapshot.features.reduce((sum,row)=>sum+row.codeLines,0)+snapshot.integrations.reduce((sum,row)=>sum+row.codeLines,0),snapshot.totals.codeLines);
   assert.equal(snapshot.totals.codeCharacters,snapshot.totals.codeLines*40);
@@ -47,11 +48,11 @@ function reconcile(snapshot){
 
 test('the six main example estimates have stable, printable code, asset-work and payment totals',()=>{
   const expected=[
-    ['small-puzzle',535,21400,8,0,0],
+    ['small-puzzle',75,3000,0,0,0],
     ['pixel-roguelite',3611,144440,278,0,0],
-    ['visual-novel',1525,61000,606,0,0],
+    ['visual-novel',1835,73400,606,3000,0],
     ['city-3d',27501,1100040,264,0,0],
-    ['mmorpg',77043,3081720,1448,0,4650],
+    ['mmorpg',77058,3082320,1448,10000,4650],
     ['full-dive-vrmmo',784543,31381720,1448,15000000,65160]
   ];
   const actual=expected.map(([id])=>{
@@ -61,12 +62,42 @@ test('the six main example estimates have stable, printable code, asset-work and
   assert.deepEqual(actual,expected);assert.deepEqual(JSON.parse(JSON.stringify(actual)),expected);
 });
 
-test('every listed genre works with each engine on Linux without hidden genre or rendering multipliers',()=>{
+test('the worked examples exercise every planning axis, asset sourcing, content expansion, and offline or network operation',()=>{
+  assert.equal(new Set(ids(PLANNING_EXAMPLES)).size,PLANNING_EXAMPLES.length);
+  const estimates=PLANNING_EXAMPLES.map(value=>{
+    assert.ok(value.description?.trim(),value.id);
+    assert.ok(Object.hasOwn(value.plan,'targets'),`${value.id} declares its own distribution targets`);
+    const result=estimatePlan(value.plan);reconcile(result);return result;
+  });
+  const selected=field=>new Set(estimates.map(value=>value.plan[field]));
+  assert.deepEqual([...selected('engineId')].sort(),ids(PLANNING_CATALOG.engines).sort());
+  for(const axis of ['presentation','audio','input']){
+    assert.deepEqual([...selected(`${axis}Id`)].sort(),ids(PLANNING_CATALOG.axes[axis]).sort(),axis);
+  }
+  assert.deepEqual([...new Set(estimates.flatMap(value=>value.plan.targets))].sort(),ids(PLANNING_CATALOG.axes.platform).sort());
+  const assets=estimates.flatMap(value=>value.assets);
+  assert.deepEqual([...new Set(assets.map(value=>value.source))].sort(),['commission','license','self']);
+  for(const source of ['self','license','commission']){
+    assert.ok(assets.some(value=>value.source===source && (source==='self'?value.selfWork>0:value.cost>0 && value.payee)),source);
+  }
+  const quantities=new Map();
+  for(const result of estimates)for(const feature of result.features.filter(value=>value.category==='content')){
+    if(!quantities.has(feature.id))quantities.set(feature.id,new Set());
+    quantities.get(feature.id).add(feature.quantity);
+  }
+  assert.ok([...quantities.values()].some(values=>values.size>1),'content quantities differ between worked examples');
+  assert.ok(estimates.some(value=>ids(value.features).includes('network-authority') && value.totals.recurringCostPerDay>0));
+  assert.ok(estimates.some(value=>!ids(value.features).includes('network-authority') && value.totals.recurringCostPerDay===0));
+});
+
+test('every listed genre and engine can target each single platform without inherited OS selections or hidden rendering multipliers',()=>{
   const before=JSON.stringify(PLANNING_CATALOG),plans=JSON.stringify(PLANNING_EXAMPLES);
-  for(const genre of PLANNING_CATALOG.genres)for(const engine of PLANNING_CATALOG.engines){
-    const plan={genreId:genre.id,engineId:engine.id,presentationId:'pixel-2d',audioId:'chiptune',inputId:'keyboard-mouse',targets:['linux']};
+  for(const genre of PLANNING_CATALOG.genres)for(const engine of PLANNING_CATALOG.engines)for(const platform of PLANNING_CATALOG.axes.platform){
+    const inputId=['android','ios'].includes(platform.id)?'touch':platform.id==='console'?'gamepad':'keyboard-mouse';
+    const plan={genreId:genre.id,engineId:engine.id,presentationId:'pixel-2d',audioId:'chiptune',inputId,targets:[platform.id]};
     const estimate=estimatePlan(plan);reconcile(estimate);
-    assert.deepEqual(estimate.plan.targets,['linux']);assert.ok(estimate.features.some(row=>row.id==='pixel-art'));
+    assert.deepEqual(estimate.plan.targets,[platform.id]);assert.ok(estimate.features.some(row=>row.id==='pixel-art'));
+    assert.deepEqual(estimate.features.filter(row=>row.id.startsWith('target-')).map(row=>row.id),[`target-${platform.id}`]);
     assert.ok(estimate.features.some(row=>row.id==='chiptune'));
   }
   assert.equal(JSON.stringify(PLANNING_CATALOG),before);assert.equal(JSON.stringify(PLANNING_EXAMPLES),plans);
@@ -95,14 +126,14 @@ test('engine-provided foundations replace custom foundations while preserving ga
 });
 
 test('Linux-only custom-engine pixel art and chiptune is legal and retains real asset production work',()=>{
-  const plan=example('pixel-roguelite');plan.engineId='custom';const result=estimatePlan(plan);
+  const plan={genreId:'exploration-roguelike',engineId:'custom',presentationId:'pixel-2d',audioId:'chiptune',inputId:'keyboard-mouse',targets:['linux']},result=estimatePlan(plan);
   assert.deepEqual(result.plan.targets,['linux']);assert.equal(result.plan.presentationId,'pixel-2d');assert.equal(result.plan.audioId,'chiptune');
   assert.ok(result.totals.assetWork>0);assert.equal(result.totals.upfrontCost,0);assert.ok(ids(result.features).includes('custom-audio'));
   assert.ok(ids(result.features).includes('custom-render2d'));assert.ok(!ids(result.features).some(id=>id.startsWith('sdk-') || id.startsWith('engine-')));
 });
 
 test('adding Windows to Linux adds only its adapter and shared regression work, while duplicate OS selections count once',()=>{
-  const linux=example('small-puzzle'),single=estimatePlan(linux),both=estimatePlan({...linux,targets:['windows','linux','windows','linux']});
+  const linux=graphicalPuzzle(['linux']),single=estimatePlan(linux),both=estimatePlan({...linux,targets:['windows','linux','windows','linux']});
   assert.deepEqual(both.plan.targets,['linux','windows']);assert.equal(both.totals.codeLines-single.totals.codeLines,90);
   assert.deepEqual(both.features.filter(row=>!single.features.some(old=>old.id===row.id)).map(row=>[row.id,row.codeLines]),[['target-windows',30]]);
   assert.deepEqual(both.integrations.map(row=>[row.id,row.codeLines]),[['cross-desktop',60]]);
@@ -264,7 +295,7 @@ test('silent audio rejects an audio-dependent game through its selected capabili
 });
 
 test('browser plus Linux performs browser/native integration once and adding Windows shares that integration',()=>{
-  const linux=estimatePlan(example('small-puzzle')),browser=estimatePlan({...example('small-puzzle'),targets:['linux','browser']}),windows=amendPlan(browser,{addTargets:['windows']});
+  const plan=graphicalPuzzle(['linux']),linux=estimatePlan(plan),browser=estimatePlan({...plan,targets:['linux','browser']}),windows=amendPlan(browser,{addTargets:['windows']});
   assert.equal(browser.totals.codeLines-linux.totals.codeLines,120,'browser adapter 20 plus native/browser testing 100');
   assert.equal(browser.integrations.filter(row=>row.id==='cross-browser-native').length,1);
   assert.equal(windows.snapshot.integrations.filter(row=>row.id==='cross-browser-native').length,1);
@@ -281,7 +312,7 @@ test('silent audio forbids an explicitly added audio provider even when it diffe
 });
 
 test('Linux and macOS include their desktop-pair regression work even when Windows is not targeted',()=>{
-  const linux=estimatePlan(example('small-puzzle')),both=estimatePlan({...example('small-puzzle'),targets:['linux','macos']});
+  const plan=graphicalPuzzle(['linux']),linux=estimatePlan(plan),both=estimatePlan({...plan,targets:['linux','macos']});
   const pair=PLANNING_CATALOG.integrations.find(row=>row.requires?.includes('target-linux') && row.requires?.includes('target-macos'));
   assert.ok(pair,'the catalog must explicitly account for the Linux/macOS pair');
   assert.ok(both.integrations.some(row=>row.id===pair.id));

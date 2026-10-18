@@ -331,7 +331,10 @@ export const PLANNING_CATALOG = {
   ]
 };
 
-const basePlan = { engineId: 'toolkit', presentationId: 'pixel-2d', audioId: 'chiptune', inputId: 'keyboard-mouse', targets: ['linux'] };
+// Defaults describe a reusable technology choice, not a preferred release OS.
+// Every example declares its own targets so unrelated projects do not silently
+// inherit a release platform from another example.
+const basePlan = { engineId: 'toolkit', presentationId: 'pixel-2d', audioId: 'chiptune', inputId: 'keyboard-mouse' };
 const mmoFeatures = [
   { id: 'quests' }, { id: 'terrain-navigation' }, { id: 'network-authority' },
   { id: 'persistent-world' }, { id: 'social-chat' }, { id: 'moderation' },
@@ -339,32 +342,70 @@ const mmoFeatures = [
   { id: 'world-content', quantity: 20 }, { id: 'character-content', quantity: 40 },
   { id: 'audio-content', quantity: 16 }
 ];
-const puzzle = { ...basePlan, genreId: 'number-puzzle', audioId: 'silent', features: [{ id: 'board-rules' }, { id: 'tutorial-hints' }] };
+const puzzle = { ...basePlan, genreId: 'number-puzzle', presentationId: 'console', audioId: 'silent', targets: ['browser'], features: [] };
+const roguelite = {
+  ...basePlan, genreId: 'exploration-roguelike', targets: ['windows'],
+  features: [{ id: 'progression' }, { id: 'world-content', quantity: 3 }, { id: 'character-content', quantity: 8 }, { id: 'audio-content', quantity: 4 }]
+};
+const novel = {
+  ...basePlan, genreId: 'visual-novel', presentationId: 'illustrated-2d', audioId: 'recorded', inputId: 'touch', targets: ['android'],
+  features: [{ id: 'story-content', quantity: 10 }, { id: 'character-content', quantity: 6 }, { id: 'audio-content', quantity: 8 }, { id: 'settings-localization' }]
+};
+const rogueAssetSources = source => Object.fromEntries(['pixel-style-kit', 'chip-instruments', 'region-art', 'character-art', 'music-track'].map(id => [id, source]));
 export const PLANNING_EXAMPLES = [
-  { id: 'small-puzzle', name: '小さな数理パズル／Linux', plan: puzzle },
-  { id: 'pixel-roguelite', name: 'ドット絵ローグライト／Linux', plan: {
-    ...basePlan, genreId: 'exploration-roguelike', features: [{ id: 'progression' }, { id: 'world-content', quantity: 3 }, { id: 'character-content', quantity: 8 }, { id: 'audio-content', quantity: 4 }]
-  } },
-  { id: 'visual-novel', name: '分岐ノベル／Linux', plan: {
-    ...basePlan, genreId: 'visual-novel', presentationId: 'illustrated-2d', audioId: 'recorded',
-    features: [{ id: 'story-content', quantity: 10 }, { id: 'character-content', quantity: 6 }, { id: 'audio-content', quantity: 8 }, { id: 'settings-localization' }]
-  } },
-  { id: 'city-3d', name: '3Dの街づくり／Windows', plan: {
+  { id: 'small-puzzle', name: '文字だけの小さな数理パズル', description: 'ブラウザで数値を入力して考える。画像・音楽・盤面・保存は付けない最小構成。', plan: puzzle },
+  { id: 'pixel-roguelite', name: '探索と成長のドット絵ローグライト', description: 'Windows向け。自動生成の探索に成長要素とチップ音楽を組み合わせ、素材は自作する。', plan: roguelite },
+  { id: 'visual-novel', name: 'タッチで読むイラスト分岐ノベル', description: 'Android向け。10章・6人・8曲の物語を、タッチ操作と翻訳差替に対応させる。', plan: novel },
+  { id: 'city-3d', name: '道路と市場が動く3D街づくり', description: 'Windows向け。人口需要・道路交通・製造市場を接続し、立体地形を段階読込する。', plan: {
     ...basePlan, genreId: 'city-builder', presentationId: '3d', audioId: 'recorded', targets: ['windows'],
     features: [{ id: 'vehicle-traffic' }, { id: 'production-market' }, { id: 'terrain-navigation' }, { id: 'world-streaming' }, { id: 'world-content', quantity: 6 }, { id: 'audio-content', quantity: 10 }]
   } },
-  { id: 'mmorpg', name: '共有世界MMORPG／Windows・Linux', plan: {
-    ...basePlan, genreId: 'action-rpg', presentationId: '3d', audioId: 'recorded', targets: ['windows', 'linux'],
+  { id: 'mmorpg', name: '取引と交流が続く共有世界MMORPG', description: 'Windows/macOS向け。同時接続1,000人の戦闘・共有世界・チャット・通報・運営を持つ。', plan: {
+    ...basePlan, genreId: 'action-rpg', presentationId: '3d', audioId: 'recorded', targets: ['windows', 'macos'],
     features: mmoFeatures, quantities: { concurrentPlayers: 1000 }
   } },
-  { id: 'full-dive-vrmmo', name: 'フルダイブVRMMORPG／Windows・Linux', plan: {
+  { id: 'full-dive-vrmmo', name: '身体と感覚を伴うフルダイブVRMMORPG', description: 'Windows/Linux向け。同時1,000人の共有世界に全身動作・感覚配信・空間音声を加える無謀な大作案。', plan: {
     ...basePlan, genreId: 'action-rpg', presentationId: '3d', audioId: 'recorded', inputId: 'full-dive', targets: ['windows', 'linux'],
     features: [...mmoFeatures, { id: 'embodiment' }, { id: 'sensory-feedback' }, { id: 'spatial-audio' }], quantities: { concurrentPlayers: 1000, sensorySessions: 1000 }
   } },
-  { id: 'small-puzzle-commercial', name: '同じパズル／既製商用エンジン', plan: { ...puzzle, engineId: 'commercial' } },
-  { id: 'small-puzzle-custom', name: '同じパズル／エンジンから自作', plan: { ...puzzle, engineId: 'custom' } },
-  { id: 'small-puzzle-windows-linux', name: '同じパズル／Windows・Linux', plan: { ...puzzle, targets: ['windows', 'linux'] } },
-  { id: 'small-puzzle-multiplatform', name: '同じパズル／7実行先', plan: { ...puzzle, targets: ['windows', 'linux', 'macos', 'browser', 'android', 'ios', 'console'], features: [...puzzle.features, { id: 'touch-controls' }, { id: 'gamepad-controls' }] } }
+  { id: 'touch-farming', name: '持ち歩く農業と住民の暮らし', description: 'Android/iOS向け。イラスト表現とタッチ操作で、農作物・会話・2地域・5人の生活を作る。', plan: {
+    ...basePlan, genreId: 'farming', presentationId: 'illustrated-2d', audioId: 'recorded', inputId: 'touch', targets: ['android', 'ios'],
+    features: [{ id: 'dialogue-branches' }, { id: 'world-content', quantity: 2 }, { id: 'character-content', quantity: 5 }, { id: 'audio-content', quantity: 4 }]
+  } },
+  { id: 'gamepad-rhythm', name: 'リプレイで詰めるチップ音楽ゲーム', description: '家庭用機向け。ゲームパッドで6曲を遊び、入力リプレイと記録で上達を振り返る。', plan: {
+    ...basePlan, genreId: 'rhythm', inputId: 'gamepad', targets: ['console'],
+    features: [{ id: 'audio-content', quantity: 6 }, { id: 'replays' }, { id: 'leaderboard' }]
+  } },
+  { id: 'vr-escape', name: '手で調べる小部屋VR脱出', description: 'Windows向けの既製エンジン案。共有世界を持たず、VRの手と姿勢で3部屋の仕掛けを調べる。', plan: {
+    ...basePlan, engineId: 'commercial', genreId: 'escape', presentationId: '3d', audioId: 'recorded', inputId: 'vr', targets: ['windows'],
+    features: [{ id: 'world-content', quantity: 3 }, { id: 'tutorial-hints' }, { id: 'audio-content', quantity: 2 }]
+  } },
+  { id: 'weather-deckbuilder', name: '迷宮と天候を足すデッキ構築', description: 'ブラウザ向け。デッキ判断に迷宮生成と天候を追加する。天候が遊びに必要かは検証課題として残る。', plan: {
+    ...basePlan, genreId: 'deckbuilder', targets: ['browser'], features: [{ id: 'procedural-dungeon' }, { id: 'weather-daynight' }]
+  } },
+  { id: 'custom-platformer', name: '操作感から自作する一画面アクション', description: 'Linux向け。ドット絵・チップ音楽・跳躍と衝突判定を自作基盤で組む。', plan: {
+    ...basePlan, engineId: 'custom', genreId: 'platformer', targets: ['linux'],
+    features: [{ id: 'world-content' }, { id: 'character-content', quantity: 3 }, { id: 'audio-content', quantity: 2 }]
+  } },
+  { id: 'small-puzzle-supported', name: '同じパズル／ヒント・保存・操作補助', description: '文字端末のルールはそのままに、段階ヒント・保存・操作補助の工数を加える。', plan: {
+    ...puzzle, targets: ['browser'], features: [{ id: 'tutorial-hints' }, { id: 'save-load' }, { id: 'accessibility' }]
+  } },
+  { id: 'visual-novel-anthology', name: '同じノベル／10章を40章へ増補', description: '人物・曲数・基盤は据え置く。脚本制作と章の接続が増えても、読後感や品質の加点は付かない。', plan: {
+    ...novel, targets: ['android'], features: novel.features.map(feature => feature.id === 'story-content' ? { ...feature, quantity: 40 } : { ...feature })
+  } },
+  { id: 'pixel-roguelite-license', name: '同じローグライト／素材を購入', description: '自作していた背景・人物・音楽などを素材購入へ切り替える。実装量は増えず、自作工数と支払先が変わる。', plan: {
+    ...roguelite, targets: ['windows'], assetSources: rogueAssetSources('license')
+  } },
+  { id: 'pixel-roguelite-commission', name: '同じローグライト／素材を発注', description: '同じ素材一式を外注する。外注は品質の保証ではなく、制作工数と支払方法の選択。', plan: {
+    ...roguelite, targets: ['windows'], assetSources: rogueAssetSources('commission')
+  } },
+  { id: 'small-puzzle-pixel', name: '同じパズル／ドット絵で表示', description: 'ルールを変えず文字端末をドット絵画面へ替える。描画接続と素材制作が加わる。', plan: {
+    ...puzzle, presentationId: 'pixel-2d', targets: ['browser']
+  } },
+  { id: 'small-puzzle-commercial', name: '同じパズル／既製エンジンを使う', description: 'ブラウザ向けの文字パズルを既製エンジンで作る。基盤実装と架空の契約費を比較する。', plan: { ...puzzle, engineId: 'commercial', targets: ['browser'] } },
+  { id: 'small-puzzle-custom', name: '同じパズル／基盤から作る', description: 'ブラウザ向けの文字パズルであっても、自作の実行・入力・制作ツールを選べる。', plan: { ...puzzle, engineId: 'custom', targets: ['browser'] } },
+  { id: 'small-puzzle-windows-linux', name: '同じパズル／デスクトップへ配布', description: '同じルールと文字表示をWindows/Linuxへ配布し、OSごとの移植と両方の検証を計上する。', plan: { ...puzzle, targets: ['windows', 'linux'] } },
+  { id: 'small-puzzle-multiplatform', name: '同じパズル／7実行先へ配布', description: '7実行先に広げ、タッチとゲームパッドにも対応させる。ゲーム本体を7回作る計算にはしない。', plan: { ...puzzle, targets: ['windows', 'linux', 'macos', 'browser', 'android', 'ios', 'console'], features: [{ id: 'touch-controls' }, { id: 'gamepad-controls' }] } }
 ];
 
 // Kept as a spelling alias for consumers that call the examples presets.

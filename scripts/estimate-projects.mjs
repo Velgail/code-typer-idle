@@ -14,17 +14,36 @@ const warningNames = {
   FICTIONAL_COEFFICIENTS: '行数・価格はこのゲームの見積単位です。実在エンジンの料金や現実の最少行数は表しません。',
   NO_MARKET_PREDICTION: 'コード量や機能数を増やしても、品質・プレイ時間・売上は自動では増えません。'
 };
+const choiceName = (entries, id) => entries.find(entry => entry.id === id)?.name || id;
+const featureName = id => choiceName(PLANNING_CATALOG.features, id);
+
+export function describeChoices(plan) {
+  const { axes, genres, engines } = PLANNING_CATALOG;
+  const features = plan.features.map(feature => `${featureName(feature.id)}${feature.quantity > 1 ? ` ×${number(feature.quantity)}` : ''}`);
+  const quantities = Object.entries(plan.quantities || {}).map(([id, value]) => `${({ concurrentPlayers: '同時接続', sensorySessions: '感覚I/O接続' })[id] || id} ${number(value)}`);
+  const sources = Object.entries(plan.assetSources || {}).map(([id, source]) => {
+    const asset = PLANNING_CATALOG.features.flatMap(feature => feature.assets || []).find(asset => asset.id === id);
+    return `${asset?.name || id}: ${sourceNames[source]}`;
+  });
+  return [
+    `遊び: ${choiceName(genres, plan.genreId)} / 表現: ${choiceName(axes.presentation, plan.presentationId)} / 音: ${choiceName(axes.audio, plan.audioId)}`,
+    `入力: ${choiceName(axes.input, plan.inputId)} / 基盤: ${choiceName(engines, plan.engineId)} / 実行先: ${plan.targets.map(id => choiceName(axes.platform, id)).join('・')}`,
+    `追加構成: ${[...features, ...quantities].join('、') || 'なし'}`,
+    `素材調達: ${sources.join('、') || '自作'}`
+  ];
+}
 
 export function summaryRows(examples = PLANNING_EXAMPLES) {
   return examples.map(example => {
     const estimate = estimatePlan(example.plan);
-    return { id: example.id, name: example.name, ...estimate.totals, requirements: estimate.requirements };
+    return { id: example.id, name: example.name, description: example.description || '', plan: estimate.plan, ...estimate.totals, requirements: estimate.requirements };
   });
 }
 
 export function describeEstimate(estimate) {
   const { totals, requirements } = estimate;
   const result = [
+    ...describeChoices(estimate.plan), '',
     `実装: ${number(totals.codeLines)} 行相当 / ${number(totals.codeCharacters)} 文字`,
     `必要技術（文法 / 設計 / 描画 / 基盤）: ${sumRequirements(requirements)}`,
     `素材の自作作業: ${number(totals.assetWork)} 作業量`,
@@ -71,7 +90,7 @@ export async function main(args = process.argv.slice(2)) {
   if (options.help) {
     console.log([
       '企画の積み上げ見積り（設計用。プレイ中のセーブは変更しません）',
-      'npm run planning                         比較企画を一覧',
+      'npm run planning                         代表企画の選択内容と見積り',
       'npm run planning -- --list               比較企画のID',
       'npm run planning -- --catalog --json     ジャンル・機能・基盤の全データ',
       'npm run planning -- --example ID         企画の分解',
@@ -86,7 +105,17 @@ export async function main(args = process.argv.slice(2)) {
     if (options.json) console.log(JSON.stringify(PLANNING_CATALOG, null, 2));
     else {
       console.log(`ジャンル ${PLANNING_CATALOG.genres.length} / 機能 ${PLANNING_CATALOG.features.length}`);
-      for (const genre of PLANNING_CATALOG.genres) console.log(`${genre.id}\t${genre.name}`);
+      const groups = [
+        ['ジャンル', PLANNING_CATALOG.genres], ['視覚表現', PLANNING_CATALOG.axes.presentation],
+        ['音', PLANNING_CATALOG.axes.audio], ['入力', PLANNING_CATALOG.axes.input],
+        ['基盤', PLANNING_CATALOG.engines], ['実行先', PLANNING_CATALOG.axes.platform],
+        ['追加機能・内容', PLANNING_CATALOG.features.filter(feature => !['foundation', 'platform', 'presentation', 'audio', 'input'].includes(feature.category))]
+      ];
+      for (const [name, entries] of groups) {
+        console.log(`\n${name}:`);
+        for (const entry of entries) console.log(`  ${entry.id}\t${entry.name}`);
+      }
+      console.log('\n素材調達: 自作 / 利用権を購入 / 制作を委託');
     }
     return;
   }
@@ -125,9 +154,14 @@ export async function main(args = process.argv.slice(2)) {
   const rows = summaryRows();
   if (options.json) console.log(JSON.stringify(rows, null, 2));
   else {
-    console.log('固定世界での代表構成。行数はゲーム内の実装量、外部費用は選んだ制作・契約方式によります。');
-    console.log('企画\t実装行数\t素材自作作業\t初期支払\t運営費/日\t技術:文法/設計/描画/基盤');
-    for (const row of rows) console.log(`${row.name}\t${number(row.codeLines)}\t${number(row.assetWork)}\t${yen(row.upfrontCost)}\t${yen(row.recurringCostPerDay)}\t${sumRequirements(row.requirements)}`);
+    console.log('遊び・機能・表現・入力・基盤・実行先・内容量・素材調達を組み合わせた代表企画。行数と費用はゲーム内の見積単位です。');
+    for (const row of rows) {
+      console.log(`\n${row.name} (${row.id})`);
+      if (row.description) console.log(row.description);
+      console.log(describeChoices(row.plan).map(line => `  ${line}`).join('\n'));
+      console.log(`  実装 ${number(row.codeLines)} 行 / 素材自作 ${number(row.assetWork)} 作業量 / 初期支払 ${yen(row.upfrontCost)} / 運営費 ${yen(row.recurringCostPerDay)}/日`);
+      console.log(`  技術（文法 / 設計 / 描画 / 基盤）: ${sumRequirements(row.requirements)}`);
+    }
     console.log('\nコード量に比例した品質・面白さ・プレイ時間・売上の加点はありません。');
   }
 }
