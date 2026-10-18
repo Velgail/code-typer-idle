@@ -215,3 +215,86 @@ test('foreign or malformed correction references cannot supply arbitrary answers
     { ...valid, cursor: -1 }, { ...valid, cursor: OFFICE_PROMPT_COUNT * 5 }, { ...valid, cursor: 1.5 },
     { ...valid, cursor: NaN }, { ...valid, cursor: undefined }]) assert.equal(ocrErrorFor(invalid), null);
 });
+
+test('switching to fixed-price OCR keeps failing new orders while old higher-price repairs are pending', () => {
+  const ledger = createOCRLedger();
+  recordOCR(ledger, 21, 3);
+  correctOCR(ledger, 35);
+  const oldest = nextOCRError(ledger);
+  assert.equal(ledger.fraction, 1);
+  const result = recordOCR(ledger, 9, 1);
+  assert.deepEqual(result, { errors: 1, cancelled: 100, fee: 20, deduction: 120 });
+  assert.equal(ledger.fixedRate, true);
+  assert.equal(ledger.pending, 3);
+  assert.equal(ledger.pendingReward, 700);
+  assert.equal(ledger.fees, 140);
+  assert.equal(ledger.repairProgress, 35);
+  assert.deepEqual(nextOCRError(ledger), oldest);
+  const loaded = normalizeOCRLedger(JSON.parse(JSON.stringify(ledger)));
+  assert.deepEqual(loaded, ledger);
+  assert.deepEqual(normalizeOCRLedger(JSON.parse(JSON.stringify(loaded))), ledger);
+  assert.deepEqual(correctOCR(loaded, 165), { completed: 2, recovered: 600, workUsed: 165 });
+  assert.equal(nextOCRError(loaded).rate, 1);
+  assert.equal(correctOCR(loaded, 100).recovered, 100);
+  assert.equal(correctOCR(loaded, 100).recovered, 0);
+  assert.equal(loaded.fees, 140);
+});
+
+test('the fixed-rate transition survives saving before a new failed delivery is generated', () => {
+  const ledger = createOCRLedger();
+  recordOCR(ledger, 10, 8);
+  recordOCR(ledger, 2.5, 1);
+  assert.equal(ledger.fixedRate, true);
+  assert.equal(ledger.buckets.length, 1, 'new fraction must not replace the old quote');
+  const loaded = normalizeOCRLedger(JSON.parse(JSON.stringify(ledger)));
+  assert.deepEqual(loaded, ledger);
+  assert.equal(loaded.fraction, 2.5);
+  assert.deepEqual(recordOCR(loaded, 7.5, 1), { errors: 1, cancelled: 100, fee: 20, deduction: 120 });
+  assert.equal(loaded.pendingReward, 900);
+  assert.equal(correctOCR(loaded, 200).recovered, 900);
+});
+
+test('new fixed-rate failures remain correct after the old quote queue has already been cleared', () => {
+  const ledger = createOCRLedger();
+  recordOCR(ledger, 10, 30);
+  assert.equal(correctOCR(ledger, 100).recovered, 3000);
+  assert.equal(ledger.pending, 0);
+  const loaded = normalizeOCRLedger(JSON.parse(JSON.stringify(ledger)));
+  assert.equal(loaded.lastRate, 30);
+  assert.deepEqual(recordOCR(loaded, 10, 1), { errors: 1, cancelled: 100, fee: 20, deduction: 120 });
+  assert.equal(loaded.fixedRate, true);
+  assert.equal(correctOCR(loaded, 100).recovered, 100);
+  assert.equal(loaded.fees, 620);
+});
+
+test('pre-transition ledgers without new bookkeeping fields keep old quotes and accept one reset to 1', () => {
+  const ledger = createOCRLedger();
+  for (const rate of [1, 2, 3, 5, 8, 12, 18, 24, 30]) recordOCR(ledger, 10, rate, { version: 1 });
+  const { lastRate, lastVersion, fixedRate, ...legacy } = ledger;
+  const loaded = normalizeOCRLedger(JSON.parse(JSON.stringify(legacy)));
+  assert.equal(loaded.pending, 9);
+  assert.equal(loaded.lastRate, 30);
+  assert.deepEqual(recordOCR(loaded, 10, 1), { errors: 1, cancelled: 100, fee: 20, deduction: 120 });
+  assert.equal(loaded.buckets.length, 10);
+  assert.equal(loaded.pendingReward, 10400);
+  assert.deepEqual(normalizeOCRLedger(JSON.parse(JSON.stringify(loaded))), loaded);
+  assert.equal(correctOCR(loaded, 1000).recovered, 10400);
+});
+
+test('repeated rate oscillation cannot grow the fixed-price queue or erase its new claims on reload', () => {
+  const ledger = createOCRLedger();
+  recordOCR(ledger, 10, 3);
+  for (let n = 0; n < 1000; n++) {
+    recordOCR(ledger, 10, 1);
+    assert.deepEqual(recordOCR(ledger, 10, 3), { errors: 0, cancelled: 0, fee: 0, deduction: 0 });
+  }
+  assert.equal(ledger.buckets.length, 2);
+  assert.equal(ledger.pending, 1001);
+  assert.equal(ledger.pendingReward, 100300);
+  assert.ok(JSON.stringify(ledger).length < 1000);
+  const loaded = normalizeOCRLedger(JSON.parse(JSON.stringify(ledger)));
+  assert.deepEqual(loaded, ledger);
+  assert.deepEqual(recordOCR(loaded, 10, 2), { errors: 0, cancelled: 0, fee: 0, deduction: 0 });
+  assert.equal(loaded.buckets.length, 2);
+  assert.equal(recordOCR(loaded, 10, 1).errors, 1);
+});

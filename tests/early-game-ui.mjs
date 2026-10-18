@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge } from '../src/core.js';
+import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge, itemCost, SHOP, netRoyaltyRate, unitRate, workRate } from '../src/core.js';
 import { TYPING_REWARD } from '../src/typing.js';
 
 async function open(browser, url, errors, viewport, seed, pausedClock = false) {
@@ -56,6 +56,14 @@ function secondCycleFixtures() {
   // Fund and advance fixtures through the ordinary rules; these are checkpoints,
   // not claims about live typing speed or an optimal purchase sequence.
   const state = createState();
+  const buyWithOCR = (s,id) => {
+    const item=SHOP.find(item=>item.id===id);
+    for(let count=0;s.cash<itemCost(s,item);count++){
+      assert.ok(count<10000,'OCR income must eventually fund the next textbook');
+      tick(s,10);
+    }
+    assert.equal(buy(s,id),true);
+  };
   state.autoEnabled = false;
   for (let count = 0; count < 400; count++) input(state, { mode: 'work' });
   assert.equal(buy(state, 'macro'), true);
@@ -75,7 +83,7 @@ function secondCycleFixtures() {
   }
   assert.ok(release(state));
   assert.equal(state.projectIndex, 1);
-  assert.equal(buy(state, 'book-design'), true);
+  buyWithOCR(state, 'book-design');
   Object.assign(state, { mode: 'study', subject: 'design', inputStyle: 'typing' });
   const start = structuredClone(state), near = structuredClone(state);
   const project = projectAt(1);
@@ -87,7 +95,7 @@ function secondCycleFixtures() {
 
   const ready = structuredClone(state);
   learn(ready, 'syntax', project.req.syntax);
-  assert.equal(buy(ready, 'book-graphics'), true);
+  buyWithOCR(ready, 'book-graphics');
   learn(ready, 'design', project.req.design);
   learn(ready, 'graphics', project.req.graphics);
   const devStroke = s => typingPower(s,'dev') * TYPING_REWARD.character;
@@ -153,6 +161,14 @@ async function verifySecondCycle(browser, url, errors, capture) {
     const published = await snapshot(p);
     assert.equal(published.projectIndex, 2);
     assert.ok(published.catalog.some(title => title.index === 1 && title.royalty > 0));
+    const gameIncome=netRoyaltyRate(published),ocrIncome=unitRate(published,'macro')*workRate(published)*.98;
+    assert.ok(gameIncome>ocrIncome,'the first commercial game must out-earn even fully corrected OCR deliveries');
+    const displayedYen=async locator=>Number((await locator.innerText()).match(/¥([\d,.]+)/)[1].replaceAll(',',''));
+    assert.ok(Math.abs(await displayedYen(p.locator('#royalty'))-gameIncome)<.01,'the game income metric shows actual receipts after store fees');
+    assert.ok(Math.abs(await displayedYen(p.locator('#catalog-list small').first())-gameIncome)<.01,'the latest catalog entry uses the same net income as the wallet metric');
+    const expectedNet=gameIncome+unitRate(published,'macro')*workRate(published)*.88;
+    assert.ok(Math.abs(await displayedYen(p.locator('#net-income'))-expectedNet)<.01,'combined passive income includes game receipts and OCR loss-adjusted income exactly once');
+    if(capture){await p.locator('#royalty').scrollIntoViewIfNeeded();await capture(p,'second-published-income');}
     assert.equal(await p.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
   } finally { await ready.context.close(); }
 }
@@ -220,6 +236,12 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-item'), 'book-syntax');
     assert.equal(await page.locator('#goal-action').isDisabled(), true);
     assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/);
+    await page.locator('[data-shop=auto]').click();
+    const ownedOCR=page.locator('[data-buy=macro]');
+    assert.equal(await ownedOCR.isDisabled(),true,'OCR is a single purchase, not an expandable business');
+    assert.match(await ownedOCR.innerText(),/導入済み/);
+    assert.doesNotMatch(await ownedOCR.locator('..').innerText(),/増設分|Lvごと/);
+    if(capture)await capture(page,'ocr-owned');
     // Advance the clock, not resources: the normal game timer earns the textbook money.
     await page.clock.fastForward(181000);
     const automated = await snapshot(page);
@@ -306,9 +328,10 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     await page.locator('#modal[open]').waitFor();
     const message = await page.locator('#modal-body').innerText();
     assert.match(message, /無料公開/);
-    assert.match(message, /次の依頼は100作業量で\s*¥200/);
+    assert.match(message, /はじめての有料作品へ/);
+    assert.match(message, /設計と描画を学び.*ブロック崩し/);
+    assert.match(message, /ゲームの売上で.*次の制作/);
     assert.match(message, /自作ライブラリと研究ラボが解禁/);
-    assert.match(message, /進行中の案件は受注時の単価で納品/);
     await page.locator('[data-action=next-project]').click();
     await page.locator('[data-mode=work]').click();
     assert.match(await page.locator('#job-payment').innerText(), /¥100/, 'the existing half-finished contract keeps its original payment');

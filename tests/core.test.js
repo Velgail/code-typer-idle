@@ -119,7 +119,7 @@ test('automation runs independently of selected mode; OFF pauses development whi
 });
 test('offline results match foreground simulation and cap at eight hours', () => {
   const now = 1e12, a = createState(now), b = createState(now);
-  a.items.macro = 2; b.items.macro = 2;
+  a.items.macro = 1; b.items.macro = 1;
   tick(a, 3600); applyOffline(b, now + 3600e3);
   assert.equal(a.cash, b.cash); assert.equal(a.day, b.day); assert.equal(a.stats.chars, b.stats.chars);
   const capped = createState(now);
@@ -151,9 +151,9 @@ test('post-AAA and procedural generations keep getting larger without NaN or Inf
   for (const i of SHOP) assert.ok(Number.isFinite(itemCost(huge, i)));
 });
 test('save roundtrips preserve the economy and guard invalid imported values', () => {
-  const s = createState(); s.items.macro = 3; s.skills.design = 77; s.mode = 'study';
+  const s = createState(); s.items.macro = 1; s.skills.design = 77; s.mode = 'study';
   const loaded = deserialize(serialize(s));
-  assert.equal(loaded.skills.design, 77); assert.equal(loaded.items.macro, 3); assert.equal(loaded.mode, 'study');
+  assert.equal(loaded.skills.design, 77); assert.equal(loaded.items.macro, 1); assert.equal(loaded.mode, 'study');
   const malformed = deserialize(JSON.stringify({ ...s, cash: 'Infinity', skills: { syntax: -9 }, items: { keyboard: 1e6 }, projectIndex: -1, dayElapsed: 1e9 }));
   assert.equal(malformed.cash, INITIAL_CASH); assert.equal(malformed.skills.syntax, 0); assert.equal(malformed.items.keyboard, 0); assert.equal(malformed.projectIndex, 0);
   assert.throws(() => deserialize('{'));
@@ -182,17 +182,17 @@ test('a fresh player can fund books and finish the first game without injected r
   assert.ok(result.purchases['book-syntax'] > result.purchases.macro && result.purchases['book-syntax'] <= 3 * 60);
 });
 
-test('the first OCR takes four delivered jobs and its lower entry price does not discount expansions', () => {
+test('the first OCR takes four delivered jobs and is a single purchase rather than an investment ladder', () => {
   const s=createState(),macro=SHOP.find(i=>i.id==='macro');
   input(s,{chars:399});
   assert.equal(s.cash,400);assert.equal(buy(s,'macro'),false);
   input(s,{chars:1});
   assert.equal(s.cash,500);assert.equal(buy(s,'macro'),true);assert.equal(s.cash,0);
-  assert.equal(itemCost(s,macro),3750);
+  assert.equal(macro.max,1);assert.equal(itemCost(s,macro),500);
   tick(s,170);assert.equal(s.cash,1580);assert.equal(s.ocr.pending,1);assert.equal(s.ocr.fees,20);
   assert.equal(buy(s,'book-syntax'),true);assert.equal(s.cash,80);
   assert.equal(s.skills.syntax,0,'automating office work must not grant programming knowledge');
-  s.cash=3750;assert.equal(buy(s,'macro'),true);assert.equal(itemCost(s,macro),9375);
+  s.cash=3750;assert.equal(buy(s,'macro'),false);assert.equal(s.cash,3750);assert.equal(s.items.macro,1);
 });
 
 test('learning goals retain the chosen subject and show progress while another requirement is still zero', () => {
@@ -222,7 +222,7 @@ test('the reduced second project preserves old saves without doubling their defe
   assert.equal(loaded.progress,projectAt(1).target);
   assert.equal(loaded.debt,1500);assert.equal(loaded.defects,200);
   assert.equal(loaded.debt/defectLimit(loaded),old.debt/(18000*.25));
-  assert.deepEqual(loaded.skills,old.skills);assert.equal(loaded.cash,4321);assert.equal(loaded.items.macro,2);
+  assert.deepEqual(loaded.skills,old.skills);assert.equal(loaded.cash,8071);assert.equal(loaded.items.macro,1);
   assert.equal(loaded.debtSources.temporary,1000);assert.equal(loaded.debtSources.coupling,500);
   assert.equal(Object.values(loaded.debtSources).reduce((sum,n)=>sum+n,0),1500);
   assert.equal(loaded.build.knownDefects,200);assert.equal(loaded.build.count,6);
@@ -336,22 +336,21 @@ test('the first local macro pays routine jobs and deducts rejected submissions w
   assert.equal(s.ocr.pending,18);assert.equal(s.ocr.pendingReward,1800);assert.equal(s.ocr.fees,360);
   assert.equal(operatingCost(s),0);assert.equal(s.stats.serverFees,0);
   assert.equal(netIncome(s), 8.8);
-  s.items.macro = 2;
-  assert.equal(unitRate(s, 'macro'), 10.125);
-  s.items.macro = 3;
-  assert.equal(unitRate(s, 'macro'), 10.3125);
+  s.items.macro = 2;assert.equal(unitRate(s,'macro'),10,'invalid extra levels cannot accelerate OCR');
+  s.items.macro = 800;assert.equal(unitRate(s,'macro'),10);
+  s.items.macro = 1;s.assets=16;assert.equal(unitRate(s,'macro'),30,'assets still improve the single installed tool');
 });
-test('the OCR upgrade preserves saved funds, purchased levels and partly completed invoices', () => {
+test('the OCR upgrade refunds removed expansions and preserves partly completed manual invoices', () => {
   const s = createState(); s.balanceVersion = 8; s.cash = 4321; s.items.macro = 2; s.job = { progress: 37, rate: 1 };
   const loaded = deserialize(serialize(s));
-  assert.equal(loaded.cash, 4321); assert.equal(loaded.items.macro, 2);
+  assert.equal(loaded.cash, 8071); assert.equal(loaded.items.macro, 1);
   assert.deepEqual(loaded.job, { progress: 37, rate: 1 });
-  assert.equal(unitRate(loaded, 'macro'), 10.125);
+  assert.equal(unitRate(loaded, 'macro'), 10);
   tick(loaded, 4);
-  assert.equal(loaded.cash, 4321); assert.equal(loaded.job.progress, 37);
-  assert.equal(loaded.ocrJob.progress,40.5);assert.equal(loaded.ocr.failures,0);
-  input(loaded,{mode:'work',chars:63});assert.equal(loaded.cash,4421);
-  assert.equal(loaded.ocrJob.progress,40.5,'manual invoices cannot advance the automatic queue');
+  assert.equal(loaded.cash, 8071); assert.equal(loaded.job.progress, 37);
+  assert.equal(loaded.ocrJob.progress,40);assert.equal(loaded.ocr.failures,0);
+  input(loaded,{mode:'work',chars:63});assert.equal(loaded.cash,8171);
+  assert.equal(loaded.ocrJob.progress,40,'manual invoices cannot advance the automatic queue');
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';
@@ -483,9 +482,9 @@ test('a completed work order pays its accepted quote and carries progress across
   s.projectIndex = 1;
   input(s, { mode: 'study', chars: 1 });
   const loaded = deserialize(serialize(s));
-  assert.equal(input(loaded, { mode: 'work', chars: 251 }).amount, 500);
-  assert.equal(loaded.job.progress, 50); assert.equal(loaded.job.rate, 2);
-  assert.equal(loaded.stats.jobs, 3); assert.equal(loaded.cash, 600);
+  assert.equal(input(loaded, { mode: 'work', chars: 251 }).amount, 300);
+  assert.equal(loaded.job.progress, 50); assert.equal(loaded.job.rate, 1);
+  assert.equal(loaded.stats.jobs, 3); assert.equal(loaded.cash, 400);
 });
 
 test('legacy calendar migration preserves day fraction without backdating new expenses', () => {

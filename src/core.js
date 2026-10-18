@@ -6,7 +6,7 @@ import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalize
 import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMISSION_FEE, OCR_ERROR_INTERVAL } from './officequality.js';
 export { needsBuild } from './builds.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 12;
+export const BALANCE_VERSION = 13;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
 export const TYPING_AUTOMATION_SHARE = .5;
@@ -35,8 +35,8 @@ export const SKILLS = [
 ];
 export const PROJECTS = [
   { name: '小さな数当てゲーム', genre: 'CONSOLE / FIRST BUILD', target: 3000, req: { syntax: 12 }, payout: 0, royalty: 0, desc: '最初の一本。売上はゼロ。でも、完成させた経験は残る。', icon: '01' },
-  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 9000, req: { syntax: 24, design: 8, graphics: 8 }, payout: 35000, royalty: 2, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
-  { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 20, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
+  { name: 'ネオン・ブロック崩し', genre: 'ARCADE / 2D', target: 9000, req: { syntax: 24, design: 8, graphics: 8 }, payout: 35000, royalty: 40, desc: '反射角を覚えたら、少しだけゲーム開発者らしくなった。', icon: '02' },
+  { name: '雨のダンジョン', genre: 'ROGUELIKE / INDIE', target: 200000, req: { syntax: 160, design: 120, graphics: 100 }, payout: 200000, royalty: 80, desc: '毎回変わる迷宮。生活を支える、最初のインディー作品。', icon: '03' },
   { name: '軌道上の街', genre: 'SIMULATION / 3D', target: 2500000, req: { syntax: 550, design: 700, graphics: 600, systems: 300 }, payout: 3e6, royalty: 200, desc: '街も、住民も、フレームレートも、あなたの責任。', icon: '04' },
   { name: 'NO MAN’S DEADLINE', genre: 'OPEN WORLD / AAA', target: 6.2e8, req: { syntax: 3000, design: 5000, graphics: 4500, systems: 4000 }, payout: 3e7, royalty: 2000, desc: '1,550万行相当の世界を作る。エンドロールの後にも、仕事はある。', icon: '05' },
   { name: '永続するオンライン宇宙', genre: 'LIVE SERVICE / PLANET SCALE', online: true, serverDaily: 3e6, target: 1e10, req: { syntax: 20000, design: 35000, graphics: 26000, systems: 40000 }, payout: 3e9, royalty: 150000, desc: '全プレイヤーが同じ宇宙にいる。障害対応も同じ宇宙で起きる。', icon: '06' },
@@ -56,7 +56,7 @@ export const SHOP = [
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
   { id: 'kitchen', tab: 'gear', name: 'サーバー運用の最適化', desc: '公開中のオンライン作品のサーバー代を25%削減', base: 3000, growth: 1, max: 1, type: 'gear', glyph: 'server', gate: 5 },
-  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '導入時10作業量/秒。増設分のみLvごと ×1.5。誤読率10%。誤納品は報酬取消と依頼元への再提出手数料20%。訂正で報酬を回収', initial: 500, base: 1500, growth: 2.5, type: 'auto', glyph: 'terminal', gate: 0 },
+  { id: 'macro', tab: 'auto', name: '伝票OCR・入力マクロ', desc: '買い切りで10作業量/秒。誤読率10%。誤納品は報酬取消と依頼元への再提出手数料20%。訂正で報酬を回収', base: 500, growth: 1, max: 1, type: 'auto', glyph: 'terminal', gate: 0 },
   { id: 'library', tab: 'auto', name: '自作ライブラリ', desc: '開発 +2文字/秒。各Lvで ×1.6', base: 8000, growth: 3, type: 'auto', glyph: 'layers', gate: 1 },
   { id: 'assistant', tab: 'auto', name: 'AIコーディング補助', desc: '開発 +8文字/秒。各Lvで ×1.7。要レビュー', base: 40000, growth: 3, type: 'auto', glyph: 'spark', gate: 1 },
   { id: 'engineer', tab: 'auto', name: '開発チーム', desc: '開発 +80文字/秒。各Lvで ×1.8', base: 250000, growth: 3, type: 'auto', glyph: 'users', gate: 2 },
@@ -82,7 +82,8 @@ export const metaBonus = s => 1 + Math.sqrt(s.assets) * 0.5;
 export const serverCost = (s, title) => title.online && title.active !== false ? bounded((title.serverDaily || 0) * (level(s, 'kitchen') ? 0.75 : 1)) : 0;
 export const operatingCost = s => bounded(s.catalog.reduce((total, title) => total + serverCost(s, title), 0));
 export const dailyBillEstimate = s => s.dailyAccrued + operatingCost(s) * (DAY - s.dayElapsed) / DAY;
-export const workRate = s => [1, 2, 3, 5, 8, 12, 18, 24, 30][Math.min(8, s.projectIndex)];
+// Routine data entry keeps its contract price; game releases grow game sales.
+export const workRate = () => 1;
 export const handPower = s => bounded((1 + level(s, 'keyboard') * 0.25) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
 export const skillKnowledge = (s,id) => Math.max(0,s.skills[id]-(s.studyGaps?.[id] || 0));
 export function knowledgeRatio(s) {
@@ -200,11 +201,9 @@ export function setPublicationActive(s, index, active) {
 export function unitRate(s, id) {
   const l = level(s, id);
   if (!l) return 0;
-  const config = { macro: [0.25, 1.5], library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [3500, 2] }[id];
-  // The local OCR can handle routine work as soon as it is installed. Its
-  // startup capacity stays fixed; only the existing expansion term compounds.
-  const startup = id === 'macro' ? OCR_BASE_RATE - config[0] : 0;
-  return bounded((startup + config[0] * Math.pow(config[1], Math.min(800, l - 1))) * metaBonus(s));
+  if (id === 'macro') return bounded(OCR_BASE_RATE * metaBonus(s));
+  const config = { library: [2, 1.6], assistant: [8, 1.7], engineer: [80, 1.8], lab: [8, 1.8], cluster: [3500, 2] }[id];
+  return bounded(config[0] * Math.pow(config[1], Math.min(800, l - 1)) * metaBonus(s));
 }
 export const devCapacity = s => bounded(['library', 'assistant', 'engineer', 'cluster'].reduce((sum, id) => sum + unitRate(s, id), 0));
 export const devRate = s => s.autoEnabled ? devCapacity(s) : 0;
@@ -521,6 +520,12 @@ export function deserialize(raw) {
   for (const k of Object.keys(s.stats)) s.stats[k] = num(x.stats?.[k]);
   for (const k of Object.keys(s.skills)) {s.skills[k] = num(x.skills?.[k]);s.studyGaps[k]=num(x.studyGaps?.[k],0,0,s.skills[k]);}
   for (const item of SHOP) s.items[item.id] = Math.floor(num(x.items?.[item.id], 0, 0, item.max || 800));
+  const legacyMacroLevel = Math.floor(num(x.items?.macro, 0, 0, 800));
+  s.items.macro = Math.min(1, legacyMacroLevel);
+  // Expansions cost 1500 * 2.5^level before OCR became a single purchase.
+  // Refund only removed expansions, once; keep existing contract quotes intact.
+  const macroRefund = !(x.balanceVersion >= 13) && legacyMacroLevel > 1 ? bounded(2500 * (Math.pow(2.5, legacyMacroLevel - 1) - 1)) : 0;
+  if (macroRefund) s.cash = Math.min(LIMIT, s.cash + macroRefund);
   if (['work', 'study', 'dev'].includes(x.mode)) s.mode = x.mode;
   if (SKILLS.some(k => k.id === x.subject)) s.subject = x.subject;
   if (['click', 'typing'].includes(x.inputStyle)) s.inputStyle = x.inputStyle;
@@ -566,10 +571,13 @@ export function deserialize(raw) {
   s.achievements = ACHIEVEMENTS.filter(a => x.achievements?.includes?.(a.id)).map(a => a.id);
   s.catalog = Array.isArray(x.catalog) ? x.catalog.slice(-100).filter(p => typeof p?.name === 'string').map(p => {
     const index = p.archived ? -1 : num(p.index, 0, 0, 1e6), project = p.archived ? null : projectAt(index);
-    return { name: p.name.slice(0, 100), royalty: num(p.royalty), quality: num(p.quality, 80, 0, 100), payout: num(p.payout), grossPayout: num(p.grossPayout, num(p.payout)), salesFee: num(p.salesFee), index, archived: !!p.archived, online: project ? !!project.online : !!p.online, serverDaily: project ? project.serverDaily || 0 : num(p.serverDaily), active: p.active !== false, builds: Math.floor(num(p.builds)), productionCosts: num(p.productionCosts), services: PRODUCTION_SERVICES.filter(service=>Array.isArray(p.services) && p.services.includes(service.id)).map(service=>service.id), technicalDebt: num(p.technicalDebt), defects: num(p.defects), reviewedAt: Math.min(s.stats.time,num(p.reviewedAt,s.stats.time)) };
+    const legacyRoyalty = {1: 2, 2: 20}[index];
+    const royalty = !(x.balanceVersion >= 13) && !p.archived && legacyRoyalty ? bounded(num(p.royalty) * project.royalty / legacyRoyalty) : num(p.royalty);
+    return { name: p.name.slice(0, 100), royalty, quality: num(p.quality, 80, 0, 100), payout: num(p.payout), grossPayout: num(p.grossPayout, num(p.payout)), salesFee: num(p.salesFee), index, archived: !!p.archived, online: project ? !!project.online : !!p.online, serverDaily: project ? project.serverDaily || 0 : num(p.serverDaily), active: p.active !== false, builds: Math.floor(num(p.builds)), productionCosts: num(p.productionCosts), services: PRODUCTION_SERVICES.filter(service=>Array.isArray(p.services) && p.services.includes(service.id)).map(service=>service.id), technicalDebt: num(p.technicalDebt), defects: num(p.defects), reviewedAt: Math.min(s.stats.time,num(p.reviewedAt,s.stats.time)) };
   }) : [];
   // Log messages are rebuilt instead of trusting imported HTML or metadata.
   s.log = [{ text: 'セーブデータを読み込みました。', kind: 'info', day: s.day }];
+  if (macroRefund) log(s, `OCRの購入済み増設分 ¥${macroRefund.toLocaleString('en-US')}を返金しました。`, 'success');
   if(!(x.balanceVersion>=8) && s.defects)log(s,'以前の負債は、不具合の修正作業として引き継ぎました。技術的負債は未整理の構造を別に記録します。');
   if (x.balanceVersion < 6) log(s, '旧事務所の積立を所持金に戻し、未精算の旧費用を取り消しました。');
   return s;

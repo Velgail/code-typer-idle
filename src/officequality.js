@@ -22,7 +22,7 @@ const noRecord = () => ({ errors: 0, cancelled: 0, fee: 0, deduction: 0 });
 const noCorrection = () => ({ completed: 0, recovered: 0, workUsed: 0 });
 
 export function createOCRLedger() {
-  return { version: 1, fraction: 0, cursor: 0, repairProgress: 0, buckets: [], pending: 0, pendingReward: 0, failures: 0, corrected: 0, fees: 0 };
+  return { version: 1, fraction: 0, cursor: 0, repairProgress: 0, buckets: [], pending: 0, pendingReward: 0, failures: 0, corrected: 0, fees: 0, lastRate: 0, lastVersion: 0, fixedRate: false };
 }
 
 function summarize(ledger) {
@@ -45,21 +45,33 @@ export function normalizeOCRLedger(raw) {
   ledger.failures = Math.floor(amount(raw.failures));
   ledger.corrected = Math.floor(amount(raw.corrected));
   ledger.fees = amount(raw.fees);
-  // Normal play needs at most nine rate buckets (plus a data-version boundary).
+  // Old saves can contain nine increasing rates, followed once by the new
+  // fixed rate of 1. Paper-version boundaries do not require per-order storage.
   // Bound imported arrays as well, so neither saves nor repair loops can grow
   // with the number of invoices processed during a long offline interval.
+  let switchedToFixedRate = false;
   if (Array.isArray(raw.buckets)) for (const item of raw.buckets.slice(0, MAX_BUCKETS)) {
     if (!item || typeof item !== 'object') continue;
     const count = Math.floor(amount(item.count));
     const rate = ACCEPTED_RATES.includes(item.rate) ? item.rate : 0;
     if (!count || !rate) continue;
     const version = dataVersion(item.version), last = ledger.buckets.at(-1);
-    // Project rates and paper versions advance independently, but neither can
-    // run backwards. This also makes a malformed imported queue harmless.
-    if (last && (rate < last.rate || version < last.version)) continue;
+    // A single downward transition to 1 preserves pre-update quotations and
+    // lets current jobs keep producing errors while old repairs are pending.
+    if (last && version < last.version) continue;
+    if (switchedToFixedRate && rate !== 1) continue;
+    if (last && rate < last.rate) {
+      if (rate !== 1) continue;
+      switchedToFixedRate = true;
+    }
     if (last && rate === last.rate && version === last.version) last.count = add(last.count, count);
     else ledger.buckets.push({ count, rate, version, cursor: cursorAt(item.cursor) });
   }
+  ledger.fixedRate = raw.fixedRate === true || switchedToFixedRate;
+  const quotedRate = ledger.buckets.at(-1)?.rate || 0;
+  ledger.lastRate = ledger.fixedRate ? 1 : Math.max(quotedRate, ACCEPTED_RATES.includes(raw.lastRate) ? raw.lastRate : 0);
+  const quotedVersion = ledger.buckets.at(-1)?.version || 0;
+  ledger.lastVersion = Math.max(quotedVersion, Number.isInteger(raw.lastVersion) && raw.lastVersion >= 1 && raw.lastVersion <= OFFICE_DATA_VERSION ? raw.lastVersion : 0);
   return summarize(ledger);
 }
 
@@ -69,15 +81,22 @@ export function recordOCR(ledger, equivalentOrders, acceptedRate, { version = OF
   const equivalent = amount(equivalentOrders);
   if (!equivalent || !ACCEPTED_RATES.includes(acceptedRate)) return noRecord();
   const invoiceVersion = dataVersion(version), last = ledger.buckets.at(-1);
-  if (last && (acceptedRate < last.rate || invoiceVersion < last.version)) return noRecord();
+  const lastRate = ledger.lastRate || last?.rate || 0, lastVersion = ledger.lastVersion || last?.version || 0;
+  if (invoiceVersion < lastVersion || ledger.fixedRate && acceptedRate !== 1) return noRecord();
+  if (acceptedRate < lastRate) {
+    if (acceptedRate !== 1) return noRecord();
+    ledger.fixedRate = true;
+  }
+  ledger.lastRate = acceptedRate;
+  ledger.lastVersion = invoiceVersion;
   const total = add(ledger.fraction, equivalent);
   const errors = Math.floor((total + EPSILON) / OCR_ERROR_INTERVAL);
   ledger.fraction = remainder(total - errors * OCR_ERROR_INTERVAL);
   if (!errors) return noRecord();
   if (last && last.rate === acceptedRate && last.version === invoiceVersion) last.count = add(last.count, errors);
   else {
-    // Nine rates and monotonically increasing source versions bound the queue
-    // independently of the number of orders or the offline duration.
+    // Nine old rates, one transition to the fixed rate, and monotonically
+    // increasing source versions bound the queue independently of order count.
     ledger.buckets.push({ count: errors, rate: acceptedRate, version: invoiceVersion, cursor: ledger.cursor });
   }
   ledger.cursor = cursorAt(ledger.cursor + errors % CURSOR_PERIOD);

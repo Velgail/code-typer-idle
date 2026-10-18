@@ -14,8 +14,14 @@ const share = (manual, auto) => manual / (manual + auto);
 function fundedAndFinite(result) {
   assert.equal(result.reached, 5, 'AAA must remain reachable without resource injection');
   assert.ok(result.minimumCash >= -1e-6, 'OCR fees and purchases must be funded without business borrowing');
-  for (const key of ['activeSeconds', 'manualInputs', 'minimumCash', 'outsourcingSpend']) assert.ok(Number.isFinite(result[key]), key);
-  for (const stage of result.stages) for (const [key, value] of Object.entries(stage.output)) assert.ok(Number.isFinite(value) && value >= 0, key);
+  assert.equal(result.itemLevels.macro, 1, 'OCR must remain one bought machine, including opportunistic purchase policies');
+  const incomeTotal = result.stages.reduce((sum, { income }) => sum + income.manualJobs + income.ocrNet + income.gameRoyalties + income.launchPayout, 0);
+  assert.ok(Math.abs(result.earned - incomeTotal) <= Math.max(1, result.earned) * 1e-8, 'Recorded income sources must reconcile with actual earned money');
+  for (const key of ['activeSeconds', 'manualInputs', 'minimumCash', 'earned', 'outsourcingSpend']) assert.ok(Number.isFinite(result[key]), key);
+  for (const stage of result.stages) {
+    for (const [key, value] of Object.entries(stage.output)) assert.ok(Number.isFinite(value) && value >= 0, key);
+    for (const [key, value] of Object.entries(stage.income)) assert.ok(Number.isFinite(value), key);
+  }
 }
 
 for (const scenario of [...SCENARIOS, TYPING_WITH_READING]) test(`first AAA pacing: ${scenario.name}`, () => {
@@ -34,6 +40,21 @@ for (const scenario of [...SCENARIOS, TYPING_WITH_READING]) test(`first AAA paci
     assert.equal(Object.values(stage.modeSeconds).reduce((sum, value) => sum + value, 0), stage.activeSeconds);
     assert.equal(stage.activeSeconds + stage.inactiveSeconds, stage.elapsedSeconds);
     assert.ok(stage.correctionSeconds <= stage.modeSeconds.work);
+    const income = stage.income, rates = stage.incomeRates;
+    const expectedOCR = income.ocrGross - income.ocrCancelled - income.ocrFees + income.ocrRecovered;
+    assert.ok(Math.abs(income.ocrNet - expectedOCR) <= Math.max(1, income.ocrGross) * 1e-9, 'OCR net must include all cancellations, fees, and recovered payments');
+    assert.equal(income.ocrRecovered, output.manualOCRRecovered);
+    assert.equal(income.ocrCancelled, output.autoOCRCancelled);
+    assert.equal(income.ocrFees, output.autoOCRFees);
+    assert.ok(Math.abs(income.gameRoyalties - rates.gameRoyalties * stage.elapsedSeconds) < Math.max(1, income.gameRoyalties) * 1e-8, 'Game recurring income must exclude one-time launch payouts');
+    if (index < 2) assert.equal(income.gameRoyalties, 0, 'The free first game must not create sales');
+    if (index >= 2) {
+      assert.ok(rates.gameRoyalties > rates.ocrFullyCorrected, 'After the first paid game, game sales must beat OCR even if every rejection is corrected');
+      assert.ok(income.gameRoyalties > income.ocrNet, 'Actually received game recurring income must beat OCR after the first paid game');
+      const gameShare = income.gameRoyalties / (income.gameRoyalties + income.ocrNet);
+      if (index >= 3) assert.ok(gameShare >= .8, 'After the indie release, own games must supply at least 80% of recurring income');
+      if (index >= 4) assert.ok(gameShare >= .9, 'After the 3D release, OCR must be a small supplement to game income');
+    }
     assert.ok(output.manualConfirmedRequiredProgress + output.autoConfirmedRequiredProgress <= 1 + 1e-8);
     const completed = output.manualDevelopmentCharacters + output.autoDevelopmentCharacters;
     assert.ok(Math.abs(completed - projectAt(index).target) / projectAt(index).target < 1e-10);
