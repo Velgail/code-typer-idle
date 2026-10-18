@@ -12,7 +12,7 @@ import { estimatePlan, amendPlan } from './planning.js';
 import { PLANNING_CATALOG, PLANNING_EXAMPLES } from './planningcatalog.js';
 import { createPlannerState, activePlanningProject, planningRuntime, projectFromPlanning, verifiedFoundations, learnPlanning, normalizePlannerState, ASSET_WORK_CHARACTERS } from './plannerstate.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 17;
+export const BALANCE_VERSION = 18;
 export const MAX_SAVE_BYTES = 8 * 1024 * 1024;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
