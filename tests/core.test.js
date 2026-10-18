@@ -112,10 +112,10 @@ test('bankruptcy from an unpaid server bill is recoverable after stopping public
 });
 test('automation runs independently of selected mode; OFF pauses development while the lab keeps studying', () => {
   const s = createState(); understand(s); s.mode = 'study'; s.items.macro = 1; s.items.library = 1; s.items.lab = 1; s.items['book-syntax'] = 1;
-  tick(s, 2); assert.equal(s.job.progress, 20); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
+  tick(s, 2); assert.equal(s.ocrJob.progress, 20); assert.ok(s.progress > 0); assert.ok(s.skills.syntax > 12);
   s.autoEnabled = false;
-  const progress = s.progress, knowledge = s.skills.syntax, work = s.job.progress;
-  tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.job.progress > work);
+  const progress = s.progress, knowledge = s.skills.syntax, work = s.ocrJob.progress;
+  tick(s, 2); assert.equal(s.progress, progress); assert.ok(s.skills.syntax > knowledge); assert.ok(s.ocrJob.progress > work);
 });
 test('offline results match foreground simulation and cap at eight hours', () => {
   const now = 1e12, a = createState(now), b = createState(now);
@@ -189,8 +189,8 @@ test('the first OCR takes four delivered jobs and its lower entry price does not
   input(s,{chars:1});
   assert.equal(s.cash,500);assert.equal(buy(s,'macro'),true);assert.equal(s.cash,0);
   assert.equal(itemCost(s,macro),3750);
-  tick(s,150);assert.equal(s.cash,1500);
-  assert.equal(buy(s,'book-syntax'),true);assert.equal(s.cash,0);
+  tick(s,170);assert.equal(s.cash,1580);assert.equal(s.ocr.pending,1);assert.equal(s.ocr.fees,20);
+  assert.equal(buy(s,'book-syntax'),true);assert.equal(s.cash,80);
   assert.equal(s.skills.syntax,0,'automating office work must not grant programming knowledge');
   s.cash=3750;assert.equal(buy(s,'macro'),true);assert.equal(itemCost(s,macro),9375);
 });
@@ -306,7 +306,7 @@ test('pre-foundation-update saves retain every learned knowledge value', () => {
     assert.equal(loaded.items['book-syntax'], 1); assert.equal(loaded.balanceVersion, BALANCE_VERSION);
   }
 });
-test('the first C++ syntax sequence reaches the first project in at most eleven complete prompts', () => {
+test('the first C++ syntax sequence reaches the first project within two complete prompts', () => {
   for (const useTab of [false, true]) {
     const s = createState(); s.mode = 'study'; s.inputStyle = 'typing'; s.items['book-syntax'] = 1;
     let prompts = 0, physicalKeys = 0;
@@ -324,16 +324,18 @@ test('the first C++ syntax sequence reaches the first project in at most eleven 
         }
       }
     }
-    assert.ok(s.skills.syntax >= 12); assert.ok(prompts <= 11);
-    assert.ok(physicalKeys >= 2000 && physicalKeys <= 3000);
+    assert.ok(s.skills.syntax >= 12); assert.ok(prompts <= 2);
+    assert.ok(physicalKeys >= 450 && physicalKeys <= 600);
   }
 });
-test('the first local macro earns its work income without an unrelated daily charge', () => {
+test('the first local macro pays routine jobs and deducts rejected submissions without unrelated daily charges', () => {
   const s = createState(); s.items.macro = 1;
   assert.equal(unitRate(s, 'macro'), 10);
   const cash = s.cash; tick(s, 1800);
-  assert.equal(s.cash - cash, 18000); assert.equal(s.job.progress, 0);
-  assert.equal(netIncome(s), 10);
+  assert.equal(s.cash - cash, 15840); assert.equal(s.job.progress, 0); assert.equal(s.ocrJob.progress,0);
+  assert.equal(s.ocr.pending,18);assert.equal(s.ocr.pendingReward,1800);assert.equal(s.ocr.fees,360);
+  assert.equal(operatingCost(s),0);assert.equal(s.stats.serverFees,0);
+  assert.equal(netIncome(s), 8.8);
   s.items.macro = 2;
   assert.equal(unitRate(s, 'macro'), 10.125);
   s.items.macro = 3;
@@ -346,7 +348,10 @@ test('the OCR upgrade preserves saved funds, purchased levels and partly complet
   assert.deepEqual(loaded.job, { progress: 37, rate: 1 });
   assert.equal(unitRate(loaded, 'macro'), 10.125);
   tick(loaded, 4);
-  assert.equal(loaded.cash, 4321); assert.equal(loaded.job.progress, 77.5);
+  assert.equal(loaded.cash, 4321); assert.equal(loaded.job.progress, 37);
+  assert.equal(loaded.ocrJob.progress,40.5);assert.equal(loaded.ocr.failures,0);
+  input(loaded,{mode:'work',chars:63});assert.equal(loaded.cash,4421);
+  assert.equal(loaded.ocrJob.progress,40.5,'manual invoices cannot advance the automatic queue');
 });
 test('research redirects to missing subjects while manual study remains selectable', () => {
   const s = createState(); s.projectIndex = 1; s.skills.syntax = 50; s.items.lab = 1; s.subject = 'syntax';

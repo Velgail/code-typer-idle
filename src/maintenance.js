@@ -8,13 +8,14 @@ export const DEBT_CAUSES = [
   {id:'temporary',name:'仮実装・重複処理',description:'ひとまず動かした分岐や、コピーして増やした処理。'},
   {id:'coupling',name:'継ぎ足した構造',description:'既存の処理へ接ぎ足し、変更の影響を追いにくくなった部分。'},
   {id:'verification',name:'確認を先送りした仕様',description:'想定した仕様と実際の動作を、まだ照合していない部分。'},
+  {id:'generated',name:'自動生成の未整理部分',description:'生成したコードの責務・重複・仕様を、まだ人が整理していない部分。'},
   {id:'reuse',name:'流用コードの未整理部分',description:'既存の共通コードとともに引き継いだ整理作業。'}
 ];
 export const emptyDebtSources=()=>Object.fromEntries(DEBT_CAUSES.map(c=>[c.id,0]));
 export const developmentPolicy=s=>DEVELOPMENT_POLICIES.find(p=>p.id===s.developmentPolicy) || DEVELOPMENT_POLICIES[0];
 // Early experience leaves more accidental coupling, even when the program works.
 // Knowledge and completed projects improve this habit without making it perfect.
-export const unnoticedDebtMultiplier=s=>.4+.6/(1+Math.sqrt(s.skills.design/40)+s.stats.releases*.15);
+export const unnoticedDebtMultiplier=s=>.4+.6/(1+Math.sqrt(Math.max(0,s.skills.design-(s.studyGaps?.design || 0))/40)+s.stats.releases*.15);
 export const changeDefectRate=(s,limit)=>developmentPolicy(s).defects+.06*Math.min(2,s.debt/limit)**1.3;
 export function debtBreakdown(s){
   const entries=DEBT_CAUSES.map(c=>({...c,amount:Math.max(0,Math.min(s.debt,s.debtSources?.[c.id] || 0))}));

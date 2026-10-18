@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import * as game from '../src/core.js';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 import { OFFICE_PROMPT_COUNT, officeOrderAt } from '../src/office.js';
+import { nextOCRError } from '../src/officequality.js';
 
 export const SCENARIOS = [
   { id: 'click', name: 'クリック 8回/秒・連続', rate: 8, yield: 1, returning: false },
@@ -16,10 +17,11 @@ const items = Object.fromEntries(game.SHOP.map(item => [item.id, item]));
 
 // A sensitivity model, not measured player performance. Raw rate counts character
 // attempts; correctionSeconds is additional time per wrong character, excluding
-// the original wrong keystroke. Office reading is amortized over all 256 invoices.
+// the original wrong keystroke. Entry reading uses all 256 invoices; correction
+// reading uses the current field length, so short answers still pay for inspection.
 // Code reading and prompt switching take zero time. Completion bonuses remain
 // amortized immediately, so unfinished prompts are still an optimistic assumption.
-export function manualInputModel(scenario, mode) {
+export function manualInputModel(scenario, mode, { workLength = MEAN_OFFICE_LENGTH } = {}) {
   const rate = scenario.rate;
   if (!Number.isFinite(rate) || rate <= 0) throw new RangeError('Input rate must be positive and finite');
   if (!scenario.typing) {
@@ -29,8 +31,8 @@ export function manualInputModel(scenario, mode) {
   }
   const accuracy = scenario.accuracy ?? 1, correctionSeconds = scenario.correctionSeconds ?? 0;
   const officeReadingSeconds = scenario.officeReadingSeconds ?? 0;
-  if (!Number.isFinite(accuracy) || accuracy <= 0 || accuracy > 1 || !Number.isFinite(correctionSeconds) || correctionSeconds < 0 || !Number.isFinite(officeReadingSeconds) || officeReadingSeconds < 0) throw new RangeError('Invalid typing benchmark assumptions');
-  const reading = mode === 'work' ? officeReadingSeconds / MEAN_OFFICE_LENGTH : 0;
+  if (!Number.isFinite(accuracy) || accuracy <= 0 || accuracy > 1 || !Number.isFinite(correctionSeconds) || correctionSeconds < 0 || !Number.isFinite(officeReadingSeconds) || officeReadingSeconds < 0 || !Number.isFinite(workLength) || workLength <= 0) throw new RangeError('Invalid typing benchmark assumptions');
+  const reading = mode === 'work' ? officeReadingSeconds / workLength : 0;
   const correctRate = 1 / (1 / (rate * accuracy) + (1 - accuracy) / accuracy * correctionSeconds + reading);
   const multiplier = TYPING_REWARD.character + typingCompletionMultiplier(mode) * accuracy ** 2;
   return { correctRate, attemptRate: correctRate / accuracy, multiplier, unitsPerSecond: correctRate * multiplier };
@@ -52,7 +54,27 @@ export function purchasePlan(state, need) {
 }
 
 const emptyModeSeconds = () => ({ work: 0, study: 0, development: 0, review: 0 });
-const newStage = (index, startSeconds) => ({ index, name: game.projectAt(index).name, startSeconds, elapsedSeconds: 0, activeSeconds: 0, inactiveSeconds: 0, modeSeconds: emptyModeSeconds(), output: { manualStudyUnits: 0, autoStudyUnits: 0, manualDevelopmentCharacters: 0, autoDevelopmentCharacters: 0 } });
+const newStage = (index, startSeconds) => ({ index, name: game.projectAt(index).name, startSeconds, elapsedSeconds: 0, activeSeconds: 0, inactiveSeconds: 0, correctionSeconds: 0, modeSeconds: emptyModeSeconds(), output: { manualStudyUnits: 0, autoStudyUnits: 0, manualConfirmedKnowledge: 0, autoConfirmedKnowledge: 0, manualConfirmedRequiredProgress: 0, autoConfirmedRequiredProgress: 0, manualDevelopmentCharacters: 0, autoDevelopmentCharacters: 0, manualDebtAdded: 0, autoDebtAdded: 0, manualDefectsIntroduced: 0, autoDefectsIntroduced: 0, manualOCRRecovered: 0, autoOCRCancelled: 0, autoOCRFees: 0, autoOCRFailures: 0 } });
+const confirmedKnowledge = state => game.SKILLS.reduce((sum, skill) => sum + game.skillKnowledge(state, skill.id), 0);
+const requiredKnowledgeProgress = state => {
+  const requirements = Object.entries(game.projectAt(state.projectIndex).req);
+  return requirements.reduce((sum, [id, required]) => sum + Math.min(1, game.skillKnowledge(state, id) / required), 0) / requirements.length;
+};
+const snapshot = state => ({ study: state.stats.study, valid: state.stats.valid, confirmed: confirmedKnowledge(state), required: requiredKnowledgeProgress(state), debt: state.debt, defects: state.defects, ocrPendingReward: state.ocr.pendingReward, ocrFees: state.ocr.fees, ocrFailures: state.ocr.failures });
+const recordOutput = (state, stage, source, before) => {
+  const after = snapshot(state), output = stage.output;
+  output[`${source}StudyUnits`] += after.study - before.study;
+  output[`${source}ConfirmedKnowledge`] += Math.max(0, after.confirmed - before.confirmed);
+  output[`${source}ConfirmedRequiredProgress`] += Math.max(0, after.required - before.required);
+  output[`${source}DevelopmentCharacters`] += after.valid - before.valid;
+  output[`${source}DebtAdded`] += Math.max(0, after.debt - before.debt);
+  output[`${source}DefectsIntroduced`] += Math.max(0, after.defects - before.defects);
+  if (source === 'auto') {
+    output.autoOCRCancelled += after.ocrPendingReward - before.ocrPendingReward;
+    output.autoOCRFees += after.ocrFees - before.ocrFees;
+    output.autoOCRFailures += after.ocrFailures - before.ocrFailures;
+  }
+};
 
 export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportunistic = false, policy = 'steady', maintenance = true, reuse = true, outsource = false } = {}) {
   const state = game.createState(0);
@@ -61,7 +83,8 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
   const inputModels = Object.fromEntries(['work', 'study', 'dev'].map(mode => [mode, manualInputModel(scenario, mode)]));
   let nextDecision = 0, activeSeconds = 0, manualInputs = 0, minimumCash = state.cash;
   const purchases = {};
-  const invest = id => state.cash - game.itemCost(state, items[id]) >= game.dailyBillEstimate(state) && game.buy(state, id);
+  const reserve = () => game.dailyBillEstimate(state) + game.ocrReserve(state);
+  const invest = id => state.cash - game.itemCost(state, items[id]) >= reserve() && game.buy(state, id);
   for (let time = 0; time < horizon && state.projectIndex < stopAfter; time++) {
     // The first session lasts one hour. Afterwards the returning profile plays
     // five minutes every two hours during a 16-hour day, then leaves for 8 hours.
@@ -69,8 +92,8 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
     if (active && time >= nextDecision) {
       nextDecision = time + 15;
       const project = game.projectAt(state.projectIndex);
-      const need = Object.entries(project.req).filter(([id, required]) => state.skills[id] < required)
-        .sort((a, b) => state.skills[a[0]] / a[1] - state.skills[b[0]] / b[1]);
+      const need = Object.entries(project.req).filter(([id, required]) => game.skillKnowledge(state, id) < required)
+        .sort((a, b) => game.skillKnowledge(state, a[0]) / a[1] - game.skillKnowledge(state, b[0]) / b[1]);
       let essential = null;
       if (opportunistic) for (const id of ['macro', ...need.map(([id]) => `book-${id}`), 'keyboard', 'monitor', 'ide', 'library', 'lab', 'assistant', 'engineer', 'cluster']) {
         const item = items[id];
@@ -83,7 +106,7 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
         if (invest(id)) purchases[id] ??= time;
         else if (!essential && !game.level(state, id) && (['macro', 'library', 'lab'].includes(id) || id.startsWith('book-'))) essential = id;
       }
-      if (outsource) for (const quote of game.productionOptions(state)) if (!quote.ordered && state.cash - quote.cost >= game.dailyBillEstimate(state)) game.orderProduction(state, quote.id);
+      if (outsource) for (const quote of game.productionOptions(state)) if (!quote.ordered && state.cash - quote.cost >= reserve()) game.orderProduction(state, quote.id);
       if (need.length) state.subject = need[0][0];
       state.autoEnabled = !need.length;
       if (state.progress >= project.target && !need.length && !state.crashed && state.defects <= game.defectLimit(state) * .1) {
@@ -102,19 +125,23 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
     if (active) {
       const mode = state.mode === 'dev' ? state.refactor ? 'review' : 'development' : state.mode;
       stage.modeSeconds[mode]++; modeSeconds[mode]++; stage.activeSeconds++;
-      const model = inputModels[state.mode];
-      const studyBefore = state.stats.study, validBefore = state.stats.valid;
-      game.input(state, { chars: game.handPower(state) * model.unitsPerSecond });
-      stage.output.manualStudyUnits += state.stats.study - studyBefore;
-      stage.output.manualDevelopmentCharacters += state.stats.valid - validBefore;
+      // Prioritize outstanding corrections while raising money. This linear
+      // model deliberately omits the UI's minimum 100-work completion reward.
+      state.workTask = state.mode === 'work' && state.ocr.pending > 0 ? 'correction' : 'entry';
+      const correction = state.workTask === 'correction' ? nextOCRError(state.ocr) : null;
+      const model = correction ? manualInputModel(scenario, 'work', { workLength: correction.correctValue.length }) : inputModels[state.mode];
+      const before = snapshot(state);
+      const power = scenario.typing ? game.typingPower(state) : game.handPower(state);
+      const result = game.input(state, { chars: power * model.unitsPerSecond });
+      recordOutput(state, stage, 'manual', before);
+      if (correction) { stage.correctionSeconds++; stage.output.manualOCRRecovered += result.amount; }
       state.stats.manual += model.attemptRate - 1;
       activeSeconds++;
       manualInputs += model.attemptRate;
     } else stage.inactiveSeconds++;
-    const studyBefore = state.stats.study, validBefore = state.stats.valid;
+    const before = snapshot(state);
     game.tick(state, 1);
-    stage.output.autoStudyUnits += state.stats.study - studyBefore;
-    stage.output.autoDevelopmentCharacters += state.stats.valid - validBefore;
+    recordOutput(state, stage, 'auto', before);
     minimumCash = Math.min(minimumCash, state.cash);
   }
   return { ...scenario, purchases, milestones, stages, modeSeconds, inputModels, reached: state.projectIndex, activeSeconds, manualInputs, minimumCash, outsourcingSpend: state.stats.outsourcing };
@@ -123,7 +150,7 @@ export function simulate(scenario, { horizon = 9 * 86400, stopAfter = 5, opportu
 export const reportFor = scenarios => ({
   balanceVersion: game.BALANCE_VERSION,
   target: '初回AAAまで、放置込み3〜7日',
-  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。通常方針で開発し、変更効率80%未満または不具合が公開基準超ならレビュー・整理へ切替。負債を残した公開とライブラリへの25%流用、途中のビルド・テストを含む。標準計測は自作素材。日次支払い見込額を確保して購入し、資金と理解度の注入なし。ゲーム内1日＝実時間1時間。未公開・無料オフラインの固定費はゼロ。販売手数料25%、オンライン公開中のサーバー代、納品報酬を計上。標準タイピングは300打鍵/分、正確率100%と全問完入力を仮定。追加条件は毎分300文字を試行、正確率98%、原票1件の読取3秒、誤入力1回あたり追加訂正0.4秒を仮定した感度分析。原票256件の平均長から読取時間を配分。コード読取・出題切替時間はゼロ、完入力ボーナスは即時配分するため実測や最速保証ではない。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜8時間離席。',
+  method: '新規セーブ、購入・作業切替は15秒ごと、周回なし。金策中はOCRの未回収案件を毎秒優先し、なくなれば新しい仕事へ。通常方針で開発し、変更効率80%未満または不具合が公開基準超ならレビュー・整理へ切替。実際のtypingPower・確認済み理解度・自動学習の保留分・自動生成の負債と不具合・OCR誤納品台帳を使用。負債を残した公開とライブラリへの25%流用、途中のビルド・テストを含む。標準計測は自作素材。日次支払い見込額とOCR1件の再提出手数料を確保して購入し、資金と理解度の注入なし。ゲーム内1日＝実時間1時間。未公開・無料オフラインの固定費はゼロ。販売手数料25%、オンライン公開中のサーバー代、納品・再納品報酬と誤納品の取消・手数料を計上。標準タイピングは300物理打鍵/分、正確率100%と全問完入力を仮定。追加条件は毎分300文字を試行、正確率98%、原票や訂正欄の読取3秒、誤入力1回あたり追加訂正0.4秒を仮定した感度分析。新規入力は256件の平均長、OCR訂正は現在の正解欄の長さから読取時間を配分。訂正も作業量を線形に与え、実UIの完入力時最低100作業量は数えない。コード読取・出題切替時間はゼロ、完入力ボーナスは即時配分するため実測や最速保証ではない。確認済み理解度の4分野合計と、各作品の要求値までの進捗を手動・自動へ分けて記録。離席ありは最初の1時間、その後は16時間の活動帯に2時間ごと5分、夜8時間離席。',
   meanOfficeLength: MEAN_OFFICE_LENGTH,
   scenarios
 });
@@ -134,7 +161,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     console.log(`${s.name} / 入門書 ${(s.purchases['book-syntax'] / 60).toFixed(1)}分`);
     for (let index = 0; index < s.milestones.length; index++) {
       const m = s.milestones[index], stage = s.stages[index], modes = stage.modeSeconds;
-      console.log(`  ${m.name}: ${(m.seconds / 3600).toFixed(2)}時間（累積操作 ${(m.activeSeconds / 3600).toFixed(2)}時間） / この作品の操作: 仕事 ${(modes.work / 60).toFixed(1)}分・学習 ${(modes.study / 60).toFixed(1)}分・開発 ${(modes.development / 60).toFixed(1)}分・整理 ${(modes.review / 60).toFixed(1)}分`);
+      const output = stage.output, knowledge = output.manualConfirmedRequiredProgress + output.autoConfirmedRequiredProgress, development = output.manualDevelopmentCharacters + output.autoDevelopmentCharacters;
+      console.log(`  ${m.name}: ${(m.seconds / 3600).toFixed(2)}時間（累積操作 ${(m.activeSeconds / 3600).toFixed(2)}時間） / この作品の操作: 仕事 ${(modes.work / 60).toFixed(1)}分（OCR訂正 ${stage.correctionSeconds}秒）・学習 ${(modes.study / 60).toFixed(1)}分・開発 ${(modes.development / 60).toFixed(1)}分・整理 ${(modes.review / 60).toFixed(1)}分 / 手動寄与: 確認済み学習 ${(100 * output.manualConfirmedRequiredProgress / knowledge).toFixed(1)}%・制作 ${(100 * output.manualDevelopmentCharacters / development).toFixed(1)}%`);
     }
   }
   if (process.argv.includes('--write')) {

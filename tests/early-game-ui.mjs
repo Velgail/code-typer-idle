@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit } from '../src/core.js';
+import { createState, projectAt, buy, input, tick, release, studyGain, developmentGain, defectLimit, typingPower, skillKnowledge } from '../src/core.js';
+import { TYPING_REWARD } from '../src/typing.js';
 
 async function open(browser, url, errors, viewport, seed, pausedClock = false) {
   const context = await browser.newContext({ viewport, reducedMotion: 'reduce' });
@@ -58,10 +59,10 @@ function secondCycleFixtures() {
   state.autoEnabled = false;
   for (let count = 0; count < 400; count++) input(state, { mode: 'work' });
   assert.equal(buy(state, 'macro'), true);
-  tick(state, 151);
+  tick(state, 181);
   assert.equal(buy(state, 'book-syntax'), true);
   const learn = (s, id, target) => {
-    for (let count = 0; s.skills[id] < target; count++) {
+    for (let count = 0; skillKnowledge(s,id) < target; count++) {
       assert.ok(count < 20000, 'the study fixture must converge');
       input(s, { mode: 'study', subject: id, chars: 10 });
       tick(s, 1);
@@ -78,8 +79,9 @@ function secondCycleFixtures() {
   Object.assign(state, { mode: 'study', subject: 'design', inputStyle: 'typing' });
   const start = structuredClone(state), near = structuredClone(state);
   const project = projectAt(1);
-  while (near.skills.design + studyGain(near, 1.5, 'design') < project.req.design) {
-    input(near, { mode: 'study', subject: 'design', chars: 1.5 });
+  const studyStroke = s => typingPower(s,'study','design') * TYPING_REWARD.character;
+  while (skillKnowledge(near,'design') + studyGain(near, studyStroke(near), 'design') < project.req.design) {
+    input(near, { mode: 'study', subject: 'design', chars: studyStroke(near) });
     tick(near, .2);
   }
 
@@ -88,8 +90,9 @@ function secondCycleFixtures() {
   assert.equal(buy(ready, 'book-graphics'), true);
   learn(ready, 'design', project.req.design);
   learn(ready, 'graphics', project.req.graphics);
-  while (ready.progress + developmentGain(ready, 1.5) < project.target) {
-    input(ready, { mode: 'dev', chars: 1.5 });
+  const devStroke = s => typingPower(s,'dev') * TYPING_REWARD.character;
+  while (ready.progress + developmentGain(ready, devStroke(ready)) < project.target) {
+    input(ready, { mode: 'dev', chars: devStroke(ready) });
     tick(ready, .2);
   }
   if (ready.defects > defectLimit(ready) * .1) {
@@ -218,7 +221,7 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     assert.equal(await page.locator('#goal-action').isDisabled(), true);
     assert.match(await page.locator('#auto-work').innerText(), /^10(?:\.0+)?\s+作業量\/秒/);
     // Advance the clock, not resources: the normal game timer earns the textbook money.
-    await page.clock.fastForward(151000);
+    await page.clock.fastForward(181000);
     const automated = await snapshot(page);
     assert.ok(automated.cash >= 1500, 'OCR income must fund the first textbook without more manual work');
     assert.equal(automated.stats.manual, 400);
@@ -265,12 +268,14 @@ export async function verifyEarlyGameUI(browser, url, errors, { capture } = {}) 
     const prompt = await page.locator('#editor-content').getAttribute('data-prompt');
     await page.keyboard.type(prompt);
     const typed = await snapshot(page);
-    assert.ok(Math.abs(workValue(typed) - workValue(before) - prompt.length * 4) < .001, 'perfect office completion must earn 4 work units per physical character');
+    const expected = prompt.length * typingPower(before,'work') * (TYPING_REWARD.character + TYPING_REWARD.officeCompletion);
+    assert.ok(Math.abs(workValue(typed) - workValue(before) - expected) < .001, 'perfect office completion must earn the current physical-key typing reward and owned-equipment capacity');
     assert.equal(typed.typing.completed, 1);
     assert.equal(typed.stats.manual, before.stats.manual + prompt.length);
     await page.clock.fastForward(10000);
     const together = await snapshot(page);
-    assert.ok(Math.abs(workValue(together) - workValue(typed) - 100) < .001, 'OCR must add its own 10 work units/s independently of manual typing');
+    assert.ok(Math.abs(workValue(together) - workValue(typed) - 100) < .001, 'the first clean OCR delivery must add its own payment independently of manual typing');
+    assert.deepEqual(together.job,typed.job,'OCR must not consume or change the hand-entered contract');
     assert.equal(together.stats.manual, typed.stats.manual);
   } finally { await combined.context.close(); }
 
