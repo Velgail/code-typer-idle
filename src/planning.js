@@ -2,6 +2,7 @@
 // module: catalog coefficients are rules of the fictional world, not claims
 // about real engines, minimum source sizes, market success, or future hardware.
 import { PLANNING_CATALOG } from './planningcatalog.js';
+import { OPTIONAL_CHOICES, normalizeAdditionalChoices, additionalSelections, validateAdditionalChoices, estimateSalesTerms, assessCompatibility } from './planningrules.js';
 export const PLANNING_SCHEMA_VERSION=1;
 export const CODE_CHARACTERS_PER_LINE=40;
 
@@ -54,7 +55,7 @@ function matchingConstraint(dependency,context,selected){
 }
 function quantityFor(feature,requested,path){
   if(feature.quantity!==undefined)object(feature.quantity,`${path}.rule`);
-  const rule=feature.quantity || {},min=rule.min ?? 1,max=rule.max ?? 1000000;
+  const rule=feature.quantity || {},min=rule.min ?? 1,max=rule.max ?? (feature.quantity?1000000:1);
   number(min,`${path}.min`,{min:1,integer:true});number(max,`${path}.max`,{min,integer:true});
   const value=requested ?? rule.default ?? min;
   return number(value,path,{min,max,integer:true});
@@ -99,6 +100,7 @@ function catalogContext(catalog,plan){
   const selections=[['presentation',plan.presentationId],['audio',plan.audioId],['input',plan.inputId],...plan.targets.map(target=>['platform',target])];
   const selectedAxes=[];
   for(const [axis,key] of selections){const entry=axes[axis].get(key);if(!entry)fail('UNKNOWN_ID',`Unknown ${axis}`,{axis,id:key});selectedAxes.push({axis,...entry});}
+  selectedAxes.push(...additionalSelections(plan,catalog));
   // Check catalog cycles without requiring this engine to implement unused
   // capabilities. A requested unsupported capability is rejected by include.
   const visiting=new Set(),visited=new Set();
@@ -114,11 +116,11 @@ function catalogContext(catalog,plan){
     visiting.delete(key);visited.add(key);
   };
   for(const key of features.keys())visit(key);
-  return {catalog,features,genre,engine,axes,selectedAxes};
+  return {catalog,plan,features,genre,engine,axes,selectedAxes};
 }
 function normalizePlan(raw,catalog){
   object(raw,'plan');
-  const allowed=['id','name','genreId','presentationId','audioId','inputId','engineId','targets','features','quantities','assetSources'];
+  const allowed=['id','name','genreId','presentationId','audioId','inputId','engineId','targets','features','quantities','assetSources',...Object.keys(OPTIONAL_CHOICES),'themeIds','storeIds'];
   for(const key of Object.keys(raw))if(!allowed.includes(key))fail('INVALID_SCHEMA','Unknown plan field',{key});
   const plan={genreId:id(raw.genreId,'plan.genreId'),presentationId:id(raw.presentationId,'plan.presentationId'),audioId:id(raw.audioId,'plan.audioId'),inputId:id(raw.inputId,'plan.inputId'),engineId:id(raw.engineId,'plan.engineId'),targets:[],features:[],quantities:{},assetSources:{}};
   if(raw.id!==undefined)plan.id=id(raw.id,'plan.id');
@@ -126,27 +128,22 @@ function normalizePlan(raw,catalog){
   const targetSet=new Set();for(const target of list(raw.targets,'plan.targets')){id(target,'plan.targets');if(!targetSet.has(target)){targetSet.add(target);plan.targets.push(target);}}
   if(!plan.targets.length)fail('INVALID_SCHEMA','Choose at least one target platform');
   const selected=new Set();for(const [index,value] of array(raw.features,'plan.features').entries()){const request=requestedFeature(value,`plan.features[${index}]`);if(selected.has(request.id))fail('DUPLICATE_ID','Duplicate explicit feature',{id:request.id});selected.add(request.id);plan.features.push(request);}
-  const drivers=new Set(['concurrentPlayers']);
+  const drivers=new Set(['concurrentPlayers',...Object.keys(catalog.quantityDefinitions || {})]);
   for(const feature of [...(catalog.features || []),...(catalog.integrations || [])])for(const cost of feature.costs || [])if(cost.driver)drivers.add(cost.driver);
   if(raw.quantities!==undefined){object(raw.quantities,'plan.quantities');for(const [key,value] of Object.entries(raw.quantities)){if(!drivers.has(key))fail('UNKNOWN_ID','Unknown numeric project driver',{id:key});plan.quantities[key]=number(value,`plan.quantities.${key}`,{min:0,integer:true});}}
   if(raw.assetSources!==undefined){object(raw.assetSources,'plan.assetSources');for(const [key,value] of Object.entries(raw.assetSources)){id(key,'plan.assetSources key');if(!SOURCES.includes(value))fail('INVALID_SOURCE','Unknown asset sourcing method',{id:key,source:value});plan.assetSources[key]=value;}}
-  plan.targets.sort();plan.features.sort((a,b)=>a.id.localeCompare(b.id));return plan;
+  plan.targets.sort();plan.features.sort((a,b)=>a.id.localeCompare(b.id));return normalizeAdditionalChoices(raw,plan,catalog,fail);
 }
 function compatibilityFor(context,selected){
   const known=[],unknown=[];
   const definitions=array(context.catalog.affinities,'catalog.affinities');
   for(const relation of definitions){
     object(relation,'affinity');
-    for(const field of ['genreId','featureId'])if(relation[field]!==undefined)id(relation[field],`affinity.${field}`);
+    for(const field of ['genreId','featureId','themeId'])if(relation[field]!==undefined)id(relation[field],`affinity.${field}`);
     for(const field of ['genreIds','featureIds'])if(relation[field]!==undefined)for(const key of list(relation[field],`affinity.${field}`))id(key,`affinity.${field}`);
     for(const field of ['relation','status','note','reason'])optionalText(relation[field],`affinity.${field}`);
   }
-  for(const [key,feature] of selected){
-    const relations=definitions.filter(relation=>(relation.genreId===context.genre.id || relation.genreIds?.includes(context.genre.id)) && (relation.featureId===key || relation.featureIds?.includes(key)));
-    if(relations.length)for(const relation of relations)known.push({genreId:context.genre.id,featureId:key,relation:relation.relation ?? relation.status,note:relation.note ?? relation.reason ?? ''});
-    else unknown.push({genreId:context.genre.id,featureId:key,status:'unknown'});
-  }
-  return {known,unknown};
+  return assessCompatibility(context,selected);
 }
 function positiveDeltaRows(before,after,keyFields,quantityKey,extraFields=[]){
   const key=row=>keyFields.map(field=>row[field] ?? '').join('/'),old=new Map(before.map(row=>[key(row),row]));
@@ -166,6 +163,7 @@ export function estimatePlan(rawPlan,catalog=PLANNING_CATALOG){
   for(const axis of context.selectedAxes)for(const request of roots(axis))include(request,`${axis.axis}:${axis.id}`);
   for(const request of roots(context.engine))include(request,`engine:${context.engine.id}`);
   for(const request of plan.features)include(request,'selected');
+  const selectionWarnings=validateAdditionalChoices(plan,context,selected,fail);
   for(const axis of context.selectedAxes)for(const forbidden of array(axis.forbids,`${axis.axis}.${axis.id}.forbids`)){
     const key=matchingConstraint(forbidden,context,selected);
     if(key)fail('CONFLICT','A selected axis forbids a required feature',{axis:axis.axis,selection:axis.id,feature:key});
@@ -206,7 +204,7 @@ export function estimatePlan(rawPlan,catalog=PLANNING_CATALOG){
       if(cost.kind==='recurring')recurringCostPerDay=sum(recurringCostPerDay,amount,'total.recurringCostPerDay');else upfrontCost=sum(upfrontCost,amount,'total.upfrontCost');
       costs.push({id:cost.id,name:cost.name || cost.id,origin,kind:cost.kind,per:cost.kind==='recurring'?'day':'project',amount,payee:cost.payee,...(cost.driver?{driver:cost.driver,driverQuantity:driver}:{})});
     }
-    return {id:entry.id,name:entry.name || entry.id,category:entry.category || (integration?'integration':'feature'),quantity,baseLines:base,linesPerUnit:perUnit,codeLines:lines,requirements:skillValues(entry.requirements,`${origin}.requirements`),reasons:[...(reasons.get(entry.id) || [])].sort()};
+    return {id:entry.id,name:entry.name || entry.id,category:entry.category || (integration?'integration':'feature'),tags:entry.tags || [],reusable:entry.reusable===true,quantity,baseLines:base,linesPerUnit:perUnit,codeLines:lines,requirements:skillValues(entry.requirements,`${origin}.requirements`),reasons:[...(reasons.get(entry.id) || [])].sort()};
   };
   for(const [key,feature] of [...selected].sort(([a],[b])=>a.localeCompare(b)))features.push(accumulate(feature,`feature:${key}`,feature.quantity));
   const integrationIds=new Set();
@@ -223,7 +221,7 @@ export function estimatePlan(rawPlan,catalog=PLANNING_CATALOG){
   const normalizedFeatures=plan.features.map(request=>({id:request.id,quantity:quantityFor(context.features.get(request.id),request.quantity,`feature.${request.id}.quantity`)}));
   const normalizedPlan={...plan,features:normalizedFeatures};
   const codeCharacters=number(codeLines*CODE_CHARACTERS_PER_LINE,'total.codeCharacters',{integer:true});
-  return freeze({kind:'plan-estimate',schemaVersion:1,catalogVersion:catalog.version,catalogFingerprint:fingerprint(catalog),plan:normalizedPlan,units:{codeLines:'standardized-source-line',codeCharacters:'character',assetWork:[...assetWorkUnits][0] || 'asset-work-unit',upfrontCost:'JPY',recurringCostPerDay:'JPY/day'},totals:{codeLines,codeCharacters,assetWork,upfrontCost,recurringCostPerDay},requirements,features,integrations,assets,costs,compatibility:compatibilityFor(context,selected),warnings:[{code:'FICTIONAL_COEFFICIENTS',message:'Catalog values are fictional planning coefficients, not real minimum code sizes or engine contract prices.'},{code:'NO_MARKET_PREDICTION',message:'More code, features, or content do not automatically increase quality, play time, or sales.'}]});
+  return freeze({kind:'plan-estimate',schemaVersion:1,catalogVersion:catalog.version,catalogFingerprint:fingerprint(catalog),plan:normalizedPlan,units:{codeLines:'standardized-source-line',codeCharacters:'character',assetWork:[...assetWorkUnits][0] || 'asset-work-unit',upfrontCost:'JPY',recurringCostPerDay:'JPY/day'},totals:{codeLines,codeCharacters,assetWork,upfrontCost,recurringCostPerDay},requirements,features,integrations,assets,costs,sales:estimateSalesTerms(normalizedPlan,catalog,context.engine,fail,selected),compatibility:compatibilityFor(context,selected),warnings:[{code:'FICTIONAL_COEFFICIENTS',message:'Catalog values are fictional planning coefficients, not real minimum code sizes or engine contract prices.'},{code:'NO_MARKET_PREDICTION',message:'More code, features, or content do not automatically increase quality, play time, or sales.'},...selectionWarnings]});
 }
 export function amendPlan(rawSnapshot,changes,catalog=PLANNING_CATALOG){
   const snapshot=rawSnapshot?.snapshot || rawSnapshot;
@@ -234,8 +232,8 @@ export function amendPlan(rawSnapshot,changes,catalog=PLANNING_CATALOG){
   if(snapshot.catalogVersion!==catalog.version)fail('CATALOG_VERSION_MISMATCH','Use the original catalog version or an explicit reviewed migration',{saved:snapshot.catalogVersion,current:catalog.version});
   if(snapshot.catalogFingerprint!==fingerprint(catalog))fail('CATALOG_VERSION_MISMATCH','Catalog coefficients changed; an explicit reviewed migration is required',{saved:snapshot.catalogFingerprint,current:fingerprint(catalog)});
   const original=estimatePlan(snapshot.plan,catalog);
-  for(const field of ['totals','requirements','features','integrations','assets','costs'])if(JSON.stringify(stable(snapshot[field]))!==JSON.stringify(stable(original[field])))fail('INVALID_SNAPSHOT','Stored estimate details do not match the immutable planning specification',{field});
-  for(const key of Object.keys(changes))if(!['addFeatures','quantities','addTargets','assetSources'].includes(key))fail('UNSUPPORTED_AMENDMENT','This estimator supports additional scope only',{key});
+  for(const field of ['totals','requirements','features','integrations','assets','costs','sales'])if(JSON.stringify(stable(snapshot[field]))!==JSON.stringify(stable(original[field])))fail('INVALID_SNAPSHOT','Stored estimate details do not match the immutable planning specification',{field});
+  for(const key of Object.keys(changes))if(!['addFeatures','quantities','addTargets','assetSources','addThemes','addStores','selections'].includes(key))fail('UNSUPPORTED_AMENDMENT','This estimator supports additional scope only',{key});
   const plan=clone(snapshot.plan),requests=new Map(plan.features.map(feature=>[feature.id,feature]));
   for(const value of array(changes.addFeatures,'changes.addFeatures')){
     const feature=requestedFeature(value,'changes.addFeatures'),previous=snapshot.features.find(row=>row.id===feature.id),explicit=requests.get(feature.id);
@@ -249,11 +247,26 @@ export function amendPlan(rawSnapshot,changes,catalog=PLANNING_CATALOG){
     plan.quantities[key]=value;
   }}
   for(const target of array(changes.addTargets,'changes.addTargets')){id(target,'changes.addTargets');if(!plan.targets.includes(target))plan.targets.push(target);}
+  for(const [change,field] of [['addThemes','themeIds'],['addStores','storeIds']])for(const key of array(changes[change],`changes.${change}`)){
+    id(key,`changes.${change}`);plan[field] ||= [];if(!plan[field].includes(key))plan[field].push(key);
+  }
+  if(changes.selections!==undefined){object(changes.selections,'changes.selections');for(const [key,value] of Object.entries(changes.selections)){
+    if(!Object.hasOwn(OPTIONAL_CHOICES,key))fail('UNSUPPORTED_AMENDMENT','Only additive planning modes can change during an expansion',{key});
+    plan[key]=id(value,`changes.selections.${key}`);
+  }}
   if(changes.assetSources!==undefined){object(changes.assetSources,'changes.assetSources');for(const [key,value] of Object.entries(changes.assetSources)){
     if(snapshot.assets.some(asset=>asset.id===key && asset.source!==value))fail('UNSUPPORTED_AMENDMENT','Changing existing asset sourcing needs a separate production migration',{id:key});plan.assetSources[key]=value;
   }}
   plan.features=[...requests.values()];
   const next=estimatePlan(plan,catalog),oldById=new Map(snapshot.features.map(feature=>[feature.id,feature])),delta={};
+  for(const previous of snapshot.features){
+    const retained=next.features.find(feature=>feature.id===previous.id);
+    const committed=previous.codeLines>0 || snapshot.assets.some(row=>row.origin===`feature:${previous.id}` && (row.selfWork>0 || row.cost>0)) || snapshot.costs.some(row=>row.origin===`feature:${previous.id}` && row.amount>0);
+    if(committed && (!retained || retained.quantity<previous.quantity))fail('SCOPE_REDUCTION','An expansion cannot remove already committed implementations',{id:previous.id});
+  }
+  for(const previous of snapshot.integrations){
+    if(previous.codeLines>0 && !next.integrations.some(integration=>integration.id===previous.id))fail('SCOPE_REDUCTION','An expansion cannot discard completed integration work',{id:previous.id});
+  }
   // This phase refuses negative work/cost deltas instead of silently cancelling
   // old implementation, material work, purchases, or operational commitments.
   for(const key of ['codeLines','codeCharacters','assetWork','upfrontCost','recurringCostPerDay']){const value=next.totals[key]-number(snapshot.totals[key],`snapshot.totals.${key}`);if(value<-1e-7)fail('SCOPE_REDUCTION','An amendment cannot erase previous work or cost',{key,value});delta[key]=Math.max(0,value);}

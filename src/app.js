@@ -1,6 +1,6 @@
 import { coursesLoaded, installCourses, installLegacyCourses, needsLegacyCourses, courseTrack, courseUnit, courseLesson, currentCourseUnit, firstCourseUnit, rememberCourseCursor } from './courses.js';
 import {
-  DAY, JOB_SIZE, OFFICE_CONTRACT_WORK, STORE_FEE_RATE, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, level,
+  DAY, JOB_SIZE, OFFICE_CONTRACT_WORK, STORE_FEE_RATE, SKILLS, PROJECTS, SHOP, ACHIEVEMENTS, createState, projectAt, currentProject, level,
   operatingCost, expenseLines, serverCost, setPublicationActive, workRate, handPower, typingPower, skillKnowledge, knowledgeRatio, validity, debtLimit,
   royaltyRate, netRoyaltyRate, unitRate, devRate, studyGain, studyPreview, studyMultiplier, hasTextbook, hasStudyMaterial, openOnlineMaterial, ideMultiplier, autoStudySubject, itemCost, netIncome,
   buy, input, tick, release, prestige, prestigePreview, applyOffline,
@@ -9,6 +9,7 @@ import {
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
   productionOptions, productionCost, orderProduction,
+  estimateProjectDraft, produceCustomAssets, startCustomProject, pauseCustomProject, resumeCustomProject, expandCustomProject, customProduction, setCustomAllocation, fundCustomProject, chooseAutoPlan, startAutoPlan, setAutoPlanning,
   serialize, deserialize, checkAchievements, log
 } from './core.js';
 import { developmentPolicy, debtBreakdown, debtAgeDays, changeDefectRate } from './maintenance.js';
@@ -18,6 +19,8 @@ import { watchForUpdates } from './updates.js';
 import { officeOrderAt, drawOfficeSource } from './office.js';
 import { nextOCRError, correctOCR } from './officequality.js';
 import { learningGuide } from './learningguide.js';
+import { PLANNING_CATALOG } from './planningcatalog.js';
+import { amendPlan } from './planning.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -62,15 +65,29 @@ const experienceLabels = { craft: '制作経験', design: '設計の勘', audien
 const experienceText = values => Object.entries(experienceLabels).map(([id, name]) => `${name} ${format(values?.[id] || 0)}`).join(' · ');
 const experienceRewardText = values => Object.entries(experienceLabels).filter(([id])=>values?.[id]>0).map(([id,name])=>`${name} +${format(values[id])}`).join(' · ');
 const projectInProgress = () => {
+  if(state.planner?.active)return true;
   const carryOnly=state.projectCarryover && !state.progress && !state.defects && Object.entries(state.debtSources).every(([id,n])=>id==='reuse' || !n);
   return !!(state.progress || state.debt && !carryOnly || state.defects || state.crashed || Object.keys(state.production).length || needsBuild(state) && !carryOnly);
 };
 const commerciallyPublished = title => title.unitPrice > 0 && title.totalCopies > 0;
+const titleNetFactor = title => Math.max(0,1-(title.custom?(title.storeFeeRate || 0)+(title.engineFeeRate || 0):STORE_FEE_RATE));
+const titleNetRemaining = title => Array.isArray(title.salesBatches) ? title.salesBatches.reduce((sum,batch)=>sum+Math.max(0,batch.remaining || 0)*Math.max(0,1-(batch.feeRate ?? STORE_FEE_RATE)),0) : remainingSales(title)*titleNetFactor(title);
+const titleNetRate = title => title.active===false ? 0 : Array.isArray(title.salesBatches) ? title.salesBatches.reduce((sum,batch)=>sum+(batch.active===false?0:Math.max(0,batch.remaining || 0)*Math.LN2/Math.max(1,batch.halfLife || DAY)*Math.max(0,1-(batch.feeRate ?? STORE_FEE_RATE))),0) : titleSalesRate(title)*titleNetFactor(title);
+function salesLabels(title) {
+  return ({subscription:{price:'1契約期間の料金',quantity:'契約期間',unit:'件'},'f2p-cosmetic':{price:'外見商品の単価',quantity:'購入件数',unit:'件'},'ad-supported':{price:'1視聴あたり広告収益',quantity:'広告視聴',unit:'回'},'pay-what-you-want':{price:'1回の支援額',quantity:'支援回数',unit:'件'}})[title.salesModelId || title.modelId] || {price:'販売価格',quantity:'販売本数',unit:'本'};
+}
+function customTitleSalesHTML(title) {
+  if(!commerciallyPublished(title))return '<p>無料公開。遊んだ人の反応を次の制作へ。</p>';
+  const labels=salesLabels(title);
+  return `<p>${esc(planNameFor(title.salesModelId))} · ${labels.price} ${yen(title.unitPrice)}<br>${labels.quantity} 約${format(title.soldCopies || 0,0)} / 見込 ${format(title.totalCopies,0)}${labels.unit}${title.customerCount?` · ${format(title.customerCount,0)}人の利用者`:''}<br>今後の受取見込 ${yen(titleNetRemaining(title))}</p>`;
+}
+
 function titleSummary(title) {
-  if(title.archived)return `過去作品合計 約${format(title.soldCopies || 0,0)}本販売 · 現在の受取 ${yen(titleSalesRate(title)*(1-STORE_FEE_RATE))} / 秒`;
+  if(title.archived)return `過去作品の販売・利用実績 約${format(title.soldCopies || 0,0)}件 · 現在の受取 ${yen(titleNetRate(title))} / 秒`;
   if (!commerciallyPublished(title)) return '無料公開';
-  if (title.active === false) return `販売停止中 · ${format(title.soldCopies || 0, 0)}本販売`;
-  return `約${format(title.soldCopies || 0, 0)}本販売 · ${remainingSales(title) > .01 ? `現在の受取 ${yen(titleSalesRate(title) * (1 - STORE_FEE_RATE))} / 秒` : '販売終了'}`;
+  const labels=salesLabels(title);
+  if (title.active === false) return `公開停止中 · ${labels.quantity} 約${format(title.soldCopies || 0, 0)}${labels.unit}`;
+  return `${labels.quantity} 約${format(title.soldCopies || 0, 0)}${labels.unit} · ${remainingSales(title) > .01 ? `現在の受取 ${yen(titleNetRate(title))} / 秒` : '売上は落ち着きました'}`;
 }
 function experiencePreviewHTML(preview) {
   return `<div class="career-experience">${Object.entries(experienceLabels).map(([id, name]) => `<div><span>${name}</span><b>${format(preview.current[id])} <small>→</small> ${format(preview.next[id])}</b><small>今回 +${format(preview.experience[id])}</small></div>`).join('')}</div><ul class="career-effects"><li>制作・学習の速さ ×${format(preview.effects.current.speed, 2)} → <b>×${format(preview.effects.next.speed, 2)}</b></li><li>新作に届く遊び手 ×${format(preview.effects.current.planning, 2)} → <b>×${format(preview.effects.next.planning, 2)}</b></li><li>新たに積む負債 ×${format(preview.effects.current.architecture, 2)} → <b>×${format(preview.effects.next.architecture, 2)}</b></li></ul>`;
@@ -150,8 +167,24 @@ function save(announce = false) {
   try {
     const old = localStorage.getItem(KEY);
     const data = serialize(state);
-    if (old) localStorage.setItem(`${KEY}:backup`, old);
-    localStorage.setItem(KEY, data);
+    try {
+      localStorage.setItem(KEY, data);
+    } catch (error) {
+      const quota = error?.name === 'QuotaExceededError' || error?.name === 'NS_ERROR_DOM_QUOTA_REACHED';
+      if (!quota) throw error;
+      // setItem is atomic: keep the current main save until its replacement
+      // succeeds. An older backup can make two individually valid saves exceed
+      // the browser's combined quota, so reclaim only that optional copy.
+      localStorage.removeItem(`${KEY}:backup`);
+      localStorage.setItem(KEY, data);
+    }
+    // A full main save is the durable result. Retaining the previous version
+    // is useful when space permits, but must never turn a successful save into
+    // a failure or stop the update button from opening the saved release.
+    if (old) {
+      try { localStorage.setItem(`${KEY}:backup`, old); }
+      catch { /* The current main save is already stored. */ }
+    }
     $('save-status').textContent = `自動保存済み · ${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`;
     $('save-status').classList.remove('save-error');
     if (announce) toast('このブラウザに保存しました。');
@@ -170,19 +203,19 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li>画面上部の<b>無料教材を開く</b>から、基礎文法のオンライン教材を開きます。資金は必要ありません。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームとブロック崩しは無料公開。完成経験と遊んだ人の反応を持ち帰ります。</li></ol><p>次の設計・描画も無料教材で学べます。無料教材だけで習作を完成させ、経験を持ち越して次の人生へ進めます。教本やOCRの購入は必須ではありません。日銭ワークは、この人生で受託した分だけの短期契約です。納品を終えても補充されません。プログラミング基礎教本などの有料教本は、写経・学習の効率を上げる投資になります。</p></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。コード表示をクリックすると、その位置でタイピングを始められます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>正解はコード側へすぐ確定し、誤入力だけがカーソルのそばに残ります。BackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。半角で入力してください。伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。学習画面か上部の目標から無料のオンライン教材を開き、学ぶ分野を選んでください。有料教本を買うと無料教材と併用でき、最初の1冊で学習量が2倍になります。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>数当てとブロック崩しは無料の習作です。その先の有料作品は、引き継いだ経験と制作体制が必要です。開発ロードマップで不足している条件を確認してください。有料企画も必要理解度や品質が不足すると無料公開になります。</p></details><details class="help-section"><summary>素材の購入・外注</summary><p>有料の小作品では、ゲーム開発の<b>素材の購入・外注</b>で既製の画像や音楽・効果音の利用ライセンスを購入できます。大きな作品では制作者へ素材制作を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売時と、その後に購入された本数に応じて売上が入ります。作品ごとに届く遊び手には限りがあり、発売後の売れ行きは徐々に落ち着きます。販売本数・今後の販売見込は<b>公開したゲーム</b>で確認できます。同じ規模で別の新作も作れます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると残っている需要の範囲で販売を再開します。販売見込の本数は増えません。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は公開を停止し、売上を待つか、費用のかからない新作で資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p>伝票OCRは任意の設備です。導入しなくても無料教材で学び、ゲームを発売して資金を得られます。OCRの誤納品は報酬を取り消し、依頼元へ再提出手数料を支払います。日銭ワークの<b>OCR再納品</b>で原票とOCR結果を照合し、誤った項目だけ入力すると未受取報酬を回収できます。入力途中の間違いは送信前なので、消して直せます。</p><p>自動学習には未確認分が残ります。表示される理解度と制作条件は確認済みの知識です。自分で教材を入力したり、参考コードの問いへ正しく答えたりすると、未確認分も確かめられます。</p><p>自動生成コードは手動より未整理部分と不具合が増えます。レビュー・整理とビルド・テストで確かめてください。正確なタイピングは設備の規模に応じて広い範囲へ反映され、設備を増やした後も制作・学習・修正を進められます。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。購入と作品公開は自分で行います。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>経験を引き継いで再出発</summary><p>無料の習作2本を完成させると、<b>開発ロードマップ → 経験を引き継いで再出発</b>を選べます。何を持ち越し、何を手放すかは実行前に確認できます。制作経験・設計の勘・遊びの発見を持ち越すと、次の人生で制作が速くなり、新しい規模の企画へ挑めます。同じ人生で同じ規模の作品を繰り返しても、持ち越せる経験は増えません。AAAには複数の人生で得た経験と、チーム・制作基盤が必要です。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
+  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li>画面上部の<b>無料教材を開く</b>から、基礎文法のオンライン教材を開きます。資金は必要ありません。</li><li><b>写経・学習 → 文法を学ぶ</b>で理解度を12まで上げます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームとブロック崩しは無料公開。完成経験と遊んだ人の反応を持ち帰ります。</li></ol><p>次の設計・描画も無料教材で学べます。無料教材だけで習作を完成させ、経験を持ち越して次の人生へ進めます。教本やOCRの購入は必須ではありません。日銭ワークは、この人生で受託した分だけの短期契約です。納品を終えても補充されません。プログラミング基礎教本などの有料教本は、写経・学習の効率を上げる投資になります。</p></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。コード表示をクリックすると、その位置でタイピングを始められます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>正解はコード側へすぐ確定し、誤入力だけがカーソルのそばに残ります。BackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。半角で入力してください。伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。学習画面か上部の目標から無料のオンライン教材を開き、学ぶ分野を選んでください。有料教本を買うと無料教材と併用でき、最初の1冊で学習量が2倍になります。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>数当てとブロック崩しは無料の習作です。その先の有料作品は、引き継いだ経験と制作体制が必要です。開発ロードマップで不足している条件を確認してください。有料企画も必要理解度や品質が不足すると無料公開になります。</p><p><b>自由企画</b>ではジャンル、テーマ、表現、操作、通信、制作基盤、対応環境、配信先、販売方式を組み合わせます。必要な機能と作業・費用は、その場で確認できます。知識や資金が足りない案にも着手でき、保留・再開できます。制作中の<b>機能・内容を追加</b>では今の実装を残して企画を広げます。量を増やすだけで品質や売れ行きが上がるわけではありません。</p><p>自由企画の素材は<b>コードを書く／素材を作る</b>で作業を切り替えます。購入・委託した素材や配布契約には支払いが必要です。支払いと素材制作を終え、最後の変更を検証してから公開します。制作して確かめた相性と自作基盤は、次の企画で確認できます。</p></details><details class="help-section"><summary>素材の購入・外注</summary><p>有料の小作品では、ゲーム開発の<b>素材の購入・外注</b>で既製の画像や音楽・効果音の利用ライセンスを購入できます。大きな作品では制作者へ素材制作を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売時と、その後に購入された本数に応じて売上が入ります。作品ごとに届く遊び手には限りがあり、発売後の売れ行きは徐々に落ち着きます。販売本数・今後の販売見込は<b>公開したゲーム</b>で確認できます。同じ規模で別の新作も作れます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると残っている需要の範囲で販売を再開します。販売見込の本数は増えません。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は公開を停止し、売上を待つか、費用のかからない新作で資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p>伝票OCRは任意の設備です。導入しなくても無料教材で学び、ゲームを発売して資金を得られます。OCRの誤納品は報酬を取り消し、依頼元へ再提出手数料を支払います。日銭ワークの<b>OCR再納品</b>で原票とOCR結果を照合し、誤った項目だけ入力すると未受取報酬を回収できます。入力途中の間違いは送信前なので、消して直せます。</p><p>自動学習には未確認分が残ります。表示される理解度と制作条件は確認済みの知識です。自分で教材を入力したり、参考コードの問いへ正しく答えたりすると、未確認分も確かめられます。</p><p>自動生成コードは手動より未整理部分と不具合が増えます。レビュー・整理とビルド・テストで確かめてください。正確なタイピングは設備の規模に応じて広い範囲へ反映され、設備を増やした後も制作・学習・修正を進められます。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。通常の制作では購入と作品公開を自分で行います。自由企画の<b>自動企画</b>をONにすると、作れる案を選び、素材制作・修正・検証を進めて完成した作品を公開します。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>経験を引き継いで再出発</summary><p>無料の習作2本を完成させると、<b>開発ロードマップ → 経験を引き継いで再出発</b>を選べます。何を持ち越し、何を手放すかは実行前に確認できます。制作経験・設計の勘・遊びの発見を持ち越すと、次の人生で制作が速くなり、新しい規模の企画へ挑めます。同じ人生で同じ規模の作品を繰り返しても、持ち越せる経験は増えません。AAAには複数の人生で得た経験と、チーム・制作基盤が必要です。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
 }
 function showCatalog() {
-  showModal('公開したゲーム', state.catalog.length ? state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${esc(titleSummary(p))} · 品質 ${format(p.quality)} / 100</p>${p.archived?`<p>今後の受取見込 ${yen(remainingSales(p)*(1-STORE_FEE_RATE))}（手数料控除後）</p>`:''}${commerciallyPublished(p) ? `<p>販売価格 ${yen(p.unitPrice)} · 販売本数 約${format(p.soldCopies || 0, 0)} / 見込 ${format(p.totalCopies || 0, 0)}本<br>今後の販売見込 ${yen(remainingSales(p) * (1 - STORE_FEE_RATE))}（手数料控除後）</p>` : ''}${p.reaction ? `<p>${esc(p.reaction)}</p>` : ''}${p.productionCosts ? `<p>素材制作の外注費 ${yen(p.productionCosts)} · 支払済み</p>` : ''}${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${esc(p.id)}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button><small class="contract-note">再開しても、販売見込の本数は増えません。</small>` : ''}</div>`).join('') : '<p>まだ公開した作品はありません。最初の一本を完成させよう。</p>');
+  showModal('公開したゲーム', state.catalog.length ? state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${esc(titleSummary(p))} · 品質 ${format(p.quality)} / 100</p>${p.archived?`<p>今後の受取見込 ${yen(titleNetRemaining(p))}（手数料控除後）</p>`:''}${p.archived?'':p.custom?customTitleSalesHTML(p):commerciallyPublished(p) ? `<p>販売価格 ${yen(p.unitPrice)} · 販売本数 約${format(p.soldCopies || 0, 0)} / 見込 ${format(p.totalCopies || 0, 0)}本<br>今後の販売見込 ${yen(remainingSales(p) * (1 - STORE_FEE_RATE))}（手数料控除後）</p>` : ''}${p.reaction ? `<p>${esc(p.reaction)}</p>` : ''}${p.productionCosts ? `<p>素材制作の外注費 ${yen(p.productionCosts)} · 支払済み</p>` : ''}${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${esc(p.id)}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button><small class="contract-note">再開しても、${p.custom || p.archived?'販売・利用の見込':'販売見込の本数'}は増えません。</small>` : ''}</div>`).join('') : '<p>まだ公開した作品はありません。最初の一本を完成させよう。</p>');
 }
 function settings() {
   showModal('設定とセーブデータ', `<div class="setting-row"><div><b>打鍵音</b><small>小さな電子音を鳴らします</small></div><input type="checkbox" id="sound-setting" aria-label="打鍵音" ${state.settings.sound ? 'checked' : ''}></div><div class="setting-row"><div><b>アニメーションを減らす</b><small>点滅と打鍵エフェクトを停止します</small></div><input type="checkbox" id="motion-setting" aria-label="アニメーションを減らす" ${state.settings.reducedMotion ? 'checked' : ''}></div><div class="setting-row"><div><b>コメントの表示言語</b><small>入力済みの英語コメントをコード内で置換。読解では解答後に表示</small></div><select id="comment-locale-setting" aria-label="コメントの表示言語"><option value="ja" ${state.settings.commentLocale === 'ja' ? 'selected' : ''}>日本語</option><option value="en" ${state.settings.commentLocale === 'en' ? 'selected' : ''}>English</option></select></div><div class="setting-row"><div><b>プレイ時間を一時停止</b><small>このタブを開いている間、自動処理・売上・サーバー代の発生を止めます</small></div><button class="secondary-button" data-action="pause">${paused ? '再開する' : '一時停止'}</button></div><h3>データの持ち運び</h3><p>セーブはこのブラウザに保存されます。ブラウザのデータ削除や端末変更に備えて、ファイルにも保管できます。</p><div class="setting-actions"><button class="secondary-button" data-action="export">セーブを書き出す ↓</button><button class="secondary-button" data-action="import" ${blocked ? 'disabled' : ''}>セーブを読み込む ↑</button></div><p class="setting-warning">読み込みは現在の進行を置き換えます。先に書き出すことをおすすめします。</p>${!canSave ? '<div class="modal-callout">現在、自動保存を停止しています。セーブを読み込むか、下の新規開始で保存を再開できます。</div>' : ''}<h3>新しく始める</h3><button class="danger-button" data-action="reset" ${blocked ? 'disabled' : ''}>全データを削除して新規開始</button><p class="setting-warning">引き継いだ経験を含むすべての進行が対象です。経験を残す再出発はロードマップから。</p>`);
 }
 function switchView(next) {
   view = next;
-  ['workspace', 'roadmap', 'achievements'].forEach(v => $(`${v}-view`).classList.toggle('hidden', v !== view));
+  ['workspace', 'planner', 'roadmap', 'achievements'].forEach(v => $(`${v}-view`).classList.toggle('hidden', v !== view));
   document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  const titles = { workspace: ['一文字から、どこまでも', '作って、遊んでもらって、次の一本へ。'], roadmap: ['次に、何をつくろうか', '今の技術でもう一本。覚えたコツを次の人生へ。'], achievements: ['積み重ねた、開発の記録', '完成したゲームも、遠回りした一文字も。'] }[view];
+  const titles = { workspace: ['一文字から、どこまでも', '作って、遊んでもらって、次の一本へ。'], planner: ['何を、どう作ろうか', '遊びも、作り方も、自分で選ぶ。'], roadmap: ['次に、何をつくろうか', '今の技術でもう一本。覚えたコツを次の人生へ。'], achievements: ['積み重ねた、開発の記録', '完成したゲームも、遠回りした一文字も。'] }[view];
   $('page-title').innerHTML = `${titles[0]}<span class="title-dot">.</span>`;
   $('page-subtitle').textContent = titles[1];
   render();
@@ -246,8 +279,8 @@ function unlock() {
 }
 
 function renderSkills() {
-  const p = projectAt(state.projectIndex);
-  const key = JSON.stringify([state.skills, state.studyGaps, state.projectIndex,SKILLS.map(s=>level(state,`book-${s.id}`))]);
+  const p = currentProject(state);
+  const key = JSON.stringify([state.skills, state.studyGaps, state.projectIndex,state.planner?.active,currentProject(state).req,SKILLS.map(s=>level(state,`book-${s.id}`))]);
   if (key === lastSkillsKey) return;
   lastSkillsKey = key;
   $('skills').innerHTML = SKILLS.filter(s=>p.req[s.id] || state.skills[s.id] || level(state,`book-${s.id}`)).map(s => {
@@ -390,7 +423,7 @@ function renderTask() {
   const viewportTop = window.visualViewport?.offsetTop || 0;
   const viewportBottom = viewportTop + (window.visualViewport?.height || innerHeight);
   const inputWasVisible = fieldRect && fieldRect.bottom > viewportTop && fieldRect.top < viewportBottom;
-  const p = projectAt(state.projectIndex), mode = state.mode, ratio = knowledgeRatio(state);
+  const p = currentProject(state), mode = state.mode, ratio = knowledgeRatio(state);
   const reading = mode === 'study' && state.studyStyle === 'reading';
   const typing = state.inputStyle === 'typing';
   const language = LANGUAGES.find(l => l.id === state.typing.language);
@@ -491,7 +524,7 @@ function renderTask() {
     $('current-policy').textContent=({steady:'通常',prototype:'仮実装',structured:'構造重視'})[policy.id];
     document.querySelectorAll('[data-development-policy]').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.developmentPolicy===policy.id);b.disabled=blocked || paused;});
     $('development-policy-description').textContent=`${policy.description} 実装速度 ×${policy.speed}。未整理部分は${policy.id==='prototype'?'多い':policy.id==='structured'?'少ない':'中程度'}。`;
-    $('release-cost').textContent = `${forecast.commercial ? `販売価格 ${yen(forecast.price)} · 販売見込 ${format(forecast.copies,0)}本。ゲーム配信ストアへの手数料25%を引いて、合計 ${yen(forecast.gross*(1-STORE_FEE_RATE))} の受取見込。` : '無料公開。遊んだ人の反応と完成経験を持ち帰ります。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ''}${level(state,'library') && state.debt ? ` ライブラリとともに、未整理部分の25%（整理作業量 ${format(state.debt*.25)}）を次作へ引き継ぎます。` : ''}`;
+    $('release-cost').textContent = p.custom?`${planNameFor(p.snapshot.plan.salesModelId)}。${forecast.commercial?`${salesLabels(forecast).price} ${yen(forecast.price)} · ${salesLabels(forecast).quantity} 見込 ${format(forecast.copies,0)}${salesLabels(forecast).unit}。`:''}${p.online?`公開中の費用 ${yen(p.serverDaily)} / 日。内訳は企画で確認できます。`:''}`:`${forecast.commercial ? `販売価格 ${yen(forecast.price)} · 販売見込 ${format(forecast.copies,0)}本。ゲーム配信ストアへの手数料25%を引いて、合計 ${yen(forecast.gross*(1-STORE_FEE_RATE))} の受取見込。` : '無料公開。遊んだ人の反応と完成経験を持ち帰ります。'}${p.online ? ` 公開中：ホスティング会社へ ${yen(p.serverDaily * (level(state, 'kitchen') ? .75 : 1))} / 日。公開停止で以後の料金と売上が止まります。` : ''}${level(state,'library') && state.debt ? ` ライブラリとともに、未整理部分の25%（整理作業量 ${format(state.debt*.25)}）を次作へ引き継ぎます。` : ''}`;
     $('progress-summary').innerHTML = `<div class="progress-meta"><span>${format(state.progress)} / ${format(p.target)} chars</span><b>${pct(state.progress / p.target).toFixed(2)}%</b></div><div class="big-track"><span style="width:${pct(state.progress / p.target)}%;background:${state.crashed ? 'var(--red)' : 'var(--green)'}"></span></div>`;
     $('debt-summary').textContent=`技術的負債 · 整理作業量 ${format(state.debt)} · 変更効率 ${Math.round(developmentEfficiency(state)*100)}%`;
     $('debt-breakdown').innerHTML=debtBreakdown(state).map(c=>`<p><b>${esc(c.name)} · ${format(c.amount)}</b><span>${esc(c.description)}</span></p>`).join('') || '<p>未整理部分なし。</p>';
@@ -517,7 +550,7 @@ function renderTask() {
     const productionHTML=productionOptions(state).map(q=>`<article><div><b>${q.name}</b><small>${q.payee} · ${q.ordered?'納品素材を使用中':`品質見込 ${q.qualityBefore} → ${q.qualityAfter}`}</small></div><button class="secondary-button" data-order="${q.id}" ${blocked || paused || q.ordered || state.cash<q.cost || q.qualityAfter===q.qualityBefore?'disabled':''}>${q.ordered?`納品済み · ${yen(state.production[q.id].paid)} 支払済み`:q.qualityAfter===q.qualityBefore?'品質上限':`${yen(q.cost)}で制作を依頼`}</button></article>`).join('');
     if($('production-services').innerHTML!==productionHTML){$('production-services').innerHTML=productionHTML;if(focusedService)document.querySelector(`[data-order="${focusedService}"]`)?.focus({preventScroll:true});}
   }
-  renderEditor(); renderLearning(); renderReadiness(); renderCourse();
+  renderEditor(); renderLearning(); renderReadiness(); renderCourse(); renderCustomProduction();
   if (inputWasVisible && document.activeElement === field && (previousGuide !== $('learning-guide').innerHTML || previousCodeHeight !== $('editor-content').offsetHeight || previousProgressHeight!==$('project-progress').offsetHeight+$('build-panel').offsetHeight || Math.abs(fieldRect.top-field.getBoundingClientRect().top)>.5)) {
     const rect = field.getBoundingClientRect();
     if (rect.top < viewportTop || rect.bottom > viewportBottom + 1) field.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
@@ -567,9 +600,10 @@ function renderLearningGuide(lesson) {
 }
 function renderReadiness() {
   $('development-readiness').classList.toggle('hidden',state.mode==='work' && !state.projectIndex && !hasStudyMaterial(state,'syntax'));
-  const {stage, requirements} = developmentReadiness(state), project = projectAt(state.projectIndex);
+  const {stage, requirements} = developmentReadiness(state), project = currentProject(state);
   const access=projectAccess(state);
-  const message = stage === 'repair' ? knowledgeRatio(state) < 1 ? '先に不足分野を学び、レビュー・整理で不具合を修正しよう。' : 'ゲーム開発でレビュー・整理に切り替え、不具合を修正しよう。' : stage === 'complete' ? '制作は完了。ゲーム開発から作品を公開しよう。' : stage === 'ready' ? '必要な知識が揃った。ゲーム開発で制作を進めよう。' : stage === 'prototype' ? '試作はできる。学習不足のまま進めると不具合が増える。' : '制作には、まず必要な分野の学習を進めよう。';
+  let message = stage === 'repair' ? knowledgeRatio(state) < 1 ? '先に不足分野を学び、レビュー・整理で不具合を修正しよう。' : 'ゲーム開発でレビュー・整理に切り替え、不具合を修正しよう。' : stage === 'complete' ? '制作は完了。ゲーム開発から作品を公開しよう。' : stage === 'ready' ? '必要な知識が揃った。ゲーム開発で制作を進めよう。' : stage === 'prototype' ? '試作はできる。学習不足のまま進めると不具合が増える。' : '制作には、まず必要な分野の学習を進めよう。';
+  if(project.custom && stage==='complete'){const work=customProduction(state);if(work.assetProgress<work.assetTarget)message='コードは完成。自作素材を仕上げ、組み込んで検証しよう。';else if(work.releaseBlockers.length)message=work.releaseBlockers.join(' ');}
   const html = `<div class="readiness-heading"><b>${esc(project.name)}</b><span class="readiness-progress">制作 ${format(state.progress)} / ${format(project.target)}文字</span><span>${esc(access.allowed?message:access.reason)}</span></div><div class="readiness-skills">${access.allowed?requirements.map(r => `<span>${SKILLS.find(k=>k.id===r.id).short} <b>${format(r.current, 2)} / ${format(r.required)}</b>${r.missing > 0 ? ` <button class="text-button" data-learn="${r.id}" ${blocked ? 'disabled' : ''}>あと${format(r.missing, 2)}学ぶ →</button>` : ' ✓'}</span>`).join(''):access.missing.map(r=>`<span>${esc(r.name)} <b>${format(r.current)} / ${format(r.required)}</b></span>`).join('')}${!access.allowed?'<button class="text-button" data-action="roadmap">制作できる企画を見る →</button>':(stage !== 'learn' || state.progress > 0) && state.mode !== 'dev' ? `<button class="secondary-button" data-action="go-dev" ${blocked ? 'disabled' : ''}>ゲーム開発へ →</button>` : ''}</div>`;
   if ($('development-readiness').innerHTML !== html) {
     const focused = document.activeElement?.dataset.learn;
@@ -619,23 +653,26 @@ function renderAssetsAndGoal() {
   const nextAvailable=finishedCurrent && nextAccess.allowed;
   const equipment=staffing?nextAccess.missing.filter(r=>r.kind==='item').map(r=>({...r,item:SHOP.find(i=>i.id===r.id)})).filter(r=>r.item).sort((a,b)=>itemCost(state,a.item)-itemCost(state,b.item))[0]:null;
   const equipmentCost=equipment?itemCost(state,equipment.item):0;
+  const custom=currentProject(state).custom,customWork=custom?customProduction(state):null;
   let goal;
-  if(readyForNewLife)goal=['覚えたコツを、次の人生へ','完成した作品の経験を持ち越し、次の規模に必要なコツを積み重ねよう。',1,experienceText(preview.experience)];
+  if(custom){const p=currentProject(state);goal=[p.name,next?`${subject.name}を${format(next.required)}まで学ぼう。`:state.progress<p.target?'選んだ仕組みを、動くゲームへ。':customWork.assetProgress<customWork.assetTarget?'自作素材を仕上げよう。':customWork.outstandingCash?'公開前に素材・配布の支払いを済ませよう。':'最後の変更を検証して、作品を公開しよう。',next?learning.progress:state.progress<p.target?state.progress/p.target:customWork.assetProgress<customWork.assetTarget?customWork.assetProgress/customWork.assetTarget:1,next?`${learning.completed} / ${learning.total} 分野の学習完了`:state.progress<p.target?`${format(state.progress)} / ${format(p.target)} chars`:customWork.assetProgress<customWork.assetTarget?`素材 ${format(customWork.assetProgress)} / ${format(customWork.assetTarget)}`:customWork.outstandingCash?`未払い ${yen(customWork.outstandingCash)}`:'コード・素材の制作完了'];}
+  else if(readyForNewLife)goal=['覚えたコツを、次の人生へ','完成した作品の経験を持ち越し、次の規模に必要なコツを積み重ねよう。',1,experienceText(preview.experience)];
   else if(equipment)goal=[`${projectAt(state.projectIndex+1).name}の制作体制`,`${equipment.name} ${format(equipment.current)} / ${format(equipment.required)}。次の導入は ${yen(equipmentCost)}。同じ規模の新作でも制作費を稼げます。`,state.cash/equipmentCost,`${yen(state.cash)} / ${yen(equipmentCost)}`];
   else if(nextAvailable)goal=[projectAt(state.projectIndex+1).name,'経験と制作体制が揃った。次の企画に取りかかろう。',1,'次の規模を制作できます'];
-  else if(!access.allowed)goal=[projectAt(state.projectIndex).name,access.reason,0,'制作条件を確認'];
-  else if(materialNeeded)goal=[state.projectIndex?projectAt(state.projectIndex).name:`${subject.name}の教材を開く`,`${subject.name}の無料オンライン教材で学習を始めよう。`,learning.progress,`無料 · ${subject.name}`];
+  else if(!access.allowed)goal=[currentProject(state).name,access.reason,0,'制作条件を確認'];
+  else if(materialNeeded)goal=[state.projectIndex?currentProject(state).name:`${subject.name}の教材を開く`,`${subject.name}の無料オンライン教材で学習を始めよう。`,learning.progress,`無料 · ${subject.name}`];
   else if(!state.projectIndex && next)goal=['コードを理解する','写経・学習で、基礎文法の理解度を12まで上げよう。',skillKnowledge(state,'syntax')/12,`${format(skillKnowledge(state,'syntax'))} / 12 K`];
   else if(!state.projectIndex)goal=['はじめての完成品','3,000文字の数当てゲームを作って、無料公開しよう。',state.progress/3000,`${format(state.progress)} / 3,000 chars`];
   else{
-    const p=projectAt(state.projectIndex);
+    const p=currentProject(state);
     goal=[p.name,next?`${subject.name}を${format(next.required)}まで学ぼう。`:'必要な知識は揃った。最後の一文字まで、作りきろう。',next?learning.progress:state.progress/p.target,next?`${learning.completed} / ${learning.total} 分野の学習完了`:`${format(state.progress)} / ${format(p.target)} chars`];
   }
   $('next-goal').textContent=goal[0];$('goal-desc').textContent=goal[1];
   $('goal-bar').style.width=`${pct(goal[2])}%`;$('goal-status').textContent=goal[3];$('goal-percent').textContent=`${Math.floor(pct(goal[2]))}%`;
   const action=$('goal-action');
   let kind='dev',item='',label='ゲーム開発へ →';
-  if(readyForNewLife){kind='prestige';label='経験を引き継いで再出発 →';}
+  if(custom){if(materialNeeded){kind='material';item=next.id;label='無料教材を開く';}else if(next){kind='study';item=next.id;label=`${subject.short}を学ぶ →`;}else if(state.progress<currentProject(state).target){kind='custom-code';label='コードを書く →';}else if(customWork.assetProgress<customWork.assetTarget){kind='custom-assets';label='素材を作る →';}else if(customWork.outstandingCash && state.cash>=customWork.outstandingCash){kind='custom-fund';label=`制作費 ${yen(customWork.outstandingCash)}を支払う`;}else if(customWork.releaseBlockers?.length){kind='planner';label='企画と支払いを確認 →';}else{kind='release';label='作品を公開 →';}}
+  else if(readyForNewLife){kind='prestige';label='経験を引き継いで再出発 →';}
   else if(equipment){if(state.cash>=equipmentCost){kind='buy';item=equipment.id;label=`${equipment.name}を導入 ${yen(equipmentCost)}`;}else{kind='dev';label='新作で制作費を稼ぐ →';}}
   else if(nextAvailable){kind='select-project';item=String(state.projectIndex+1);label='次の企画を作る →';}
   else if(!access.allowed){kind='roadmap';label='制作条件を見る →';}
@@ -643,15 +680,172 @@ function renderAssetsAndGoal() {
   else if(next){kind='study';item=next.id;label=`${subject.short}を学ぶ →`;}
   else if(developmentReadiness(state).stage==='complete'){kind='release';label='作品を公開 →';}
   action.dataset.goalKind=kind;action.dataset.goalItem=item;action.textContent=label;action.disabled=blocked || paused;
-  const offerOCR=!state.projectIndex && !hasStudyMaterial(state,'syntax') && !level(state,'macro') && availableOfficeWork(state)*workRate(state)>=ocrCost;
-  const offerRoadmap=readyForNewLife || staffing || nextAvailable;
+  const offerOCR=!custom && !state.projectIndex && !hasStudyMaterial(state,'syntax') && !level(state,'macro') && availableOfficeWork(state)*workRate(state)>=ocrCost;
+  const offerRoadmap=custom || readyForNewLife || staffing || nextAvailable;
   $('goal-alternative').classList.toggle('hidden',!offerOCR && !offerRoadmap);
-  const alternative=offerRoadmap?'企画と制作条件を見る':`事務を自動化 ${yen(ocrCost)}<small>誤納品は報酷取消・再提出手数料20%</small>`;
+  const alternative=custom?'企画を見直す':offerRoadmap?'企画と制作条件を見る':`事務を自動化 ${yen(ocrCost)}<small>誤納品は報酷取消・再提出手数料20%</small>`;
   if($('goal-alternative').innerHTML!==alternative)$('goal-alternative').innerHTML=alternative;
   $('goal-alternative').dataset.goalItem='macro';
-  $('goal-alternative').dataset.goalKind=offerRoadmap?'roadmap':'buy';
+  $('goal-alternative').dataset.goalKind=custom?'planner':offerRoadmap?'roadmap':'buy';
   $('goal-alternative').disabled=blocked || paused || !offerRoadmap && state.cash<ocrCost;
 }
+// Keep the editable form mounted while the game ticks, so keyboard input never
+// loses focus to production updates or to the typing shortcuts.
+let plannerDraft = null, plannerName = '', plannerBaseTitle = '', plannerEditing = null, lastPlannerKey = '', lastPlannerAssetKey = '', plannerEstimate = null;
+const clonePlan = plan => JSON.parse(JSON.stringify(plan));
+const planAxisLabels = { genreId:'ジャンル', presentationId:'画面表現', audioId:'音', inputId:'主な操作', engineId:'制作基盤', playModeId:'遊ぶ人数・関係', networkId:'通信方式', syncId:'同期方式', cameraId:'画面・視点', salesModelId:'販売方式' };
+const planAxisCatalog = { genreId:'genres', engineId:'engines', presentationId:'presentation', audioId:'audio', inputId:'input', playModeId:'playMode', networkId:'network', syncId:'sync', cameraId:'camera', salesModelId:'salesModel' };
+const planRows = field => field === 'genreId' ? PLANNING_CATALOG.genres : field === 'engineId' ? PLANNING_CATALOG.engines : PLANNING_CATALOG.axes[planAxisCatalog[field]] || [];
+const planNameFor = id => [...PLANNING_CATALOG.genres,...PLANNING_CATALOG.engines,...PLANNING_CATALOG.features,...Object.values(PLANNING_CATALOG.axes).flat()].find(row=>row.id===id)?.name || id;
+function defaultProjectPlan() {
+  return {genreId:'number-puzzle',presentationId:'console',audioId:'silent',inputId:'keyboard-mouse',engineId:'toolkit',targets:['browser'],features:[],themeIds:[],playModeId:'solo',networkId:'none',syncId:'none',cameraId:'shared-screen',salesModelId:'free',storeIds:['direct'],quantities:{},assetSources:{}};
+}
+function plannerSelect(field) {
+  return `<label class="planner-field"><span>${esc(planAxisLabels[field])}</span><select data-plan-axis="${field}">${planRows(field).map(row=>`<option value="${esc(row.id)}" ${plannerDraft[field]===row.id?'selected':''}>${esc(row.name)}</option>`).join('')}</select><small data-plan-axis-note="${field}"></small></label>`;
+}
+function plannerChecks(field, rows) {
+  return `<div class="planner-checks">${rows.map(row=>`<label><input type="checkbox" data-plan-list="${field}" value="${esc(row.id)}" ${(plannerDraft[field] || []).includes(row.id)?'checked':''}><span>${esc(row.name)}</span></label>`).join('')}</div>`;
+}
+function plannerFeatureRow(feature) {
+  const selected=plannerDraft.features.find(row=>(typeof row==='string'?row:row.id)===feature.id), quantity=selected?.quantity || feature.quantity?.default || feature.quantity?.min || 1;
+  return `<div class="planner-feature" data-plan-feature-row="${esc(feature.id)}"><label><input type="checkbox" data-plan-feature="${esc(feature.id)}" ${selected?'checked':''}><span>${esc(feature.name)}</span></label>${feature.quantity?`<label class="planner-quantity"><span>${esc(feature.quantity.unit || feature.unit || '数量')}</span><input type="number" required data-plan-quantity="${esc(feature.id)}" value="${quantity}" min="${feature.quantity.min || 1}" max="${feature.quantity.max || 1000000}" step="1" aria-label="${esc(feature.name)}の数量"></label>`:''}${feature.description?`<small>${esc(feature.description)}</small>`:''}</div>`;
+}
+function mountPlanner() {
+  plannerDraft ||= clonePlan(state.planner?.draft || defaultProjectPlan());
+  plannerName ||= state.planner?.draftName || '';
+  const extra=PLANNING_CATALOG.features.filter(feature=>feature.selectable!==false && !(feature.category==='foundation' && /^(sdk-|engine-|custom-)/.test(feature.id)) && !(feature.category==='platform' && feature.id.startsWith('target-')));
+  const categories=[...new Set(extra.map(feature=>feature.category))],labels={interface:'表示・操作',rules:'遊びの仕組み',content:'収録する内容',online:'通信・運営',system:'保存・拡張',presentation:'画面・音',input:'操作機器',production:'制作・配布',network:'通信',commercial:'販売'};
+  $('planner-view').innerHTML=`<div class="planner-heading"><div><div class="eyebrow">YOUR NEXT IDEA</div><h2>企画を組み立てる</h2><p>小さく完成させる。好きな仕組みを混ぜる。今は手に負えない大作を描いておく。</p></div><button class="secondary-button" id="planner-new" data-plan-action="new">新しい案</button></div><section class="panel planner-auto"><div><h3>企画を任せる</h3><p>今の知識と資金で作れる案を選びます。</p></div><button id="planner-auto-pick" class="secondary-button" data-plan-action="suggest">案を出してもらう</button><button id="planner-auto-toggle" class="secondary-button" data-plan-action="auto" aria-pressed="false">自動企画 OFF</button></section><div class="planner-layout"><form id="planner-form" class="panel planner-form" autocomplete="off"><label class="planner-field"><span>作品名</span><input id="planner-name" type="text" maxlength="120" value="${esc(plannerName)}" placeholder="まだ名前のないゲーム"></label><details class="planner-section" open><summary>1. どんな遊びを作る？</summary>${plannerSelect('genreId')}<p id="planner-loop" class="panel-note"></p><details class="planner-themes"><summary>テーマを選ぶ <small>任意・最大3つ</small></summary>${plannerChecks('themeIds',PLANNING_CATALOG.axes.theme || [])}</details></details><details class="planner-section"><summary>2. 見た目・音・操作</summary><div class="planner-fields">${['presentationId','audioId','inputId','cameraId'].map(plannerSelect).join('')}</div></details><details class="planner-section"><summary>3. 一緒に遊ぶ・通信する</summary><div class="planner-fields">${['playModeId','networkId','syncId'].map(plannerSelect).join('')}</div><div class="planner-fields">${Object.entries(PLANNING_CATALOG.quantityDefinitions || {localPlayers:{name:'同じ端末の人数',min:1,max:16,default:1},concurrentPlayers:{name:'同時接続人数',min:0,max:1000000,default:0},sensorySessions:{name:'感覚I/O接続数',min:0,max:1000000,default:0}}).map(([id,rule])=>`<label class="planner-field"><span>${esc(rule.name)}</span><input type="number" required data-plan-driver="${esc(id)}" min="${rule.min || 0}" max="${rule.max || 1000000}" step="1" value="${plannerDraft.quantities[id] ?? rule.default ?? 0}"></label>`).join('')}</div></details><details class="planner-section"><summary>4. 作り方・届け方・売り方</summary>${plannerSelect('engineId')}<h4>対応環境</h4>${plannerChecks('targets',PLANNING_CATALOG.axes.platform)}${plannerSelect('salesModelId')}<label class="planner-field hidden" id="planner-base-field"><span>DLCの本編</span><select id="planner-base-title"><option value="">最新の有料作品を使う</option>${state.catalog.filter(title=>title.unitPrice>0 && title.salesModelId!=='dlc').map(title=>`<option value="${esc(title.id)}" ${plannerBaseTitle===title.id?'selected':''}>${esc(title.name)}</option>`).join('')}</select><small>本編が未公開でも制作を始められます。DLCの公開には先に本編が必要です。</small></label><h4>配信先</h4>${plannerChecks('storeIds',PLANNING_CATALOG.axes.store || [])}</details><details class="planner-section"><summary>5. 仕組みと内容を足す</summary><label class="planner-field"><span>機能を探す</span><input id="planner-feature-search" type="search" placeholder="戦闘、農業、ステージ…"></label><p class="panel-note">ジャンルや操作に必要な仕組みは自動で含まれます。ここでは追加したいものを選びます。</p>${categories.map(category=>`<details class="planner-feature-group"><summary>${esc(labels[category] || category)} <small>${extra.filter(feature=>feature.category===category).length}</small></summary>${extra.filter(feature=>feature.category===category).map(plannerFeatureRow).join('')}</details>`).join('')}</details><details class="planner-section"><summary>6. 素材をどう用意する？</summary><div id="planner-assets"></div></details><div id="planner-editing" class="planner-editing hidden"></div><div class="planner-form-actions"><button type="button" class="primary-button" id="planner-start" data-plan-action="start">この企画を始める →</button><button type="button" class="primary-button hidden" id="planner-expand" data-plan-action="expand">追加する内容を確定</button></div></form><aside class="planner-preview"><section id="planner-estimate" class="panel" aria-label="企画の見積り" aria-live="polite"></section><section id="planner-knowledge" class="panel"></section></aside></div><section id="planner-projects" class="panel planner-projects" aria-label="制作中・保留中の企画"></section><section id="planner-foundations" class="panel planner-foundations"></section>`;
+  $('planner-form').addEventListener('submit',event=>event.preventDefault());
+  lastPlannerKey='';lastPlannerAssetKey='';updatePlannerEstimate();
+}
+function plannerChanges() {
+  const active=state.planner?.projects.find(project=>project.id===plannerEditing), snapshot=active?.snapshot;
+  if(!snapshot)throw new Error('拡張する企画が見つかりません。');
+  const previous=snapshot.plan;
+  for(const field of ['genreId','presentationId','audioId','inputId','engineId'])if(previous[field]!==undefined && plannerDraft[field]!==previous[field])throw new Error(`${planAxisLabels[field]}は制作途中で差し替えられません。別の案として始められます。`);
+  for(const field of ['targets','storeIds','themeIds'])if((previous[field] || []).some(id=>!(plannerDraft[field] || []).includes(id)))throw new Error('制作済みの範囲は取り消せません。追加する内容を選んでください。');
+  for(const feature of previous.features)if(!plannerDraft.features.some(row=>row.id===feature.id && (row.quantity || 1)>=(feature.quantity || 1)))throw new Error('既存の機能や数量は取り消せません。');
+  const changes={addFeatures:plannerDraft.features,addTargets:plannerDraft.targets,quantities:plannerDraft.quantities,assetSources:plannerDraft.assetSources};
+  const selections=Object.fromEntries(['playModeId','networkId','syncId','cameraId','salesModelId'].filter(field=>plannerDraft[field]!==previous[field]).map(field=>[field,plannerDraft[field]]));if(Object.keys(selections).length)changes.selections=selections;
+  if((plannerDraft.themeIds || []).some(id=>!(previous.themeIds || []).includes(id)))changes.addThemes=plannerDraft.themeIds;
+  if((plannerDraft.storeIds || []).some(id=>!(previous.storeIds || []).includes(id)))changes.addStores=plannerDraft.storeIds;
+  return changes;
+}
+function plannerError(error) {
+  if(error instanceof Error && !error.code)return error.message;
+  const details=error.details || {},id=details.id || details.feature || details.capability;
+  if(error.code==='CONFLICT'){
+    if(/[\u3040-\u30ff\u3400-\u9fff]/.test(error.message))return error.message;
+    if(details.engine && details.targets)return `${planNameFor(details.engine)}では ${details.targets.map(planNameFor).join('・')} へ出力できません。制作基盤か対応環境を選び直してください。`;
+    if(details.selection && details.targets)return `${planNameFor(details.selection)}に対応した配布先・実行環境を選んでください。`;
+    if(details.selection && details.feature)return `${planNameFor(details.selection)} と ${planNameFor(details.feature)} は同時に使えません。音や表示の選択を見直してください。`;
+    if(details.features)return `${details.features.map(planNameFor).join(' と ')} は同時に使えません。どちらかを外してください。`;
+  }
+  if(error.code==='INVALID_QUANTITY' && details.key){const rule=PLANNING_CATALOG.quantityDefinitions?.[details.key];return `${rule?.name || details.key}を ${details.min ?? rule?.min ?? 1}〜${details.max ?? rule?.max ?? 1000000} の整数にしてください。`;}
+  if(error.code==='INVALID_SCHEMA' && details.field==='themeIds')return 'テーマは3つまで選べます。';
+  if(error.code==='INVALID_SCHEMA' && details.field==='storeIds')return '配信先を少なくとも1つ選んでください。';
+  const messages={UNKNOWN_ID:'選択した項目を確認してください。',INVALID_QUANTITY:'数量を範囲内の整数で入力してください。',INVALID_NUMBER:'数量を範囲内の数値で入力してください。',INVALID_SCHEMA:'選択内容を確認してください。',FEATURE_CONFLICT:'この機能は現在の表現・操作と同時に使えません。',INCOMPATIBLE_SELECTION:'選択した構成に両立しない項目があります。',UNSUPPORTED_CAPABILITY:'この制作基盤では必要な仕組みを用意できません。',SCOPE_REDUCTION:'既に着手した範囲を取り消すことはできません。',UNSUPPORTED_AMENDMENT:'制作途中では差し替えず、機能・内容・対応先を追加できます。'};
+  return `${messages[error.code] || error.message}${id?` 対象：${planNameFor(id)}`:''}`;
+}
+function updatePlannerEstimate() {
+  if(!$('planner-form'))return;
+  plannerEstimate=null;
+  try {
+    const invalid=[...$('planner-form').querySelectorAll('input[type=number]')].find(el=>((!el.dataset.planQuantity || plannerDraft.features.some(feature=>feature.id===el.dataset.planQuantity)) && !el.checkValidity()));
+    if(invalid)throw new Error('数量を表示した範囲内の整数で入力してください。');
+    const amendment=plannerEditing?amendPlan(state.planner.projects.find(project=>project.id===plannerEditing).snapshot,plannerChanges()):null;
+    const estimate=estimateProjectDraft(state,plannerDraft);plannerEstimate=estimate;
+    plannerDraft.quantities=clonePlan(estimate.plan.quantities);
+    for(const input of document.querySelectorAll('[data-plan-driver]'))if(document.activeElement!==input && estimate.plan.quantities[input.dataset.planDriver]!==undefined)input.value=estimate.plan.quantities[input.dataset.planDriver];
+    // Dependency changes can remove materials. Old sourcing choices must not
+    // invalidate an otherwise usable draft after changing its genre or style.
+    const runtime=estimate.runtime || {},t=estimate.totals,paymentRows=[...estimate.costs,...estimate.assets.filter(asset=>asset.cost>0).map(asset=>({name:asset.name,payee:asset.payee,amount:asset.cost,kind:'upfront'}))];
+    const missing=Object.entries(estimate.requirements).filter(([id,required])=>skillKnowledge(state,id)<required);
+    const newAssets=JSON.stringify(estimate.assets.map(asset=>[asset.id,asset.source,asset.quantity,asset.cost,asset.selfWork]));
+    if(lastPlannerAssetKey!==newAssets || !$('planner-assets').hasChildNodes())$('planner-assets').innerHTML=estimate.assets.length?estimate.assets.map(asset=>`<label class="planner-asset"><span>${esc(asset.name)} <small>${format(asset.quantity)} ${esc(asset.unit)}</small></span><select data-plan-source="${esc(asset.id)}" aria-label="${esc(asset.name)}の調達"><option value="self" ${asset.source==='self'?'selected':''}>自作する</option><option value="license" ${asset.source==='license'?'selected':''}>既製素材を購入</option><option value="commission" ${asset.source==='commission'?'selected':''}>制作を依頼</option></select><small>${asset.source==='self'?`自作作業 ${format(asset.selfWork)}`:`${esc(asset.payee)}へ ${yen(asset.cost)}`}</small></label>`).join(''):'<p class="panel-note">この構成に追加の素材制作はありません。</p>';
+    lastPlannerAssetKey=newAssets;
+    $('planner-estimate').innerHTML=`<h3>${plannerEditing?'追加後の企画':'この企画に必要なもの'}</h3>${amendment?`<p class="planner-addition">今回の追加：${format(amendment.delta.codeLines)} 行相当 · 素材 ${format(amendment.delta.assetWork)} 作業 · 支払い ${yen(amendment.delta.upfrontCost)}</p>`:''}<dl class="planner-totals"><div><dt>実装量</dt><dd>${format(t.codeLines)} 行相当</dd></div><div><dt>自作素材</dt><dd>${format(t.assetWork)} 作業</dd></div><div><dt>制作時の支払い</dt><dd>${yen(t.upfrontCost)}</dd></div><div><dt>公開中の費用</dt><dd>${yen(t.recurringCostPerDay)} / 日</dd></div>${runtime.reusableLines?`<div><dt>自作基盤から再利用</dt><dd>${format(runtime.reusableLines)} 行相当</dd></div>`:''}</dl>${estimate.costs.filter(cost=>cost.kind==='recurring').map(cost=>`<p class="planner-cost-note">${esc(cost.name)}：${yen(cost.amount)} / 日 → ${esc(cost.payee)}</p>`).join('')}<h4>必要な知識</h4><ul class="planner-requirements">${SKILLS.filter(skill=>estimate.requirements[skill.id]).map(skill=>`<li class="${skillKnowledge(state,skill.id)<estimate.requirements[skill.id]?'needs-learning':''}"><span>${esc(skill.name)}</span><b>${format(skillKnowledge(state,skill.id))} / ${format(estimate.requirements[skill.id])}</b></li>`).join('')}</ul>${missing.length?'<p class="planner-warning">まだ知らない仕組みがあります。着手した後に学ぶことも、企画を保留して小さな作品から試すこともできます。</p>':''}${state.cash<t.upfrontCost?`<p class="planner-warning">支払いまであと ${yen(t.upfrontCost-Math.max(0,state.cash))}。制作は始められます。支払いは公開前に済ませます。</p>`:''}<details><summary>実装の内訳を見る</summary><ul class="planner-breakdown">${[...estimate.features,...estimate.integrations].map(feature=>`<li><span>${esc(feature.name)}</span><b>${format(feature.codeLines)} 行</b></li>`).join('')}</ul></details>${estimate.warnings.filter(warning=>!['FICTIONAL_COEFFICIENTS','NO_MARKET_PREDICTION'].includes(warning.code)).map(warning=>`<p class="planner-warning">${esc(warning.message)}</p>`).join('')}${paymentRows.length?`<details><summary>支払先と用途を見る</summary><ul class="planner-breakdown">${paymentRows.map(cost=>`<li><span>${esc(cost.name)}<small>${esc(cost.payee)}</small></span><b>${yen(cost.amount)}${cost.kind==='recurring'?' / 日':''}</b></li>`).join('')}</ul></details>`:''}`;
+    $('planner-start').disabled=blocked || paused;$('planner-expand').disabled=blocked || paused;
+    if(state.planner){state.planner.draft=clonePlan(plannerDraft);state.planner.draftName=plannerName;}
+  } catch(error) {
+    // Sourcing choices of removed assets can be safely discarded while editing
+    // an unstarted proposal. An active project is never mutated here.
+    if(error.code==='UNKNOWN_ID' && error.details?.id && Object.hasOwn(plannerDraft.assetSources,error.details.id)) {delete plannerDraft.assetSources[error.details.id];updatePlannerEstimate();return;}
+    $('planner-estimate').innerHTML=`<h3>組み合わせを見直す</h3><p class="planner-error" role="alert">${esc(plannerError(error))}</p><p>選んだ内容を修正すると、必要な作業と支払額を確認できます。</p>`;$('planner-start').disabled=true;$('planner-expand').disabled=true;
+  }
+  $('planner-base-field').classList.toggle('hidden',plannerDraft.salesModelId!=='dlc');
+  $('planner-loop').textContent=PLANNING_CATALOG.genres.find(genre=>genre.id===plannerDraft.genreId)?.coreLoop || '';
+  for(const el of document.querySelectorAll('[data-plan-axis-note]')){const row=planRows(el.dataset.planAxisNote).find(row=>row.id===plannerDraft[el.dataset.planAxisNote]);el.textContent=row?.uiDescription || row?.description || '';}
+  $('planner-start').classList.toggle('hidden',!!plannerEditing);$('planner-expand').classList.toggle('hidden',!plannerEditing);
+  $('planner-editing').classList.toggle('hidden',!plannerEditing);$('planner-editing').textContent=plannerEditing?'制作途中の企画を拡張中。今の進捗・負債・支払いは残したまま、追加した範囲を制作します。':'';
+  renderPlannerKnowledge();
+}
+function renderPlannerKnowledge() {
+  const tested=state.planner?.knowledge?.synergies || [],relations=plannerEstimate?.compatibility.known || [];
+  const known=relations.filter(relation=>tested.some(item=>typeof item==='string'?item===relation.id || item===`${relation.genreId}.${relation.featureId}` || item===`${relation.genreId}:${relation.featureId}` || item===`${relation.genreId}/${relation.featureId}`:item.genreId===relation.genreId && item.featureId===relation.featureId));
+  $('planner-knowledge').innerHTML=`<h3>制作して分かったこと</h3>${known.length?known.map(relation=>`<p><b>${esc(planNameFor(relation.featureId))}</b><br>${esc(relation.note)}</p>`).join(''):'<p class="panel-note">この組み合わせは、まだ確かめていません。作って公開し、遊んだ人の反応を見てみよう。</p>'}`;
+}
+function renderPlanner() {
+  if(!$('planner-form'))mountPlanner();
+  const planner=state.planner || {projects:[],foundations:[],knowledge:{}},key=JSON.stringify([planner.active,planner.projects,planner.foundations,planner.knowledge,planner.auto,Math.floor(state.cash),Math.floor(state.progress),Math.floor(state.debt),paused,blocked]);
+  if(key===lastPlannerKey)return;lastPlannerKey=key;
+  $('planner-auto-toggle').setAttribute('aria-pressed',!!planner.auto);$('planner-auto-toggle').textContent=`自動企画 ${planner.auto?'ON':'OFF'}`;
+  $('planner-projects').innerHTML=`<h3>制作中・保留中の企画</h3>${planner.projects.length?planner.projects.map(project=>`<article><div><b>${esc(project.name || project.snapshot?.plan?.name || planNameFor(project.snapshot?.plan?.genreId || ''))}</b><small>${project.id===planner.active?'制作中':project.status==='released'?'公開済み':'保留中'} · ${format((project.snapshot?.totals?.codeLines || 0))} 行相当</small></div><div class="planner-row-actions">${project.status==='released'?'':project.id===planner.active?`<button class="secondary-button" data-plan-action="continue">制作する →</button><button class="text-button" data-plan-action="edit">拡張する</button><button class="text-button" data-plan-action="pause">保留する</button>`:`<button class="secondary-button" data-plan-resume="${esc(project.id)}">再開する →</button>`}</div></article>`).join(''):'<p class="panel-note">まだ自由企画はありません。習作を進めながら、次に作りたい案を考えられます。</p>'}`;
+  $('planner-foundations').innerHTML=`<h3>再利用できる自作基盤</h3>${planner.foundations.length?planner.foundations.map(foundation=>`<p><b>${esc(foundation.name || planNameFor(foundation.id || foundation.featureId || 'custom'))}</b> · ${format(foundation.lines || foundation.codeLines || 0)} 行相当${foundation.debt?` · 未整理 ${format(foundation.debt)}`:''}</p>`).join(''):'<p class="panel-note">自作した基盤は、完成後に次の作品へ持ち込めます。</p>'}`;
+  // Updating only the estimate preserves open sections and form focus.
+  updatePlannerEstimate();
+}
+function openPlannerDraft(plan, name='', editing=null) { plannerDraft=clonePlan(plan);plannerName=name;plannerBaseTitle='';plannerEditing=editing;mountPlanner();renderPlanner(); }
+function enterCustomWorkspace() {
+  const next=learningGoal(state).next;if(next)selectLearningSubject(next.id);
+  lastEditorKey='';lastSkillsKey='';lastSecondaryKey='';dirty=true;state.mode=next?'study':'dev';switchView('workspace');save();
+}
+function handlePlannerAction(button) {
+  if(blocked || paused)return;
+  if(button.dataset.planAllocation){setCustomAllocation(state,button.dataset.planAllocation);if(button.dataset.planAllocation==='assets')state.refactor=false;dirty=true;render();save();return;}
+  if(button.dataset.planResume){if(resumeCustomProject(state,button.dataset.planResume))enterCustomWorkspace();else toast('この企画を再開できません。','error');return;}
+  const action=button.dataset.planAction;
+  if(action==='asset-work'){const result=produceCustomAssets(state);if(result.amount){tapNumber++;lastManualTimes.push(performance.now());beep('assets');dirty=true;unlock();render();}return;}
+  if(action==='new'){openPlannerDraft(defaultProjectPlan());return;}
+  if(action==='auto'){setAutoPlanning(state,!state.planner.auto);lastPlannerKey='';renderPlanner();save();return;}
+  if(action==='suggest'){const proposal=chooseAutoPlan(state);if(proposal){openPlannerDraft(proposal.plan,proposal.name);toast(proposal.reason || '今の制作に合う案を選びました。');}else toast('今作れる案が見つかりません。学習を進めるか、自分で企画できます。');return;}
+  if(action==='continue'){enterCustomWorkspace();return;}
+  if(action==='pause'){pauseCustomProject(state);lastPlannerKey='';renderPlanner();save();return;}
+  if(action==='fund'){if(!fundCustomProject(state))toast('支払いに必要な資金が揃っていません。','error');dirty=true;render();save();return;}
+  if(action==='edit'){const active=state.planner.projects.find(project=>project.id===state.planner.active);if(active){openPlannerDraft(active.snapshot.plan,active.name,active.id);switchView('planner');}return;}
+  if(action==='start'){
+    const result=startCustomProject(state,plannerDraft,{name:plannerName.trim() || undefined,baseTitleId:plannerBaseTitle || undefined});if(result.ok){plannerEditing=null;enterCustomWorkspace();toast('企画を始めました。');}else toast(result.reason || '企画を始められません。','error');return;
+  }
+  if(action==='expand'){
+    try{const result=expandCustomProject(state,plannerChanges());if(!result.ok)throw new Error(result.reason || '企画を拡張できません。');plannerEditing=null;enterCustomWorkspace();toast('追加した内容を企画へ組み込みました。');}catch(error){toast(plannerError(error),'error');}return;
+  }
+}
+function renderCustomProduction() {
+  const panel=$('custom-production'),active=currentProject(state).custom && state.mode==='dev';panel.classList.toggle('hidden',!active);document.querySelector('.work-panel').classList.remove('material-making');if(!active)return;$('production-panel').classList.add('hidden');
+  const production=customProduction(state),making=production.allocation==='assets' && !state.refactor;document.querySelector('.work-panel').classList.toggle('material-making',making);if(making){$('typing-input').hidden=true;$('typing-input').disabled=true;}const selfAssets=currentProject(state).snapshot.assets.filter(asset=>asset.source==='self');const html=`<div class="planner-production-heading"><b>この企画の制作</b><button class="text-button" data-view="planner">企画を開く →</button></div><div class="planner-allocation" role="group" aria-label="制作するもの"><button class="secondary-button ${production.allocation==='code'?'active':''}" data-plan-allocation="code" aria-pressed="${production.allocation==='code'}">コードを書く</button><button class="secondary-button ${production.allocation==='assets'?'active':''}" data-plan-allocation="assets" aria-pressed="${production.allocation==='assets'}">素材を作る</button></div><p>自作素材 ${format(production.assetProgress,3)} / ${format(production.assetTarget)} 作業</p>${making?`<ul class="planner-materials">${selfAssets.map(asset=>`<li>${esc(asset.name)} · ${format(asset.quantity)} ${esc(asset.unit)}</li>`).join('')}</ul><button type="button" id="asset-work-button" class="primary-button" data-plan-action="asset-work" ${blocked || paused || production.assetProgress>=production.assetTarget?'disabled':''}>素材の制作を進める <small>+${format(handPower(state)/30,3)} 作業</small></button><p>描画・録音・執筆の作業を進めます。</p>`:''}${production.assetTarget?`<progress max="${Math.max(1,production.assetTarget)}" value="${production.assetProgress}" aria-label="自作素材の制作進捗"></progress>`:''}<p>${production.outstandingCash?`制作費の未払い ${yen(production.outstandingCash)}。公開前に支払いを済ませます。`:`制作費 ${yen(production.paid)} 支払済み`}</p>${production.outstandingCash?`<button class="secondary-button" id="planner-fund" data-plan-action="fund" ${state.cash<production.outstandingCash?'disabled':''}>${yen(production.outstandingCash)}を支払う</button>`:''}<div class="planner-row-actions"><button class="text-button" data-plan-action="edit">機能・内容を追加</button><button class="text-button" data-plan-action="pause">この企画を保留</button></div>`;
+  if(panel.innerHTML!==html)panel.innerHTML=html;
+  const incomplete=production.assetProgress<production.assetTarget || production.outstandingCash>0 || production.releaseBlockers?.length;
+  if(incomplete){$('release-button').disabled=true;$('release-hint').textContent=production.releaseBlockers?.length?production.releaseBlockers.join(' '):production.outstandingCash>0?'素材と配布の支払いを済ませると公開できます。':'自作素材を完成させると公開できます。';}
+  if(making){$('task-eyebrow').textContent='ASSET PRODUCTION';$('task-title').textContent=`${currentProject(state).name}の素材制作`;$('task-status').innerHTML=production.assetProgress>=production.assetTarget?'<i></i>素材完成':'<i></i>素材制作中';$('task-description').textContent=production.assetProgress>=production.assetTarget?'素材の制作は完了しました。コードを書くへ戻り、ゲームへ組み込んで検証しよう。':selfAssets.map(asset=>asset.name).join('・');}
+}
+document.addEventListener('input',event=>{
+  const el=event.target;if(!el.closest('#planner-form'))return;
+  if(el.id==='planner-feature-search'){const query=el.value.toLocaleLowerCase();document.querySelectorAll('[data-plan-feature-row]').forEach(row=>{row.hidden=!row.textContent.toLocaleLowerCase().includes(query);});document.querySelectorAll('.planner-feature-group').forEach(group=>{group.hidden=!!query && ![...group.querySelectorAll('[data-plan-feature-row]')].some(row=>!row.hidden);if(query && !group.hidden)group.open=true;});return;}
+  if(el.id==='planner-name'){plannerName=el.value;if(state.planner)state.planner.draftName=plannerName;return;}
+  if(el.dataset.planQuantity){const value=Number(el.value);let feature=plannerDraft.features.find(row=>row.id===el.dataset.planQuantity);if(!feature && el.value!=='' && Number.isSafeInteger(value)){feature={id:el.dataset.planQuantity,quantity:value};plannerDraft.features.push(feature);document.querySelector(`[data-plan-feature="${el.dataset.planQuantity}"]`).checked=true;}if(feature && el.value!=='' && Number.isSafeInteger(value))feature.quantity=value;updatePlannerEstimate();return;}
+  if(el.dataset.planDriver){if(el.value!=='' && Number.isSafeInteger(Number(el.value)))plannerDraft.quantities[el.dataset.planDriver]=Number(el.value);updatePlannerEstimate();}
+});
+document.addEventListener('change',event=>{
+  const el=event.target;if(!el.closest('#planner-form'))return;
+  if(el.dataset.planAxis){plannerDraft[el.dataset.planAxis]=el.value;const chosen=planRows(el.dataset.planAxis).find(row=>row.id===el.value);for(const [key,value] of Object.entries(chosen?.quantityDefaults || {})){plannerDraft.quantities[key]=value;const input=document.querySelector(`[data-plan-driver="${key}"]`);if(input)input.value=value;}}
+  if(el.dataset.planList){const field=el.dataset.planList;plannerDraft[field]=[...document.querySelectorAll(`[data-plan-list="${field}"]:checked`)].map(input=>input.value);}
+  if(el.dataset.planFeature){plannerDraft.features=plannerDraft.features.filter(row=>row.id!==el.dataset.planFeature);if(el.checked){const quantity=document.querySelector(`[data-plan-quantity="${el.dataset.planFeature}"]`);plannerDraft.features.push({id:el.dataset.planFeature,...(quantity?{quantity:Number(quantity.value)}:{})});}}
+  if(el.dataset.planSource)plannerDraft.assetSources[el.dataset.planSource]=el.value;
+  if(el.id==='planner-base-title')plannerBaseTitle=el.value;
+  updatePlannerEstimate();dirty=true;
+});
+
 function renderRoadmap() {
   const preview=prestigePreview(state), inProgress=projectInProgress();
   const lastVisible=Math.max(PROJECTS.length-1,state.projectIndex+1);
@@ -719,6 +913,7 @@ function render() {
   $('manual-rate').textContent = lastManualTimes.length ? `${(lastManualTimes.length / 2).toFixed(1)} taps/s` : '手動入力待機中';
   const logKey = JSON.stringify(state.log.slice(-4));
   if (logKey !== lastLogKey) { lastLogKey = logKey; $('event-log').innerHTML = state.log.slice(-4).reverse().map(l => `<div class="log-line ${l.kind}"><time>D${String(l.day).padStart(3, '0')}</time><span>${esc(l.text)}</span></div>`).join(''); }
+  if (view === 'planner') renderPlanner();
   if (view === 'workspace') { renderSkills(); renderTask(); renderShop(); renderAssetsAndGoal(); }
   const secondaryKey = view === 'roadmap' ? JSON.stringify([view, state.projectIndex, state.assets, state.runBest, state.experience, state.runExperience, state.items, state.completedProjects, state.experiencedProjects,projectInProgress(),paused,blocked]) : JSON.stringify([view, state.achievements, state.stats.releases, state.resets, Math.floor(state.stats.time), Math.floor(state.stats.valid)]);
   if (secondaryKey !== lastSecondaryKey) {
@@ -734,6 +929,7 @@ $('subject-picker').innerHTML = SKILLS.map(s => `<button class="subject-button" 
 document.addEventListener('click', async event => {
   const b = event.target.closest('button');
   if (!b || b.disabled) return;
+  if(b.id==='asset-work-button' && event.detail===0)return;
   if(b.dataset.projectIndex!==undefined){
     chooseProject(Number(b.dataset.projectIndex));return;
   }
@@ -742,6 +938,9 @@ document.addEventListener('click', async event => {
     if(blocked || paused)return;
     if(kind==='prestige'){handleAction('prestige');return;}
     if(kind==='roadmap'){switchView('roadmap');return;}
+    if(kind==='planner'){switchView('planner');return;}
+    if(kind==='custom-fund'){fundCustomProject(state);dirty=true;render();save();return;}
+    if(kind==='custom-code' || kind==='custom-assets'){setCustomAllocation(state,kind==='custom-code'?'code':'assets');switchMode('dev');return;}
     if(kind==='select-project'){chooseProject(Number(item));return;}
     if(kind==='buy'){
       if(buy(state,item)){
@@ -756,6 +955,7 @@ document.addEventListener('click', async event => {
     return;
   }
   if (b.dataset.view) { dirty = true; switchView(b.dataset.view); }
+  if (b.dataset.planAction || b.dataset.planResume || b.dataset.planAllocation) { handlePlannerAction(b); return; }
   if (b.dataset.mode) switchMode(b.dataset.mode);
   if(b.dataset.workTask && !blocked && !paused){state.workTask=b.dataset.workTask;state.typing.context='';dirty=true;render();focusTypingInput();}
   if (b.dataset.inputStyle && !blocked) {
@@ -799,7 +999,7 @@ for (const type of ['keydown', 'keyup']) $('type-button').addEventListener(type,
   if (state.inputStyle === 'click' && (event.key === 'Enter' || event.key === ' ')) event.preventDefault();
 });
 function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
-  if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing') return;
+  if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing' || state.mode==='dev' && state.planner?.active && state.planner.allocation==='assets' && !state.refactor) return;
   if (state.mode === 'study' && (!hasStudyMaterial(state) || state.studyStyle === 'reading')) return;
   if(state.mode==='work' && state.workTask!=='correction' && availableOfficeWork(state)<=0)return;
   if(state.mode==='study' && state.typing.source==='course' && !courseUnit(state.typing.courseUnit)) return;
@@ -917,13 +1117,16 @@ $('release-button').addEventListener('click', () => {
   if (!result) return;
   unlock(); dirty = true; save(); render();
   const commercial=commerciallyPublished(result), preview=prestigePreview(state);
+  if(result.custom){
+    showModal('作品を公開しました', `<div class="eyebrow">${commercial?'NOW ON SALE':'RELEASED'}</div><h3 class="release-title">${esc(result.name)}</h3><p>${esc(result.reaction || '遊んだ人の反応を、次の制作へ。')}</p><div class="release-detail"><div><small>品質</small><b>${format(result.quality)}<span> / 100</span></b></div><div><small>公開時の受取</small><b>${yen(result.payout || 0)}</b></div></div>${customTitleSalesHTML(result)}<p>公開時の受取 ${yen(result.payout || 0)} · 販売・基盤利用の手数料 ${yen(result.salesFee || 0)}。</p><p>素材・配布の支払い ${yen(result.productionCosts || 0)}。ビルド・テスト ${format(result.builds || 0)}回。</p><div class="modal-actions"><button class="primary-button" data-action="planner">次の企画を考える →</button><button class="secondary-button" data-action="catalog">作品の反応を見る</button><button class="text-button" data-action="close">制作へ戻る</button></div>`);return;
+  }
   const nextAccess=projectAccess(state,result.index+1), experienceMissing=nextAccess.missing.some(r=>r.kind==='experience');
   const recommendRestart=preview.available && experienceMissing;
   const staffing=!experienceMissing && nextAccess.missing.some(r=>r.kind==='item');
   const nextLabel=state.projectIndex===result.index?'同じ規模で次の新作へ →':'次の企画へ →';
   const salesHTML=commercial?`<div><small>発売時の販売本数</small><b>${format(result.soldCopies || 0,0)}<span>本</span></b></div><div><small>発売時の受取</small><b>${yen(result.payout)}</b></div>`:'<div><small>無料公開</small><b>売上 ¥0</b></div>';
   const reactionHTML=Object.values(result.experienceEarned || {}).some(Boolean)?`<div class="modal-callout"><b>この作品で覚えたこと</b><p>${esc(experienceText(result.experienceEarned))}</p><p>再出発すると、次の人生で制作に活かせます。</p></div>`:'<p>この規模の完成経験は獲得済みです。</p>';
-  const nextHTML=recommendRestart?'<div class="modal-callout"><b>覚えたコツを、次の人生へ。</b><p>引き継げる経験と、新しく挑める制作の条件を確認できます。</p></div>':staffing?`<div class="modal-callout"><b>次は、制作体制を整えよう。</b><p>${esc(projectAt(result.index+1).name)}に必要な経験は揃っています。</p><ul>${nextAccess.missing.map(r=>`<li>${esc(r.name)} ${format(r.current)} / ${format(r.required)}</li>`).join('')}</ul><p>今ある作品の売上や、同じ規模の別の新作で制作費を用意できます。</p></div>`:`<p>次の企画：<strong>${esc(projectAt(state.projectIndex).name)}</strong></p>`;
+  const nextHTML=recommendRestart?'<div class="modal-callout"><b>覚えたコツを、次の人生へ。</b><p>引き継げる経験と、新しく挑める制作の条件を確認できます。</p></div>':staffing?`<div class="modal-callout"><b>次は、制作体制を整えよう。</b><p>${esc(projectAt(result.index+1).name)}に必要な経験は揃っています。</p><ul>${nextAccess.missing.map(r=>`<li>${esc(r.name)} ${format(r.current)} / ${format(r.required)}</li>`).join('')}</ul><p>今ある作品の売上や、同じ規模の別の新作で制作費を用意できます。</p></div>`:`<p>次の企画：<strong>${esc(currentProject(state).name)}</strong></p>`;
   const actionsHTML=recommendRestart?'<button class="primary-button" data-action="prestige">経験を引き継いで再出発 →</button><button class="secondary-button" data-action="next-project">もう一本作る</button>':staffing?'<button class="primary-button" data-action="team-tools">制作体制を整える →</button><button class="secondary-button" data-action="next-project">新作で制作費を稼ぐ →</button>':`<button class="primary-button" data-action="next-project">${nextLabel}</button>`;
   showModal('RELEASED / おつかれさまでした。', `<div class="eyebrow">${commercial?'NOW ON SALE':'FREE TO PLAY'}</div><h3 class="release-title">${esc(result.name)}</h3><p>${esc(result.reaction || '最後の一文字まで、作りきりました。')}</p><div class="release-detail"><div><small>品質</small><b>${format(result.quality)}<span> / 100</span></b></div>${salesHTML}</div>${commercial?`<p>販売価格 ${yen(result.unitPrice)} · 販売見込 合計 ${format(result.totalCopies,0)}本。今後の受取見込は ${yen(remainingSales(result)*(1-STORE_FEE_RATE))}。発売後の売れ行きは徐々に落ち着きます。</p><p>ゲーム配信ストアへの販売手数料：${yen(result.salesFee)}（発売時の売上 ${yen(result.grossPayout)} の25%）。</p>`:'<p>遊んだ人の反応を確かめ、次の制作へ活かそう。</p>'}${reactionHTML}${result.index===0?'<div class="modal-callout"><b>次は、遊べる習作を。</b><p>設計と描画を学び、ブロック崩しを無料公開しよう。</p></div>':''}${nextHTML}<p class="contract-note">ビルド・テスト ${format(result.builds)}回 · 素材の購入・外注費 ${yen(result.productionCosts)}。</p>${result.online?`<p>公開中はホスティング会社へ ${yen(serverCost(state,result))} / 日。公開したゲームから停止・再開できます。</p><button class="secondary-button" data-publication="${esc(result.id)}" data-active="false">公開停止</button>`:''}<div class="modal-actions">${actionsHTML}<button class="text-button" data-action="roadmap">企画を選ぶ →</button></div>`);
 });
@@ -954,6 +1157,7 @@ function handleAction(action) {
   if(action==='study-practice' && !blocked && !paused)document.querySelector('[data-study-style=practice]').click();
   if (action === 'go-dev') switchMode('dev');
   if (action === 'continue-creation' && !blocked && !paused) { selectLearningSubject(); if(learningGoal(state).next){openOnlineMaterial(state);switchMode('study');} else switchMode('dev'); save(); }
+  if (action === 'planner') { $('modal').close(); switchView('planner'); }
   if (action === 'roadmap') { $('modal').close(); switchView('roadmap'); }
   if (action === 'team-tools') { $('modal').close();switchView('workspace');document.querySelector('[data-shop=auto]').click();$('shop-items').scrollIntoView({block:'start',behavior:'instant'}); }
   if (action === 'next-reading' && !blocked && !paused) { nextReading(state); render(); $('reading-question')?.focus({ preventScroll: true }); }
@@ -991,7 +1195,7 @@ function handleAction(action) {
     state = fresh; invalidate(); unlock(); save(); $('modal').close(); switchView('workspace'); toast('覚えたコツを持ち越して、次の制作へ。開発ロードマップから企画も選べます。');
   }
 }
-function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; lastOCRReviewHTML = ''; dirty = true; lastFrame = performance.now(); }
+function invalidate() { lastShopKey = ''; lastEditorKey = ''; lastLogKey = ''; lastSkillsKey = ''; lastSecondaryKey = ''; lastCatalogKey = ''; lastReadingKey = ''; lastCourseKey = ''; inputContext = ''; lastOfficeOrder = ''; lastOCRReviewHTML = ''; lastPlannerKey = ''; plannerDraft = null; plannerName = ''; plannerEditing = null; $('planner-view').replaceChildren(); dirty = true; lastFrame = performance.now(); }
 $('import-file').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file || blocked) return;
@@ -1022,3 +1226,5 @@ if (loadingNotice) toast(loadingNotice, 'error', 16000);
 else if (offlineResult?.seconds >= 30) {
   showModal('おかえりなさい、開発者。', `<p>${duration(offlineResult.seconds)}のあいだも、開発環境は稼働していました。${offlineResult.capped ? '離席中の進行は8時間分までです。' : ''}</p><div class="release-detail"><div><small>資金の増減（手数料・サーバー代を精算）</small><b>${offlineResult.cash >= 0 ? '+' : ''}${yen(offlineResult.cash)}</b></div><div><small>有効コード</small><b>+${format(offlineResult.progress)}</b></div></div><p>学習理解度 +${format(offlineResult.knowledge, 2)} K。${state.crashed ? 'ビルドが崩壊しています。学習と修復を確認してください。' : '完成したプロジェクトは開発タブから公開できます。'}</p><div class="modal-actions"><button class="primary-button" data-action="close">続きを始める ↗</button></div>`);
 }
+
+for(const type of ['keydown','keyup'])document.addEventListener(type,event=>{if(event.target.id==='asset-work-button' && (event.key==='Enter' || event.key===' '))event.preventDefault();});

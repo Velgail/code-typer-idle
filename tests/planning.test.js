@@ -52,8 +52,10 @@ test('the six main example estimates have stable, printable code, asset-work and
     ['pixel-roguelite',3611,144440,278,0,0],
     ['visual-novel',1835,73400,606,3000,0],
     ['city-3d',27501,1100040,264,0,0],
-    ['mmorpg',77058,3082320,1448,10000,4650],
-    ['full-dive-vrmmo',784543,31381720,1448,15000000,65160]
+    // Transport, state replication, cooperation, camera and their integration
+    // are now explicit; full dive additionally has a 5,000-line gateway client.
+    ['mmorpg',84098,3363920,1448,10000,4650],
+    ['full-dive-vrmmo',796583,31863320,1448,15000000,65160]
   ];
   const actual=expected.map(([id])=>{
     const estimate=estimatePlan(example(id));reconcile(estimate);
@@ -90,11 +92,14 @@ test('the worked examples exercise every planning axis, asset sourcing, content 
   assert.ok(estimates.some(value=>!ids(value.features).includes('network-authority') && value.totals.recurringCostPerDay===0));
 });
 
-test('every listed genre and engine can target each single platform without inherited OS selections or hidden rendering multipliers',()=>{
+test('every listed genre and engine has an explicit single-platform route or a clear unsupported-target error',()=>{
   const before=JSON.stringify(PLANNING_CATALOG),plans=JSON.stringify(PLANNING_EXAMPLES);
   for(const genre of PLANNING_CATALOG.genres)for(const engine of PLANNING_CATALOG.engines)for(const platform of PLANNING_CATALOG.axes.platform){
     const inputId=['android','ios'].includes(platform.id)?'touch':platform.id==='console'?'gamepad':'keyboard-mouse';
-    const plan={genreId:genre.id,engineId:engine.id,presentationId:'pixel-2d',audioId:'chiptune',inputId,targets:[platform.id]};
+    const plan={genreId:genre.id,engineId:engine.id,presentationId:'pixel-2d',audioId:'chiptune',inputId,targets:[platform.id],features:engine.id==='godot' && platform.id==='console'?[{id:'console-porting-contract'}]:[]};
+    if(engine.supportedTargets && !engine.supportedTargets.includes(platform.id)){
+      error(()=>estimatePlan(plan),'CONFLICT');continue;
+    }
     const estimate=estimatePlan(plan);reconcile(estimate);
     assert.deepEqual(estimate.plan.targets,[platform.id]);assert.ok(estimate.features.some(row=>row.id==='pixel-art'));
     assert.deepEqual(estimate.features.filter(row=>row.id.startsWith('target-')).map(row=>row.id),[`target-${platform.id}`]);
@@ -148,7 +153,8 @@ test('a reckless full-dive VRMMO can be estimated without a player level gate an
   assert.ok(dive.totals.codeLines>mmo.totals.codeLines*5);assert.ok(dive.totals.upfrontCost>1000000);
   assert.ok(dive.totals.recurringCostPerDay>mmo.totals.recurringCostPerDay);assert.ok(dive.requirements.systems>small.requirements.systems*100);
   assert.ok(dive.costs.some(row=>row.kind==='recurring' && row.payee));
-  for(const key of ['quality','sales','playTime','experience','reward'])assert.equal(Object.hasOwn(dive,key),false,key);
+  for(const key of ['quality','playTime','experience','reward'])assert.equal(Object.hasOwn(dive,key),false,key);
+  assert.equal(Object.hasOwn(dive.sales,'gross'),false,'commercial terms do not promise a sales amount');
 });
 
 test('self-made assets have zero cash cost but nonzero work, and licensing or commissioning changes the payee and cost',()=>{
@@ -163,7 +169,8 @@ test('self-made assets have zero cash cost but nonzero work, and licensing or co
 test('more asset content does not automatically duplicate game code or add quality and play-time rewards',()=>{
   const catalog=simpleCatalog(),few=estimatePlan({...simplePlan(),features:[{id:'portraits',quantity:1}]},catalog),many=estimatePlan({...simplePlan(),features:[{id:'portraits',quantity:100}]},catalog);
   assert.equal(few.totals.codeLines,3000);assert.equal(many.totals.codeLines,3000);assert.equal(many.totals.assetWork,300);
-  for(const result of [few,many])for(const key of ['quality','playTime','sales','reward'])assert.equal(Object.hasOwn(result,key),false);
+  for(const result of [few,many])for(const key of ['quality','playTime','reward'])assert.equal(Object.hasOwn(result,key),false);
+  assert.deepEqual(many.sales,few.sales,'additional content does not improve commercial terms');
 });
 
 test('expanding a 3000-line snapshot to 5000 charges only the new 2000-line feature and leaves all inputs intact',()=>{
@@ -333,7 +340,7 @@ test('an offline full-dive game needs only its sensory gateway capacity and does
   for(const id of ['network-authority','accounts','persistent-world','live-operations','sharding'])assert.ok(!ids(snapshot.features).includes(id),id);
   const recurring=snapshot.costs.filter(row=>row.kind==='recurring');assert.equal(recurring.length,1);
   assert.equal(recurring[0].id,'sensory-gateway');assert.equal(recurring[0].driver,'sensorySessions');assert.equal(recurring[0].driverQuantity,1);
-  assert.equal(snapshot.totals.recurringCostPerDay,10050);assert.deepEqual(snapshot.plan.quantities,{});
+  assert.equal(snapshot.totals.recurringCostPerDay,10050);assert.deepEqual(snapshot.plan.quantities,{concurrentPlayers:1,localPlayers:1});
   const expanded=amendPlan(snapshot,{quantities:{sensorySessions:3}});
   assert.equal(expanded.snapshot.totals.recurringCostPerDay,10150);assert.equal(expanded.delta.recurringCostPerDay,100);assert.equal(expanded.delta.codeLines,0);
   assert.equal(snapshot.totals.recurringCostPerDay,10050);assert.ok(!ids(expanded.snapshot.costs).includes('game-servers'));
@@ -351,4 +358,126 @@ test('a cost may declare default capacity but an explicit plan capacity, includi
     const malformed=copy(catalog);malformed.features.find(row=>row.id==='server').costs[0].defaultUnits=invalid;
     error(()=>estimatePlan(plan,malformed),'INVALID_QUANTITY');
   }
+});
+
+test('features without a declared quantity model cannot be multiplied to manufacture scope or knowledge rewards',()=>{
+  for(const quantity of [2,100,10000]){
+    error(()=>estimatePlan({...simplePlan(),features:[{id:'runtime',quantity}]},simpleCatalog()),'INVALID_QUANTITY');
+    error(()=>estimatePlan({...example('small-puzzle'),features:[{id:'save-load',quantity}]}),'INVALID_QUANTITY');
+  }
+  assert.equal(estimatePlan({...simplePlan(),features:[{id:'runtime',quantity:1}]},simpleCatalog()).totals.codeLines,3000);
+});
+
+test('named engine workflows keep separate provider implementations and reject unsupported browser export',()=>{
+  const plan={...example('small-puzzle'),targets:['windows']};
+  for(const engineId of ['unity','unreal','godot']){
+    const result=estimatePlan({...plan,engineId});reconcile(result);
+    assert.ok(result.features.some(row=>row.id===`${engineId}-runtime`));
+    assert.ok(!result.features.some(row=>/^(sdk|engine|custom)-runtime$/.test(row.id)),'a workflow does not also pay for an unused engine runtime');
+    assert.equal(result.features.filter(row=>row.id===`${engineId}-runtime`).length,1);
+  }
+  error(()=>estimatePlan({...plan,engineId:'unreal',targets:['browser']}),'CONFLICT');
+  const unity=estimatePlan({...plan,engineId:'unity',targets:['browser']});assert.ok(unity.totals.upfrontCost>0);
+  assert.ok(unity.costs.every(row=>row.payee));
+});
+
+test('an external console port and VR or native bridges are necessary work rather than free output toggles',()=>{
+  const base=example('small-puzzle');
+  error(()=>estimatePlan({...base,engineId:'godot',inputId:'gamepad',targets:['console']}),'CONFLICT');
+  const consolePlan={...base,engineId:'godot',inputId:'gamepad',targets:['console'],features:[{id:'console-porting-contract'}]};
+  const port=estimatePlan(consolePlan);assert.ok(port.costs.some(row=>row.id==='external-console-port' && row.amount>0 && row.payee));
+  error(()=>estimatePlan({...base,inputId:'vr'}),'CONFLICT');
+  const browserVR=estimatePlan({...base,inputId:'vr',features:[{id:'webxr-adapter'}]});
+  assert.ok(ids(browserVR.features).includes('vr-io'));assert.ok(browserVR.warnings.length>0);
+  error(()=>estimatePlan({...base,inputId:'vr',targets:['android']}),'CONFLICT');
+  const mobileVR=estimatePlan({...base,inputId:'vr',targets:['android'],features:[{id:'mobile-vr-adapter'}]});
+  assert.ok(mobileVR.costs.some(row=>row.id==='mobile-vr-test-device' && row.amount>0));
+  error(()=>estimatePlan({...base,features:[{id:'native-extension'}]}),'CONFLICT');
+  assert.ok(estimatePlan({...base,features:[{id:'native-plugin-porting'}]}).totals.codeLines>estimatePlan(base).totals.codeLines);
+});
+
+test('unsupported default controls are surfaced as warnings and an explicit alternative resolves the warning',()=>{
+  const base=example('small-puzzle'),mobile=estimatePlan({...base,targets:['android']}),consolePlan=estimatePlan({...base,targets:['console']});
+  assert.ok(mobile.warnings.some(row=>String(typeof row==='string'?row:row.message).includes('モバイル')));
+  assert.ok(consolePlan.warnings.some(row=>String(typeof row==='string'?row:row.message).includes('家庭用機')));
+  assert.equal(estimatePlan({...base,targets:['android'],features:[{id:'touch-controls'}]}).warnings.some(row=>String(typeof row==='string'?row:row.message).includes('モバイル')),false);
+  assert.equal(estimatePlan({...base,targets:['console'],inputId:'gamepad'}).warnings.some(row=>String(typeof row==='string'?row:row.message).includes('家庭用機')),false);
+});
+
+test('local cooperation and split-screen add input routing, rules and camera work without requiring an online server',()=>{
+  const base=example('small-puzzle'),solo=estimatePlan(base),shared=estimatePlan({...base,playModeId:'local-coop'}),split=estimatePlan({...base,playModeId:'local-coop',cameraId:'split-screen',quantities:{localPlayers:3}});
+  for(const id of ['local-player-routing','cooperative-rules'])assert.ok(ids(shared.features).includes(id),id);
+  assert.ok(ids(split.features).includes('split-screen'));assert.ok(split.totals.codeLines>shared.totals.codeLines);assert.ok(shared.totals.codeLines>solo.totals.codeLines);
+  for(const snapshot of [shared,split]){
+    assert.ok(!ids(snapshot.features).includes('network-authority'));assert.equal(snapshot.totals.recurringCostPerDay,0);
+    assert.equal(snapshot.features.filter(row=>row.id==='sdk-runtime').length,1);
+  }
+  error(()=>estimatePlan({...base,playModeId:'local-coop',quantities:{localPlayers:1}}),'INVALID_QUANTITY');
+  error(()=>estimatePlan({...base,playModeId:'local-coop',quantities:{localPlayers:5}}),'INVALID_QUANTITY');
+});
+
+test('P2P rollback has deterministic replay work and relay costs while dedicated state-sync charges its own game server',()=>{
+  const base={...example('small-puzzle'),playModeId:'online-versus',cameraId:'per-player',quantities:{concurrentPlayers:4}};
+  const p2p=estimatePlan({...base,networkId:'p2p',syncId:'rollback'}),dedicated=estimatePlan({...base,networkId:'dedicated',syncId:'state-sync'});
+  for(const id of ['peer-connectivity','rollback-sync','deterministic-simulation','replays'])assert.ok(ids(p2p.features).includes(id),id);
+  assert.ok(!ids(p2p.features).includes('network-authority'));assert.ok(p2p.costs.some(row=>row.id==='peer-rendezvous' && row.amount>0 && row.payee));
+  assert.ok(!p2p.costs.some(row=>row.id==='game-servers'),'P2P does not secretly also rent a dedicated game server');
+  assert.ok(ids(dedicated.features).includes('network-authority'));assert.ok(dedicated.costs.some(row=>row.id==='game-servers' && row.amount>0));
+  assert.ok(!dedicated.costs.some(row=>row.id==='peer-rendezvous'));
+  error(()=>estimatePlan({...base,networkId:'none',syncId:'rollback'}),'CONFLICT');
+  error(()=>estimatePlan({...base,networkId:'p2p',syncId:'none'}),'CONFLICT');
+  error(()=>estimatePlan({...base,networkId:'p2p',syncId:'rollback',quantities:{concurrentPlayers:9}}),'INVALID_QUANTITY');
+});
+
+test('typed stages and enemy species add authoring and assets while keeping their shared algorithms single',()=>{
+  for(const [id,increment,work] of [['stage-content',16,14],['enemy-content',14,12]]){
+    const base=example('small-puzzle'),few=estimatePlan({...base,features:[{id,quantity:1}]}),many=estimatePlan({...base,features:[{id,quantity:10}]}),changed=amendPlan(few,{addFeatures:[{id,quantity:10}]});
+    assert.equal(many.totals.codeLines-few.totals.codeLines,9*increment,id);near(many.totals.assetWork-few.totals.assetWork,9*work);
+    assert.equal(many.features.filter(row=>row.id==='sdk-runtime').length,1);assert.equal(changed.delta.codeLines,9*increment);near(changed.delta.assetWork,9*work);
+    assert.equal(few.features.find(row=>row.id===id).quantity,1);assert.equal(many.features.find(row=>row.id===id).quantity,10);
+    for(const key of ['quality','playTime','reward'])assert.equal(Object.hasOwn(many,key),false);
+    assert.deepEqual(many.sales,few.sales,'adding content does not increase market terms');
+  }
+});
+
+test('themes and hybrid mechanics are orthogonal and do not award quality merely for selecting a named affinity',()=>{
+  const base=example('small-puzzle'),abstract=estimatePlan({...base,themeIds:['abstract']}),horror=estimatePlan({...base,themeIds:['psychological-horror']});
+  assert.equal(abstract.totals.codeLines,horror.totals.codeLines);assert.equal(abstract.totals.assetWork,horror.totals.assetWork);
+  const hybrid=estimatePlan({...base,genreId:'shooter',audioId:'chiptune',features:[{id:'real-time-deck'},{id:'enemy-content',quantity:5},{id:'card-content',quantity:20}],themeIds:['science-fiction','comedy-satire']});
+  for(const id of ['real-time-deck','deck-effects','realtime-combat','projectiles-waves'])assert.ok(ids(hybrid.features).includes(id),id);
+  assert.ok(hybrid.integrations.some(row=>row.id==='hybrid-deck-projectiles'));assert.deepEqual(hybrid.plan.themeIds,['comedy-satire','science-fiction']);
+  for(const key of ['quality','reward','knownSynergies'])assert.equal(Object.hasOwn(hybrid,key),false);
+  assert.equal(abstract.sales.modelId,horror.sales.modelId);assert.equal(abstract.sales.priceMultiplier,horror.sales.priceMultiplier);
+  assert.equal(abstract.sales.genreMarket.basePrice,horror.sales.genreMarket.basePrice,'choosing a story theme does not raise the unit price');
+  assert.equal(Object.hasOwn(abstract.sales,'gross'),false);assert.equal(Object.hasOwn(horror.sales,'gross'),false,'audience metadata does not promise a completed sales amount');
+  error(()=>estimatePlan({...base,themeIds:['unknown-theme']}),'UNKNOWN_ID');
+});
+
+test('sales models add their transaction work while stores retain a named fee counterparty and do not duplicate platform registrations',()=>{
+  const base={...example('small-puzzle'),targets:['windows'],storeIds:['direct']},free=estimatePlan({...base,salesModelId:'free'});
+  for(const id of ['paid','subscription','f2p-cosmetic']){
+    const result=estimatePlan({...base,salesModelId:id});reconcile(result);assert.ok(result.totals.codeLines>free.totals.codeLines,id);
+    assert.ok(ids(result.features).includes('purchase-entitlements'));assert.ok(ids(result.features).includes('service-http'));
+  }
+  const pc=PLANNING_CATALOG.axes.store.find(row=>row.id==='pc-store');assert.ok(pc.commissionRate>0 && pc.commissionRate<1 && pc.feePayee);
+  const mobile=estimatePlan({...base,targets:['android'],inputId:'touch',storeIds:['mobile-store'],salesModelId:'paid'});
+  assert.equal(mobile.costs.filter(row=>row.id==='android-distribution').length,1);assert.equal(mobile.costs.filter(row=>row.id==='pc-store-listing').length,0);
+  error(()=>estimatePlan({...base,storeIds:['console-store']}),'CONFLICT');
+});
+
+test('an additive local-coop expansion, themes and distribution channel preserve the old implementation and expose only extra work',()=>{
+  const old=estimatePlan(example('small-puzzle')),before=JSON.stringify(old);
+  const result=amendPlan(old,{selections:{playModeId:'local-coop'},quantities:{localPlayers:2},addThemes:['abstract'],addStores:['web-portal']});
+  assert.equal(result.snapshot.plan.playModeId,'local-coop');assert.deepEqual(result.snapshot.plan.themeIds,['abstract']);assert.deepEqual(result.snapshot.plan.storeIds,['direct','web-portal']);
+  for(const feature of old.features)assert.ok(result.snapshot.features.some(row=>row.id===feature.id),feature.id);
+  assert.ok(result.delta.codeLines>0);assert.equal(result.snapshot.totals.codeLines,old.totals.codeLines+result.delta.codeLines);
+  assert.equal(JSON.stringify(old),before);assert.equal(result.snapshot.totals.recurringCostPerDay,0);
+});
+
+test('expansion cannot erase old synchronization, subscription obligations, or engine work by changing mode selections',()=>{
+  const base=example('small-puzzle'),online=estimatePlan({...base,playModeId:'online-coop',networkId:'dedicated',syncId:'state-sync',cameraId:'per-player'}),subscribed=estimatePlan({...base,salesModelId:'subscription'});
+  error(()=>amendPlan(online,{selections:{playModeId:'solo',networkId:'none',syncId:'none',cameraId:'shared-screen'}}),'SCOPE_REDUCTION');
+  error(()=>amendPlan(subscribed,{selections:{salesModelId:'paid'}}),'SCOPE_REDUCTION');
+  error(()=>amendPlan(oldFixture(),{selections:{engineId:'custom'}}),'UNSUPPORTED_AMENDMENT');
+  function oldFixture(){return estimatePlan(base);}
 });

@@ -2,6 +2,9 @@
 // claims about the real minimum source size or market prices of a game.
 // One standardized implementation line is 40 characters. Asset production is
 // separate work; neither more code nor more assets automatically adds quality.
+import { PLANNING_TECHNOLOGY } from './planningtechnology.js';
+import { PLANNING_GAMEPLAY } from './planninggameplay.js';
+import { PLANNING_BUSINESS } from './planningbusiness.js';
 const K = (syntax = 0, design = 0, graphics = 0, systems = 0) => ({ syntax, design, graphics, systems });
 const F = (id, name, category, baseLines, requirements, requires = [], extra = {}) => ({
   id, name, category, baseLines, requirements, requires, tags: [category], ...extra
@@ -59,17 +62,17 @@ const platformFeatures = [
   F('target-windows', 'Windows移植・配布・検証', 'platform', 30, K(8, 8, 0, 10), ['capability:build']),
   F('target-linux', 'Linux移植・配布・検証', 'platform', 30, K(8, 8, 0, 10), ['capability:build']),
   F('target-macos', 'macOS移植・署名・検証', 'platform', 45, K(10, 10, 0, 15), ['capability:build'], {
-    costs: [upfront('macos-signing', '署名・配布契約（架空単価）', 10000, 'OS配布認証事業者')]
+    costs: [upfront('macos-signing', '署名・配布契約', 10000, 'OS配布認証事業者')]
   }),
   F('target-browser', 'ブラウザ実行・保存・検証', 'platform', 20, K(8, 8, 0, 8), ['capability:build']),
   F('target-android', 'Android移植・画面・審査', 'platform', 120, K(20, 25, 10, 25), ['capability:build'], {
-    costs: [upfront('android-distribution', 'モバイル配布登録（架空単価）', 3000, 'アプリ配布事業者')]
+    costs: [upfront('android-distribution', 'モバイル配布登録', 3000, 'アプリ配布事業者')]
   }),
   F('target-ios', 'iOS移植・画面・審査', 'platform', 150, K(20, 25, 10, 30), ['capability:build'], {
-    costs: [upfront('ios-distribution', 'モバイル配布契約（架空単価）', 12000, 'アプリ配布事業者')]
+    costs: [upfront('ios-distribution', 'モバイル配布契約', 12000, 'アプリ配布事業者')]
   }),
   F('target-console', '家庭用機移植・認証・審査', 'platform', 300, K(40, 50, 20, 60), ['capability:build'], {
-    costs: [upfront('console-certification', '開発機・認証検証契約（架空単価）', 100000, 'ゲーム機プラットフォーム事業者')]
+    costs: [upfront('console-certification', '開発機・認証検証契約', 100000, 'ゲーム機プラットフォーム事業者')]
   })
 ];
 
@@ -268,7 +271,7 @@ const providers = prefix => ({
   physics2d: `${prefix}-physics2d`, physics3d: `${prefix}-physics3d`, audio: `${prefix}-audio`
 });
 
-export const PLANNING_CATALOG = {
+const BASE_PLANNING_CATALOG = {
   version: 1,
   lineCharacters: 40,
   defaultEngineId: 'toolkit',
@@ -334,6 +337,37 @@ export const PLANNING_CATALOG = {
 // Defaults describe a reusable technology choice, not a preferred release OS.
 // Every example declares its own targets so unrelated projects do not silently
 // inherit a release platform from another example.
+const mergeRows = (...groups) => [...new Map(groups.flat().map(row => [row.id, row])).values()];
+const additions = [PLANNING_TECHNOLOGY, PLANNING_GAMEPLAY, PLANNING_BUSINESS];
+let combinedFeatures = mergeRows(BASE_PLANNING_CATALOG.features, ...additions.map(group => group.features || []));
+for (const [id, changes] of Object.entries(PLANNING_BUSINESS.featureOverrides || {})) {
+  combinedFeatures = combinedFeatures.map(feature => feature.id === id ? { ...feature, ...changes } : feature);
+}
+// Card effect evaluation is reusable by both turn-based and real-time games.
+// The default deckbuilder still supplies turn sequencing as its genre rule.
+combinedFeatures = combinedFeatures.map(feature => feature.id === 'deck-effects' ? { ...feature, requires: ['capability:runtime', 'progression'] } : feature);
+export const PLANNING_CATALOG = {
+  ...BASE_PLANNING_CATALOG, version: 2,
+  features: combinedFeatures,
+  genres: BASE_PLANNING_CATALOG.genres.map(genre => genre.id === 'deckbuilder' ? { ...genre, requiredFeatures: [...genre.requiredFeatures, { id: 'turn-combat' }] } : genre),
+  engines: mergeRows(BASE_PLANNING_CATALOG.engines, PLANNING_TECHNOLOGY.engines),
+  axes: { ...BASE_PLANNING_CATALOG.axes, ...PLANNING_BUSINESS.axes, theme: PLANNING_GAMEPLAY.themes },
+  themes: PLANNING_GAMEPLAY.themes,
+  integrations: mergeRows(BASE_PLANNING_CATALOG.integrations, ...additions.map(group => group.integrations || [])),
+  affinities: mergeRows(BASE_PLANNING_CATALOG.affinities, PLANNING_GAMEPLAY.affinities),
+  constraints: additions.flatMap(group => group.constraints || []),
+  quantityDefinitions: PLANNING_BUSINESS.quantityDefinitions,
+  genreMarkets: PLANNING_GAMEPLAY.genreMarkets,
+  economicsPolicy: PLANNING_BUSINESS.economicsPolicy,
+  assumptions: [
+    '実装量・素材作業・価格は固定世界のゲーム内見積単位。実在製品の契約額や普遍的な最低行数を表さない。',
+    '素材工数asset-hourはゲーム内制作工数で、コード入力・検証・外部支払とは別に処理する。',
+    '基本表現・基盤・入力・通信・販売・対応先は独立に指定し、依存と互換性を検証する。',
+    '機能や内容量から面白さ・品質・プレイ時間を自動加点しない。相性仮説は実装と検証によって知見になる。',
+    '販売需要と観客予算は有限。複数店舗へ出しても同じ購入者を重複計上しない。'
+  ]
+};
+
 const basePlan = { engineId: 'toolkit', presentationId: 'pixel-2d', audioId: 'chiptune', inputId: 'keyboard-mouse' };
 const mmoFeatures = [
   { id: 'quests' }, { id: 'terrain-navigation' }, { id: 'network-authority' },
@@ -352,7 +386,7 @@ const novel = {
   features: [{ id: 'story-content', quantity: 10 }, { id: 'character-content', quantity: 6 }, { id: 'audio-content', quantity: 8 }, { id: 'settings-localization' }]
 };
 const rogueAssetSources = source => Object.fromEntries(['pixel-style-kit', 'chip-instruments', 'region-art', 'character-art', 'music-track'].map(id => [id, source]));
-export const PLANNING_EXAMPLES = [
+const BASE_PLANNING_EXAMPLES = [
   { id: 'small-puzzle', name: '文字だけの小さな数理パズル', description: 'ブラウザで数値を入力して考える。画像・音楽・盤面・保存は付けない最小構成。', plan: puzzle },
   { id: 'pixel-roguelite', name: '探索と成長のドット絵ローグライト', description: 'Windows向け。自動生成の探索に成長要素とチップ音楽を組み合わせ、素材は自作する。', plan: roguelite },
   { id: 'visual-novel', name: 'タッチで読むイラスト分岐ノベル', description: 'Android向け。10章・6人・8曲の物語を、タッチ操作と翻訳差替に対応させる。', plan: novel },
@@ -409,4 +443,5 @@ export const PLANNING_EXAMPLES = [
 ];
 
 // Kept as a spelling alias for consumers that call the examples presets.
+export const PLANNING_EXAMPLES = mergeRows(BASE_PLANNING_EXAMPLES, PLANNING_BUSINESS.examples || []);
 export const PLANNING_PRESETS = PLANNING_EXAMPLES;

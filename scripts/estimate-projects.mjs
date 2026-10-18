@@ -27,7 +27,10 @@ export function describeChoices(plan) {
   });
   return [
     `遊び: ${choiceName(genres, plan.genreId)} / 表現: ${choiceName(axes.presentation, plan.presentationId)} / 音: ${choiceName(axes.audio, plan.audioId)}`,
+    `テーマ: ${(plan.themeIds || []).map(id => choiceName(PLANNING_CATALOG.themes || [], id)).join('・') || '指定なし'}`,
     `入力: ${choiceName(axes.input, plan.inputId)} / 基盤: ${choiceName(engines, plan.engineId)} / 実行先: ${plan.targets.map(id => choiceName(axes.platform, id)).join('・')}`,
+    ...axes.playMode ? [`遊び方: ${choiceName(axes.playMode, plan.playModeId)} / 通信: ${choiceName(axes.network, plan.networkId)} / 同期: ${choiceName(axes.sync, plan.syncId)} / 画面: ${choiceName(axes.camera, plan.cameraId)}`] : [],
+    ...axes.salesModel ? [`販売: ${choiceName(axes.salesModel, plan.salesModelId)} / 配布先: ${(plan.storeIds || []).map(id => choiceName(axes.store, id)).join('・')}`] : [],
     `追加構成: ${[...features, ...quantities].join('、') || 'なし'}`,
     `素材調達: ${sources.join('、') || '自作'}`
   ];
@@ -109,6 +112,10 @@ export async function main(args = process.argv.slice(2)) {
         ['ジャンル', PLANNING_CATALOG.genres], ['視覚表現', PLANNING_CATALOG.axes.presentation],
         ['音', PLANNING_CATALOG.axes.audio], ['入力', PLANNING_CATALOG.axes.input],
         ['基盤', PLANNING_CATALOG.engines], ['実行先', PLANNING_CATALOG.axes.platform],
+        ['テーマ', PLANNING_CATALOG.themes], ['プレイ形式', PLANNING_CATALOG.axes.playMode],
+        ['通信', PLANNING_CATALOG.axes.network], ['同期', PLANNING_CATALOG.axes.sync],
+        ['画面', PLANNING_CATALOG.axes.camera], ['販売方式', PLANNING_CATALOG.axes.salesModel],
+        ['配布先', PLANNING_CATALOG.axes.store],
         ['追加機能・内容', PLANNING_CATALOG.features.filter(feature => !['foundation', 'platform', 'presentation', 'audio', 'input'].includes(feature.category))]
       ];
       for (const [name, entries] of groups) {

@@ -7,8 +7,12 @@ import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMI
 import { EXPERIENCE_TYPES, emptyExperience, experienceReward, experienceCap, experienceEffects, experienceRequirements, salesTerms, titleSalesRate, remainingSales, salesDuring, settleSales } from './career.js';
 export { EXPERIENCE_TYPES, experienceEffects, titleSalesRate, remainingSales } from './career.js';
 export { needsBuild } from './builds.js';
+import { estimatePlan, amendPlan } from './planning.js';
+import { PLANNING_CATALOG, PLANNING_EXAMPLES } from './planningcatalog.js';
+import { createPlannerState, activePlanningProject, planningRuntime, projectFromPlanning, verifiedFoundations, learnPlanning, normalizePlannerState, ASSET_WORK_CHARACTERS } from './plannerstate.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 15;
+export const BALANCE_VERSION = 16;
+export const MAX_SAVE_BYTES = 8 * 1024 * 1024;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
 export const TYPING_AUTOMATION_SHARE = .5;
@@ -78,13 +82,174 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.runBest >= 8 || s.catalog.some(p=>p.index>=7) }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, planner:createPlannerState(), mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
+}
+export const currentProject=s=>{const project=activePlanningProject(s);return project?projectFromPlanning(project):projectAt(s.projectIndex);};
+const cloneWork=value=>JSON.parse(JSON.stringify(value));
+const WORK_FIELDS=['progress','debt','debtSources','defects','developmentPolicy','reviewedAt','build','production','mistakes','crashed','refactor','projectCarryover','autoEnabled','mode','subject'];
+const captureProjectWork=s=>Object.fromEntries(WORK_FIELDS.map(key=>[key,cloneWork(s[key])]));
+function restoreProjectWork(s,raw={}){
+  s.progress=Math.max(0,Math.min(currentProject(s).target,Number.isFinite(raw.progress)?raw.progress:0));
+  s.debt=Math.max(0,Math.min(LIMIT,Number.isFinite(raw.debt)?raw.debt:0));
+  s.defects=Math.max(0,Math.min(defectLimit(s),Number.isFinite(raw.defects)?raw.defects:0));
+  s.debtSources=Object.fromEntries(Object.keys(emptyDebtSources()).map(id=>[id,Math.max(0,Math.min(s.debt,Number.isFinite(raw.debtSources?.[id])?raw.debtSources[id]:0))]));
+  const normalized=debtBreakdown(s);s.debtSources=emptyDebtSources();for(const source of normalized)s.debtSources[source.id]=source.amount;
+  s.developmentPolicy=DEVELOPMENT_POLICIES.some(policy=>policy.id===raw.developmentPolicy)?raw.developmentPolicy:'steady';
+  s.reviewedAt=Math.max(0,Math.min(s.stats.time,Number.isFinite(raw.reviewedAt)?raw.reviewedAt:s.stats.time));
+  s.mistakes=Math.max(0,Math.min(LIMIT,Number.isFinite(raw.mistakes)?raw.mistakes:0));
+  s.crashed=raw.crashed===true || s.defects>=defectLimit(s);s.refactor=raw.refactor===true;s.projectCarryover=raw.projectCarryover===true;s.autoEnabled=raw.autoEnabled===true;
+  if(['work','study','dev'].includes(raw.mode))s.mode=raw.mode;if(SKILLS.some(skill=>skill.id===raw.subject))s.subject=raw.subject;
+  s.production={};for(const service of PRODUCTION_SERVICES)if(Number.isFinite(raw.production?.[service.id]?.paid) && raw.production[service.id].paid>0)s.production[service.id]={paid:Math.min(LIMIT,raw.production[service.id].paid)};
+  s.build=normalizeBuildState(raw.build,s,currentProject(s).target);
+}
+function resetTypingProject(s){s.typing.context='';s.typing.offset=0;s.typing.bonusBase=0;s.typing.roundErrors=0;s.typing.correction=null;}
+export function estimateProjectDraft(s,plan){const snapshot=estimatePlan(plan);return {...snapshot,runtime:planningRuntime(s,snapshot)};}
+export function planningKnowledge(s){return cloneWork(s.planner.knowledge);}
+function planningRisk(s){
+  const project=activePlanningProject(s);if(!project)return {integration:0,design:0,market:0};
+  const hypotheses=project.snapshot.compatibility.known,known=hypotheses.filter(row=>s.planner.knowledge.synergies.includes(row.id || `${project.snapshot.plan.genreId}.${row.featureId || row.name || 'combination'}`)).length;
+  const factor=1-.5*(hypotheses.length?known/hypotheses.length:0),risk=project.snapshot.compatibility.risk || {};
+  return {integration:(risk.integration || 0)*factor,design:(risk.design || 0)*factor,market:(risk.market || 0)*factor};
+}
+export function customProduction(s){
+  const project=activePlanningProject(s);
+  const releaseBlockers=[];
+  if(project){
+    if(project.paid<project.snapshot.totals.upfrontCost)releaseBlockers.push('素材・配布・基盤契約に未払いがあります。');
+    if(project.assetProgress<project.assetTarget)releaseBlockers.push('自作素材の制作が残っています。');
+    if((project.snapshot.sales?.requiresBaseRelease || project.snapshot.plan.salesModelId==='dlc') && !customBaseTitle(s,project))releaseBlockers.push('DLCの本編となる有料作品を、先に公開する必要があります。');
+  }
+  return project?{assetProgress:project.assetProgress,assetTarget:project.assetTarget,paid:project.paid,requiredCash:project.snapshot.totals.upfrontCost,outstandingCash:Math.max(0,project.snapshot.totals.upfrontCost-project.paid),allocation:s.planner.allocation,releaseBlockers,baseTitleId:project.baseTitleId}:null;
+}
+export function setCustomAllocation(s,allocation){const project=activePlanningProject(s);if(!project || !['code','assets'].includes(allocation))return false;if(s.planner.allocation!==allocation)resetTypingProject(s);s.planner.allocation=allocation;project.allocation=allocation;return true;}
+export function fundCustomProject(s){
+  const project=activePlanningProject(s);if(!project)return false;
+  const cost=Math.max(0,project.snapshot.totals.upfrontCost-project.paid);if(!(cost>0) || s.cash<cost)return false;
+  s.cash-=cost;project.paid+=cost;s.stats.outsourcing=add(s.stats.outsourcing,cost);
+  log(s,`素材・配布・開発契約の未払 ¥${cost.toLocaleString('en-US')}を精算しました。`,'success');return true;
+}
+export function pauseCustomProject(s,{preserveAutomatic=false}={}){
+  const project=activePlanningProject(s);if(!project)return false;
+  project.work=captureProjectWork(s);project.status='paused';s.planner.active=null;
+  const tutorial=s.planner.tutorial;s.projectIndex=tutorial?.projectIndex ?? s.projectIndex;restoreProjectWork(s,tutorial?.work);s.planner.tutorial=null;
+  if(!preserveAutomatic)s.planner.auto=false;
+  resetTypingProject(s);log(s,`${project.name}を保留。作業と支払はそのまま残ります。`);return true;
+}
+export function resumeCustomProject(s,id){
+  const project=s.planner.projects.find(project=>project.id===id && project.status==='paused');if(!project)return false;
+  if(activePlanningProject(s))pauseCustomProject(s,{preserveAutomatic:true});
+  s.planner.tutorial={projectIndex:s.projectIndex,work:captureProjectWork(s)};s.planner.active=project.id;project.status='active';s.planner.allocation=project.allocation || 'code';restoreProjectWork(s,project.work);resetTypingProject(s);
+  log(s,`${project.name}の制作を再開しました。`,'success');return true;
+}
+export function startCustomProject(s,plan,{name,baseTitleId}={}){
+  let snapshot;try{snapshot=estimatePlan(plan);}catch(error){return {ok:false,reason:error.message};}
+  if(s.planner.projects.filter(project=>project.status!=='released').length>=24)return {ok:false,reason:'保留中の企画が24件あります。既存の企画を仕上げてください。'};
+  const runtime=planningRuntime(s,snapshot);
+  if(activePlanningProject(s))pauseCustomProject(s,{preserveAutomatic:true});
+  s.planner.tutorial={projectIndex:s.projectIndex,work:captureProjectWork(s)};
+  const record={id:`project-${s.planner.nextId++}`,name:typeof name==='string' && name.trim()?name.trim().slice(0,100):PLANNING_CATALOG.genres.find(genre=>genre.id===snapshot.plan.genreId)?.name || '新しいゲーム',snapshot,codeTarget:runtime.codeTarget,assetTarget:runtime.assetTarget,assetProgress:0,paid:0,defectBase:runtime.codeTarget,reuse:runtime.reuse,allocation:'code',status:'active',work:null};
+  record.baseTitleId=typeof baseTitleId==='string'?baseTitleId:s.catalog.findLast(title=>title.unitPrice>0 && title.salesModelId!=='dlc')?.id || null;
+  s.planner.projects=s.planner.projects.filter(project=>project.status!=='released').concat(s.planner.projects.filter(project=>project.status==='released').slice(-7),record);s.planner.active=record.id;s.planner.allocation='code';
+  restoreProjectWork(s);s.debt=runtime.reuse.reduce((sum,entry)=>sum+entry.debt,0);s.debtSources.reuse=s.debt;s.projectCarryover=s.debt>0;if(s.debt)markBuildChanges(s,s.debt);
+  s.mode='dev';resetTypingProject(s);fundCustomProject(s);
+  log(s,`${record.name}の制作を開始。必要な知識や資金は、途中で揃えることもできます。`,'success');return {ok:true,id:record.id};
+}
+export function expandCustomProject(s,changes){
+  const project=activePlanningProject(s);if(!project)return {ok:false,reason:'制作中の自由企画がありません。'};
+  let amendment;try{amendment=amendPlan(project.snapshot,changes);}catch(error){return {ok:false,reason:error.message};}
+  project.snapshot=amendment.snapshot;project.codeTarget+=amendment.delta.codeCharacters;project.assetTarget=amendment.snapshot.totals.assetWork;
+  // The original defect budget remains fixed: appending empty scope cannot
+  // turn an existing failing build into a passing build or improve quality.
+  checkChangedCode(s,1,'assets');resetTypingProject(s);fundCustomProject(s);
+  log(s,`企画を拡張。追加実装 ${amendment.delta.codeLines.toLocaleString('en-US')}行・素材作業 ${amendment.delta.assetWork.toLocaleString('en-US')}。`);return {ok:true,delta:amendment.delta};
+}
+export function produceCustomAssets(s,{effort=handPower(s),manual=true,automation=false}={}){
+  const project=activePlanningProject(s);if(!project || s.planner.allocation!=='assets' || s.refactor || !(effort>0) || !Number.isFinite(effort))return {kind:'assets',amount:0};
+  if(manual)effort=Math.min(effort,handPower(s));
+  const before=project.assetProgress,planned=Math.min(Math.max(0,project.assetTarget-before),effort/(manual?30:ASSET_WORK_CHARACTERS)*(automation?.75:1));
+  project.assetProgress=before+planned;
+  if(project.assetTarget-project.assetProgress<=Math.max(1,project.assetTarget)*1e-10)project.assetProgress=project.assetTarget;
+  const amount=project.assetProgress-before;
+  if(manual && amount>0)s.stats.manual=add(s.stats.manual,1);
+  if(amount){
+    markBuildChanges(s,amount);
+    // Art is integrated in batches. Code completion must not turn every
+    // individual brush stroke into a separate compile and test invocation.
+    const interval=Math.max(1,project.assetTarget/8);
+    if(project.assetProgress>=project.assetTarget || Math.floor(before/interval)<Math.floor(project.assetProgress/interval))runBuild(s,'assets');
+  }
+  return {kind:'assets',amount};
+}
+const autoEstimateCache=new Map();
+const autoEstimate=plan=>{const key=JSON.stringify(plan);if(!autoEstimateCache.has(key))autoEstimateCache.set(key,estimatePlan(plan));return autoEstimateCache.get(key);};
+export function chooseAutoPlan(s){
+  const known=s.planner.knowledge.releasedPlans.map((plan,index)=>({id:`known-${index}`,name:PLANNING_CATALOG.genres.find(genre=>genre.id===plan.genreId)?.name || '慣れた企画',plan}));
+  const examples=[...known,...PLANNING_EXAMPLES].flatMap(example=>[example,...(s.planner.knowledge.genres.includes(example.plan.genreId) && (!example.plan.salesModelId || example.plan.salesModelId==='free')?[{...example,id:`${example.id}-paid`,plan:{...example.plan,salesModelId:'paid'}}]:[])]);
+  const candidates=examples.flatMap(example=>{try{const snapshot=autoEstimate(example.plan),runtime=planningRuntime(s,snapshot);if(runtime.requiredCash+snapshot.totals.recurringCostPerDay*3>s.cash || runtime.missingRequirements.length)return [];if((snapshot.sales?.requiresBaseRelease || snapshot.plan.salesModelId==='dlc') && !s.catalog.some(title=>title.unitPrice>0 && title.totalCopies>0 && title.salesModelId!=='dlc' && !title.archived))return [];const tested=snapshot.features.filter(feature=>s.planner.knowledge.testedFeatures.includes(feature.id)).length;return [{plan:snapshot.plan,snapshot,name:example.name,reason:s.planner.knowledge.genres.includes(snapshot.plan.genreId)?'公開して確かめた企画を、今の体制で制作します。':'現在の知識と資金で完了できる企画です。',score:tested*1000+Math.min(snapshot.totals.codeLines,10000)+(snapshot.plan.salesModelId==='paid'?20000:0)}];}catch{return [];}});
+  candidates.sort((a,b)=>b.score-a.score);
+  if(candidates.length){const {score,...choice}=candidates[0];return choice;}
+  const starter=PLANNING_EXAMPLES.flatMap(example=>{try{const snapshot=autoEstimate(example.plan);return snapshot.totals.upfrontCost===0 && snapshot.totals.recurringCostPerDay===0?[{plan:snapshot.plan,snapshot,name:example.name,reason:'無料教材で基礎から学び、小さな一本を完成させます。'}]:[];}catch{return [];}}).sort((a,b)=>a.snapshot.totals.codeCharacters-b.snapshot.totals.codeCharacters)[0];
+  return starter || null;
+}
+export function startAutoPlan(s){const choice=chooseAutoPlan(s);if(!choice)return {ok:false,reason:'今の知識と資金で完了できる企画がありません。無料教材で不足分野を学べます。'};const result=startCustomProject(s,choice.plan,{name:choice.name});if(result.ok)s.autoEnabled=true;return result;}
+export function setAutoPlanning(s,enabled){s.planner.auto=!!enabled;return true;}
+function prepareAutomaticPlan(s){
+  if(!s.planner.auto)return;
+  if(!activePlanningProject(s))startAutoPlan(s);
+  const project=activePlanningProject(s);if(!project)return;
+  fundCustomProject(s);
+  const missing=developmentReadiness(s).requirements.filter(requirement=>requirement.missing>0);
+  for(const requirement of missing)if(!hasStudyMaterial(s,requirement.id))openOnlineMaterial(s,requirement.id);
+  s.autoEnabled=true;
+  if(missing.length){s.autoEnabled=false;s.mode='study';s.subject=missing.sort((a,b)=>a.current/a.required-b.current/b.required)[0].id;return;}
+  s.mode='dev';
+  const repair=s.crashed || s.defects>defectLimit(s)*.05;
+  s.refactor=repair;setCustomAllocation(s,!repair && project.assetProgress<project.assetTarget?'assets':'code');
+  if(!repair && s.progress>=project.codeTarget && project.assetProgress>=project.assetTarget && !customProduction(s).releaseBlockers.length)releaseCustomProject(s);
+}
+function customSalesForecast(s,project,q){
+  const terms=project.snapshot.sales || {},modelId=terms.modelId || project.snapshot.plan.salesModelId || 'free',commercial=modelId!=='free';
+  const validated=s.progress>=project.codeTarget && !needsBuild(s) && ['passed','warnings'].includes(s.build.last?.status);
+  const supported=validated?Math.min(4,project.snapshot.compatibility.known.filter(row=>row.relation==='supports').length):0;
+  const genreMarket=terms.genreMarket || {},basePrice=genreMarket.basePrice ?? 500;
+  const reach=(genreMarket.reachableAudience ?? 40)+(validated?(terms.marketingReach || 0):0);
+  const market=Math.max(0,Math.floor(reach*experienceEffects(s.experience).audience*(terms.audienceMultiplier ?? 1)*(terms.storeAudienceMultiplier ?? 1)*(validated?(terms.themeAudienceMultiplier ?? 1):1)*q/100*(1-.6*planningRisk(s).market)*(1+supported*.08*q/100)));
+  const price=commercial?Math.max(.01,Math.round(basePrice*(terms.priceMultiplier ?? 1)*100)/100):0;
+  let customerCount=commercial && q>=60?Math.max(0,Math.floor(market*(terms.conversionRate ?? 1)*(genreMarket.conversionScale ?? 1))):0;
+  if(terms.requiresBaseRelease || modelId==='dlc')customerCount=Math.min(customerCount,Math.floor((customBaseTitle(s,project)?.customerCount ?? customBaseTitle(s,project)?.totalCopies ?? 0)*.3));
+  const maxPeriods=Math.max(1,Math.floor(terms.recurringPeriods ?? 1)),lifetimeBudget=basePrice*(terms.lifetimeBudgetMultiplier ?? 1);
+  const unitsPerCustomer=commercial?Math.max(0,Math.min(maxPeriods,Math.floor((lifetimeBudget+1e-9)/price))):0;
+  const copies=customerCount*unitsPerCustomer;
+  const gross=bounded(price*copies),launchGross=Math.min(gross,price*Math.floor(copies*(terms.launchFraction ?? .25)));
+  const revenueUnitKind=({paid:'copy',dlc:'dlc-copy',subscription:'subscription-period','f2p-cosmetic':'cosmetic-purchase','ad-supported':'ad-view','pay-what-you-want':'support-payment'})[modelId] || 'free';
+  return {commercial,price,copies,gross,launchGross,tailGross:gross-launchGross,halfLife:Math.max(1,(terms.salesHalfLifeDays ?? 1)*DAY),storeFeeRate:Math.max(0,Math.min(1,terms.storeFeeRate ?? STORE_FEE_RATE)),engineFeeRate:Math.max(0,Math.min(1,terms.engineFeeRate ?? 0)),modelId,revenueUnitKind,audienceCount:market,customerCount,revenueUnitCount:copies,maxPeriods,unitsPerCustomer,lifetimeBudget};
+}
+function customBaseTitle(s,project){return s.catalog.find(title=>title.id===project.baseTitleId && title.unitPrice>0 && title.totalCopies>0 && title.salesModelId!=='dlc' && !title.archived) || null;}
+function releaseCustomProject(s){
+  const project=activePlanningProject(s),p=currentProject(s);
+  if(s.progress<p.target || customProduction(s).releaseBlockers.length)return null;
+  runBuild(s,'release');if(s.crashed || s.defects>defectLimit(s)*.1 || knowledgeRatio(s)<1)return null;
+  const q=quality(s),forecast=customSalesForecast(s,project,q),grossPayout=forecast.launchGross,salesFee=grossPayout*Math.min(1,forecast.storeFeeRate+forecast.engineFeeRate),payout=grossPayout-salesFee;
+  const seen=s.planner.knowledge.genres.includes(project.snapshot.plan.genreId) && project.snapshot.features.every(feature=>s.planner.knowledge.testedFeatures.includes(feature.id));
+  earn(s,payout);s.stats.storeFees=add(s.stats.storeFees,salesFee);learnPlanning(s,project);verifiedFoundations(s);
+  const playableCharacters=project.snapshot.features.filter(feature=>['rules','content','system','interface'].includes(feature.category)).reduce((sum,feature)=>sum+feature.codeLines*40,0);
+  const scope=Math.min(6,Math.max(0,Math.floor(Math.log10(Math.max(1,playableCharacters)/3000))+1)),earnedExperience=seen?emptyExperience():experienceReward(scope);
+  for(const type of EXPERIENCE_TYPES){const cap=experienceCap(scope);earnedExperience[type.id]=Math.min(earnedExperience[type.id],cap?Math.max(0,cap[type.id]-(s.experience[type.id] || 0)-s.runExperience[type.id]):earnedExperience[type.id]);s.runExperience[type.id]=add(s.runExperience[type.id],earnedExperience[type.id]);}
+  const reaction=forecast.commercial?'遊んだ人から反応が届いた。次の企画に生かせる手掛かりが残った。':'遊べる一本を公開。実装と遊びの組合せを確かめました。';
+  const title={id:`release-${s.nextTitleId++}`,name:project.name,quality:q,royalty:0,payout,grossPayout,salesFee,index:Math.min(6,scope),custom:true,planning:{genreId:project.snapshot.plan.genreId,engineId:project.snapshot.plan.engineId,targets:cloneWork(project.snapshot.plan.targets),features:project.snapshot.features.map(feature=>feature.id),salesModelId:forecast.modelId},planSnapshot:cloneWork(project.snapshot.plan),online:p.online,serverDaily:p.serverDaily,active:true,technicalDebt:s.debt,defects:s.defects,reviewedAt:s.reviewedAt,builds:s.build.count,productionCosts:project.paid,services:[],unitPrice:forecast.price,totalCopies:forecast.copies,soldCopies:forecast.price?grossPayout/forecast.price:0,salesRemaining:forecast.tailGross,salesHalfLife:forecast.halfLife,salesEarned:grossPayout,reaction,experienceEarned:earnedExperience,storeFeeRate:forecast.storeFeeRate,engineFeeRate:forecast.engineFeeRate,salesModelId:forecast.modelId};
+  title.baseTitleId=project.baseTitleId;title.operatingLines=project.snapshot.costs.filter(cost=>cost.kind==='recurring').map(cost=>({id:cost.id,name:cost.name,payee:cost.payee,amount:cost.amount}));title.feePayees=(project.snapshot.sales?.feePayees || []).map(payee=>typeof payee==='string'?payee:payee.payee || payee.name);if(forecast.engineFeeRate)title.feePayees.push('エンジン開発元');
+  Object.assign(title,{revenueUnitKind:forecast.revenueUnitKind,audienceCount:forecast.audienceCount,customerCount:forecast.customerCount,revenueUnitCount:forecast.revenueUnitCount,maxPeriods:forecast.maxPeriods,unitsPerCustomer:forecast.unitsPerCustomer,lifetimeBudget:forecast.lifetimeBudget,soldRevenueUnits:title.soldCopies});
+  title.royalty=titleSalesRate(title);s.catalog.push(title);archiveTitles(s);s.stats.releases++;s.runReleased++;s.runBest=Math.max(s.runBest,scope+1,2);
+  project.work=captureProjectWork(s);project.status='released';s.planner.active=null;
+  const tutorial=s.planner.tutorial;s.projectIndex=tutorial?.projectIndex ?? s.projectIndex;restoreProjectWork(s,tutorial?.work);s.planner.tutorial=null;resetTypingProject(s);
+  log(s,`${title.name}を${forecast.commercial?'発売':'無料公開'}！ ${reaction}`,'success');return title;
 }
 export const level = (s, id) => s.items[id] || 0;
 export const availableOfficeWork = s => Math.max(0,s.office?.remaining ?? OFFICE_CONTRACT_WORK);
 export const shopUnlocked = (s,item) => Math.max(s.projectIndex,s.runBest)>=item.gate;
 export const metaBonus = s => (1 + Math.sqrt(s.assets) * 0.5) * experienceEffects(s.experience).speed;
 export function projectAccess(s,index=s.projectIndex){
+  if(index===s.projectIndex && activePlanningProject(s))return {allowed:true,requirements:[],missing:[],grandfathered:false,reason:''};
   const wanted=experienceRequirements(index),requirements=[];
   for(const type of EXPERIENCE_TYPES){
     const required=wanted.experience[type.id],current=s.experience?.[type.id] || 0;
@@ -100,6 +265,7 @@ export function projectAccess(s,index=s.projectIndex){
 }
 export const projectReadiness = s => ({...developmentReadiness(s),access:projectAccess(s)});
 export function selectProject(s,index){
+  if(activePlanningProject(s))return false;
   if(!Number.isSafeInteger(index) || index<0 || index>1e6 || index===s.projectIndex || !projectAccess(s,index).allowed)return false;
   const carryOnly=s.projectCarryover && !s.progress && !s.defects && Object.entries(s.debtSources).every(([id,n])=>id==='reuse' || !n);
   if(s.progress || s.debt && !carryOnly || s.defects || s.crashed || Object.keys(s.production).length || needsBuild(s) && !carryOnly)return false;
@@ -108,6 +274,7 @@ export function selectProject(s,index){
   return true;
 }
 export function salesForecast(s,index=s.projectIndex,q=quality(s)){
+  if(index===s.projectIndex && activePlanningProject(s))return customSalesForecast(s,activePlanningProject(s),q);
   const terms=salesTerms(index),commercial=index>=2 && q>=60;
   const copies=commercial?Math.max(1,Math.floor(terms.copies*experienceEffects(s.experience).audience*q/100)):0;
   const gross=bounded(terms.price*copies),launchGross=bounded(terms.price*Math.floor(copies*.25));
@@ -121,7 +288,8 @@ export const workRate = () => 1;
 export const handPower = s => bounded((1 + level(s, 'keyboard') * 0.25) * metaBonus(s) * (s.cash < 0 ? 0.5 : 1));
 export const skillKnowledge = (s,id) => Math.max(0,s.skills[id]-(s.studyGaps?.[id] || 0));
 export function knowledgeRatio(s) {
-  return Math.min(...Object.entries(projectAt(s.projectIndex).req).map(([id, req]) => skillKnowledge(s,id) / req));
+  const requirements=Object.entries(currentProject(s).req).filter(([,required])=>required>0);
+  return requirements.length?Math.min(...requirements.map(([id, req]) => skillKnowledge(s,id) / req)):1;
 }
 export function validity(s) {
   const ratio = knowledgeRatio(s);
@@ -129,12 +297,12 @@ export function validity(s) {
 }
 // Uses the same boundaries as code conversion, including exactly 50% = zero.
 export function developmentReadiness(s) {
-  const requirements = Object.entries(projectAt(s.projectIndex).req).map(([id, required]) => ({ id, required, current: skillKnowledge(s,id), missing: Math.max(0, required - skillKnowledge(s,id)) }));
-  const stage = !projectAccess(s).allowed ? 'experience' : s.crashed || s.defects > defectLimit(s) * .1 ? 'repair' : s.progress >= projectAt(s.projectIndex).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
+  const requirements = Object.entries(currentProject(s).req).map(([id, required]) => ({ id, required, current: skillKnowledge(s,id), missing: Math.max(0, required - skillKnowledge(s,id)) }));
+  const stage = !projectAccess(s).allowed ? 'experience' : s.crashed || s.defects > defectLimit(s) * .1 ? 'repair' : s.progress >= currentProject(s).target ? 'complete' : knowledgeRatio(s) >= 1 ? 'ready' : validity(s) > 0 ? 'prototype' : 'learn';
   return { stage, requirements };
 }
 export function learningGoal(s) {
-  const requirements=Object.entries(projectAt(s.projectIndex).req).map(([id,required])=>({id,required,current:skillKnowledge(s,id)}));
+  const requirements=Object.entries(currentProject(s).req).map(([id,required])=>({id,required,current:skillKnowledge(s,id)}));
   const missing=requirements.filter(r=>r.current<r.required).sort((a,b)=>a.current/a.required-b.current/b.required);
   // Finish the subject the player chose before suggesting another one.
   const next=(s.mode==='study' && missing.find(r=>r.id===s.subject)) || missing[0] || null;
@@ -159,9 +327,10 @@ export function answerReading(s, choice) {
   const reward = correct ? input(s, { mode: 'study', subject: s.subject, chars: READING_UNITS, manual: false }) : { amount: 0 };
   return { kind: correct ? 'correct' : 'incorrect', amount: reward.amount };
 }
-export const debtLimit = s => projectAt(s.projectIndex).target * 0.25;
-export const defectLimit = s => projectAt(s.projectIndex).target * 0.25;
+export const debtLimit = s => (activePlanningProject(s)?.defectBase || currentProject(s).target) * 0.25;
+export const defectLimit = s => (activePlanningProject(s)?.defectBase || currentProject(s).target) * 0.25;
 export function productionOptions(s){
+  if(activePlanningProject(s))return [];
   if(s.projectIndex<2)return [];
   const terms=salesTerms(s.projectIndex),budget=bounded(terms.price*terms.copies*.05);
   const qualityBefore=quality(s);
@@ -177,7 +346,7 @@ export function orderProduction(s,id){
   log(s,`${quote.payee}へ${quote.name}を依頼。制作費 ¥${quote.cost.toLocaleString('en-US')}を支払い、納品素材を組み込みました。`,'success');
   return true;
 }
-export const buildStep=s=>buildStepFor(projectAt(s.projectIndex).target);
+export const buildStep=s=>buildStepFor(currentProject(s).target);
 export function runBuild(s,trigger='manual'){
   if(!needsBuild(s))return null;
   const status=s.crashed?'compile-failed':s.defects>defectLimit(s)*.1?'test-failed':s.defects>0?'warnings':'passed';
@@ -190,11 +359,12 @@ export function runBuild(s,trigger='manual'){
     const message={ 'compile-failed':'途中ビルド失敗。必要理解度を満たし、不具合の修正が必要です。', 'test-failed':'ビルド成功。テストで公開前に修正が必要な問題を確認しました。', warnings:'ビルド成功。テストで小さな修正点を確認。機能追加を続けられます。', passed:'ビルド・テスト成功。次の変更へ進めます。' }[status];
     log(s,message,status==='compile-failed' || status==='test-failed'?'error':status==='passed'?'success':'info');
   }
+    verifiedFoundations(s);
   return result;
 }
 function checkChangedCode(s,amount,trigger='automatic',force=false){
   markBuildChanges(s,amount);
-  if(force || s.build.changed>=buildStep(s) || s.progress>=projectAt(s.projectIndex).target)runBuild(s,trigger);
+  if(force || s.build.changed>=buildStep(s) || s.progress>=currentProject(s).target)runBuild(s,trigger);
 }
 export const developmentEfficiency = s => maintenanceEfficiency(s,debtLimit(s),DAY);
 export const defectRepairRate=s=>2*(1+knowledgeRatio(s));
@@ -207,7 +377,7 @@ export function maintenanceGain(s,chars=handPower(s)){
 export function developmentGain(s,chars=handPower(s),manual=true){
   if(s.crashed || s.refactor || !projectAccess(s).allowed)return 0;
   const ratio=knowledgeRatio(s);
-  return Math.min(projectAt(s.projectIndex).target-s.progress,bounded(chars*validity(s)*abstraction(s)*(manual && ratio>=1?ideMultiplier(s):1)*developmentPolicy(s).speed*developmentEfficiency(s)));
+  return Math.min(currentProject(s).target-s.progress,bounded(chars*validity(s)*abstraction(s)*(manual && ratio>=1?ideMultiplier(s):1)*developmentPolicy(s).speed*developmentEfficiency(s)));
 }
 export function setDevelopmentPolicy(s,id){
   if(!DEVELOPMENT_POLICIES.some(p=>p.id===id))return false;
@@ -219,11 +389,19 @@ export function libraryDebtImport(s){
 export const abstraction = s => Math.min(3, Math.max(1, 1 + (knowledgeRatio(s) - 1) * 0.3));
 export const royaltyRate = s => bounded(s.catalog.reduce((sum, p) => sum + titleSalesRate(p), 0));
 export const finiteSalesGross = (s,seconds) => bounded(s.catalog.reduce((sum,p)=>sum+salesDuring(p,seconds),0));
-export const netRoyaltyRate = s => royaltyRate(s) * (1 - STORE_FEE_RATE);
+const titleFeeRate=title=>Math.min(1,title.custom?(title.storeFeeRate ?? STORE_FEE_RATE)+(title.engineFeeRate || 0):STORE_FEE_RATE);
+const titleFeesDuring=(title,seconds)=>Array.isArray(title.salesBatches)?title.salesBatches.reduce((sum,batch)=>sum+(title.active===false || batch.active===false?0:Math.max(0,batch.remaining || 0)*-Math.expm1(-Math.LN2*seconds/Math.max(1,batch.halfLife || DAY))*(batch.feeRate ?? STORE_FEE_RATE)),0):salesDuring(title,seconds)*titleFeeRate(title);
+export const netRoyaltyRate = s => bounded(s.catalog.reduce((sum,title)=>sum+(title.active===false?0:Array.isArray(title.salesBatches)?title.salesBatches.reduce((amount,batch)=>amount+(batch.active===false?0:Math.max(0,batch.remaining || 0)*Math.LN2/Math.max(1,batch.halfLife || DAY)*(1-(batch.feeRate ?? STORE_FEE_RATE))),0):titleSalesRate(title)*(1-titleFeeRate(title))),0));
 export function expenseLines(s) {
   const lines = [];
-  if (royaltyRate(s)) lines.push({ name: '販売・決済手数料', payee: 'ゲーム配信ストア', daily: finiteSalesGross(s,DAY) * STORE_FEE_RATE, terms: '今後1日の販売見込の25%・売上時に精算' });
-  for (const title of s.catalog) if (serverCost(s, title)) lines.push({ name: `${title.name} / サーバー稼働料`, payee: 'ホスティング会社', daily: serverCost(s, title), terms: '公開中のみ発生・日次精算' });
+  for(const title of s.catalog){
+    const fee=titleFeesDuring(title,DAY);
+    if(fee)lines.push({name:`${title.name} / 販売・決済・基盤契約手数料`,payee:title.feePayees?.join('・') || 'ゲーム配信ストア',daily:fee,terms:Array.isArray(title.salesBatches)?'配信先ごとの契約率・売上時に精算':`今後1日の販売見込の${Math.round(titleFeeRate(title)*100)}%・売上時に精算`});
+    if(serverCost(s,title)){
+      if(title.custom && title.operatingLines?.length)for(const cost of title.operatingLines)lines.push({name:`${title.name} / ${cost.name}`,payee:cost.payee,daily:cost.amount*(level(s,'kitchen')?.75:1),terms:'公開中のみ発生・日次精算'});
+      else lines.push({ name: `${title.name} / サーバー稼働料`, payee: 'ホスティング会社', daily: serverCost(s, title), terms: '公開中のみ発生・日次精算' });
+    }
+  }
   return lines;
 }
 export function setPublicationActive(s, index, active) {
@@ -285,7 +463,7 @@ export function studyPreview(s,chars=handPower(s),subject=s.subject){
 }
 export function autoStudySubject(s) {
   let subject = null, lowest = 1, missing = false;
-  for (const [id, requirement] of Object.entries(projectAt(s.projectIndex).req)) {
+  for (const [id, requirement] of Object.entries(currentProject(s).req)) {
     const ratio = skillKnowledge(s,id) / requirement;
     if (ratio < 1) missing = true;
     if (hasStudyMaterial(s, id) && ratio < lowest) { lowest = ratio; subject = id; }
@@ -370,6 +548,7 @@ function automateOffice(s,chars){
 export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
   if (mode === 'study' && !hasStudyMaterial(s, subject)) return { kind: 'textbook', amount: 0 };
+  if(mode==='dev' && activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor)return automation?produceCustomAssets(s,{effort:Math.min(LIMIT,chars),manual:false,automation:true}):{kind:'assets',amount:0};
   if(mode==='work' && s.workTask!=='correction'){
     chars=Math.min(chars,availableOfficeWork(s));
     if(!(chars>0))return {kind:'contract-complete',amount:0,work:0};
@@ -412,7 +591,7 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
     return {kind:'refactor',amount,fixed};
   }
   if (s.crashed) return { kind: 'crash', amount: 0 };
-  if (s.progress >= projectAt(s.projectIndex).target) return { kind: 'code', amount: 0 };
+  if (s.progress >= currentProject(s).target) return { kind: 'code', amount: 0 };
   const rate = validity(s);
   if (!rate) { s.mistakes = add(s.mistakes, chars); return { kind: 'error', amount: 0 }; }
   if (rate < 1) {
@@ -428,8 +607,10 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
   }
   const accepted=developmentGain(s,chars,manual);
   if(!s.progress && !s.debt)s.reviewedAt=s.stats.time;
-  const introducedDefects=accepted*changeDefectRate(s,debtLimit(s))*(automation?AUTO_DEVELOPMENT_DEFECTS:1);
-  const sources=incurredDebt(s,accepted,projectAt(s.projectIndex).target);
+  const risk=planningRisk(s);
+  const introducedDefects=accepted*changeDefectRate(s,debtLimit(s))*(automation?AUTO_DEVELOPMENT_DEFECTS:1)*(1+risk.integration);
+  const sources=incurredDebt(s,accepted,currentProject(s).target);
+  sources.coupling*=1+risk.integration+risk.design*.5;
   for(const id of Object.keys(sources))sources[id]*=experienceEffects(s.experience).architecture;
   if(automation)sources.generated=Object.values(sources).reduce((sum,n)=>sum+n,0);
   const debtAdded=addDebt(s,sources,LIMIT);
@@ -448,6 +629,7 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
 // also fills the defect budget, rather than silently deleting its mistakes.
 function automateDevelopment(s, chars) {
   if(!projectAccess(s).allowed)return;
+  if(activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor){produceCustomAssets(s,{effort:chars,manual:false,automation:true});return;}
   if (knowledgeRatio(s) <= 0.5 && !s.refactor && !s.crashed) {
     s.stats.chars = add(s.stats.chars, chars);
     s.mistakes = add(s.mistakes, chars);
@@ -467,14 +649,15 @@ export function tick(s, seconds, { chargeExpenses = true } = {}) {
     seconds -= dt;
     s.stats.time += dt;
     s.dayElapsed += dt;
-    const gross = finiteSalesGross(s,dt), fee = chargeExpenses ? gross * STORE_FEE_RATE : 0;
-    for(const title of s.catalog)settleSales(title,dt);
+    prepareAutomaticPlan(s);
+    const gross = finiteSalesGross(s,dt), fee = chargeExpenses ? s.catalog.reduce((sum,title)=>sum+titleFeesDuring(title,dt),0) : 0;
+    for(const title of s.catalog){settleSales(title,dt);if(title.custom)title.soldRevenueUnits=title.soldCopies;}
     earn(s, gross - fee);
     s.stats.storeFees = add(s.stats.storeFees, fee);
     if (unitRate(s, 'macro')) automateOffice(s,bounded(unitRate(s, 'macro') * dt));
     const studySubject = unitRate(s, 'lab') ? autoStudySubject(s) : null;
     if (studySubject) input(s, { mode: 'study', subject: studySubject, chars: bounded(unitRate(s, 'lab') * dt), manual: false, automation: true });
-    if (devRate(s) && (s.progress < projectAt(s.projectIndex).target || s.refactor && (s.debt>0 || s.defects>0))) automateDevelopment(s, bounded(devRate(s) * dt));
+    if (devRate(s) && (s.progress < currentProject(s).target || activePlanningProject(s)?.assetProgress<activePlanningProject(s)?.assetTarget || s.refactor && (s.debt>0 || s.defects>0))) automateDevelopment(s, bounded(devRate(s) * dt));
     if (chargeExpenses) s.dailyAccrued = add(s.dailyAccrued, operatingCost(s) / DAY * dt);
     while (s.dayElapsed >= DAY) {
       s.dayElapsed -= DAY;
@@ -487,21 +670,29 @@ export function tick(s, seconds, { chargeExpenses = true } = {}) {
 }
 export function quality(s) {
   const assets=PRODUCTION_SERVICES.reduce((sum,p)=>sum+(s.production[p.id]?p.bonus:0),0);
-  return Math.round(Math.max(20,Math.min(100,80+Math.min(20,(knowledgeRatio(s)-1)*10)-Math.min(40,s.defects/defectLimit(s)*40)+assets)));
+  const designRisk=planningRisk(s).design;
+  return Math.round(Math.max(20,Math.min(100,80+Math.min(20,(knowledgeRatio(s)-1)*10)-Math.min(40,s.defects/defectLimit(s)*40)+assets-designRisk*15)));
 }
 function archiveTitles(s){
   if(s.catalog.length<=100)return;
   const oldest=s.catalog.splice(0,2),batches=[];
   for(const title of oldest){
-    const source=title.salesBatches?title.salesBatches.map(batch=>({...batch,active:title.active!==false && batch.active!==false})):[{remaining:remainingSales(title),halfLife:title.salesHalfLife,unitPrice:title.unitPrice,active:title.active!==false}];
+    const source=title.salesBatches?title.salesBatches.map(batch=>({...batch,active:title.active!==false && batch.active!==false})):[{remaining:remainingSales(title),halfLife:title.salesHalfLife,unitPrice:title.unitPrice,active:title.active!==false,feeRate:titleFeeRate(title)}];
     for(const batch of source){
-      const same=batches.find(b=>b.halfLife===batch.halfLife && b.unitPrice===batch.unitPrice && b.active===batch.active);
+      const same=batches.find(b=>b.halfLife===batch.halfLife && b.unitPrice===batch.unitPrice && b.active===batch.active && b.feeRate===batch.feeRate);
       if(same)same.remaining=add(same.remaining,batch.remaining);
       else batches.push({...batch});
     }
   }
   const serverDaily=bounded(oldest.reduce((sum,p)=>sum+(p.active===false?0:p.serverDaily || 0),0));
   const archive={id:`archive-${s.nextTitleId++}`,name:'過去の公開作品',index:-1,archived:true,quality:80,payout:0,grossPayout:0,salesFee:0,salesBatches:batches,salesRemaining:batches.reduce((sum,b)=>sum+b.remaining,0),salesHalfLife:DAY,unitPrice:0,totalCopies:oldest.reduce((sum,p)=>sum+(p.totalCopies || 0),0),soldCopies:oldest.reduce((sum,p)=>sum+(p.soldCopies || 0),0),salesEarned:oldest.reduce((sum,p)=>sum+(p.salesEarned || 0),0),serverDaily,online:serverDaily>0,active:true,productionCosts:bounded(oldest.reduce((sum,p)=>sum+(p.productionCosts || 0),0))};
+  if(oldest.some(title=>title.custom)){
+    archive.custom=true;archive.operatingLines=[];archive.feePayees=[...new Set(oldest.flatMap(title=>title.feePayees || ['ゲーム配信ストア']))];
+    for(const title of oldest)if(title.active!==false){
+      const costs=title.operatingLines?.length?title.operatingLines:title.serverDaily?[{id:'hosting',name:'サーバー稼働料',payee:'ホスティング会社',amount:title.serverDaily}]:[];
+      for(const cost of costs){const previous=archive.operatingLines.find(row=>row.id===cost.id && row.payee===cost.payee);if(previous)previous.amount=add(previous.amount,cost.amount);else archive.operatingLines.push({...cost});}
+    }
+  }
   archive.royalty=titleSalesRate(archive);s.catalog.unshift(archive);
 }
 export function projectExperience(s,index=s.projectIndex){
@@ -511,7 +702,8 @@ export function projectExperience(s,index=s.projectIndex){
   return {gain:claimed?emptyExperience():potential,cap,claimed,exhausted:Object.values(potential).every(n=>!n)};
 }
 export function release(s) {
-  const p=projectAt(s.projectIndex),index=s.projectIndex;
+  if(activePlanningProject(s))return releaseCustomProject(s);
+  const p=currentProject(s),index=s.projectIndex;
   if(s.progress<p.target || !projectAccess(s).allowed)return null;
   runBuild(s,'release');
   if(s.crashed || s.defects>defectLimit(s)*.1)return null;
@@ -554,6 +746,7 @@ export function prestige(s,now=Date.now()){
   fresh.achievements=[...s.achievements];fresh.stats={...s.stats};fresh.settings={...s.settings};fresh.inputStyle=s.inputStyle;
   fresh.skills=Object.fromEntries(SKILLS.map(skill=>[skill.id,skillKnowledge(s,skill.id)]));
   fresh.onlineMaterials=[...s.onlineMaterials];fresh.reading=JSON.parse(JSON.stringify(s.reading));
+  fresh.planner.knowledge=JSON.parse(JSON.stringify(s.planner.knowledge));fresh.planner.auto=s.planner.auto;
   fresh.typing=normalizeTypingState(s.typing);
   // A new project must not consume an old partially entered exercise.
   fresh.typing.offset=0;fresh.typing.roundErrors=0;fresh.typing.bonusBase=0;fresh.typing.correction=null;fresh.typing.context='';
@@ -574,7 +767,7 @@ export function applyOffline(s, now = Date.now()) {
 }
 export function serialize(s, now = Date.now()) { s.savedAt = now; return JSON.stringify(s); }
 export function deserialize(raw) {
-  if (typeof raw !== 'string' || raw.length > 500000) throw new Error('セーブファイルのサイズが不正です。');
+  if (typeof raw !== 'string' || raw.length > MAX_SAVE_BYTES || new TextEncoder().encode(raw).byteLength > MAX_SAVE_BYTES) throw new Error('セーブファイルのサイズが不正です。');
   const x = JSON.parse(raw);
   if (!x || x.version !== VERSION) throw new Error('対応していないセーブデータです。');
   if (x.balanceVersion > BALANCE_VERSION) throw new Error('新しいバージョンのセーブです。ゲームを更新してから読み込んでください。', { cause: 'newer-balance' });
@@ -605,6 +798,7 @@ export function deserialize(raw) {
     Object.defineProperty(s, 'skipOfflineExpenses', { value: true, configurable: true });
   }
   s.office.remaining=x.balanceVersion>=15?num(x.office?.remaining,OFFICE_CONTRACT_WORK,0,OFFICE_CONTRACT_WORK):OFFICE_CONTRACT_WORK;
+  s.planner=normalizePlannerState(x.planner);
   s.projectCarryover=x.projectCarryover===true;
   s.job.progress = num(x.job?.progress, 0, 0, JOB_SIZE - 1e-9);
   s.job.rate = num(x.job?.rate, workRate(s), 1, 30);
@@ -641,7 +835,7 @@ export function deserialize(raw) {
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
   if(!(x.balanceVersion>=12) && s.refactor && s.typing.context.startsWith('dev/') && !s.typing.context.endsWith('/review'))s.typing.context+='/review';
   for (const k of ['sound','reducedMotion']) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
-  s.progress = Math.min(s.progress, projectAt(s.projectIndex).target);
+  s.progress = Math.min(s.progress, currentProject(s).target);
   if(!(x.balanceVersion >= 8)){
     s.defects=Math.min(s.debt,defectLimit(s));s.debt=0;s.debtSources=emptyDebtSources();s.reviewedAt=s.stats.time;
   }else{
@@ -655,11 +849,11 @@ export function deserialize(raw) {
   let savedBuild=x.build;
   if(scopeScale!==1 && savedBuild && typeof savedBuild==='object'){
     // Keep validation history aligned when a release changes project scope.
-    const progress=n=>Math.min(num(n)*(enlargedAAA?scopeScale:1),projectAt(s.projectIndex).target);
+    const progress=n=>Math.min(num(n)*(enlargedAAA?scopeScale:1),currentProject(s).target);
     const record=r=>r && typeof r==='object'?{...r,progress:progress(r.progress),defects:num(r.defects)*scopeScale}:r;
     savedBuild={...savedBuild,checkedProgress:Math.min(progress(savedBuild.checkedProgress),s.progress),knownDefects:num(savedBuild.knownDefects)*scopeScale,last:record(savedBuild.last),history:Array.isArray(savedBuild.history)?savedBuild.history.map(record):[]};
   }
-  s.build=normalizeBuildState(savedBuild,s,projectAt(s.projectIndex).target);
+  s.build=normalizeBuildState(savedBuild,s,currentProject(s).target);
   if(scopeScale!==1 && (s.progress || s.debt || s.defects || s.build.last))markBuildChanges(s,1);
   for(const service of PRODUCTION_SERVICES){
     const order=x.production?.[service.id];
@@ -677,8 +871,9 @@ export function deserialize(raw) {
     const legacy=!(x.balanceVersion>=15);
     const halfLife=legacy?DAY*8*Math.LN2:num(p.salesHalfLife,DAY,1);
     const tail=legacy?bounded(oldRoyalty*DAY*8):num(p.salesRemaining);
-    const title={id,name:p.name.slice(0,100),quality:num(p.quality,80,0,100),payout:num(p.payout),grossPayout:num(p.grossPayout,num(p.payout)),salesFee:num(p.salesFee),index,archived:!!p.archived,online:project?!!project.online:!!p.online,serverDaily:project?project.serverDaily || 0:num(p.serverDaily),active:p.active!==false,builds:Math.floor(num(p.builds)),productionCosts:num(p.productionCosts),services:PRODUCTION_SERVICES.filter(service=>Array.isArray(p.services)&&p.services.includes(service.id)).map(service=>service.id),technicalDebt:num(p.technicalDebt),defects:num(p.defects),reviewedAt:Math.min(s.stats.time,num(p.reviewedAt,s.stats.time)),unitPrice:num(p.unitPrice),totalCopies:num(p.totalCopies),soldCopies:num(p.soldCopies),salesRemaining:tail,salesHalfLife:halfLife,salesEarned:num(p.salesEarned,num(p.grossPayout)),reaction:typeof p.reaction==='string'?p.reaction.slice(0,200):'公開した作品の経験を引き継いでいます。',experienceEarned:emptyExperience()};
-    if(!legacy && p.archived && Array.isArray(p.salesBatches))title.salesBatches=p.salesBatches.slice(0,100).map(b=>({remaining:num(b?.remaining),halfLife:num(b?.halfLife,DAY,1),unitPrice:num(b?.unitPrice),active:b?.active!==false}));
+    const title={id,name:p.name.slice(0,100),quality:num(p.quality,80,0,100),payout:num(p.payout),grossPayout:num(p.grossPayout,num(p.payout)),salesFee:num(p.salesFee),index,archived:!!p.archived,online:p.custom?!!p.online:project?!!project.online:!!p.online,serverDaily:p.custom?num(p.serverDaily):project?project.serverDaily || 0:num(p.serverDaily),active:p.active!==false,builds:Math.floor(num(p.builds)),productionCosts:num(p.productionCosts),services:PRODUCTION_SERVICES.filter(service=>Array.isArray(p.services)&&p.services.includes(service.id)).map(service=>service.id),technicalDebt:num(p.technicalDebt),defects:num(p.defects),reviewedAt:Math.min(s.stats.time,num(p.reviewedAt,s.stats.time)),unitPrice:num(p.unitPrice),totalCopies:num(p.totalCopies),soldCopies:num(p.soldCopies),salesRemaining:tail,salesHalfLife:halfLife,salesEarned:num(p.salesEarned,num(p.grossPayout)),reaction:typeof p.reaction==='string'?p.reaction.slice(0,200):'公開した作品の経験を引き継いでいます。',experienceEarned:emptyExperience()};
+    if(p.custom){title.custom=true;title.planning=p.planning && typeof p.planning==='object'?JSON.parse(JSON.stringify(p.planning)):{};title.planSnapshot=p.planSnapshot && typeof p.planSnapshot==='object'?JSON.parse(JSON.stringify(p.planSnapshot)):null;title.storeFeeRate=num(p.storeFeeRate,STORE_FEE_RATE,0,1);title.engineFeeRate=num(p.engineFeeRate,0,0,1);title.salesModelId=typeof p.salesModelId==='string'?p.salesModelId:'free';title.baseTitleId=typeof p.baseTitleId==='string'?p.baseTitleId:null;title.revenueUnitKind=['copy','dlc-copy','subscription-period','cosmetic-purchase','ad-view','support-payment','free'].includes(p.revenueUnitKind)?p.revenueUnitKind:'copy';for(const field of ['audienceCount','customerCount','revenueUnitCount','maxPeriods','unitsPerCustomer','lifetimeBudget'])title[field]=num(p[field]);title.soldRevenueUnits=title.soldCopies;title.operatingLines=Array.isArray(p.operatingLines)?p.operatingLines.slice(0,100).filter(cost=>cost && typeof cost.name==='string' && typeof cost.payee==='string').map(cost=>({id:typeof cost.id==='string'?cost.id:'operation',name:cost.name.slice(0,100),payee:cost.payee.slice(0,100),amount:num(cost.amount)})):[];title.feePayees=Array.isArray(p.feePayees)?p.feePayees.filter(payee=>typeof payee==='string').map(payee=>payee.slice(0,100)).slice(0,10):[];}
+    if(!legacy && p.archived && Array.isArray(p.salesBatches))title.salesBatches=p.salesBatches.slice(0,100).map(b=>({remaining:num(b?.remaining),halfLife:num(b?.halfLife,DAY,1),unitPrice:num(b?.unitPrice),active:b?.active!==false,feeRate:num(b?.feeRate,STORE_FEE_RATE,0,1)}));
     for(const type of EXPERIENCE_TYPES)title.experienceEarned[type.id]=num(p.experienceEarned?.[type.id]);
     title.salesRemaining=remainingSales(title);title.royalty=titleSalesRate(title);
     return title;
