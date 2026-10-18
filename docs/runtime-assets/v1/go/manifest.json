@@ -1,0 +1,41 @@
+{
+  "format": 1,
+  "runtime": "yaegi",
+  "version": "0.16.1",
+  "toolchain": "go1.25.5",
+  "compiler": {
+    "path": "yaegi.wasm.gz",
+    "rawBytes": 10968474,
+    "bytes": 2645976,
+    "sha256": "60e3e2bb024f7b963d5067fe445ba0d719524dd0398c37cb6d72296d96092e17",
+    "rawSha256": "022b44d262090241402c84b50f294791e18dd62ba7474737c9db6f74755f976a"
+  },
+  "glue": {
+    "path": "wasm_exec.js",
+    "bytes": 16992,
+    "sha256": "0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"
+  },
+  "packages": [
+    "fmt",
+    "math",
+    "strings",
+    "sort",
+    "strconv",
+    "errors",
+    "unicode/utf8"
+  ],
+  "sources": {
+    "go.mod": {
+      "bytes": 87,
+      "sha256": "4a05c3235a69ea9f61c649c5a6a0f136893003994c4896c87f86a13a6078ad5a"
+    },
+    "go.sum": {
+      "bytes": 169,
+      "sha256": "e2952ddf883dd6eca9930286b2ba7a7f4033137d8884728672eaf2608d787406"
+    },
+    "main.go": {
+      "bytes": 5402,
+      "sha256": "52ef0a56bedfddd4a804417542d958f45cbef10507e2c444b8eddb2539d999e6"
+    }
+  }
+}

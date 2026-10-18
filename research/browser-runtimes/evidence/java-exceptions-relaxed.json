@@ -1,0 +1,134 @@
+{
+  "candidate": "TeaVM-javac",
+  "revision": "208d4c97a602ba0df055f16e6882059fb69d0122",
+  "sourceCompilation": true,
+  "browser": "154.0.8037.57",
+  "isolation": {
+    "crossOriginIsolated": false,
+    "sharedArrayBuffer": "undefined"
+  },
+  "assetSizes": [
+    {
+      "name": "compiler.wasm-runtime.js",
+      "raw": 16425,
+      "gzip": 5758,
+      "sha256": "d4fc035b410f444f79f49e3890643b8bfd644a02dcfc597e3fcaa8a07bafca08"
+    },
+    {
+      "name": "compiler.wasm",
+      "raw": 4707682,
+      "gzip": 1839246,
+      "sha256": "ed3e98d3ac91cac0be76f04c45705b2364f53db3fb3b56a9493c72852daa428f"
+    },
+    {
+      "name": "compile-classlib-teavm.bin",
+      "raw": 215265,
+      "gzip": 213958,
+      "sha256": "59819816e258ec5606288c730adf49936b395635db4a386947d39708a6d178da"
+    },
+    {
+      "name": "runtime-classlib-teavm.bin",
+      "raw": 2337967,
+      "gzip": 2302434,
+      "sha256": "0ff08e05f02ce9483775d15fd80bc94a44603c0ba368f4c23be022f48b1375a9"
+    }
+  ],
+  "totalRawBytes": 7277339,
+  "totalGzipBytes": 4361396,
+  "requests": [
+    {
+      "path": "/java-worker.mjs",
+      "bytes": 3100
+    },
+    {
+      "path": "/assets/compiler.wasm-runtime.js",
+      "bytes": 16425
+    },
+    {
+      "path": "/assets/compile-classlib-teavm.bin",
+      "bytes": 215265
+    },
+    {
+      "path": "/assets/runtime-classlib-teavm.bin",
+      "bytes": 2337967
+    },
+    {
+      "path": "/assets/compiler.wasm",
+      "bytes": 4707682
+    }
+  ],
+  "consoleErrors": [],
+  "results": [
+    {
+      "id": "java-array-bounds-catch",
+      "status": "error",
+      "diagnostics": [],
+      "crossOriginIsolated": false,
+      "sharedArrayBuffer": "undefined",
+      "environmentLoadMs": 129.20000000298023,
+      "javacSucceeded": true,
+      "javacMs": 62.600000001490116,
+      "teavmSucceeded": true,
+      "teavmMs": 1229.6999999955297,
+      "generatedWasmBytes": 34491,
+      "error": "array element access out of bounds",
+      "elapsedMs": 1553.3999999985099,
+      "progress": [
+        {
+          "id": "java-array-bounds-catch",
+          "kind": "progress",
+          "stage": "load-compiler",
+          "elapsedMs": 0.10000000149011612
+        },
+        {
+          "id": "java-array-bounds-catch",
+          "kind": "progress",
+          "stage": "javac",
+          "elapsedMs": 256.19999999552965
+        },
+        {
+          "id": "java-array-bounds-catch",
+          "kind": "progress",
+          "stage": "teavm-to-wasm",
+          "elapsedMs": 318.8999999985099
+        },
+        {
+          "id": "java-array-bounds-catch",
+          "kind": "progress",
+          "stage": "execute",
+          "elapsedMs": 1549
+        }
+      ],
+      "strictMode": false,
+      "sourceBytes": 182,
+      "passed": false,
+      "expected": "caught\n",
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": "",
+      "stderr": "",
+      "httpRequestCount": 5,
+      "httpBytes": 7280439
+    }
+  ],
+  "measurementNotes": "Local static HTTP without COOP/COEP headers. Raw bytes transferred; gzip sizes are offline recompression, not measured Pages bandwidth. Compiler build performed separately; Java source compilation and generated Wasm execution happen in the browser Worker.",
+  "primarySources": [
+    "https://github.com/konsoletyper/teavm-javac/tree/208d4c97a602ba0df055f16e6882059fb69d0122",
+    "https://github.com/konsoletyper/teavm-javac/blob/208d4c97a602ba0df055f16e6882059fb69d0122/compiler/src/test/js/harness.js"
+  ],
+  "researchNotes": {
+    "sourceCommit": "208d4c97a602ba0df055f16e6882059fb69d0122",
+    "buildOnlyAdjustmentsFile": "local-build-adjustments.json",
+    "upstreamCompilerLogicChanged": false,
+    "wasmGCRequired": true,
+    "defaultIssue": {
+      "validJavaProgram": "int parts=0; if(parts==0)return 0; return 48/parts;",
+      "stage": "TeaVM compile, before user program execution",
+      "sourceMapOffset": "0x27ef2d",
+      "source": "TeaVM0.16.0 org/teavm/model/transformation/BoundCheckInsertion.java:272",
+      "statement": "r = a / b;",
+      "workaround": "Public generateWebAssembly option strictMode:false; no compiler source edit"
+    },
+    "semanticsLimit": "Both strict true and false failed the tested Java ArrayIndexOutOfBoundsException catch and produced a Wasm out-of-bounds trap. Full JVM equivalence is not established.",
+    "harnessOwnership": "probe.mjs and java-worker.mjs are newly authored harnesses referencing the upstream README and test harness API. Upstream compiler/runtime implementation is loaded unchanged; no implementation body copied into these harnesses."
+  }
+}

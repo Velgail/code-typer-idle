@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "checkedAtUTC": "2026-10-18",
+  "gameBaselineCommit": "44aeb43e051b7c8c43acc334620aafe01c24a2d0",
+  "purpose": "Research evidence, not production runtime configuration.",
+  "environment": {
+    "browser": "Chromium154",
+    "hosting": "localhost static HTTP + Worker",
+    "crossOriginIsolated": false,
+    "livePagesBenchmarked": false,
+    "mobileBenchmarked": false
+  },
+  "matchedBaselineVariants": 8176,
+  "expectedBaselineVariants": 8192,
+  "runtimes": [
+    {
+      "language": "cpp",
+      "candidate": "browsercc",
+      "version": "0.1.1",
+      "engine": "Clang 20.1.2 / LLD / WASI SDK 25",
+      "mode": "compile-source-to-wasm",
+      "matched": 1024,
+      "rawBytes": 94571241,
+      "gzipBytes": 29806517,
+      "evidence": [
+        "evidence/cpp-clang20.json",
+        "evidence/cpp-clang8.json"
+      ],
+      "source": "https://github.com/BertalanD/browsercc/tree/86168bacf0fe7c662e3e65a2e3006ceb159cd0dc",
+      "conditions": [
+        "Cache assets and compiled modules; avoid duplicate compiler instances.",
+        "Preserve LLVM/sysroot notices.",
+        "Low-memory devices and all Exercism exercises not tested."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "csharp",
+      "candidate": "@wasmsharp/core",
+      "version": "0.10.2",
+      "engine": ".NET 10 preview6 / Roslyn 4.14 / default C#13",
+      "mode": "compile-source-to-il-and-run",
+      "matched": 1008,
+      "unsupported": 16,
+      "rawBytes": 39557235,
+      "gzipBytes": null,
+      "evidence": [
+        "evidence/csharp-cases.json",
+        "evidence/csharp-1008.json",
+        "evidence/csharp-1024-failure.json",
+        "evidence/csharp-version.json"
+      ],
+      "source": "https://www.npmjs.com/package/@wasmsharp/core/v/0.10.2",
+      "conditions": [
+        "Whole 1024-function compilation fails because a required Enumerable.Sum overload was trimmed.",
+        "1008 matches are a separate run excluding the 16 affected variants.",
+        "A republished library-preserving bridge has not been verified."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "rust",
+      "candidate": "Rubri",
+      "version": "00de75bcec3d8cf5156aef2382c738cbfe069986",
+      "engine": "rustc 1.78.0-dev / Miri",
+      "mode": "real-type-and-borrow-checking-then-mir-interpretation",
+      "matched": 1024,
+      "rawBytes": 156297935,
+      "gzipBytes": 53520683,
+      "evidence": [
+        "evidence/rust-go-cases.json",
+        "evidence/rust-go-curriculum.json",
+        "evidence/rust-go-timeouts.json"
+      ],
+      "source": "https://github.com/LyonSyonII/rubri/tree/00de75bcec3d8cf5156aef2382c738cbfe069986",
+      "conditions": [
+        "Rust2024, external crates, general OS API and full Miri UB checks not established.",
+        "Large sysroot; load only when required.",
+        "Compare output in host instead of using unsupported panic/unwind as the grader."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "go",
+      "candidate": "Yaegi WASM",
+      "version": "Yaegi v0.16.1; inspected sample 93c9067c8949abffbd19979c44120bfc7ebf82c0",
+      "engine": "Go source interpreter; sample WASM built with Go1.25.5",
+      "mode": "interpret-go-source",
+      "matched": 1024,
+      "rawBytes": 39830696,
+      "gzipBytes": 8401059,
+      "evidence": [
+        "evidence/rust-go-cases.json",
+        "evidence/rust-go-curriculum.json",
+        "evidence/go-version.json"
+      ],
+      "source": "https://github.com/traefik/yaegi",
+      "conditions": [
+        "Build an original wrapper from licensed Yaegi; sample UI repository lacks a license.",
+        "cgo, modules, general OS access and complete latest language support not established."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "python",
+      "candidate": "Pyodide",
+      "version": "314.0.7",
+      "engine": "CPython 3.14.2",
+      "mode": "real-python-runtime",
+      "matched": 1024,
+      "rawBytes": 13531207,
+      "gzipBytes": 6398721,
+      "evidence": [
+        "evidence/python-lua-sql.json"
+      ],
+      "source": "https://pyodide.org/en/stable/usage/downloading-and-deploying.html",
+      "conditions": [
+        "Pyodide MPL2.0 and CPython/third-party licenses are separate.",
+        "Additional packages and threaded/file fixtures need per-exercise support."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "java",
+      "candidate": "teavm-javac",
+      "version": "208d4c97a602ba0df055f16e6882059fb69d0122",
+      "engine": "OpenJDK javac25u / TeaVM0.16",
+      "mode": "compile-source-to-bytecode-then-wasmgc",
+      "matched": 1024,
+      "rawBytes": 7277339,
+      "gzipBytes": 4361396,
+      "evidence": [
+        "evidence/java-default.json",
+        "evidence/java-default-supplement.json",
+        "evidence/java-relaxed.json",
+        "evidence/java-exceptions-default.json",
+        "evidence/java-exceptions-relaxed.json",
+        "evidence/java-build-adjustments.json"
+      ],
+      "source": "https://github.com/konsoletyper/teavm-javac/tree/208d4c97a602ba0df055f16e6882059fb69d0122",
+      "conditions": [
+        "1024 matches require the public strictMode:false option.",
+        "Default generation fails even for a small correctly guarded zero division.",
+        "Array bounds Java exception catch fails under both tested options; complete JVM semantics not established.",
+        "Requires WasmGC; retain OpenJDK GPL2+ClasspathException sources/notices."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "sql",
+      "candidate": "@sqlite.org/sqlite-wasm",
+      "version": "3.53.4-build2",
+      "engine": "SQLite3.53.4",
+      "mode": "real-sqlite-in-memory",
+      "matched": 1024,
+      "rawBytes": 1511649,
+      "gzipBytes": 578929,
+      "evidence": [
+        "evidence/python-lua-sql.json"
+      ],
+      "source": "https://github.com/sqlite/sqlite-wasm",
+      "conditions": [
+        "SQLite dialect; REGEXP, generate_series, CSV and some exercise extensions are separate.",
+        "No OPFS required for per-exercise in-memory databases."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    },
+    {
+      "language": "lua",
+      "candidate": "Wasmoon",
+      "version": "1.16.0",
+      "engine": "Lua5.4",
+      "mode": "real-lua-runtime",
+      "matched": 1024,
+      "rawBytes": 423233,
+      "gzipBytes": 150490,
+      "evidence": [
+        "evidence/python-lua-sql.json",
+        "evidence/lua-uncleared-stack-failure.json",
+        "evidence/lua-cleared-stack.json"
+      ],
+      "source": "https://github.com/ceifa/wasmoon",
+      "conditions": [
+        "Restore Lua stack after success and errors, including asynchronous evaluation.",
+        "Repeated execution without cleanup corrupts state."
+      ],
+      "baselineExpected": 1024,
+      "normalSyntaxWrongAnswerVerified": true,
+      "testedWithoutCOOPCOEP": true,
+      "allExercismVerified": false,
+      "integratedIntoGame": false,
+      "licenseInventoryComplete": false
+    }
+  ]
+}

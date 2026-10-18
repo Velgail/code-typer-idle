@@ -1,0 +1,128 @@
+{
+  "candidate": "binji/wasm-clang",
+  "revision": "648c4a89997a351eef75cdaec3ef5b89d4937dec",
+  "compiler": "Clang/LLVM 8.0.1 (binary strings: git-4b370e37441)",
+  "target": "wasm32-wasi legacy wasi_unstable",
+  "sourceCompilation": true,
+  "host": "127.0.0.1 static HTTP server, no COOP/COEP headers",
+  "browser": "154.0.8037.57",
+  "isolation": {
+    "crossOriginIsolated": false,
+    "sharedArrayBuffer": "undefined"
+  },
+  "cases": [
+    {
+      "id": "correct-cpp17-stdlib",
+      "result": "executed",
+      "passed": true,
+      "elapsedMs": 4094.2000000029802,
+      "checked": null,
+      "additionalFetches": 4
+    },
+    {
+      "id": "syntax-invalid",
+      "result": "rejected",
+      "passed": true,
+      "elapsedMs": 846.2999999970198,
+      "checked": null,
+      "additionalFetches": 0
+    },
+    {
+      "id": "wrong-result",
+      "result": "executed",
+      "passed": true,
+      "elapsedMs": 770.6999999955297,
+      "checked": null,
+      "additionalFetches": 0
+    },
+    {
+      "id": "all-1024-curriculum",
+      "result": "executed",
+      "passed": true,
+      "elapsedMs": 3305.2999999970198,
+      "checked": 1024,
+      "additionalFetches": 0
+    },
+    {
+      "id": "runtime-trap",
+      "result": "rejected",
+      "passed": true,
+      "elapsedMs": 29.200000002980232,
+      "checked": null,
+      "additionalFetches": 0
+    },
+    {
+      "id": "infinite-loop-timeout",
+      "result": "timeout",
+      "passed": true,
+      "elapsedMs": null,
+      "checked": null,
+      "additionalFetches": 0
+    }
+  ],
+  "assetSizes": [
+    {
+      "name": "shared.js",
+      "raw": 23973,
+      "gzip": 6268,
+      "brotliQuality5": 6096
+    },
+    {
+      "name": "memfs",
+      "raw": 345442,
+      "gzip": 18989,
+      "brotliQuality5": 16132
+    },
+    {
+      "name": "sysroot.tar",
+      "raw": 9297920,
+      "gzip": 1844431,
+      "brotliQuality5": 1536008
+    },
+    {
+      "name": "clang",
+      "raw": 31214472,
+      "gzip": 10637254,
+      "brotliQuality5": 8945513
+    },
+    {
+      "name": "lld",
+      "raw": 19490094,
+      "gzip": 6783919,
+      "brotliQuality5": 5804578
+    }
+  ],
+  "totalRawBytes": 60371901,
+  "totalGzipBytes": 19290861,
+  "totalBrotliQ5Bytes": 16308327,
+  "measurements": "Localhost wire bytes were RAW; gzip and Brotli totals are offline recompression measurements, not measured Pages transfer. Compile elapsed includes local static asset load on first case, no Internet latency.",
+  "linkFix": {
+    "upstreamFailure": "libc++.a(algorithm.cpp.obj): undefined symbol: __lttf2",
+    "resolution": "Add lib/clang/8.0.1/lib/wasi/libclang_rt.builtins-wasm32.a to LLD inputs, already in upstream sysroot",
+    "modifiedUpstreamFiles": false
+  },
+  "sha256": {
+    "clang": "2a466f0e990329d3230b869d04fc20803eae96a7feb3a3f6c93e25a77b8aed1d",
+    "lld": "36419ed202011765222098d7701218378b67f634d50f0a4625059ae2c9860f48",
+    "memfs": "2c72ee42bd9430029dda8c6bafc9f37143f6fe88d5f1ea950a70259ab748bcfe",
+    "sysroot.tar": "2435a7b549af30c2be7ec249c405bc2e911ab0c6003012f0909ec3c131bff867",
+    "shared.js": "4de0be862bda1a7571c1f0632abe3c62c47a56e734cc6b703155805a4b160b1c"
+  },
+  "primarySources": [
+    "https://github.com/binji/wasm-clang/tree/648c4a89997a351eef75cdaec3ef5b89d4937dec",
+    "https://github.com/binji/wasm-clang/blob/648c4a89997a351eef75cdaec3ef5b89d4937dec/LICENSE",
+    "https://github.com/binji/wasm-clang/blob/648c4a89997a351eef75cdaec3ef5b89d4937dec/LICENSE.llvm",
+    "https://github.com/llvm/llvm-project/blob/llvmorg-8.0.1/libcxx/LICENSE.TXT",
+    "https://github.com/llvm/llvm-project/blob/llvmorg-8.0.1/libcxxabi/LICENSE.TXT",
+    "https://github.com/llvm/llvm-project/blob/llvmorg-8.0.1/compiler-rt/LICENSE.TXT"
+  ],
+  "licenses": {
+    "wrapper": "Apache-2.0 in fixed artifact LICENSE and source headers",
+    "compilerAndLinker": "Fixed LICENSE.llvm contains Apache-2.0 with LLVM Exceptions AND legacy UIUC notice; preserve both, do not label the older binaries only by current LLVM main license",
+    "stdlib": "Fixed sysroot headers explicitly say MIT/UIUC dual license; libc++/libc++abi/compiler-rt LLVM8.0.1 license texts checked",
+    "wasiLibc": "Old sysroot exact wasi-libc revision not recorded. Current upstream is MIT/Apache-2.0/Apache-2.0 WITH LLVM-exception plus BSD/CC0 third parties. Need archive-specific notice inventory before vendoring; no demonstrated incompatible copyleft.",
+    "additionalHeader": "ctre.hpp in fixed sysroot carries Apache-2.0 header; omit unused third-party headers in production sysroot if desired",
+    "boostCoexistence": "Permissive dependencies can remain separate under original licenses alongside Boost-1.0 application; preserve notices/licenses and modified-file notices. Do not relabel vendored code Boost. Exact sysroot inventory remains redistribution work."
+  },
+  "harnessOwnership": "probe.mjs and probe-worker.js are newly authored test harnesses calling API from unchanged Apache-2.0 upstream shared.js. No copied compiler/runtime implementation; wrapper link argument recipe adapted from documented upstream API."
+}

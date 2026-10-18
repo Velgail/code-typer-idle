@@ -1,0 +1,1143 @@
+{
+  "isolated": false,
+  "initMs": 1059.1000000014901,
+  "results": [
+    {
+      "name": "correct",
+      "ms": 1976.8999999985099,
+      "success": true,
+      "stdOut": "42\n",
+      "stdErr": "",
+      "diagnostics": [],
+      "answerCorrect": true
+    },
+    {
+      "name": "syntax",
+      "ms": 57.20000000298023,
+      "success": false,
+      "stdOut": null,
+      "stdErr": null,
+      "diagnostics": [
+        {
+          "id": "CS1002",
+          "message": "; expected",
+          "location": {
+            "start": 86,
+            "end": 87,
+            "length": 1,
+            "isEmpty": false
+          },
+          "severity": "Error"
+        }
+      ],
+      "answerCorrect": false
+    },
+    {
+      "name": "wrong",
+      "ms": 33.899999998509884,
+      "success": true,
+      "stdOut": "23\n",
+      "stdErr": "",
+      "diagnostics": [],
+      "answerCorrect": false
+    }
+  ],
+  "batch": {
+    "count": 1024,
+    "ms": 3769.10000000149,
+    "compiled": false,
+    "stderr": null,
+    "diagnostics": [
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 154948,
+          "end": 154951,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 159075,
+          "end": 159078,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 163204,
+          "end": 163207,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 167334,
+          "end": 167337,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 171464,
+          "end": 171467,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 175597,
+          "end": 175600,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 179730,
+          "end": 179733,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 183863,
+          "end": 183866,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 187998,
+          "end": 188001,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 192133,
+          "end": 192136,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 196268,
+          "end": 196271,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 200403,
+          "end": 200406,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 204538,
+          "end": 204541,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 208675,
+          "end": 208678,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 212812,
+          "end": 212815,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      },
+      {
+        "id": "CS7036",
+        "message": "There is no argument given that corresponds to the required parameter 'value' of 'Enumerable.Sum<TSource>(IEnumerable<TSource>, Func<TSource, int>)'",
+        "location": {
+          "start": 216949,
+          "end": 216952,
+          "length": 3,
+          "isEmpty": false
+        },
+        "severity": "Error"
+      }
+    ],
+    "matches": false,
+    "actualCount": 0
+  },
+  "requests": [
+    {
+      "path": "/npm/package/WasmCompiler.js",
+      "bytes": 11547
+    },
+    {
+      "path": "/comlink/package/dist/esm/comlink.mjs",
+      "bytes": 12629
+    },
+    {
+      "path": "/npm/package/WasmSharpWorker.js",
+      "bytes": 2405
+    },
+    {
+      "path": "/npm/package/Roslyn/Text.js",
+      "bytes": 681
+    },
+    {
+      "path": "/npm/package/Compilation.js",
+      "bytes": 6509
+    },
+    {
+      "path": "/npm/package/Roslyn/WellKnownTags.js",
+      "bytes": 19641
+    },
+    {
+      "path": "/npm/package/initializeWasmSharpModule.js",
+      "bytes": 12760
+    },
+    {
+      "path": "/npm/package/dotnet.js",
+      "bytes": 106094
+    },
+    {
+      "path": "/npm/package/dotnet.runtime.js",
+      "bytes": 198040
+    },
+    {
+      "path": "/npm/package/dotnet.native.js",
+      "bytes": 263205
+    },
+    {
+      "path": "/npm/package/worker.js",
+      "bytes": 4621
+    },
+    {
+      "path": "/comlink/package/dist/esm/comlink.mjs",
+      "bytes": 12629
+    },
+    {
+      "path": "/npm/package/Compilation",
+      "bytes": 6509
+    },
+    {
+      "path": "/npm/package/initializeWasmSharpModule",
+      "bytes": 12760
+    },
+    {
+      "path": "/npm/package/dotnet.js",
+      "bytes": 106094
+    },
+    {
+      "path": "/npm/package/dotnet.runtime.js",
+      "bytes": 198040
+    },
+    {
+      "path": "/npm/package/dotnet.native.js",
+      "bytes": 263205
+    },
+    {
+      "path": "/npm/package/dotnet.native.wasm",
+      "bytes": 2961098
+    },
+    {
+      "path": "/npm/package/System.Runtime.InteropServices.JavaScript.dll",
+      "bytes": 43520
+    },
+    {
+      "path": "/npm/package/Humanizer.dll",
+      "bytes": 30720
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+      "bytes": 914944
+    },
+    {
+      "path": "/npm/package/System.Private.CoreLib.dll",
+      "bytes": 2131968
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.Features.dll",
+      "bytes": 2150400
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Scripting.dll",
+      "bytes": 31232
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Features.dll",
+      "bytes": 3035136
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.dll",
+      "bytes": 5485568
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Workspaces.dll",
+      "bytes": 4120064
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.dll",
+      "bytes": 2166784
+    },
+    {
+      "path": "/npm/package/Microsoft.DiaSymReader.dll",
+      "bytes": 73728
+    },
+    {
+      "path": "/npm/package/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "bytes": 10240
+    },
+    {
+      "path": "/npm/package/Microsoft.Extensions.Logging.Abstractions.dll",
+      "bytes": 15360
+    },
+    {
+      "path": "/npm/package/System.Collections.Concurrent.dll",
+      "bytes": 32256
+    },
+    {
+      "path": "/npm/package/System.Collections.Immutable.dll",
+      "bytes": 173568
+    },
+    {
+      "path": "/npm/package/System.Collections.NonGeneric.dll",
+      "bytes": 15360
+    },
+    {
+      "path": "/npm/package/System.Collections.Specialized.dll",
+      "bytes": 12288
+    },
+    {
+      "path": "/npm/package/System.Collections.dll",
+      "bytes": 51712
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.Primitives.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.TypeConverter.dll",
+      "bytes": 47104
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.dll",
+      "bytes": 5120
+    },
+    {
+      "path": "/npm/package/System.Composition.AttributedModel.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.Composition.Hosting.dll",
+      "bytes": 36352
+    },
+    {
+      "path": "/npm/package/System.Composition.Runtime.dll",
+      "bytes": 11264
+    },
+    {
+      "path": "/npm/package/System.Composition.TypedParts.dll",
+      "bytes": 41472
+    },
+    {
+      "path": "/npm/package/System.Console.dll",
+      "bytes": 15872
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.Process.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.FileVersionInfo.dll",
+      "bytes": 5632
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.TraceSource.dll",
+      "bytes": 11776
+    },
+    {
+      "path": "/npm/package/System.Globalization.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/System.IO.Compression.dll",
+      "bytes": 32768
+    },
+    {
+      "path": "/npm/package/System.IO.MemoryMappedFiles.dll",
+      "bytes": 27648
+    },
+    {
+      "path": "/npm/package/System.IO.Pipelines.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Linq.Expressions.dll",
+      "bytes": 353792
+    },
+    {
+      "path": "/npm/package/System.Linq.dll",
+      "bytes": 79872
+    },
+    {
+      "path": "/npm/package/System.Memory.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Net.Primitives.dll",
+      "bytes": 7680
+    },
+    {
+      "path": "/npm/package/System.Net.Http.dll",
+      "bytes": 138240
+    },
+    {
+      "path": "/npm/package/System.ObjectModel.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Private.DataContractSerialization.dll",
+      "bytes": 347648
+    },
+    {
+      "path": "/npm/package/System.Private.Uri.dll",
+      "bytes": 78848
+    },
+    {
+      "path": "/npm/package/System.Private.Xml.Linq.dll",
+      "bytes": 55296
+    },
+    {
+      "path": "/npm/package/System.Private.Xml.dll",
+      "bytes": 701952
+    },
+    {
+      "path": "/npm/package/System.Reflection.Metadata.dll",
+      "bytes": 274944
+    },
+    {
+      "path": "/npm/package/System.Runtime.InteropServices.dll",
+      "bytes": 6656
+    },
+    {
+      "path": "/npm/package/System.Runtime.Numerics.dll",
+      "bytes": 91136
+    },
+    {
+      "path": "/npm/package/System.Runtime.Serialization.Formatters.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Runtime.Serialization.Primitives.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.Security.Cryptography.dll",
+      "bytes": 24576
+    },
+    {
+      "path": "/npm/package/System.Text.Encoding.CodePages.dll",
+      "bytes": 699904
+    },
+    {
+      "path": "/npm/package/System.Text.Encodings.Web.dll",
+      "bytes": 29696
+    },
+    {
+      "path": "/npm/package/System.Text.Json.dll",
+      "bytes": 150016
+    },
+    {
+      "path": "/npm/package/System.Text.RegularExpressions.dll",
+      "bytes": 258048
+    },
+    {
+      "path": "/npm/package/System.Threading.Channels.dll",
+      "bytes": 37888
+    },
+    {
+      "path": "/npm/package/System.Threading.Tasks.Parallel.dll",
+      "bytes": 21504
+    },
+    {
+      "path": "/npm/package/System.Xml.Linq.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/System.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/WasmSharp.Core.dll",
+      "bytes": 114688
+    },
+    {
+      "path": "/npm/package/icudt_EFIGS.dat",
+      "bytes": 550832
+    },
+    {
+      "path": "/npm/package/System.Private.CoreLib.dll",
+      "bytes": 2131968
+    },
+    {
+      "path": "/npm/package/System.Runtime.InteropServices.JavaScript.dll",
+      "bytes": 43520
+    },
+    {
+      "path": "/npm/package/Humanizer.dll",
+      "bytes": 30720
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.Features.dll",
+      "bytes": 2150400
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+      "bytes": 914944
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Scripting.dll",
+      "bytes": 31232
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Features.dll",
+      "bytes": 3035136
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.CSharp.dll",
+      "bytes": 5485568
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.Workspaces.dll",
+      "bytes": 4120064
+    },
+    {
+      "path": "/npm/package/Microsoft.CodeAnalysis.dll",
+      "bytes": 2166784
+    },
+    {
+      "path": "/npm/package/Microsoft.DiaSymReader.dll",
+      "bytes": 73728
+    },
+    {
+      "path": "/npm/package/Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+      "bytes": 10240
+    },
+    {
+      "path": "/npm/package/Microsoft.Extensions.Logging.Abstractions.dll",
+      "bytes": 15360
+    },
+    {
+      "path": "/npm/package/System.Collections.Concurrent.dll",
+      "bytes": 32256
+    },
+    {
+      "path": "/npm/package/System.Collections.Immutable.dll",
+      "bytes": 173568
+    },
+    {
+      "path": "/npm/package/System.Collections.NonGeneric.dll",
+      "bytes": 15360
+    },
+    {
+      "path": "/npm/package/System.Collections.Specialized.dll",
+      "bytes": 12288
+    },
+    {
+      "path": "/npm/package/System.Collections.dll",
+      "bytes": 51712
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.Primitives.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.TypeConverter.dll",
+      "bytes": 47104
+    },
+    {
+      "path": "/npm/package/System.ComponentModel.dll",
+      "bytes": 5120
+    },
+    {
+      "path": "/npm/package/System.Composition.AttributedModel.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.Composition.Hosting.dll",
+      "bytes": 36352
+    },
+    {
+      "path": "/npm/package/System.Composition.Runtime.dll",
+      "bytes": 11264
+    },
+    {
+      "path": "/npm/package/System.Composition.TypedParts.dll",
+      "bytes": 41472
+    },
+    {
+      "path": "/npm/package/System.Console.dll",
+      "bytes": 15872
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.FileVersionInfo.dll",
+      "bytes": 5632
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.Process.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Diagnostics.TraceSource.dll",
+      "bytes": 11776
+    },
+    {
+      "path": "/npm/package/System.Globalization.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/System.IO.Compression.dll",
+      "bytes": 32768
+    },
+    {
+      "path": "/npm/package/System.IO.MemoryMappedFiles.dll",
+      "bytes": 27648
+    },
+    {
+      "path": "/npm/package/System.IO.Pipelines.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Linq.Expressions.dll",
+      "bytes": 353792
+    },
+    {
+      "path": "/npm/package/System.Linq.dll",
+      "bytes": 79872
+    },
+    {
+      "path": "/npm/package/System.Memory.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Net.Http.dll",
+      "bytes": 138240
+    },
+    {
+      "path": "/npm/package/System.Net.Primitives.dll",
+      "bytes": 7680
+    },
+    {
+      "path": "/npm/package/System.ObjectModel.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Private.Uri.dll",
+      "bytes": 78848
+    },
+    {
+      "path": "/npm/package/System.Private.DataContractSerialization.dll",
+      "bytes": 347648
+    },
+    {
+      "path": "/npm/package/System.Private.Xml.Linq.dll",
+      "bytes": 55296
+    },
+    {
+      "path": "/npm/package/System.Reflection.Metadata.dll",
+      "bytes": 274944
+    },
+    {
+      "path": "/npm/package/System.Runtime.InteropServices.dll",
+      "bytes": 6656
+    },
+    {
+      "path": "/npm/package/System.Runtime.Numerics.dll",
+      "bytes": 91136
+    },
+    {
+      "path": "/npm/package/System.Runtime.Serialization.Formatters.dll",
+      "bytes": 6144
+    },
+    {
+      "path": "/npm/package/System.Runtime.Serialization.Primitives.dll",
+      "bytes": 8192
+    },
+    {
+      "path": "/npm/package/System.Private.Xml.dll",
+      "bytes": 701952
+    },
+    {
+      "path": "/npm/package/System.Security.Cryptography.dll",
+      "bytes": 24576
+    },
+    {
+      "path": "/npm/package/System.Text.Encodings.Web.dll",
+      "bytes": 29696
+    },
+    {
+      "path": "/npm/package/System.Text.Json.dll",
+      "bytes": 150016
+    },
+    {
+      "path": "/npm/package/System.Text.RegularExpressions.dll",
+      "bytes": 258048
+    },
+    {
+      "path": "/npm/package/System.Text.Encoding.CodePages.dll",
+      "bytes": 699904
+    },
+    {
+      "path": "/npm/package/System.Threading.Channels.dll",
+      "bytes": 37888
+    },
+    {
+      "path": "/npm/package/System.Threading.Tasks.Parallel.dll",
+      "bytes": 21504
+    },
+    {
+      "path": "/npm/package/System.Xml.Linq.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/System.dll",
+      "bytes": 4608
+    },
+    {
+      "path": "/npm/package/WasmSharp.Core.dll",
+      "bytes": 114688
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 46856
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17704
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 441640
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 193848
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18232
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 46368
+    },
+    {
+      "path": "/npm/package/cs/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 48424
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 47408
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17712
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 471848
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 204592
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18736
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 50456
+    },
+    {
+      "path": "/npm/package/de/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 47928
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 47384
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17672
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 461608
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18232
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 47400
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 49960
+    },
+    {
+      "path": "/npm/package/es/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 202024
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 47920
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17696
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18736
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 208680
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 473880
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 48912
+    },
+    {
+      "path": "/npm/package/fr/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 50488
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 47416
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17712
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 468240
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 204080
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18736
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 48408
+    },
+    {
+      "path": "/npm/package/it/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 50440
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 49424
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17696
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 515376
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 214824
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 50960
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18728
+    },
+    {
+      "path": "/npm/package/ja/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 54040
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 46376
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17712
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 199472
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 473392
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18728
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 48400
+    },
+    {
+      "path": "/npm/package/ko/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 50464
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 47384
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17688
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 474416
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 201000
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18720
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 47896
+    },
+    {
+      "path": "/npm/package/pl/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 50488
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 46888
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17672
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 453928
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 199984
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18216
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 47408
+    },
+    {
+      "path": "/npm/package/pt-BR/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 49424
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 55080
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 18232
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 621360
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 264496
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 19728
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 55064
+    },
+    {
+      "path": "/npm/package/ru/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 60728
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 46376
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17672
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 449848
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18200
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 195888
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 46896
+    },
+    {
+      "path": "/npm/package/tr/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 48936
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 44328
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17704
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 401168
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 174872
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 44320
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18216
+    },
+    {
+      "path": "/npm/package/zh-Hans/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 45368
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.CSharp.Features.resources.dll",
+      "bytes": 44816
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.CSharp.Workspaces.resources.dll",
+      "bytes": 17704
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.Features.resources.dll",
+      "bytes": 176920
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.Scripting.resources.dll",
+      "bytes": 18224
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.CSharp.resources.dll",
+      "bytes": 400680
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.Workspaces.resources.dll",
+      "bytes": 44312
+    },
+    {
+      "path": "/npm/package/zh-Hant/Microsoft.CodeAnalysis.resources.dll",
+      "bytes": 45328
+    },
+    {
+      "path": "/csharp-batch.json",
+      "bytes": 351865
+    }
+  ],
+  "totalUncompressedTransfer": 64760428,
+  "consoleErrors": []
+}

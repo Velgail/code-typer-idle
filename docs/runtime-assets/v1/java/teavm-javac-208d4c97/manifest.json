@@ -1,0 +1,143 @@
+{
+  "version": "teavm-javac-208d4c97",
+  "sourceRevision": "208d4c97a602ba0df055f16e6882059fb69d0122",
+  "teavm": "0.16.0",
+  "jdkRevision": "6c48f4ed707bf0b15f9b6098de30db8aae6fa40f",
+  "strictMode": false,
+  "limitations": [
+    "Not a full JVM",
+    "Array-bound/exception semantics outside the tested quiz subset are unsupported"
+  ],
+  "files": [
+    {
+      "path": "compiler.wasm-runtime.js",
+      "bytes": 16425,
+      "sha256": "d4fc035b410f444f79f49e3890643b8bfd644a02dcfc597e3fcaa8a07bafca08",
+      "decodedBytes": 16425,
+      "decodedSha256": "d4fc035b410f444f79f49e3890643b8bfd644a02dcfc597e3fcaa8a07bafca08"
+    },
+    {
+      "path": "compiler.wasm.gz",
+      "bytes": 1834768,
+      "sha256": "c95e90bb6d488e4ec6b52f685853712b13c2c6fb2c4451bd41e24c3dd57b2d93",
+      "decodedBytes": 4707682,
+      "decodedSha256": "ed3e98d3ac91cac0be76f04c45705b2364f53db3fb3b56a9493c72852daa428f"
+    },
+    {
+      "path": "compile-classlib-teavm.bin.gz",
+      "bytes": 213958,
+      "sha256": "39e90b355f4d1b59f491a7520f904ce6fc0f7f221cd5c59efa80db676af2e291",
+      "decodedBytes": 215265,
+      "decodedSha256": "59819816e258ec5606288c730adf49936b395635db4a386947d39708a6d178da"
+    },
+    {
+      "path": "runtime-classlib-teavm.bin.gz",
+      "bytes": 2302434,
+      "sha256": "67d902398504e8e10211481cfba90e0e9a62095dc86067b35103203e74106bfa",
+      "decodedBytes": 2337967,
+      "decodedSha256": "0ff08e05f02ce9483775d15fd80bc94a44603c0ba368f4c23be022f48b1375a9"
+    },
+    {
+      "path": "sources/dependencies/asm-9.8-sources.jar",
+      "bytes": 184826,
+      "sha256": "c6294794f956f21e2b252a9bf65a96ce0489fb4c0f978447d85c8a75e485b633",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/joda-time-2.12.2-sources.jar",
+      "bytes": 836012,
+      "sha256": "c1ef010a5e5ac3790f4d2d44c18f52d260ffbf810ed92e2b38d50c4c443603e2",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/jzlib-1.1.3-sources.jar",
+      "bytes": 75560,
+      "sha256": "35ebd67941ce7024e6e7d80b60a4252a9687fa0f909a7079ac904bef6c1658cf",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-classlib-0.16.0-sources.jar",
+      "bytes": 1795165,
+      "sha256": "da6f83c1436c87a9ad683b6143aaa9c172b08c3974c9a7d5741a479d0d60092e",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-core-0.16.0-sources.jar",
+      "bytes": 1670879,
+      "sha256": "687cabf23e0d17a15be30fbc070809c2931714340aca224120fe31579f95519b",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-extension-apis-0.16.0-sources.jar",
+      "bytes": 16330,
+      "sha256": "673f0b5c6d2d067096b947c5551b7652c4e2820aff1ca92d40171c8df1c6ea9b",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-extension-spi-0.16.0-sources.jar",
+      "bytes": 10724,
+      "sha256": "2e37b059006abfeb2fd7b89309b402d5ad9bb06893a975ea467d9406831a4079",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-interop-0.16.0-sources.jar",
+      "bytes": 17853,
+      "sha256": "c6ed7124d174894ae704b8ebf478fb3d8b9c35abea30006ca0fc2b39ce1667f1",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-jso-0.16.0-sources.jar",
+      "bytes": 16071,
+      "sha256": "4eea43da38308742fbd3fcf47b1104dc270ec5c868f64f1ab76623567bc1a19b",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-jso-apis-0.16.0-sources.jar",
+      "bytes": 224060,
+      "sha256": "8cfefc9ef047c0648837b26f9bc1b5da289cda129dd3b6a58b7ccc20bd0e037d",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-jso-impl-0.16.0-sources.jar",
+      "bytes": 103302,
+      "sha256": "0f9202f11990730ef08295d5d4e96593f27f1a44d212112674172a0783519e7d",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-metaprogramming-api-0.16.0-sources.jar",
+      "bytes": 18188,
+      "sha256": "2b96cda76c9e4aa28898053043abe5ba8120218d21ae8d64a00c1766e42e5173",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-metaprogramming-impl-0.16.0-sources.jar",
+      "bytes": 59662,
+      "sha256": "feda6b243138058b97919c81d63092947c68568da827f40d266946ee7477ab7d",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-platform-0.16.0-sources.jar",
+      "bytes": 69210,
+      "sha256": "3633de0245c2b8f3832f892e23380d2f4536a76cb359551eef3c4d11c0e1900b",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/dependencies/teavm-tooling-0.16.0-sources.jar",
+      "bytes": 39583,
+      "sha256": "eb94cbc173b49ba9b985a1700086ec1b3703314decf6bdf19ce8595e0be1abe6",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/openjdk-javac-corresponding-source.tar.gz",
+      "bytes": 2462941,
+      "sha256": "f5d1aba0cf2c01880a80a5d12c9d3c684c6bc37520b38610bbea77ec26871c26",
+      "role": "corresponding-source"
+    },
+    {
+      "path": "sources/teavm-javac-source.tar.gz",
+      "bytes": 170701,
+      "sha256": "3278f9afffcb4065e9115f70864adb72948b7589322e77fb0c4da9e9735de89b",
+      "role": "corresponding-source"
+    }
+  ]
+}

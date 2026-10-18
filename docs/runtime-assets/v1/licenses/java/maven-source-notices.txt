@@ -1,0 +1,1036 @@
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/FixedDateTimeZone.java
+/*
+ *  Copyright 2001-2005 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/CachedDateTimeZone.java
+/*
+ *  Copyright 2001-2012 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/DateTimeZoneBuilder.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/ZoneInfoCompiler.java
+/*
+ *  Copyright 2001-2013 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/DateTimeZone.java
+/*
+ *  Copyright 2001-2014 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-core-0.16.0-sources.jar:org/teavm/common/DisjointSet.java, teavm-core-0.16.0-sources.jar:org/teavm/common/DominatorTree.java, teavm-core-0.16.0-sources.jar:org/teavm/common/Graph.java
+/*
+ *  Copyright 2011 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-core-0.16.0-sources.jar:org/teavm/common/Loop.java
+/*
+ *  Copyright 2011 Alexey Andreev.
+ * 
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ * 
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-core-0.16.0-sources.jar:org/teavm/common/RangeTree.java, teavm-core-0.16.0-sources.jar:org/teavm/dependency/DependencyGraphBuilder.java, teavm-core-0.16.0-sources.jar:org/teavm/dependency/DependencyNode.java
+/*
+ *  Copyright 2012 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TCloseable.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TFilterOutputStream.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TFlushable.java
+/*
+ *  Copyright 2013 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TRuntime.java
+/*
+ *  Copyright 2013 Steve Hannah.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/FirstDayOfWeekMetadataGenerator.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/JCLPlugin.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/MinimalDaysInFirstWeekMetadataGenerator.java
+/*
+ *  Copyright 2014 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/Base46.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/Base64Impl.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/CharFlow.java
+/*
+ *  Copyright 2015 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/TObservable.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/TObserver.java
+/*
+ *  Copyright 2015 Steve Hannah.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ScalaHacks.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/lambda/LambdaMetafactorySubstitutor.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/ClassGenerator.java
+/*
+ *  Copyright 2016 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/PlatformMarkerSupport.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ResourceBundleImpl.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TBufferedOutputStream.java
+/*
+ *  Copyright 2017 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/NumericClassTransformer.java
+/*
+ *  Copyright 2017 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/AnnotationVirtualMethods.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/IntegerUtil.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/StringConcatFactorySubstitutor.java
+/*
+ *  Copyright 2018 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/geolocation/Coordinates.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/geolocation/Geolocation.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/geolocation/Position.java
+/*
+ *  Copyright 2018 ScraM Team.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TArrayBlockingQueue.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TBlockingQueue.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TTimeUnit.java
+/*
+ *  Copyright 2018 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ExceptionHelpers.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/KotlinHacks.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/Console.java
+/*
+ *  Copyright 2019 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/events/GamepadEventTarget.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/gamepad/Gamepad.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/gamepad/GamepadButton.java
+/*
+ *  Copyright 2019 devnewton.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/DeclaringClassDependencyListener.java, teavm-core-0.16.0-sources.jar:org/teavm/ast/BoundCheckExpr.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/c/generate/ClassGenerationContext.java
+/*
+ *  Copyright 2019 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ObfuscationHacks.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/tz/DateTimeZoneProviderPatch.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/TTemplateCollections.java
+/*
+ *  Copyright 2020 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/xml/DOMParser.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/xml/XMLSerializer.java
+/*
+ *  Copyright 2020 Falko Bräutigam.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/invoke/TMethodHandleInfo.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/invoke/TMethodHandleNatives.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/invoke/TSerializedLambda.java
+/*
+ *  Copyright 2020 adam.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TDefaultUncaughtExceptionHandler.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/reflect/TType.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TFlow.java
+/*
+ *  Copyright 2020 by Joerg Hohwiller
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TThreadLocalRandom.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/lowlevel/dependency/StringsDependencyListener.java
+/*
+ *  Copyright 2020 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ServiceLoaderCSupport.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ServiceLoaderInformation.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ServiceLoaderJSSupport.java
+/*
+ *  Copyright 2021 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-core-0.16.0-sources.jar:org/teavm/backend/c/generate/FileNameProvider.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/c/generate/ShorteningFileNameProvider.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/c/generate/SimpleFileNameProvider.java
+/*
+ *  Copyright 2021 konso.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/ConsoleOutputStream.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/record/ObjectMethodsSubstitutor.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TRecord.java
+/*
+ *  Copyright 2022 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/concurrent/TExecutionException.java
+/*
+ *  Copyright 2022 Colorize.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TAccessControlContext.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TPrivilegedActionException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TPrivilegedExceptionAction.java
+/*
+ *  Copyright 2022 Ulugbek Abdullaev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/canvas/Path2D.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/crypto/Crypto.java
+/*
+ *  Copyright 2022 ihromant.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TSecurityManager.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/stream/impl/TTakeWhileStream.java
+/*
+ *  Copyright 2022 ulugbek.abdullaev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/JSStderrPrintStream.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/JSStdoutPrintStream.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/JsConsolePrintStream.java
+/*
+ *  Copyright 2023 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TGeneralSecurityException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TNoSuchAlgorithmException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/security/TSecureRandom.java
+/*
+ *  Copyright 2023 Bernd Busse.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/stream/intimpl/TCharSequenceCharsStream.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/stream/intimpl/TStringCharsStream.java
+/*
+ *  Copyright 2023 JFronny.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TUncheckedIOException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/nio/channels/TByteChannel.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/nio/channels/TChannel.java
+/*
+ *  Copyright 2023 Jonathan Coates.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/RandomUtils.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/SwitchBootstrapSubstitutor.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TMatchException.java
+/*
+ *  Copyright 2023 ihromant.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/text/FloatAnalyzerGenerator.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/javascript/intrinsics/ref/WeakReferenceDependencyListener.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/javascript/intrinsics/ref/WeakReferenceGenerator.java
+/*
+ *  Copyright 2023 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TInvalidClassException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TObjectStreamException.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/TWeakHashMap.java
+/*
+ *  Copyright 2024 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/nio/file/attribute/TBasicFileAttributes.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/nio/file/attribute/TFileTime.java
+/*
+ *  Copyright 2024 Jonathan Coates.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/ajax/FormData.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/events/InputEvent.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/events/InputEventTarget.java
+/*
+ *  Copyright 2024 ihromant.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/console/JSConsoleStringPrintStream.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/javascript/codegen/ScopedName.java, teavm-core-0.16.0-sources.jar:org/teavm/backend/wasm/disasm/Disassembler.java
+/*
+ *  Copyright 2024 konsoletyper.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/popover/PopoverInvokerElement.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/popover/ToggleEvent.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/popover/ToggleEventTarget.java
+/*
+ *  Copyright 2024 lasse-cs.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/events/Touch.java, teavm-jso-apis-0.16.0-sources.jar:org/teavm/jso/dom/events/TouchEvent.java
+/*
+ *  Copyright 2024 pizzadox9999, Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/BuffersTransformer.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/currency/CurrencyResourceBuilder.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/nio/Buffers.java
+/*
+ *  Copyright 2025 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/util/TProperties.java
+/*
+ *  Copyright 2025 Ashera Cordova
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TFilterReader.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/io/TPushbackReader.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TAbstractMethodError.java
+/*
+ *  Copyright 2025 Ashera Cordova.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/TIO.java
+/*
+ *  Copyright 2025 ihromant.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/impl/ClasslibSubstitutionPolicy.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/ref/TCleaner.java, teavm-classlib-0.16.0-sources.jar:org/teavm/classlib/java/lang/reflect/TGenericTypeFactory.java
+/*
+ *  Copyright 2026 Alexey Andreev.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/chrono/AssembledChronology.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BasicFixedMonthChronology.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BasicSingleEraDateTimeField.java
+/*
+ *  Copyright 2001-2005 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/convert/AbstractConverter.java, joda-time-2.12.2-sources.jar:org/joda/time/convert/PartialConverter.java, joda-time-2.12.2-sources.jar:org/joda/time/field/AbstractPartialFieldProperty.java
+/*
+ *  Copyright 2001-2006 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/field/LenientDateTimeField.java
+/*
+ *  Copyright 2001-2007 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/convert/CalendarConverter.java, joda-time-2.12.2-sources.jar:org/joda/time/convert/Converter.java, joda-time-2.12.2-sources.jar:org/joda/time/convert/ConverterSet.java
+/*
+ *  Copyright 2001-2009 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractDuration.java, joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractPeriod.java, joda-time-2.12.2-sources.jar:org/joda/time/Days.java
+/*
+ *  Copyright 2001-2010 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractInterval.java, joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractPartial.java, joda-time-2.12.2-sources.jar:org/joda/time/base/BaseDuration.java
+/*
+ *  Copyright 2001-2011 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/tz/CachedDateTimeZone.java
+/*
+ *  Copyright 2001-2012 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/base/BaseLocal.java, joda-time-2.12.2-sources.jar:org/joda/time/base/BaseSingleFieldPeriod.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BaseChronology.java
+/*
+ *  Copyright 2001-2013 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractDateTime.java, joda-time-2.12.2-sources.jar:org/joda/time/base/AbstractInstant.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BasicDayOfMonthDateTimeField.java
+/*
+ *  Copyright 2001-2014 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/base/BaseDateTime.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BasicChronology.java, joda-time-2.12.2-sources.jar:org/joda/time/chrono/BasicYearDateTimeField.java
+/*
+ *  Copyright 2001-2015 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+Source examples: joda-time-2.12.2-sources.jar:org/joda/time/format/DateTimePrinterInternalPrinter.java
+/*
+ *  Copyright 2001-2016 Stephen Colebourne
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */

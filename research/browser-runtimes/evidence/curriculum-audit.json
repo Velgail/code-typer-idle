@@ -1,0 +1,3173 @@
+{
+  "totals": {
+    "exercises": 1062,
+    "files": 1171,
+    "units": 3562
+  },
+  "languages": {
+    "lua": {
+      "exercises": 120,
+      "files": 120,
+      "units": 293,
+      "functions": 443,
+      "splitParts": 50,
+      "unitsInScope": 0,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [],
+      "features": {
+        "metatables": {
+          "exercises": 16,
+          "slugs": [
+            "space-age",
+            "bank-account",
+            "clock",
+            "dnd-character",
+            "nucleotide-count",
+            "split-second-stopwatch",
+            "circular-buffer",
+            "grade-school",
+            "linked-list",
+            "robot-name",
+            "binary-search-tree",
+            "anagram",
+            "complex-numbers",
+            "custom-set",
+            "flower-field",
+            "word-search"
+          ]
+        },
+        "coroutines": {
+          "exercises": 10,
+          "slugs": [
+            "series",
+            "sieve",
+            "binary-search-tree",
+            "game-of-life",
+            "grep",
+            "intergalactic-transmission",
+            "flower-field",
+            "word-search",
+            "alphametics",
+            "rectangles"
+          ]
+        },
+        "utf8": {
+          "exercises": 0,
+          "slugs": []
+        },
+        "bitOps": {
+          "exercises": 4,
+          "slugs": [
+            "allergies",
+            "state-of-tic-tac-toe",
+            "variable-length-quantity",
+            "intergalactic-transmission"
+          ]
+        },
+        "floorDivision": {
+          "exercises": 8,
+          "slugs": [
+            "cars-assemble",
+            "eliuds-eggs",
+            "gigasecond",
+            "dnd-character",
+            "line-up",
+            "pythagorean-triplet",
+            "forth",
+            "say"
+          ]
+        },
+        "varargs": {
+          "exercises": 8,
+          "slugs": [
+            "atbash-cipher",
+            "phone-number",
+            "protein-translation",
+            "list-ops",
+            "affine-cipher",
+            "custom-set",
+            "react",
+            "zebra-puzzle"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 120,
+        "exercisesWithExisting": 120,
+        "totalFiles": 120,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "lua_sequence",
+            "headers": []
+          },
+          {
+            "id": "lua_table_default",
+            "headers": []
+          },
+          {
+            "id": "lua_metatable",
+            "headers": []
+          },
+          {
+            "id": "lua_closure",
+            "headers": []
+          },
+          {
+            "id": "lua_pixel_table",
+            "headers": []
+          },
+          {
+            "id": "lua_frame_string",
+            "headers": []
+          },
+          {
+            "id": "lua_coroutine",
+            "headers": []
+          },
+          {
+            "id": "lua_protected_call",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {},
+      "upstreamEditorFiles": [
+        {
+          "slug": "grep",
+          "files": [
+            "iliad.txt",
+            "midsummer-night.txt",
+            "paradise-lost.txt"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "sql": {
+      "exercises": 81,
+      "files": 81,
+      "units": 417,
+      "functions": 319,
+      "splitParts": 159,
+      "unitsInScope": 0,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [],
+      "features": {
+        "schema": {
+          "exercises": 10,
+          "slugs": [
+            "bottle-song",
+            "resistor-color",
+            "resistor-color-duo",
+            "allergies",
+            "nucleotide-count",
+            "resistor-color-trio",
+            "high-scores",
+            "poker",
+            "robot-simulator",
+            "scrabble-score"
+          ]
+        },
+        "triggers": {
+          "exercises": 5,
+          "slugs": [
+            "armstrong-numbers",
+            "collatz-conjecture",
+            "luhn",
+            "matching-brackets",
+            "roman-numerals"
+          ]
+        },
+        "views": {
+          "exercises": 3,
+          "slugs": [
+            "nucleotide-count",
+            "luhn",
+            "yacht"
+          ]
+        },
+        "recursive": {
+          "exercises": 34,
+          "slugs": [
+            "eliuds-eggs",
+            "square-root",
+            "acronym",
+            "all-your-base",
+            "anagram",
+            "atbash-cipher",
+            "binary-search",
+            "bowling",
+            "crypto-square",
+            "food-chain",
+            "hamming",
+            "isogram",
+            "largest-series-product",
+            "ocr-numbers",
+            "pascals-triangle",
+            "phone-number",
+            "poker",
+            "protein-translation",
+            "proverb",
+            "rail-fence-cipher",
+            "reverse-string",
+            "robot-simulator",
+            "rotational-cipher",
+            "run-length-encoding",
+            "say",
+            "scrabble-score",
+            "series",
+            "sieve",
+            "state-of-tic-tac-toe",
+            "sublist",
+            "tournament",
+            "transpose",
+            "word-count",
+            "wordy"
+          ]
+        },
+        "window": {
+          "exercises": 5,
+          "slugs": [
+            "house",
+            "twelve-days",
+            "all-your-base",
+            "crypto-square",
+            "diamond"
+          ]
+        },
+        "json": {
+          "exercises": 29,
+          "slugs": [
+            "clock",
+            "etl",
+            "flatten-array",
+            "grade-school",
+            "matrix",
+            "nucleotide-count",
+            "secret-handshake",
+            "sum-of-multiples",
+            "all-your-base",
+            "anagram",
+            "binary-search",
+            "bowling",
+            "crypto-square",
+            "food-chain",
+            "pig-latin",
+            "poker",
+            "proverb",
+            "rail-fence-cipher",
+            "rest-api",
+            "robot-simulator",
+            "saddle-points",
+            "say",
+            "scrabble-score",
+            "sieve",
+            "state-of-tic-tac-toe",
+            "sublist",
+            "transpose",
+            "word-count",
+            "wordy"
+          ]
+        },
+        "regexp": {
+          "exercises": 3,
+          "slugs": [
+            "phone-number",
+            "pig-latin",
+            "wordy"
+          ]
+        },
+        "cli": {
+          "exercises": 1,
+          "slugs": [
+            "nucleotide-count"
+          ]
+        },
+        "returning": {
+          "exercises": 0,
+          "slugs": []
+        },
+        "generateSeries": {
+          "exercises": 7,
+          "slugs": [
+            "dnd-character",
+            "perfect-numbers",
+            "queen-attack",
+            "sum-of-multiples",
+            "diamond",
+            "say",
+            "sieve"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 81,
+        "exercisesWithExisting": 81,
+        "totalFiles": 81,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 64
+      },
+      "buildVersions": {},
+      "upstreamEditorFiles": [
+        {
+          "slug": "two-fer",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "darts",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "difference-of-squares",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "gigasecond",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "grains",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "leap",
+          "files": [
+            "data.csv",
+            "create_fixture.sql"
+          ]
+        },
+        {
+          "slug": "raindrops",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "resistor-color",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "resistor-color-duo",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "rna-transcription",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "allergies",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "bob",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "eliuds-eggs",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "etl",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "kindergarten-garden",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "meetup",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "nucleotide-count",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "armstrong-numbers",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "collatz-conjecture",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "high-scores",
+          "files": [
+            "data_results.csv",
+            "data_scores.csv"
+          ]
+        },
+        {
+          "slug": "isogram",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "luhn",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "matching-brackets",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "pascals-triangle",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "roman-numerals",
+          "files": [
+            "data.csv"
+          ]
+        },
+        {
+          "slug": "yacht",
+          "files": [
+            "data.csv"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "rust": {
+      "exercises": 110,
+      "files": 110,
+      "units": 405,
+      "functions": 463,
+      "splitParts": 204,
+      "unitsInScope": 189,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "CalculatorInput::*",
+        "anyhow::Error",
+        "counter::Counter",
+        "crate::PokerHand::*",
+        "crate::Rank::*",
+        "crate::Suit::*",
+        "enum_iterator::{Sequence, all}",
+        "int_enum::IntEnum",
+        "itertools::Itertools",
+        "num_bigint::BigInt",
+        "num_traits::pow",
+        "rand::RngExt as _",
+        "rand::{Rng, RngExt as _}",
+        "regex_lite::Regex",
+        "self::graph_items::edge::Edge",
+        "self::graph_items::node::Node",
+        "std::borrow::Borrow",
+        "std::cell::RefCell",
+        "std::cmp",
+        "std::cmp::Ordering",
+        "std::cmp::Ordering::Equal",
+        "std::collections::BTreeMap",
+        "std::collections::BTreeSet",
+        "std::collections::HashMap",
+        "std::collections::HashSet",
+        "std::collections::hash_map::DefaultHasher",
+        "std::collections::{BTreeSet, HashSet}",
+        "std::collections::{HashMap, HashSet}",
+        "std::collections::{HashSet, VecDeque}",
+        "std::fmt",
+        "std::fmt::Debug",
+        "std::hash::{Hash, Hasher}",
+        "std::io::{Read, Result, Write}",
+        "std::io::{self, Read, Write}",
+        "std::iter",
+        "std::ops::Add",
+        "std::ops::Rem",
+        "std::ops::{Add, Mul, Sub}",
+        "std::ptr::NonNull",
+        "std::sync::LazyLock",
+        "std::sync::mpsc::channel",
+        "std::thread",
+        "std::{\n    collections::HashSet,\n    sync::{Arc, Mutex},\n}",
+        "std::{fs, path::Path}",
+        "super::*",
+        "time::{Duration, PrimitiveDateTime as DateTime}"
+      ],
+      "features": {
+        "ownership": {
+          "exercises": 32,
+          "slugs": [
+            "health-statistics",
+            "role-playing-game",
+            "csv-builder",
+            "etl",
+            "clock",
+            "bowling",
+            "grade-school",
+            "paasio",
+            "palindrome-products",
+            "simple-linked-list",
+            "tournament",
+            "two-bucket",
+            "variable-length-quantity",
+            "robot-name",
+            "custom-set",
+            "crypto-square",
+            "list-ops",
+            "rail-fence-cipher",
+            "roman-numerals",
+            "fizzy",
+            "book-store",
+            "decimal",
+            "grep",
+            "parallel-letter-frequency",
+            "pov",
+            "poker",
+            "forth",
+            "react",
+            "circular-buffer",
+            "xorcism",
+            "dominoes",
+            "doubly-linked-list"
+          ]
+        },
+        "iterators": {
+          "exercises": 74,
+          "slugs": [
+            "resistor-color",
+            "low-power-embedded-game",
+            "reverse-string",
+            "armstrong-numbers",
+            "bottle-song",
+            "difference-of-squares",
+            "grains",
+            "sum-of-multiples",
+            "high-scores",
+            "matching-brackets",
+            "collatz-conjecture",
+            "series",
+            "kindergarten-garden",
+            "eliuds-eggs",
+            "etl",
+            "anagram",
+            "acronym",
+            "all-your-base",
+            "allergies",
+            "alphametics",
+            "bowling",
+            "dot-dsl",
+            "grade-school",
+            "hamming",
+            "isogram",
+            "nucleotide-count",
+            "palindrome-products",
+            "pangram",
+            "pascals-triangle",
+            "perfect-numbers",
+            "pig-latin",
+            "rna-transcription",
+            "run-length-encoding",
+            "saddle-points",
+            "scrabble-score",
+            "sieve",
+            "simple-linked-list",
+            "tournament",
+            "triangle",
+            "variable-length-quantity",
+            "wordy",
+            "custom-set",
+            "affine-cipher",
+            "atbash-cipher",
+            "crypto-square",
+            "diamond",
+            "largest-series-product",
+            "luhn-from",
+            "luhn-trait",
+            "list-ops",
+            "phone-number",
+            "rail-fence-cipher",
+            "roman-numerals",
+            "rotational-cipher",
+            "word-count",
+            "secret-handshake",
+            "yacht",
+            "matrix",
+            "flower-field",
+            "luhn",
+            "robot-simulator",
+            "protein-translation",
+            "fizzy",
+            "book-store",
+            "grep",
+            "parallel-letter-frequency",
+            "pov",
+            "poker",
+            "forth",
+            "react",
+            "rectangles",
+            "xorcism",
+            "dominoes",
+            "doubly-linked-list"
+          ]
+        },
+        "traits": {
+          "exercises": 43,
+          "slugs": [
+            "health-statistics",
+            "low-power-embedded-game",
+            "role-playing-game",
+            "csv-builder",
+            "high-scores",
+            "matching-brackets",
+            "clock",
+            "allergies",
+            "bowling",
+            "dot-dsl",
+            "grade-school",
+            "paasio",
+            "palindrome-products",
+            "pascals-triangle",
+            "queen-attack",
+            "rna-transcription",
+            "simple-linked-list",
+            "tournament",
+            "triangle",
+            "robot-name",
+            "custom-set",
+            "luhn-from",
+            "luhn-trait",
+            "list-ops",
+            "rail-fence-cipher",
+            "roman-numerals",
+            "matrix",
+            "space-age",
+            "flower-field",
+            "robot-simulator",
+            "fizzy",
+            "book-store",
+            "decimal",
+            "grep",
+            "pov",
+            "poker",
+            "forth",
+            "react",
+            "circular-buffer",
+            "rectangles",
+            "xorcism",
+            "dominoes",
+            "doubly-linked-list"
+          ]
+        },
+        "lifetimes": {
+          "exercises": 34,
+          "slugs": [
+            "role-playing-game",
+            "short-fibonacci",
+            "hello-world",
+            "bottle-song",
+            "bob",
+            "high-scores",
+            "kindergarten-garden",
+            "anagram",
+            "dot-dsl",
+            "grade-school",
+            "scrabble-score",
+            "two-bucket",
+            "wordy",
+            "affine-cipher",
+            "atbash-cipher",
+            "luhn-from",
+            "rotational-cipher",
+            "simple-cipher",
+            "secret-handshake",
+            "yacht",
+            "fizzy",
+            "book-store",
+            "decimal",
+            "parallel-letter-frequency",
+            "macros",
+            "pov",
+            "poker",
+            "forth",
+            "react",
+            "circular-buffer",
+            "rectangles",
+            "xorcism",
+            "dominoes",
+            "doubly-linked-list"
+          ]
+        },
+        "macros": {
+          "exercises": 43,
+          "slugs": [
+            "assembly-line",
+            "semi-structured-logs",
+            "resistor-color",
+            "short-fibonacci",
+            "hello-world",
+            "armstrong-numbers",
+            "bottle-song",
+            "grains",
+            "prime-factors",
+            "proverb",
+            "raindrops",
+            "bob",
+            "matching-brackets",
+            "series",
+            "kindergarten-garden",
+            "clock",
+            "all-your-base",
+            "allergies",
+            "bowling",
+            "dot-dsl",
+            "pascals-triangle",
+            "rna-transcription",
+            "spiral-matrix",
+            "tournament",
+            "variable-length-quantity",
+            "wordy",
+            "diamond",
+            "rail-fence-cipher",
+            "roman-numerals",
+            "knapsack",
+            "flower-field",
+            "fizzy",
+            "decimal",
+            "grep",
+            "parallel-letter-frequency",
+            "macros",
+            "pov",
+            "poker",
+            "forth",
+            "ocr-numbers",
+            "react",
+            "rectangles",
+            "dominoes"
+          ]
+        },
+        "thread": {
+          "exercises": 4,
+          "slugs": [
+            "pig-latin",
+            "robot-name",
+            "parallel-letter-frequency",
+            "doubly-linked-list"
+          ]
+        },
+        "unsafe": {
+          "exercises": 2,
+          "slugs": [
+            "circular-buffer",
+            "doubly-linked-list"
+          ]
+        },
+        "externalCrate": {
+          "exercises": 3,
+          "slugs": [
+            "robot-name",
+            "simple-cipher",
+            "decimal"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 110,
+        "exercisesWithExisting": 110,
+        "totalFiles": 112,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "rust_vector_iter",
+            "headers": []
+          },
+          {
+            "id": "rust_option",
+            "headers": []
+          },
+          {
+            "id": "rust_result",
+            "headers": []
+          },
+          {
+            "id": "rust_enum_state",
+            "headers": []
+          },
+          {
+            "id": "rust_slice_pixels",
+            "headers": []
+          },
+          {
+            "id": "rust_iterator_filter",
+            "headers": []
+          },
+          {
+            "id": "rust_move_owner",
+            "headers": []
+          },
+          {
+            "id": "rust_box_value",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {
+        "2024": 110
+      },
+      "upstreamEditorFiles": [],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "go": {
+      "exercises": 166,
+      "files": 166,
+      "units": 656,
+      "functions": 642,
+      "splitParts": 134,
+      "unitsInScope": 162,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "bufio",
+        "bytes",
+        "cmp",
+        "container/ring",
+        "crypto/rand",
+        "encoding/csv",
+        "errors",
+        "fmt",
+        "io",
+        "maps",
+        "math",
+        "math/big",
+        "math/bits",
+        "math/rand",
+        "math/rand/v2",
+        "os",
+        "reflect",
+        "regexp",
+        "slices",
+        "sort",
+        "strconv",
+        "strings",
+        "sync",
+        "time",
+        "unicode",
+        "unicode/utf8"
+      ],
+      "features": {
+        "goroutines": {
+          "exercises": 2,
+          "slugs": [
+            "parallel-letter-frequency",
+            "yacht"
+          ]
+        },
+        "channels": {
+          "exercises": 2,
+          "slugs": [
+            "parallel-letter-frequency",
+            "robot-simulator"
+          ]
+        },
+        "defer": {
+          "exercises": 5,
+          "slugs": [
+            "error-handling",
+            "bank-account",
+            "grep",
+            "paasio",
+            "robot-simulator"
+          ]
+        },
+        "interfaces": {
+          "exercises": 5,
+          "slugs": [
+            "airport-robot",
+            "sorting-room",
+            "circular-buffer",
+            "error-handling",
+            "rest-api"
+          ]
+        },
+        "generics": {
+          "exercises": 1,
+          "slugs": [
+            "strain"
+          ]
+        },
+        "mutex": {
+          "exercises": 3,
+          "slugs": [
+            "parallel-letter-frequency",
+            "bank-account",
+            "paasio"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 166,
+        "exercisesWithExisting": 166,
+        "totalFiles": 295,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "go_slice_range",
+            "headers": []
+          },
+          {
+            "id": "go_map_presence",
+            "headers": []
+          },
+          {
+            "id": "go_closure",
+            "headers": []
+          },
+          {
+            "id": "go_type_assertion",
+            "headers": []
+          },
+          {
+            "id": "go_pixel_slice",
+            "headers": []
+          },
+          {
+            "id": "go_rune_frame",
+            "headers": []
+          },
+          {
+            "id": "go_buffered_channel",
+            "headers": []
+          },
+          {
+            "id": "go_deferred_cleanup",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {
+        "1.27": 166
+      },
+      "upstreamEditorFiles": [
+        {
+          "slug": "election-day",
+          "files": [
+            "election_result.go"
+          ]
+        },
+        {
+          "slug": "jedliks-toys",
+          "files": [
+            "car.go"
+          ]
+        },
+        {
+          "slug": "the-farm",
+          "files": [
+            "types.go"
+          ]
+        },
+        {
+          "slug": "simple-cipher",
+          "files": [
+            "cipher.go"
+          ]
+        },
+        {
+          "slug": "sublist",
+          "files": [
+            "relations.go"
+          ]
+        },
+        {
+          "slug": "error-handling",
+          "files": [
+            "common.go"
+          ]
+        },
+        {
+          "slug": "paasio",
+          "files": [
+            "interface.go"
+          ]
+        },
+        {
+          "slug": "robot-simulator",
+          "files": [
+            "defs.go"
+          ]
+        },
+        {
+          "slug": "react",
+          "files": [
+            "interfaces.go"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "python": {
+      "exercises": 149,
+      "files": 149,
+      "units": 442,
+      "functions": 571,
+      "splitParts": 182,
+      "unitsInScope": 110,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "__future__",
+        "calendar",
+        "collections",
+        "copy",
+        "dataclasses",
+        "datetime",
+        "enum",
+        "functools",
+        "io",
+        "itertools",
+        "json",
+        "math",
+        "operator",
+        "random",
+        "re",
+        "sets_categories_data",
+        "string",
+        "threading",
+        "time",
+        "typing"
+      ],
+      "features": {
+        "classes": {
+          "exercises": 43,
+          "slugs": [
+            "ellens-alien-game",
+            "log-levels",
+            "space-age",
+            "luhn",
+            "dnd-character",
+            "robot-name",
+            "phone-number",
+            "queen-attack",
+            "robot-simulator",
+            "grade-school",
+            "circular-buffer",
+            "matrix",
+            "high-scores",
+            "kindergarten-garden",
+            "allergies",
+            "simple-cipher",
+            "clock",
+            "rectangles",
+            "simple-linked-list",
+            "tree-building",
+            "connect",
+            "scale-generator",
+            "meetup",
+            "linked-list",
+            "complex-numbers",
+            "ledger",
+            "hangman",
+            "go-counting",
+            "forth",
+            "binary-search-tree",
+            "rational-numbers",
+            "bowling",
+            "relative-distance",
+            "dot-dsl",
+            "custom-set",
+            "word-search",
+            "bank-account",
+            "react",
+            "zipper",
+            "sgf-parsing",
+            "paasio",
+            "rest-api",
+            "pov"
+          ]
+        },
+        "comprehensions": {
+          "exercises": 37,
+          "slugs": [
+            "ellens-alien-game",
+            "restaurant-rozalynn",
+            "log-levels",
+            "isogram",
+            "secret-handshake",
+            "house",
+            "list-ops",
+            "atbash-cipher",
+            "series",
+            "twelve-days",
+            "transpose",
+            "saddle-points",
+            "ocr-numbers",
+            "grade-school",
+            "matrix",
+            "kindergarten-garden",
+            "poker",
+            "crypto-square",
+            "rectangles",
+            "connect",
+            "spiral-matrix",
+            "variable-length-quantity",
+            "flower-field",
+            "food-chain",
+            "largest-series-product",
+            "go-counting",
+            "forth",
+            "bowling",
+            "knapsack",
+            "relative-distance",
+            "zebra-puzzle",
+            "affine-cipher",
+            "alphametics",
+            "react",
+            "satellite",
+            "rest-api",
+            "pov"
+          ]
+        },
+        "generators": {
+          "exercises": 7,
+          "slugs": [
+            "plane-tickets",
+            "perfect-numbers",
+            "nth-prime",
+            "pythagorean-triplet",
+            "palindrome-products",
+            "linked-list",
+            "pov"
+          ]
+        },
+        "decorators": {
+          "exercises": 8,
+          "slugs": [
+            "robot-simulator",
+            "allergies",
+            "connect",
+            "bowling",
+            "react",
+            "zipper",
+            "sgf-parsing",
+            "paasio"
+          ]
+        },
+        "contextManagers": {
+          "exercises": 24,
+          "slugs": [
+            "little-sisters-vocab",
+            "little-sisters-essay",
+            "card-games",
+            "chaitanas-colossal-coaster",
+            "tisbury-treasure-hunt",
+            "inventory-management",
+            "mecha-munch-management",
+            "locomotive-engineer",
+            "cater-waiter",
+            "ellens-alien-game",
+            "plane-tickets",
+            "restaurant-rozalynn",
+            "house",
+            "phone-number",
+            "rectangles",
+            "change",
+            "flower-field",
+            "palindrome-products",
+            "grep",
+            "rational-numbers",
+            "bowling",
+            "alphametics",
+            "bank-account",
+            "sgf-parsing"
+          ]
+        },
+        "exceptions": {
+          "exercises": 42,
+          "slugs": [
+            "grains",
+            "collatz-conjecture",
+            "perfect-numbers",
+            "binary-search",
+            "hamming",
+            "flatten-array",
+            "protein-translation",
+            "say",
+            "series",
+            "nth-prime",
+            "phone-number",
+            "queen-attack",
+            "yacht",
+            "state-of-tic-tac-toe",
+            "saddle-points",
+            "ocr-numbers",
+            "circular-buffer",
+            "wordy",
+            "simple-linked-list",
+            "tree-building",
+            "all-your-base",
+            "variable-length-quantity",
+            "change",
+            "flower-field",
+            "palindrome-products",
+            "largest-series-product",
+            "meetup",
+            "pascals-triangle",
+            "linked-list",
+            "hangman",
+            "go-counting",
+            "forth",
+            "bowling",
+            "relative-distance",
+            "dot-dsl",
+            "affine-cipher",
+            "bank-account",
+            "two-bucket",
+            "satellite",
+            "sgf-parsing",
+            "paasio",
+            "pov"
+          ]
+        },
+        "patternMatching": {
+          "exercises": 0,
+          "slugs": []
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 149,
+        "exercisesWithExisting": 149,
+        "totalFiles": 150,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "python_list_comprehension",
+            "headers": []
+          },
+          {
+            "id": "python_dict_default",
+            "headers": []
+          },
+          {
+            "id": "python_dataclass",
+            "headers": []
+          },
+          {
+            "id": "python_closure",
+            "headers": []
+          },
+          {
+            "id": "python_zip_pixels",
+            "headers": []
+          },
+          {
+            "id": "python_tuple_unpack",
+            "headers": []
+          },
+          {
+            "id": "python_counter",
+            "headers": []
+          },
+          {
+            "id": "python_context_cleanup",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {},
+      "upstreamEditorFiles": [
+        {
+          "slug": "mecha-munch-management",
+          "files": [
+            "dict_methods_test_data.py"
+          ]
+        },
+        {
+          "slug": "cater-waiter",
+          "files": [
+            "sets_test_data.py",
+            "sets_categories_data.py"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "csharp": {
+      "exercises": 178,
+      "files": 178,
+      "units": 485,
+      "functions": 798,
+      "splitParts": 397,
+      "unitsInScope": 477,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "(database)\n        {\n            database.BeginTransaction()",
+        "(disposableObject)\n        {\n            throw new Exception(\"An error occured.\")",
+        "Blue = BlueRemoteControlCarTeam",
+        "Red = RedRemoteControlCarTeam",
+        "Sprache",
+        "System",
+        "System.Collections",
+        "System.Collections.Generic",
+        "System.Collections.Immutable",
+        "System.Collections.ObjectModel",
+        "System.Globalization",
+        "System.Linq",
+        "System.Numerics",
+        "System.Reactive",
+        "System.Reactive.Subjects",
+        "System.Runtime.InteropServices",
+        "System.Text",
+        "System.Text.Json",
+        "System.Text.RegularExpressions",
+        "var db = database"
+      ],
+      "features": {
+        "classes": {
+          "exercises": 178,
+          "slugs": [
+            "lucians-luscious-lasagna",
+            "annalyns-infiltration",
+            "cars-assemble",
+            "interest-is-interesting",
+            "roll-the-die",
+            "log-levels",
+            "jedliks-toys",
+            "bird-watcher",
+            "squeaky-clean",
+            "need-for-speed",
+            "booking-up-for-beauty",
+            "wizards-and-warriors",
+            "hyper-optimized-telemetry",
+            "tracks-on-tracks-on-tracks",
+            "international-calling-connoisseur",
+            "tim-from-marketing",
+            "football-match-reports",
+            "logs-logs-logs",
+            "calculator-conundrum",
+            "secure-munchester-united",
+            "attack-of-the-trolls",
+            "hyperinflation-hits-hyperia",
+            "weighing-machine",
+            "the-weather-in-deather",
+            "remote-control-competition",
+            "faceid-2",
+            "wizards-and-warriors-2",
+            "developer-privileges",
+            "hyperia-forex",
+            "building-telemetry",
+            "object-relational-mapping",
+            "orm-in-one-go",
+            "land-grab-in-space",
+            "remote-control-cleanup",
+            "authentication-system",
+            "red-vs-blue-darwin-style",
+            "beauty-salon-goes-global",
+            "high-school-sweethearts",
+            "parsing-log-files",
+            "phone-number-analysis",
+            "instruments-of-texas",
+            "log-analysis",
+            "hello-world",
+            "two-fer",
+            "leap",
+            "line-up",
+            "gigasecond",
+            "resistor-color",
+            "space-age",
+            "high-scores",
+            "difference-of-squares",
+            "resistor-color-duo",
+            "resistor-color-trio",
+            "series",
+            "sum-of-multiples",
+            "reverse-string",
+            "rna-transcription",
+            "hamming",
+            "nucleotide-count",
+            "pangram",
+            "grains",
+            "collatz-conjecture",
+            "accumulate",
+            "armstrong-numbers",
+            "darts",
+            "raindrops",
+            "etl",
+            "square-root",
+            "robot-name",
+            "allergies",
+            "grade-school",
+            "isogram",
+            "perfect-numbers",
+            "phone-number",
+            "scrabble-score",
+            "triangle",
+            "bottle-song",
+            "proverb",
+            "strain",
+            "protein-translation",
+            "sieve",
+            "binary-search",
+            "kindergarten-garden",
+            "secret-handshake",
+            "dnd-character",
+            "queen-attack",
+            "robot-simulator",
+            "error-handling",
+            "eliuds-eggs",
+            "rotational-cipher",
+            "circular-buffer",
+            "clock",
+            "bob",
+            "acronym",
+            "meetup",
+            "all-your-base",
+            "largest-series-product",
+            "pascals-triangle",
+            "prime-factors",
+            "pythagorean-triplet",
+            "rational-numbers",
+            "house",
+            "anagram",
+            "matrix",
+            "saddle-points",
+            "bank-account",
+            "simple-linked-list",
+            "affine-cipher",
+            "isbn-verifier",
+            "prism",
+            "twelve-days",
+            "word-count",
+            "matching-brackets",
+            "spiral-matrix",
+            "roman-numerals",
+            "simple-cipher",
+            "parallel-letter-frequency",
+            "crypto-square",
+            "flower-field",
+            "food-chain",
+            "tree-building",
+            "atbash-cipher",
+            "binary-search-tree",
+            "flatten-array",
+            "list-ops",
+            "sublist",
+            "ledger",
+            "ocr-numbers",
+            "yacht",
+            "dot-dsl",
+            "linked-list",
+            "grep",
+            "luhn",
+            "markdown",
+            "state-of-tic-tac-toe",
+            "run-length-encoding",
+            "book-store",
+            "custom-set",
+            "game-of-life",
+            "knapsack",
+            "relative-distance",
+            "split-second-stopwatch",
+            "camicia",
+            "tournament",
+            "complex-numbers",
+            "change",
+            "palindrome-products",
+            "word-search",
+            "bowling",
+            "rest-api",
+            "pig-latin",
+            "transpose",
+            "nth-prime",
+            "rail-fence-cipher",
+            "intergalactic-transmission",
+            "baffling-birthdays",
+            "swift-scheduling",
+            "variable-length-quantity",
+            "rectangles",
+            "wordy",
+            "poker",
+            "diffie-hellman",
+            "killer-sudoku-helper",
+            "satellite",
+            "dominoes",
+            "connect",
+            "save-the-cow",
+            "two-bucket",
+            "diamond",
+            "say",
+            "zebra-puzzle",
+            "sgf-parsing",
+            "go-counting",
+            "react",
+            "forth",
+            "alphametics",
+            "pov",
+            "zipper"
+          ]
+        },
+        "LINQ": {
+          "exercises": 69,
+          "slugs": [
+            "difference-of-squares",
+            "resistor-color-duo",
+            "series",
+            "sum-of-multiples",
+            "rna-transcription",
+            "hamming",
+            "allergies",
+            "phone-number",
+            "bottle-song",
+            "proverb",
+            "sieve",
+            "kindergarten-garden",
+            "secret-handshake",
+            "dnd-character",
+            "rotational-cipher",
+            "acronym",
+            "all-your-base",
+            "largest-series-product",
+            "house",
+            "anagram",
+            "matrix",
+            "saddle-points",
+            "affine-cipher",
+            "twelve-days",
+            "matching-brackets",
+            "simple-cipher",
+            "parallel-letter-frequency",
+            "crypto-square",
+            "food-chain",
+            "tree-building",
+            "atbash-cipher",
+            "binary-search-tree",
+            "sublist",
+            "ledger",
+            "ocr-numbers",
+            "yacht",
+            "grep",
+            "luhn",
+            "markdown",
+            "state-of-tic-tac-toe",
+            "run-length-encoding",
+            "book-store",
+            "custom-set",
+            "relative-distance",
+            "split-second-stopwatch",
+            "camicia",
+            "change",
+            "palindrome-products",
+            "word-search",
+            "rest-api",
+            "pig-latin",
+            "nth-prime",
+            "rail-fence-cipher",
+            "baffling-birthdays",
+            "swift-scheduling",
+            "rectangles",
+            "poker",
+            "killer-sudoku-helper",
+            "dominoes",
+            "connect",
+            "save-the-cow",
+            "diamond",
+            "say",
+            "zebra-puzzle",
+            "sgf-parsing",
+            "go-counting",
+            "react",
+            "alphametics",
+            "pov"
+          ]
+        },
+        "lambdas": {
+          "exercises": 93,
+          "slugs": [
+            "the-weather-in-deather",
+            "hello-world",
+            "two-fer",
+            "line-up",
+            "resistor-color",
+            "high-scores",
+            "difference-of-squares",
+            "resistor-color-duo",
+            "resistor-color-trio",
+            "series",
+            "sum-of-multiples",
+            "rna-transcription",
+            "hamming",
+            "allergies",
+            "grade-school",
+            "phone-number",
+            "scrabble-score",
+            "bottle-song",
+            "proverb",
+            "strain",
+            "sieve",
+            "kindergarten-garden",
+            "secret-handshake",
+            "dnd-character",
+            "rotational-cipher",
+            "circular-buffer",
+            "acronym",
+            "all-your-base",
+            "largest-series-product",
+            "rational-numbers",
+            "house",
+            "anagram",
+            "matrix",
+            "saddle-points",
+            "simple-linked-list",
+            "affine-cipher",
+            "twelve-days",
+            "matching-brackets",
+            "simple-cipher",
+            "parallel-letter-frequency",
+            "crypto-square",
+            "food-chain",
+            "tree-building",
+            "atbash-cipher",
+            "list-ops",
+            "sublist",
+            "ledger",
+            "ocr-numbers",
+            "yacht",
+            "dot-dsl",
+            "grep",
+            "luhn",
+            "markdown",
+            "state-of-tic-tac-toe",
+            "run-length-encoding",
+            "book-store",
+            "custom-set",
+            "relative-distance",
+            "split-second-stopwatch",
+            "camicia",
+            "tournament",
+            "complex-numbers",
+            "change",
+            "palindrome-products",
+            "word-search",
+            "bowling",
+            "rest-api",
+            "pig-latin",
+            "transpose",
+            "nth-prime",
+            "rail-fence-cipher",
+            "baffling-birthdays",
+            "swift-scheduling",
+            "variable-length-quantity",
+            "rectangles",
+            "wordy",
+            "poker",
+            "diffie-hellman",
+            "killer-sudoku-helper",
+            "dominoes",
+            "connect",
+            "save-the-cow",
+            "two-bucket",
+            "diamond",
+            "say",
+            "zebra-puzzle",
+            "sgf-parsing",
+            "go-counting",
+            "react",
+            "forth",
+            "alphametics",
+            "pov",
+            "zipper"
+          ]
+        },
+        "generics": {
+          "exercises": 86,
+          "slugs": [
+            "tracks-on-tracks-on-tracks",
+            "international-calling-connoisseur",
+            "the-weather-in-deather",
+            "remote-control-competition",
+            "faceid-2",
+            "developer-privileges",
+            "land-grab-in-space",
+            "authentication-system",
+            "space-age",
+            "high-scores",
+            "resistor-color-duo",
+            "sum-of-multiples",
+            "rna-transcription",
+            "nucleotide-count",
+            "pangram",
+            "accumulate",
+            "etl",
+            "robot-name",
+            "grade-school",
+            "isogram",
+            "scrabble-score",
+            "bottle-song",
+            "strain",
+            "protein-translation",
+            "sieve",
+            "kindergarten-garden",
+            "secret-handshake",
+            "circular-buffer",
+            "acronym",
+            "meetup",
+            "all-your-base",
+            "largest-series-product",
+            "pascals-triangle",
+            "prime-factors",
+            "pythagorean-triplet",
+            "anagram",
+            "saddle-points",
+            "simple-linked-list",
+            "prism",
+            "word-count",
+            "roman-numerals",
+            "parallel-letter-frequency",
+            "crypto-square",
+            "flower-field",
+            "tree-building",
+            "atbash-cipher",
+            "binary-search-tree",
+            "list-ops",
+            "sublist",
+            "ledger",
+            "ocr-numbers",
+            "yacht",
+            "dot-dsl",
+            "linked-list",
+            "grep",
+            "state-of-tic-tac-toe",
+            "run-length-encoding",
+            "custom-set",
+            "relative-distance",
+            "split-second-stopwatch",
+            "camicia",
+            "tournament",
+            "change",
+            "palindrome-products",
+            "word-search",
+            "bowling",
+            "rest-api",
+            "nth-prime",
+            "intergalactic-transmission",
+            "swift-scheduling",
+            "variable-length-quantity",
+            "poker",
+            "killer-sudoku-helper",
+            "dominoes",
+            "connect",
+            "save-the-cow",
+            "two-bucket",
+            "say",
+            "zebra-puzzle",
+            "sgf-parsing",
+            "go-counting",
+            "react",
+            "forth",
+            "alphametics",
+            "pov",
+            "zipper"
+          ]
+        },
+        "async": {
+          "exercises": 1,
+          "slugs": [
+            "parallel-letter-frequency"
+          ]
+        },
+        "patternMatching": {
+          "exercises": 11,
+          "slugs": [
+            "secure-munchester-united",
+            "the-weather-in-deather",
+            "line-up",
+            "bottle-song",
+            "list-ops",
+            "ledger",
+            "grep",
+            "custom-set",
+            "camicia",
+            "swift-scheduling",
+            "zipper"
+          ]
+        },
+        "modernSyntax": {
+          "exercises": 12,
+          "slugs": [
+            "wizards-and-warriors-2",
+            "developer-privileges",
+            "rational-numbers",
+            "simple-linked-list",
+            "prism",
+            "tree-building",
+            "ledger",
+            "grep",
+            "camicia",
+            "complex-numbers",
+            "swift-scheduling",
+            "satellite"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 178,
+        "exercisesWithExisting": 178,
+        "totalFiles": 178,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "csharp_list_filter",
+            "headers": []
+          },
+          {
+            "id": "csharp_nullable_value",
+            "headers": []
+          },
+          {
+            "id": "csharp_delegate",
+            "headers": []
+          },
+          {
+            "id": "csharp_interface_map",
+            "headers": []
+          },
+          {
+            "id": "csharp_linq_pixels",
+            "headers": []
+          },
+          {
+            "id": "csharp_rect_tuple",
+            "headers": []
+          },
+          {
+            "id": "csharp_dictionary_cache",
+            "headers": []
+          },
+          {
+            "id": "csharp_queue_order",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {
+        "net10.0": 178
+      },
+      "upstreamEditorFiles": [
+        {
+          "slug": "football-match-reports",
+          "files": [
+            "OffFieldActivitiesAndCharacters.cs"
+          ]
+        },
+        {
+          "slug": "calculator-conundrum",
+          "files": [
+            "SimpleOperation.cs"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "cpp": {
+      "exercises": 100,
+      "files": 185,
+      "units": 318,
+      "functions": 427,
+      "splitParts": 164,
+      "unitsInScope": 286,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "acronym.h",
+        "affine_cipher.h",
+        "algorithm",
+        "all_your_base.h",
+        "allergies.h",
+        "alphametics.h",
+        "anagram.h",
+        "armstrong_numbers.h",
+        "array",
+        "atbash_cipher.h",
+        "bank_account.h",
+        "beer_song.h",
+        "binary.h",
+        "binary_search.h",
+        "bob.h",
+        "boost/date_time/gregorian/gregorian.hpp",
+        "boost/date_time/posix_time/posix_time.hpp",
+        "cctype",
+        "clock.h",
+        "cmath",
+        "collatz_conjecture.h",
+        "complex_numbers.h",
+        "crypto_square.h",
+        "cstddef",
+        "cstdint",
+        "cstdlib",
+        "darts.h",
+        "diamond.h",
+        "difference_of_squares.h",
+        "dnd_character.h",
+        "doctor_data.h",
+        "eliuds_eggs.h",
+        "etl.h",
+        "execution",
+        "flower_field.h",
+        "food_chain.h",
+        "functional",
+        "gigasecond.h",
+        "grade_school.h",
+        "grains.h",
+        "hamming.h",
+        "hello_world.h",
+        "hexadecimal.h",
+        "high_scores.h",
+        "initializer_list",
+        "iomanip",
+        "iostream",
+        "isbn_verifier.h",
+        "isogram.h",
+        "iterator",
+        "kindergarten_garden.h",
+        "knapsack.h",
+        "largest_series_product.h",
+        "lasagna_master.h",
+        "limits",
+        "linked_list.h",
+        "list",
+        "list_ops.h",
+        "luhn.h",
+        "map",
+        "matching_brackets.h",
+        "memory",
+        "mutex",
+        "nth_prime.h",
+        "nucleotide_count.h",
+        "numeric",
+        "optional",
+        "pangram.h",
+        "parallel_letter_frequency.h",
+        "pascals_triangle.h",
+        "perfect_numbers.h",
+        "phone_number.h",
+        "pig_latin.h",
+        "power_of_troy.h",
+        "prime_factors.h",
+        "protein_translation.h",
+        "queen_attack.h",
+        "rail_fence_cipher.h",
+        "raindrops.h",
+        "regex",
+        "resistor_color.h",
+        "resistor_color_duo.h",
+        "reverse_string.h",
+        "rna_transcription.h",
+        "robot_name.h",
+        "robot_simulator.h",
+        "roman_numerals.h",
+        "rotational_cipher.h",
+        "run_length_encoding.h",
+        "say.h",
+        "scrabble_score.h",
+        "secret_handshake.h",
+        "series.h",
+        "set",
+        "sieve.h",
+        "simple_linked_list.h",
+        "space_age.h",
+        "speedywagon.h",
+        "spiral_matrix.h",
+        "sstream",
+        "stack",
+        "stdexcept",
+        "string",
+        "string_view",
+        "sublist.h",
+        "sum_of_multiples.h",
+        "triangle.h",
+        "trinary.h",
+        "tuple",
+        "twelve_days.h",
+        "two_bucket.h",
+        "unordered_map",
+        "unordered_set",
+        "utility",
+        "vector",
+        "vehicle_purchase.h",
+        "word_count.h",
+        "yacht.h",
+        "zebra_puzzle.h"
+      ],
+      "features": {
+        "namespace": {
+          "exercises": 95,
+          "slugs": [
+            "last-will",
+            "log-levels",
+            "vehicle-purchase",
+            "ellens-alien-game",
+            "election-day",
+            "troll-the-trolls",
+            "doctor-data",
+            "lasagna-master",
+            "speedywagon",
+            "power-of-troy",
+            "hello-world",
+            "leap",
+            "space-age",
+            "two-fer",
+            "luhn",
+            "isbn-verifier",
+            "reverse-string",
+            "grains",
+            "raindrops",
+            "pangram",
+            "collatz-conjecture",
+            "gigasecond",
+            "secret-handshake",
+            "darts",
+            "resistor-color",
+            "triangle",
+            "grade-school",
+            "hamming",
+            "nucleotide-count",
+            "rna-transcription",
+            "difference-of-squares",
+            "allergies",
+            "protein-translation",
+            "sum-of-multiples",
+            "atbash-cipher",
+            "trinary",
+            "etl",
+            "matching-brackets",
+            "acronym",
+            "armstrong-numbers",
+            "binary",
+            "hexadecimal",
+            "isogram",
+            "pascals-triangle",
+            "perfect-numbers",
+            "scrabble-score",
+            "eliuds-eggs",
+            "diamond",
+            "run-length-encoding",
+            "rotational-cipher",
+            "resistor-color-duo",
+            "yacht",
+            "kindergarten-garden",
+            "dnd-character",
+            "twelve-days",
+            "binary-search",
+            "all-your-base",
+            "robot-simulator",
+            "largest-series-product",
+            "simple-linked-list",
+            "high-scores",
+            "pig-latin",
+            "rail-fence-cipher",
+            "nth-prime",
+            "queen-attack",
+            "sieve",
+            "prime-factors",
+            "robot-name",
+            "clock",
+            "meetup",
+            "phone-number",
+            "series",
+            "bob",
+            "word-count",
+            "anagram",
+            "flower-field",
+            "sublist",
+            "list-ops",
+            "spiral-matrix",
+            "complex-numbers",
+            "circular-buffer",
+            "linked-list",
+            "knapsack",
+            "parallel-letter-frequency",
+            "affine-cipher",
+            "alphametics",
+            "beer-song",
+            "food-chain",
+            "roman-numerals",
+            "crypto-square",
+            "zebra-puzzle",
+            "two-bucket",
+            "bank-account",
+            "say",
+            "binary-search-tree"
+          ]
+        },
+        "classOrStruct": {
+          "exercises": 36,
+          "slugs": [
+            "ellens-alien-game",
+            "election-day",
+            "troll-the-trolls",
+            "doctor-data",
+            "lasagna-master",
+            "speedywagon",
+            "power-of-troy",
+            "space-age",
+            "triangle",
+            "grade-school",
+            "allergies",
+            "perfect-numbers",
+            "kindergarten-garden",
+            "dnd-character",
+            "robot-simulator",
+            "simple-linked-list",
+            "high-scores",
+            "queen-attack",
+            "robot-name",
+            "clock",
+            "meetup",
+            "phone-number",
+            "anagram",
+            "sublist",
+            "complex-numbers",
+            "circular-buffer",
+            "linked-list",
+            "knapsack",
+            "beer-song",
+            "food-chain",
+            "roman-numerals",
+            "crypto-square",
+            "zebra-puzzle",
+            "two-bucket",
+            "bank-account",
+            "binary-search-tree"
+          ]
+        },
+        "template": {
+          "exercises": 4,
+          "slugs": [
+            "list-ops",
+            "circular-buffer",
+            "linked-list",
+            "binary-search-tree"
+          ]
+        },
+        "lambda": {
+          "exercises": 12,
+          "slugs": [
+            "rna-transcription",
+            "yacht",
+            "kindergarten-garden",
+            "largest-series-product",
+            "sieve",
+            "phone-number",
+            "bob",
+            "word-count",
+            "spiral-matrix",
+            "parallel-letter-frequency",
+            "alphametics",
+            "crypto-square"
+          ]
+        },
+        "smartPointer": {
+          "exercises": 3,
+          "slugs": [
+            "power-of-troy",
+            "linked-list",
+            "binary-search-tree"
+          ]
+        },
+        "iterators": {
+          "exercises": 24,
+          "slugs": [
+            "secret-handshake",
+            "grade-school",
+            "hamming",
+            "nucleotide-count",
+            "rna-transcription",
+            "protein-translation",
+            "yacht",
+            "kindergarten-garden",
+            "dnd-character",
+            "all-your-base",
+            "largest-series-product",
+            "high-scores",
+            "rail-fence-cipher",
+            "sieve",
+            "phone-number",
+            "bob",
+            "word-count",
+            "anagram",
+            "sublist",
+            "parallel-letter-frequency",
+            "affine-cipher",
+            "crypto-square",
+            "zebra-puzzle",
+            "binary-search-tree"
+          ]
+        },
+        "regex": {
+          "exercises": 2,
+          "slugs": [
+            "isbn-verifier",
+            "largest-series-product"
+          ]
+        },
+        "ranges": {
+          "exercises": 0,
+          "slugs": []
+        },
+        "structuredBinding": {
+          "exercises": 0,
+          "slugs": []
+        },
+        "string_view": {
+          "exercises": 4,
+          "slugs": [
+            "nucleotide-count",
+            "kindergarten-garden",
+            "pig-latin",
+            "parallel-letter-frequency"
+          ]
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 100,
+        "exercisesWithExisting": 100,
+        "totalFiles": 100,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "cpp_vector_sum",
+            "headers": [
+              "vector"
+            ]
+          },
+          {
+            "id": "cpp_map_lookup",
+            "headers": [
+              "map",
+              "string"
+            ]
+          },
+          {
+            "id": "cpp_struct_method",
+            "headers": []
+          },
+          {
+            "id": "cpp_lambda_policy",
+            "headers": []
+          },
+          {
+            "id": "cpp_pixel_array",
+            "headers": [
+              "array"
+            ]
+          },
+          {
+            "id": "cpp_sprite_sort",
+            "headers": [
+              "algorithm",
+              "vector"
+            ]
+          },
+          {
+            "id": "cpp_unique_owner",
+            "headers": [
+              "memory",
+              "utility"
+            ]
+          },
+          {
+            "id": "cpp_raii_scope",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {
+        "17": 100
+      },
+      "upstreamEditorFiles": [
+        {
+          "slug": "vehicle-purchase",
+          "files": [
+            "vehicle_purchase.h"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    },
+    "java": {
+      "exercises": 158,
+      "files": 182,
+      "units": 546,
+      "functions": 879,
+      "splitParts": 497,
+      "unitsInScope": 545,
+      "unitFields": [
+        "id",
+        "exercise",
+        "file",
+        "label",
+        "line",
+        "code",
+        "comments",
+        "subject",
+        "name",
+        "qualifiedName",
+        "scope",
+        "bindings",
+        "members",
+        "part",
+        "parts",
+        "key"
+      ],
+      "modules": [
+        "io.reactivex.Observable",
+        "java.awt.Point",
+        "java.io.IOException",
+        "java.lang.Math.pow",
+        "java.math.BigInteger",
+        "java.nio.charset.Charset",
+        "java.nio.file.Files",
+        "java.nio.file.Paths",
+        "java.time.DayOfWeek",
+        "java.time.DayOfWeek.*",
+        "java.time.Duration",
+        "java.time.Instant",
+        "java.time.LocalDate",
+        "java.time.LocalDateTime",
+        "java.time.Month",
+        "java.time.format.DateTimeFormatter",
+        "java.util.*",
+        "java.util.ArrayDeque",
+        "java.util.ArrayList",
+        "java.util.Arrays",
+        "java.util.Arrays.asList",
+        "java.util.Arrays.copyOfRange",
+        "java.util.Arrays.stream",
+        "java.util.BitSet",
+        "java.util.Collection",
+        "java.util.Collections",
+        "java.util.Collections.unmodifiableList",
+        "java.util.Comparator",
+        "java.util.Comparator.comparingInt",
+        "java.util.Deque",
+        "java.util.EnumSet",
+        "java.util.HashMap",
+        "java.util.HashSet",
+        "java.util.LinkedHashMap",
+        "java.util.LinkedHashSet",
+        "java.util.LinkedList",
+        "java.util.List",
+        "java.util.Locale",
+        "java.util.Map",
+        "java.util.NoSuchElementException",
+        "java.util.Objects",
+        "java.util.Optional",
+        "java.util.Queue",
+        "java.util.Random",
+        "java.util.Set",
+        "java.util.concurrent.ThreadLocalRandom",
+        "java.util.function.BiFunction",
+        "java.util.function.Consumer",
+        "java.util.function.Function",
+        "java.util.function.IntPredicate",
+        "java.util.function.Predicate",
+        "java.util.function.Supplier",
+        "java.util.function.UnaryOperator",
+        "java.util.random.RandomGenerator",
+        "java.util.regex.Matcher",
+        "java.util.regex.Pattern",
+        "java.util.stream.Collectors",
+        "java.util.stream.Collectors.joining",
+        "java.util.stream.IntStream",
+        "java.util.stream.IntStream.range",
+        "java.util.stream.Stream",
+        "org.json.JSONArray",
+        "org.json.JSONObject"
+      ],
+      "features": {
+        "classes": {
+          "exercises": 158,
+          "slugs": [
+            "lasagna",
+            "annalyns-infiltration",
+            "cars-assemble",
+            "bird-watcher",
+            "log-levels",
+            "karls-languages",
+            "squeaky-clean",
+            "jedliks-toy-car",
+            "need-for-speed",
+            "remote-control-competition",
+            "salary-calculator",
+            "football-match-reports",
+            "calculator-conundrum",
+            "wizards-and-warriors",
+            "logs-logs-logs",
+            "tim-from-marketing",
+            "captains-log",
+            "booking-up-for-beauty",
+            "wizards-and-warriors-2",
+            "secrets",
+            "gotta-snatch-em-all",
+            "international-calling-connoisseur",
+            "hello-world",
+            "leap",
+            "reverse-string",
+            "two-fer",
+            "armstrong-numbers",
+            "darts",
+            "dnd-character",
+            "dot-dsl",
+            "grains",
+            "high-scores",
+            "resistor-color",
+            "resistor-color-duo",
+            "resistor-color-trio",
+            "rna-transcription",
+            "acronym",
+            "difference-of-squares",
+            "gigasecond",
+            "hamming",
+            "micro-blog",
+            "pangram",
+            "perfect-numbers",
+            "eliuds-eggs",
+            "protein-translation",
+            "raindrops",
+            "say",
+            "scrabble-score",
+            "secret-handshake",
+            "space-age",
+            "collatz-conjecture",
+            "diamond",
+            "error-handling",
+            "isbn-verifier",
+            "isogram",
+            "killer-sudoku-helper",
+            "kindergarten-garden",
+            "largest-series-product",
+            "luhn",
+            "matrix",
+            "nth-prime",
+            "prism",
+            "proverb",
+            "rate-limiter",
+            "rotational-cipher",
+            "saddle-points",
+            "sieve",
+            "split-second-stopwatch",
+            "sum-of-multiples",
+            "swift-scheduling",
+            "triangle",
+            "twelve-days",
+            "variable-length-quantity",
+            "yacht",
+            "allergies",
+            "atbash-cipher",
+            "bob",
+            "flatten-array",
+            "game-of-life",
+            "grep",
+            "knapsack",
+            "ledger",
+            "matching-brackets",
+            "nucleotide-count",
+            "pascals-triangle",
+            "phone-number",
+            "pig-latin",
+            "prime-factors",
+            "relative-distance",
+            "robot-name",
+            "run-length-encoding",
+            "series",
+            "square-root",
+            "word-count",
+            "state-of-tic-tac-toe",
+            "affine-cipher",
+            "all-your-base",
+            "alphametics",
+            "baffling-birthdays",
+            "bank-account",
+            "binary-search",
+            "bottle-song",
+            "bowling",
+            "camicia",
+            "etl",
+            "flower-field",
+            "food-chain",
+            "grade-school",
+            "house",
+            "intergalactic-transmission",
+            "linked-list",
+            "parallel-letter-frequency",
+            "piecing-it-together",
+            "queen-attack",
+            "rail-fence-cipher",
+            "rest-api",
+            "robot-simulator",
+            "roman-numerals",
+            "spiral-matrix",
+            "tournament",
+            "transpose",
+            "wordy",
+            "anagram",
+            "binary-search-tree",
+            "clock",
+            "crypto-square",
+            "dominoes",
+            "go-counting",
+            "markdown",
+            "meetup",
+            "poker",
+            "sgf-parsing",
+            "simple-linked-list",
+            "sublist",
+            "tree-building",
+            "two-bucket",
+            "word-search",
+            "zebra-puzzle",
+            "zipper",
+            "book-store",
+            "change",
+            "circular-buffer",
+            "complex-numbers",
+            "connect",
+            "hangman",
+            "list-ops",
+            "mazy-mice",
+            "ocr-numbers",
+            "palindrome-products",
+            "pov",
+            "rational-numbers",
+            "react",
+            "rectangles",
+            "simple-cipher",
+            "forth",
+            "pythagorean-triplet",
+            "custom-set",
+            "satellite"
+          ]
+        },
+        "collections": {
+          "exercises": 82,
+          "slugs": [
+            "karls-languages",
+            "remote-control-competition",
+            "gotta-snatch-em-all",
+            "international-calling-connoisseur",
+            "dnd-character",
+            "dot-dsl",
+            "high-scores",
+            "resistor-color-trio",
+            "protein-translation",
+            "say",
+            "scrabble-score",
+            "secret-handshake",
+            "diamond",
+            "isogram",
+            "killer-sudoku-helper",
+            "kindergarten-garden",
+            "luhn",
+            "prism",
+            "rate-limiter",
+            "saddle-points",
+            "sieve",
+            "split-second-stopwatch",
+            "triangle",
+            "variable-length-quantity",
+            "yacht",
+            "allergies",
+            "atbash-cipher",
+            "flatten-array",
+            "grep",
+            "knapsack",
+            "ledger",
+            "matching-brackets",
+            "nucleotide-count",
+            "prime-factors",
+            "relative-distance",
+            "robot-name",
+            "series",
+            "word-count",
+            "state-of-tic-tac-toe",
+            "affine-cipher",
+            "alphametics",
+            "baffling-birthdays",
+            "binary-search",
+            "bowling",
+            "camicia",
+            "etl",
+            "flower-field",
+            "grade-school",
+            "intergalactic-transmission",
+            "parallel-letter-frequency",
+            "piecing-it-together",
+            "rest-api",
+            "roman-numerals",
+            "tournament",
+            "anagram",
+            "binary-search-tree",
+            "crypto-square",
+            "dominoes",
+            "go-counting",
+            "poker",
+            "sgf-parsing",
+            "simple-linked-list",
+            "sublist",
+            "tree-building",
+            "two-bucket",
+            "word-search",
+            "zebra-puzzle",
+            "zipper",
+            "book-store",
+            "change",
+            "circular-buffer",
+            "hangman",
+            "list-ops",
+            "mazy-mice",
+            "ocr-numbers",
+            "palindrome-products",
+            "pov",
+            "react",
+            "forth",
+            "pythagorean-triplet",
+            "custom-set",
+            "satellite"
+          ]
+        },
+        "streams": {
+          "exercises": 39,
+          "slugs": [
+            "dnd-character",
+            "grains",
+            "high-scores",
+            "acronym",
+            "difference-of-squares",
+            "hamming",
+            "pangram",
+            "perfect-numbers",
+            "say",
+            "isogram",
+            "luhn",
+            "nth-prime",
+            "prism",
+            "saddle-points",
+            "sieve",
+            "sum-of-multiples",
+            "yacht",
+            "allergies",
+            "grep",
+            "pig-latin",
+            "series",
+            "all-your-base",
+            "alphametics",
+            "bowling",
+            "grade-school",
+            "rest-api",
+            "tournament",
+            "anagram",
+            "poker",
+            "word-search",
+            "zebra-puzzle",
+            "book-store",
+            "change",
+            "hangman",
+            "mazy-mice",
+            "react",
+            "simple-cipher",
+            "forth",
+            "custom-set"
+          ]
+        },
+        "lambdas": {
+          "exercises": 36,
+          "slugs": [
+            "calculator-conundrum",
+            "logs-logs-logs",
+            "dnd-character",
+            "acronym",
+            "difference-of-squares",
+            "hamming",
+            "perfect-numbers",
+            "say",
+            "nth-prime",
+            "saddle-points",
+            "sieve",
+            "sum-of-multiples",
+            "yacht",
+            "grep",
+            "ledger",
+            "state-of-tic-tac-toe",
+            "affine-cipher",
+            "alphametics",
+            "bottle-song",
+            "bowling",
+            "camicia",
+            "grade-school",
+            "parallel-letter-frequency",
+            "rest-api",
+            "tournament",
+            "poker",
+            "word-search",
+            "book-store",
+            "change",
+            "hangman",
+            "mazy-mice",
+            "ocr-numbers",
+            "react",
+            "simple-cipher",
+            "forth",
+            "custom-set"
+          ]
+        },
+        "records": {
+          "exercises": 4,
+          "slugs": [
+            "prism",
+            "camicia",
+            "zebra-puzzle",
+            "mazy-mice"
+          ]
+        },
+        "switchExpression": {
+          "exercises": 5,
+          "slugs": [
+            "calculator-conundrum",
+            "yacht",
+            "bottle-song",
+            "camicia",
+            "mazy-mice"
+          ]
+        },
+        "reflection": {
+          "exercises": 0,
+          "slugs": []
+        }
+      },
+      "upstreamTests": {
+        "exercisesWithDeclared": 158,
+        "exercisesWithExisting": 158,
+        "totalFiles": 161,
+        "missing": []
+      },
+      "builtin": {
+        "baseTopics": 64,
+        "variants": 1024,
+        "languageSpecificTopics": 8,
+        "idioms": [
+          {
+            "id": "java_array_list",
+            "headers": []
+          },
+          {
+            "id": "java_optional",
+            "headers": []
+          },
+          {
+            "id": "java_local_class",
+            "headers": []
+          },
+          {
+            "id": "java_function_policy",
+            "headers": []
+          },
+          {
+            "id": "java_int_stream",
+            "headers": []
+          },
+          {
+            "id": "java_copy_pixels",
+            "headers": []
+          },
+          {
+            "id": "java_map_merge",
+            "headers": []
+          },
+          {
+            "id": "java_auto_close",
+            "headers": []
+          }
+        ]
+      },
+      "buildVersions": {},
+      "upstreamEditorFiles": [
+        {
+          "slug": "calculator-conundrum",
+          "files": [
+            "src/main/java/IllegalOperationException.java"
+          ]
+        },
+        {
+          "slug": "wizards-and-warriors-2",
+          "files": [
+            "src/main/java/Character.java",
+            "src/main/java/Destination.java"
+          ]
+        },
+        {
+          "slug": "dot-dsl",
+          "files": [
+            "src/main/java/Node.java",
+            "src/main/java/Edge.java"
+          ]
+        },
+        {
+          "slug": "perfect-numbers",
+          "files": [
+            "src/main/java/Classification.java"
+          ]
+        },
+        {
+          "slug": "kindergarten-garden",
+          "files": [
+            "src/main/java/Plant.java"
+          ]
+        },
+        {
+          "slug": "rate-limiter",
+          "files": [
+            "src/main/java/TimeSource.java"
+          ]
+        },
+        {
+          "slug": "saddle-points",
+          "files": [
+            "src/main/java/MatrixCoordinate.java"
+          ]
+        },
+        {
+          "slug": "triangle",
+          "files": [
+            "src/main/java/TriangleException.java"
+          ]
+        },
+        {
+          "slug": "yacht",
+          "files": [
+            "src/main/java/YachtCategory.java"
+          ]
+        },
+        {
+          "slug": "allergies",
+          "files": [
+            "src/main/java/Allergen.java"
+          ]
+        },
+        {
+          "slug": "knapsack",
+          "files": [
+            "src/main/java/Item.java"
+          ]
+        },
+        {
+          "slug": "state-of-tic-tac-toe",
+          "files": [
+            "src/main/java/GameState.java"
+          ]
+        },
+        {
+          "slug": "alphametics",
+          "files": [
+            "src/main/java/UnsolvablePuzzleException.java"
+          ]
+        },
+        {
+          "slug": "bank-account",
+          "files": [
+            "src/main/java/BankAccountActionInvalidException.java"
+          ]
+        },
+        {
+          "slug": "binary-search",
+          "files": [
+            "src/main/java/ValueNotFoundException.java"
+          ]
+        },
+        {
+          "slug": "piecing-it-together",
+          "files": [
+            "src/main/java/JigsawInfo.java"
+          ]
+        },
+        {
+          "slug": "rest-api",
+          "files": [
+            "src/main/java/Iou.java"
+          ]
+        },
+        {
+          "slug": "robot-simulator",
+          "files": [
+            "src/main/java/GridPosition.java",
+            "src/main/java/Orientation.java"
+          ]
+        },
+        {
+          "slug": "dominoes",
+          "files": [
+            "src/main/java/ChainNotFoundException.java",
+            "src/main/java/Domino.java"
+          ]
+        },
+        {
+          "slug": "go-counting",
+          "files": [
+            "src/main/java/Player.java"
+          ]
+        },
+        {
+          "slug": "meetup",
+          "files": [
+            "src/main/java/MeetupSchedule.java"
+          ]
+        },
+        {
+          "slug": "sgf-parsing",
+          "files": [
+            "src/main/java/SgfNode.java",
+            "src/main/java/SgfParsingException.java"
+          ]
+        },
+        {
+          "slug": "sublist",
+          "files": [
+            "src/main/java/Relationship.java"
+          ]
+        },
+        {
+          "slug": "tree-building",
+          "files": [
+            "src/main/java/InvalidRecordsException.java"
+          ]
+        },
+        {
+          "slug": "word-search",
+          "files": [
+            "src/main/java/Pair.java",
+            "src/main/java/WordLocation.java"
+          ]
+        },
+        {
+          "slug": "circular-buffer",
+          "files": [
+            "src/main/java/BufferIOException.java"
+          ]
+        },
+        {
+          "slug": "connect",
+          "files": [
+            "src/main/java/Winner.java"
+          ]
+        },
+        {
+          "slug": "hangman",
+          "files": [
+            "src/main/java/Part.java",
+            "src/main/java/Status.java"
+          ]
+        },
+        {
+          "slug": "satellite",
+          "files": [
+            "src/main/java/Node.java",
+            "src/main/java/Tree.java"
+          ]
+        }
+      ],
+      "builtinAnswerCount": 1024,
+      "builtinUniqueBaseIds": 64,
+      "courseUnitsWithAnswer": 0
+    }
+  }
+}
