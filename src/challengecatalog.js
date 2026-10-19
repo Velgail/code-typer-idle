@@ -253,7 +253,7 @@ const legacyGoals={
  lua_sequence:['3個の報酬を足す','first+second+thirdを返す。'],lua_table_default:['欠損時の既定個数','missingが0ならquantity、それ以外ならfallbackを返す。'],lua_metatable:['体力の回復を反映','health+healingを返す。'],lua_closure:['二回の通知を集計','initial+first+secondを返す。'],lua_pixel_table:['共有画像の成分を更新','first+second+incrementを返す。'],lua_frame_string:['ラベル内のコマ番号を読む','labelはidle:に非負整数を続けた文字列。その整数+offsetを返す。'],lua_coroutine:['二つの処理結果を集計','first+secondを返す。'],lua_protected_call:['失敗時の復旧値を選ぶ','failedが0ならvalue、それ以外ならrecoveryを返す。']
 };
 const cache=new Map();
-const freeImplementation=' 実装方法は自由です。参考解法のデータ構造や構文を使うことは合格条件ではなく、入力に対する出力を採点します。';
+const freeImplementation=' 実装方法は自由です。';
 function inputContract(def){
  const names=def.parameters.map(p=>p.name),notes=[];
  if(names.includes('nodes'))notes.push('nodesは0以上。edgesの各頂点番号は0以上nodes未満で、有効な頂点だけを与えます。辺の列長は'+(def.slug==='weighted-paths'?'3':'2')+'の倍数です。'+(names.includes('start')?'nodes>0のときstartは有効な頂点番号です。':''));
@@ -267,7 +267,7 @@ function wrapLegacy(q){
  if(cache.has(q.id))return cache.get(q.id);
  const goal=legacyGoals[q.topicId];
  const difficulty=q.language==='sql'?Math.min(3,1+Math.floor(q.index/6)):goal?1:q.index<5?1:2;
- const wrapped={...q,kind:'challenge',title:goal?.[0] || q.title,description:(goal?.[1] || q.description)+freeImplementation,referenceTechnique:goal?q.title:null,familyId:`legacy/${q.subject}/${q.topicId}`,concept:goal?'入出力関数の実装':q.subject==='syntax'?'基礎の入出力':q.subject==='design'?'状態と条件の処理':q.subject==='graphics'?'画素・座標の計算':'基盤の整数計算',difficulty,difficultyLabel:difficultyLabel(difficulty),estimatedMinutes:difficulty===1?2:difficulty===2?4:8,prerequisites:[],legacy:true};
+ const wrapped={...q,kind:'challenge',title:goal?.[0] || q.title,description:(goal?.[1] || q.description)+freeImplementation,constraints:q.constraints || (q.language==='sql'?[]:['整数の引数と計算結果は、符号付き32bit整数の範囲内です。']),referenceTechnique:goal?q.title:null,familyId:`legacy/${q.subject}/${q.topicId}`,concept:goal?'入出力関数の実装':q.subject==='syntax'?'基礎の入出力':q.subject==='design'?'状態と条件の処理':q.subject==='graphics'?'画素・座標の計算':'基盤の整数計算',difficulty,difficultyLabel:difficultyLabel(difficulty),estimatedMinutes:difficulty===1?2:difficulty===2?4:8,prerequisites:[],legacy:true};
  cache.set(q.id,wrapped);return wrapped;
 }
 function buildIO(language,def,index){
@@ -277,7 +277,8 @@ function buildIO(language,def,index){
  const prereqs=def.prerequisites.length?def.prerequisites:def.difficulty>1&&def.slug!==basic?[`io/${basic}`]:[];
  const prerequisites=prereqs.map(key=>{const needed=defs.find(d=>`io/${d.slug}`===key);return needed?`challenge/v1/${language}/${needed.subject}/${needed.slug}`:key;});
  const referenceSource=sourceFor(language,def),starterSource=sourceFor(language,def,true);
- const q={id,version:CHALLENGE_VERSION,kind:'challenge',language,subject:def.subject,index,topicId:def.slug,title:def.title,concept:def.concept,familyId:def.familyId,difficulty:def.difficulty,difficultyLabel:difficultyLabel(def.difficulty),estimatedMinutes:def.estimatedMinutes,prerequisites,description:def.description+inputContract(def)+' 添字は0始まり。返値の形式は課題の指定どおりです。数値の各要素と途中計算は符号付き32bit整数の範囲内です。'+(def.parameters.some(p=>p.type==='string')?' 文字列はASCIIです。':'')+freeImplementation,functionName:def.slug.replaceAll('-','_'),parameters:def.parameters.map(p=>({...p})),resultType:def.result,referenceSource,starterSource,rewardSource:referenceSource,lessonBaseId:null,supported:true,limitations:[],cases:def.inputs.map((args,i)=>({id:`case-${String(i+1).padStart(2,'0')}`,args:structuredClone(args),expected:expectedFor(def,args)}))};
+ const constraints=[inputContract(def).trim(),'添字は0始まりです。数値の各要素と途中計算は符号付き32bit整数の範囲内です。',def.parameters.some(p=>p.type==='string')?'文字列はASCIIです。':''].filter(Boolean);
+ const q={id,version:CHALLENGE_VERSION,kind:'challenge',language,subject:def.subject,index,topicId:def.slug,title:def.title,concept:def.concept,familyId:def.familyId,difficulty:def.difficulty,difficultyLabel:difficultyLabel(def.difficulty),estimatedMinutes:def.estimatedMinutes,prerequisites,description:def.description+freeImplementation,constraints,functionName:def.slug.replaceAll('-','_'),parameters:def.parameters.map(p=>({...p})),resultType:def.result,referenceSource,starterSource,rewardSource:referenceSource,lessonBaseId:null,supported:true,limitations:[],cases:def.inputs.map((args,i)=>({id:`case-${String(i+1).padStart(2,'0')}`,args:structuredClone(args),expected:expectedFor(def,args)}))};
  q.createHarness=source=>ioHarness(q,source);cache.set(id,q);return q;
 }
 function sqlQuestions(subject){return SQL_CHALLENGES.filter(q=>q.subject===subject);}

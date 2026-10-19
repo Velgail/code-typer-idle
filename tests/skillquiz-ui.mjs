@@ -86,6 +86,9 @@ async function verifyGradingAndControls(browser,url,errors,capture) {
       assert.equal(await page.locator(`${TOPIC} option`).count(),32);
       assert.match(await page.locator(`${PANEL} .skill-quiz-meta`).innerText(),/入門.*目安/);
       assert.match(await page.locator(`${PANEL} .skill-quiz-code`).innerText(),/⟦ 空欄 ⟧/);
+      assert.equal(await page.locator(`${PANEL} .skill-quiz-code`).textContent(),quiz.code.replace('____','⟦ 空欄 ⟧'),'highlighting preserves the exact visible problem source');
+      assert.ok(await page.locator(`${PANEL} .skill-quiz-code span`).count()>0,`${language}: the contextual source is highlighted`);
+      assert.equal(await page.locator(ANSWER).evaluate(el=>el.closest('.code-editor-wrap')!==null),true,'syntax Quiz uses the persistent highlighted editor');
       assert.equal(await page.locator('#code-editor').isVisible(),false);
       const before=await saved(page);
       // Clicking the displayed snippet and ordinary Enter cannot claim a Quiz.
@@ -111,6 +114,8 @@ async function verifyGradingAndControls(browser,url,errors,capture) {
       assert.ok(after.skillQuiz.completed.includes(quiz.id));
       assert.equal(after.progress,0,'syntax Quiz never quietly writes game code');
       assert.ok(!(await page.locator(`${PANEL} .skill-quiz-code`).innerText()).includes('⟦ 空欄 ⟧'));
+      assert.equal(await page.locator(`${PANEL} .skill-quiz-code`).textContent(),quiz.code.replace('____',`  ${quiz.answer}  `),'a successful answer is substituted without losing source whitespace');
+      assert.ok(await page.locator(`${PANEL} .skill-quiz-code span`).count()>0,`${language}: the completed source remains highlighted`);
       assert.equal(await page.locator(`${PANEL} .skill-quiz-explanation`).innerText(),quiz.explanation);
       for(let repeat=0;repeat<3;repeat++)await page.locator(SUBMIT).click();
       sameLearning(await saved(page),after,`${language}: repeated submissions do not farm learning`);
@@ -119,6 +124,40 @@ async function verifyGradingAndControls(browser,url,errors,capture) {
     assert.deepEqual(workers,[],'syntax Quiz does not initialize a compiler or download a runtime');
     await mobile(page);
     if(capture)await capture(page,'skill-quiz-all-languages');
+  } finally {await context.close();}
+}
+
+async function verifyEditorAssistance(browser,url,errors) {
+  const {context,page}=await open(browser,url,errors);
+  try {
+    await page.locator(ANSWER).waitFor({state:'visible'});
+    const quiz=skillQuizAt('cpp','syntax',0),before=await saved(page);
+    assert.equal(quiz.answer,'{}','the fixture has a non-identifier canonical answer');
+    assert.match(quiz.code,/score/);
+    const editor=await page.locator(ANSWER).elementHandle();
+    await page.locator(ANSWER).fill('sc');
+    assert.equal(await page.locator(`${PANEL} .code-editor-completions`).isVisible(),false,'completion opens only on an explicit Tab');
+    await page.locator(ANSWER).press('Tab');
+    assert.equal(await page.locator(ANSWER).inputValue(),'score','Tab completes an identifier from the visible source');
+    assert.equal((await saved(page)).skillQuiz.drafts[quiz.id],'score','completion saves a draft through the ordinary input path');
+    assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'idle');
+
+    await page.locator(ANSWER).fill('');
+    await page.locator(ANSWER).press('Tab');
+    const indentation=await page.locator(ANSWER).inputValue();
+    assert.match(indentation,/^ +$/,'an empty blank is indented, never filled with the canonical answer');
+    await page.locator(ANSWER).press('Shift+Tab');
+    assert.equal(await page.locator(ANSWER).inputValue(),'');
+
+    await page.locator(ANSWER).fill('sc');
+    await page.locator(ANSWER).press('Enter');
+    assert.equal(await page.locator(ANSWER).inputValue(),'sc\n','plain Enter inserts a newline instead of accepting or submitting a completion');
+    await page.clock.runFor(2200);
+    assert.equal(await editor.evaluate(el=>el===document.querySelector('.skill-quiz-answer')),true);
+    assert.equal(await page.locator(ANSWER).evaluate(el=>el===document.activeElement),true);
+    sameLearning(await saved(page),before,'completion and indentation do not claim any learning or implementation rewards');
+    assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'idle');
+    await mobile(page);
   } finally {await context.close();}
 }
 
@@ -221,6 +260,7 @@ async function verifyRealPythonChallenge(browser,url,errors,capture) {
 
 export async function verifySkillQuizUI(browser,url,errors,capture) {
   await verifyMaterialGate(browser,url,errors);
+  await verifyEditorAssistance(browser,url,errors);
   await verifyGradingAndControls(browser,url,errors,capture);
   await verifyPersistenceAndFocus(browser,url,errors);
   await verifyRealPythonChallenge(browser,url,errors,capture);

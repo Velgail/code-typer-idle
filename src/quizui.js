@@ -2,6 +2,8 @@
 // The caller owns questions, drafts, execution and rewards. This module only
 // displays their state and reports explicit user actions.
 import { QUIZ_SOURCE_LIMIT } from './quizrunner.js';
+import { renderHighlightedCode } from './codehighlight.js';
+import { attachCodeEditor } from './codeeditor.js';
 
 const mounted = new WeakMap();
 let nextEditorId = 0;
@@ -111,6 +113,14 @@ function mount(root) {
   const description = create('p', 'quiz-description');
   const parameters = create('dl', 'quiz-parameters');
   parameters.setAttribute('aria-label', '引数の意味');
+  const constraints = create('section', 'quiz-constraints');
+  constraints.setAttribute('aria-label', '入力の条件');
+  const constraintList = create('ul');
+  constraints.append(create('h4', '', '入力の条件'), constraintList);
+  const examples = create('section', 'quiz-examples');
+  examples.setAttribute('aria-label', '入力例と返り値');
+  const exampleList = create('ol');
+  examples.append(create('h4', '', '入力例'), exampleList);
   const editorLabel = create('label', 'quiz-editor-label', 'あなたの実装');
   editorLabel.htmlFor = editorId;
   const editor = create('textarea', 'quiz-source');
@@ -124,7 +134,7 @@ function mount(root) {
   editor.setAttribute('aria-describedby', `${editorId}-keys ${editorId}-storage`);
   editor.wrap = 'off';
   const editorFooter = create('div', 'quiz-editor-footer');
-  const keyboard = create('span', '', 'Tabで字下げ · Ctrl / ⌘ + Enterで実行');
+  const keyboard = create('span', '', 'Tabで補完・字下げ · Shift+Tabで字下げ解除 · Ctrl / ⌘ + Enterで実行');
   keyboard.id = `${editorId}-keys`;
   const storage = create('span', 'quiz-save-hint', `${QUIZ_SOURCE_LIMIT.toLocaleString('en-US')}字まで · 直近12題のコードを保存`);
   storage.id = `${editorId}-storage`;
@@ -192,8 +202,9 @@ function mount(root) {
   const referenceCode = create('pre', 'reference-code');
   referenceCode.tabIndex = 0;
   reference.append(referenceHeading, referenceCode);
-  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, reward, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
-  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, reward, rewardTitle, rewardItems, rewardNote, rewardKey: null, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
+  root.replaceChildren(heading, topicPicker, description, parameters, constraints, examples, editorLabel, editor, editorFooter, reward, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
+  const enhancedEditor = attachCodeEditor(editor, {});
+  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, constraints, constraintList, examples, exampleList, editor, enhancedEditor, cursor, reward, rewardTitle, rewardItems, rewardNote, rewardKey: null, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
   mounted.set(root, ui);
   const updateCursor = () => {
     const before = editor.value.slice(0, editor.selectionStart).split('\n');
@@ -282,7 +293,34 @@ function renderReview(ui, quiz, lesson, result, running, disabled) {
   write(ui.reviewTitle, available ? lesson.title || '写経した教材' : '');
   write(ui.reviewExplanation, explanation);
   ui.reviewExplanation.hidden = !explanation;
-  write(ui.reviewCode, available ? lesson.code : '');
+  renderHighlightedCode(ui.reviewCode, available ? lesson.code : '', quiz?.language);
+}
+
+function renderProblemDetails(ui, quiz) {
+  const constraints = Array.isArray(quiz?.constraints) ? quiz.constraints : [];
+  const firstCase = quiz?.cases?.[0];
+  const differentCase = firstCase && quiz.cases.find(test => JSON.stringify(test.expected) !== JSON.stringify(firstCase.expected));
+  const examples = quiz?.language === 'sql' ? [] : Array.isArray(quiz?.examples) ? quiz.examples : [firstCase, differentCase].filter(Boolean);
+  const key = JSON.stringify([quiz?.id, constraints, examples]);
+  if (ui.problemKey === key) return;
+  ui.problemKey = key;
+  ui.constraintList.replaceChildren(...constraints.map(text => create('li', '', text)));
+  ui.constraints.hidden = !constraints.length;
+  ui.exampleList.replaceChildren(...examples.map(example => {
+    const item = create('li');
+    const input = create('dl', 'quiz-example-values');
+    for (const [index, parameter] of (quiz.parameters || []).entries()) {
+      const row = create('div');
+      row.append(create('dt', '', parameter.name), create('dd', '', JSON.stringify(example.args[index])));
+      input.append(row);
+    }
+    const output = create('div', 'quiz-example-result');
+    output.append(create('span', '', '返り値'), create('code', '', JSON.stringify(example.expected)));
+    item.append(input, output);
+    if (example.explanation) item.append(create('p', 'quiz-example-explanation', example.explanation));
+    return item;
+  }));
+  ui.examples.hidden = !examples.length;
 }
 
 function renderCases(ui, quiz, result, stale, running) {
@@ -441,6 +479,7 @@ export function renderQuizUI(options) {
     }));
   }
   ui.parameters.hidden = !parameters.length;
+  renderProblemDetails(ui, quiz);
   ui.editor.disabled = !!disabled || !quiz;
   ui.run.disabled = !!disabled || !!running || !quiz;
   write(ui.run, running ? '実行中…' : 'テストを実行');
@@ -454,7 +493,7 @@ export function renderQuizUI(options) {
   ui.reference.hidden = !referenceAvailable || !ui.referenceOpen;
   ui.referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
   write(ui.referenceToggle, referenceAvailable ? ui.referenceOpen ? '解答例を閉じる' : '解答例を見る' : '解答例は合格後に公開');
-  write(ui.referenceCode, referenceAvailable ? quiz.referenceSource : '');
+  renderHighlightedCode(ui.referenceCode, referenceAvailable ? quiz.referenceSource : '', quiz?.language);
   const status = running ? progressLabel(progress) : summary;
   write(ui.status, status);
   ui.status.dataset.kind = running ? 'running' : passed ? 'success' : errorStates.has(resultStatus) || ['fail', 'failed', 'wrong-answer'].includes(resultStatus) ? 'error' : 'neutral';
@@ -475,6 +514,7 @@ export function renderQuizUI(options) {
   renderRewards(ui, options.rewardSummary);
   renderReview(ui, quiz, options.reviewLesson, result, running, disabled);
   renderCases(ui, quiz, result, stale, running);
+  ui.enhancedEditor.update({language: quiz?.language, context: (quiz?.parameters || []).map(parameter => parameter.name).join(' ')});
 }
 
 export function quizEditor(root) {

@@ -2,6 +2,7 @@
 // function is called with many independent inputs. SQL uses fresh fixtures.
 import { TOPICS, SQL_TOPICS, evaluateTopic, renderTopic, functionName } from './curriculum.js';
 import { IDIOMS } from './idioms.js';
+import { sharedChallengeStatement } from './challengestatements.js';
 
 export const QUIZ_VERSION = 1;
 export const QUIZ_TOPICS_PER_SUBJECT = 16;
@@ -49,10 +50,6 @@ function finish(metadata,parameters,source,cases,description) {
  quiz.createHarness=submitted=>functionHarness(quiz,submitted);
  return quiz;
 }
-function expressionText(expr) { return Array.isArray(expr)?`(${expressionText(expr[1])} ${expr[0]} ${expressionText(expr[2])})`:String(expr); }
-function rulesText(statements) {
- return statements.map(([kind,...a])=>kind==='set'?`${a[0]} を ${expressionText(a[1])} にする。`:kind==='return'?`${expressionText(a[0])} を返す。`:kind==='if'?`${expressionText(a[0])} のとき「${rulesText(a[1])}」${a[2].length?`、それ以外は「${rulesText(a[2])}」`:''}。`:`${a[0]} を0から ${expressionText(a[1])} 未満まで1ずつ増やして「${rulesText(a[2])}」。`).join(' ');
-}
 const BOUNDARIES = {
  clamp_health:[{health:-1},{health:0},{health:99},{health:100},{health:101}],
  apply_armor:[{hit:6},{hit:7},{hit:8}],sum_coins:[{pickups:0},{pickups:1}],
@@ -89,7 +86,8 @@ const BOUNDARIES = {
  change_mask:[{before:0,after:0},{before:10,after:10},{before:0,after:255}],batch_remainder:[{pending:0},{pending:7},{pending:8},{pending:9}]
 };
 function sharedQuiz(language,subject,index,topic) {
- const parameters=Object.keys(topic.inputs(0)).map(name=>parameter(name));
+ const {description,constraints,examples,ignoredInputs}=sharedChallengeStatement(topic.id);
+ const parameters=Object.keys(topic.inputs(0)).map(name=>({...parameter(name),...(ignoredInputs.includes(name)?{description:'互換用の引数。戻り値には影響しません。'}:{})}));
  const initial=renderTopic(language,topic,0).split('\n');
  const bodyLines=initial.slice(1,language==='python'?undefined:-1);
  // renderTopic puts the first comment before the contiguous initial locals.
@@ -104,8 +102,7 @@ function sharedQuiz(language,subject,index,topic) {
  for(let v=0;v<16;v++)add(topic.inputs(v));
  for(const p of parameters)for(const boundary of [0,1])add({...topic.inputs(0),[p.name]:boundary});
  for(const override of BOUNDARIES[topic.id] || [])add({...topic.inputs(0),...override});
- const description=`${topic.comments.map(c=>c.ja).join(' ')} 入力は32bit整数で、引数を初期状態として扱う。0除算になる入力と32bit範囲外の計算は採点しない。整数除算は小数部分を捨てる（負の被除数を使う除算は出題しない）。処理仕様: ${rulesText(topic.body)}`;
- return finish({language,subject,index,topicId:topic.id,title:topic.title},parameters,wrapFunction(language,functionName(language,topic.id),parameters,body),cases,description);
+ return {...finish({language,subject,index,topicId:topic.id,title:topic.title},parameters,wrapFunction(language,functionName(language,topic.id),parameters,body),cases,description),constraints,examples};
 }
 // Language-specific goals remain aligned with src/idioms.js. Values that used
 // to be literal constants are inputs; cases include absence, zero, signs, ties,

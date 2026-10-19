@@ -29,6 +29,7 @@ import { renderSkillQuizUI } from './skillquizui.js';
 import { FIRST_PROJECT_PARTS } from './firstproject.js';
 import { QuizRunner } from './quizrunner.js';
 import { renderQuizUI } from './quizui.js';
+import { highlightTypingCode } from './typinghighlight.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -518,6 +519,7 @@ function renderEditor() {
     lastEditorKey = key;
     $('editor-content').dataset.prompt = studyLocked || courseEmpty ? '' : prompt;
     $('editor-content').innerHTML = courseEmpty ? '<p class="panel-note">演習一覧から入力する題材を選んでください。</p>' : studyLocked ? '<p class="panel-note">この分野の無料教材を開くと、学習用コードが表示されます。</p>' : office ? `<pre class="typing-code"><span class="typed-code">${esc(typing ? prompt.slice(0, offset) : '')}</span><mark class="next-character">▌</mark></pre>` : `<pre class="typing-code"><span class="typed-code">${code.typed.map(part=>part.translated?`<span class="translated-comment" lang="ja">${esc(part.text)}</span>`:esc(part.text)).join('')}</span><mark class="next-character">${code.next === '\n' ? '↵\n' : esc(code.next || ' ')}</mark><span class="pending-code">${esc(code.pending)}</span></pre>`;
+    if (!office && !studyLocked && !courseEmpty && !reading) highlightTypingCode($('editor-content').querySelector('.typing-code'), t.language);
     const mark = $('editor-content').querySelector('mark');
     if (typing && mark) {
       const y = mark.offsetTop;

@@ -21,6 +21,8 @@ import { verifyQuizUI } from './quiz-ui.mjs';
 import { verifyQuizPracticeUI } from './quiz-practice-ui.mjs';
 import { verifyFirstProjectUI } from './firstproject-ui.mjs';
 import { verifySkillQuizUI } from './skillquiz-ui.mjs';
+import { verifyChallengeStatements } from './challenge-statement-ui.mjs';
+import { runCodeEditorChecks } from './codeeditor-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -52,6 +54,8 @@ try {
   await verifyQuizPracticeUI(browser, url, errors);
   await verifyFirstProjectUI(browser, url, errors);
   await verifySkillQuizUI(browser, url, errors);
+  await verifyChallengeStatements(browser, url, errors);
+  await runCodeEditorChecks(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
