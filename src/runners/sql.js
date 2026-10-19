@@ -13,7 +13,7 @@ export async function initialize(baseUrl) {
   await loading;
 }
 
-export async function execute(source) {
+export async function execute(source, {sqlChecks=[]} = {}) {
   if (!sqlite) throw new Error('SQL runtime has not been initialized.');
   const db = new sqlite.oo1.DB(':memory:', 'c');
   const { wasm, capi } = sqlite;
@@ -23,6 +23,18 @@ export async function execute(source) {
     if (code !== capi.SQLITE_OK) throw new Error(`SQLite error ${code}: ${capi.sqlite3_errmsg(db.pointer)}`);
   };
   try {
+    // Check a submitted SELECT before JSON aggregation hides its original
+    // column shape. The final harness still compares every returned value.
+    for(const query of sqlChecks){
+      db.exec(query.fixtureSql);
+      const input=wasm.scopedAllocCString(String(query.source));
+      const pointers=wasm.scopedAllocPtr(2);
+      wasm.pokePtr(pointers[0],0);
+      check(capi.sqlite3_prepare_v3(db.pointer,input,-1,0,pointers[0],pointers[1]));
+      statement=wasm.peekPtr(pointers[0]);
+      if(!statement || capi.sqlite3_column_count(statement)!==query.columns)throw new Error(`Expected ${query.columns} result columns in the submitted SELECT.`);
+      capi.sqlite3_finalize(statement);statement=0;
+    }
     // db.exec() deliberately returns only its first result set. Use SQLite's
     // own parser/tail pointer so every fixture SELECT is graded, including
     // statements containing semicolons inside comments and string literals.
@@ -40,6 +52,7 @@ export async function execute(source) {
       phase = 'runtime';
       let code;
       while ((code = capi.sqlite3_step(statement)) === capi.SQLITE_ROW) {
+        if(capi.sqlite3_column_count(statement)!==1)throw new Error('Return exactly one output column. Structured Challenge results use a JSON value in that column.');
         const value = capi.sqlite3_column_js(statement, 0);
         const text = (value === null ? 'null' : String(value)) + '\n';
         const available = Math.max(0, OUTPUT_LIMIT - stdout.length);

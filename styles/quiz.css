@@ -75,3 +75,13 @@
   .quiz-case { padding:11px; }
   .quiz-case-values { gap:10px 14px; }
 }
+.skill-quiz-meta { line-height:1.8; }
+.input-style-picker { flex-wrap:wrap; max-width:100%; }
+.quiz-fixture-sql { max-height:240px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; }
+.skill-quiz-prompt { line-height:1.9; white-space:pre-wrap; overflow-wrap:anywhere; }
+.skill-quiz-code { max-height:440px; overflow:auto; white-space:pre; }
+.skill-quiz-answer { display:block; width:100%; min-width:0; min-height:80px; padding:12px; border:1px solid var(--border); border-radius:6px; resize:vertical; color:var(--text); background:var(--bg); font:14px/1.8 var(--mono); }
+.skill-quiz-answer:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+.skill-quiz-result { margin-top:16px; padding:12px; border:1px solid var(--red); border-radius:6px; line-height:1.8; }
+.skill-quiz-result.correct { border-color:var(--green); }
+.skill-quiz-rewards .quiz-rewards-items { display:grid; grid-template-columns:minmax(0,1fr) auto; }

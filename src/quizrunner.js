@@ -2,9 +2,21 @@
 export const QUIZ_LANGUAGES = ['cpp','csharp','rust','go','python','java','sql','lua'];
 export const QUIZ_SOURCE_LIMIT = 24000;
 
-export function compareQuizOutput(stdout, expected, caseIds = []) {
+function sameJSON(actual,expected) {
+  if(typeof actual==='number' && typeof expected==='number')return Number.isFinite(actual) && Number.isFinite(expected) && actual===expected;
+  if(actual===null || expected===null || typeof actual!=='object' || typeof expected!=='object')return actual===expected;
+  if(Array.isArray(actual)!==Array.isArray(expected))return false;
+  const keys=Object.keys(expected),other=Object.keys(actual);
+  return keys.length===other.length && keys.every(key=>Object.hasOwn(actual,key)&&sameJSON(actual[key],expected[key]));
+}
+export function compareQuizOutput(stdout, expected, caseIds = [], outputFormat = 'numeric') {
   const lines = String(stdout ?? '').trim().split(/\r?\n/).filter(line => line.trim() !== '');
   const rows = expected.map((value, i) => {
+    if(outputFormat==='json-lines'){
+      let actual=null,valid=false;
+      try{actual=JSON.parse(lines[i]);valid=true;}catch{/* A complete JSON value is required for each test. */}
+      return {id:caseIds[i]||String(i+1),expected:value,actual,passed:valid&&sameJSON(actual,value)};
+    }
     const text = lines[i]?.trim(), actual = text !== undefined && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text) ? Number(text) : null;
     return { id: caseIds[i] || String(i + 1), expected: value, actual, passed: Number.isFinite(actual) && Number.isFinite(value) && (Number.isInteger(value) ? actual === value : Math.abs(actual - value) <= 1e-9 * Math.max(1, Math.abs(value))) };
   });
@@ -60,13 +72,13 @@ export class QuizRunner {
           clearTimeout(this.pending.timer);
           this.pending.timer = timeout(this.executionTimeout, '実行が時間切れになりました。ループの終了条件を確認してください。');
           onProgress('コンパイル・テスト中…');
-          worker.postMessage({ type: 'execute', id, source: harness.source });
+          worker.postMessage({ type: 'execute', id, source: harness.source, sqlChecks: harness.sqlChecks });
           return;
         }
         if (message.type !== 'result') return;
         const result = message.result || {};
         const output = String(result.stdout || '').slice(0, 65536);
-        const compared = compareQuizOutput(output, harness.expected, harness.caseIds);
+        const compared = compareQuizOutput(output, harness.expected, harness.caseIds, harness.outputFormat);
         const failed = !!result.error || result.outputTruncated === true;
         const diagnostics = Array.isArray(result.diagnostics) ? result.diagnostics.slice(0, 30) : result.diagnostics ? [String(result.diagnostics).slice(0, 8000)] : [];
         const phase = result.errorKind || diagnostics.find(row=>row?.phase)?.phase;

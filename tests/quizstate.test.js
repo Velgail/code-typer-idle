@@ -18,8 +18,7 @@ function development(s=study()){
   expert(s);s.mode='dev';s.devStyle='quiz';s.projectIndex=2;s.legacyPermit=2;return s;
 }
 function baseUnits(quiz){
-  const source=lessonAt(quiz.language,quiz.subject,quiz.index).code;
-  return typingKeystrokes(source)*(TYPING_REWARD.character+typingCompletionMultiplier('study'));
+  return quiz.estimatedMinutes*60*80;
 }
 function rewarded(s){const q=quizLesson(s);completeQuiz(s,q.id);return q;}
 function begin(s,extra={}){
@@ -203,7 +202,7 @@ test('first-game component claims stay with their paused work and a newly select
   assert.equal(game.selectProject(fresh,0),true);assert.deepEqual(fresh.quiz.firstParts,{});assert.equal(quizLesson(fresh).firstProjectPart,0);
 });
 
-test('learning gives four perfect copies of the canonical topic, using study equipment power in either mode',()=>{
+test('Challenge first learning gives four authored-time budgets with study equipment power in either mode',()=>{
   assert.equal(game.QUIZ_STUDY_MULTIPLIER,4);assert.equal(game.QUIZ_IMPLEMENTATION_MULTIPLIER,2);assert.equal(game.QUIZ_VERIFICATION_MULTIPLIER,3);
   for(const language of ['cpp','csharp','rust','go','python','java','sql','lua']){
     const s=study(language);s.items={keyboard:2,monitor:2,lab:2,'book-syntax':1,library:4,assistant:3};
@@ -393,7 +392,7 @@ test('drafts and cursors are independent by language and subject; only recent bo
 });
 
 test('legacy saves default to practice; malformed and unknown quiz data do not enter the save',()=>{
-  const legacy=createState(0);delete legacy.quiz;delete legacy.quizWork;const loaded=deserialize(JSON.stringify(legacy));assert.deepEqual(loaded.quiz,{cursors:{},firstParts:{},completed:[],rewarded:[],drafts:{}});assert.deepEqual(loaded.quizWork,[]);
+  const legacy=createState(0);delete legacy.quiz;delete legacy.quizWork;const loaded=deserialize(JSON.stringify(legacy));assert.deepEqual(loaded.quiz,{cursors:{},firstParts:{},completed:[],rewarded:[],implemented:[],verifiedAt:{},drafts:{}});assert.deepEqual(loaded.quizWork,[]);
   const s=createState(0),id=quizLesson(s).id;
   nextQuiz(s);const uncompleted=quizLesson(s).id;
   s.quiz={cursors:{'cpp/syntax':100,'rust/design':3,'unknown/syntax':2},completed:[id,id,'unknown'],rewarded:[id,id,uncompleted,'unknown'],drafts:{[id]:'x'.repeat(24001),unknown:'code'}};

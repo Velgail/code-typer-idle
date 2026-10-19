@@ -103,7 +103,7 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
     assert.deepEqual(afterStudy.quizWork,[],'studying leaves this project implementation available');
     await enterQuiz(page);await selectTopic(page);
     assert.ok(!(await page.locator('.quiz-topic-picker option:checked').innerText()).startsWith('✓'),'the development checkmark tracks this project, not an earlier study pass');
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*16/);
+    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*32/);
     const beforeWork=await saved(page),preview=quizRewardPreview(beforeWork);
     assert.equal(preview.amount,0,'the same topic does not award understanding twice');
     assert.equal(preview.progress,currentProject(beforeWork).target-beforeWork.progress,'the preview caps work at the project target');
@@ -114,7 +114,7 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
     assert.deepEqual(applied.skills,afterStudy.skills,'study then implementation shares the lifelong knowledge claim');
     assert.ok(applied.quizWork.includes(quiz.id));
     assert.match(await page.locator('.quiz-topic-picker option:checked').innerText(),/^✓/);
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+1\s*\/\s*16/);
+    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+1\s*\/\s*32/);
     assert.equal(await page.locator('.quiz-rewards').getAttribute('data-kind'),'awarded');
     await answer(page);
     const repeated=await saved(page);
@@ -133,7 +133,7 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
     const secondBefore=await saved(page),secondPreview=quizRewardPreview(secondBefore);
     assert.equal(secondBefore.planner.active,second);
     assert.ok(!(await page.locator('.quiz-topic-picker option:checked').innerText()).startsWith('✓'),'a new project starts with the topic application available');
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*16/);
+    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*32/);
     assert.equal(secondPreview.amount,0);
     assert.ok(secondPreview.progress>0,'a different project has its own implementation claim');
     await answer(page);const secondAfter=await saved(page);
@@ -169,14 +169,17 @@ async function verifyGatesAndDeferredApplication(browser,url,errors) {
     assert.ok(first.quiz.rewarded.includes(quiz.id));
     assert.ok(!first.quizWork.includes(quiz.id),'insufficient knowledge does not consume implementation');
     assert.match(await run.page.locator('.quiz-rewards').innerText(),/理解度/);
-    for(const subject of ['design','graphics','systems']) {
-      for(let index=0;index<4;index++) {
+    // Gather the remaining knowledge in study mode: a later Challenge may
+    // otherwise finish this small project before the deferred one is applied.
+    await run.page.locator('[data-mode=study]').click();
+    for(const {id:subject} of SKILLS) {
+      for(let index=0;index<16;index++) {
         const checkpoint=await saved(run.page),required=currentProject(checkpoint).req[subject] || 0;
         if(skillKnowledge(checkpoint,subject)>=required)break;
         await selectTopic(run.page,subject,index);await answer(run.page,subject,index);
       }
     }
-    await selectTopic(run.page);
+    await enterQuiz(run.page);await selectTopic(run.page);
     const before=await saved(run.page),preview=quizRewardPreview(before);
     assert.equal(preview.amount,0);
     assert.ok(preview.progress>0,'the earlier topic becomes applicable once all project knowledge is ready');
@@ -229,7 +232,9 @@ async function verifyLiveDeferredPreview(browser,url,errors) {
     await page.clock.runFor(2200);
     const ready=await saved(page),preview=quizRewardPreview(ready);
     assert.ok(skillKnowledge(ready,'design')>=currentProject(ready).req.design);
-    assert.equal(preview.amount,0);assert.ok(preview.progress>0);
+    assert.equal(preview.learned,0);assert.equal(preview.studyUnits,0);
+    close(preview.amount,preview.verified,'a known Challenge can confirm the newly researched gap without granting new XP');
+    assert.ok(preview.progress>0);
     assert.equal(await page.locator('.quiz-rewards').getAttribute('data-kind'),'preview','a newly applicable implementation replaces the old blocked reward summary');
     assert.match(await page.locator('.quiz-rewards-items').innerText(),/制作/);
     assert.doesNotMatch(await page.locator('.quiz-rewards-note').innerText(),/理解度を揃える/);

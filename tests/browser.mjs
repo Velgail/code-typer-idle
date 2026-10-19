@@ -20,6 +20,7 @@ import { runPlannerChecks } from './planner-ui.mjs';
 import { verifyQuizUI } from './quiz-ui.mjs';
 import { verifyQuizPracticeUI } from './quiz-practice-ui.mjs';
 import { verifyFirstProjectUI } from './firstproject-ui.mjs';
+import { verifySkillQuizUI } from './skillquiz-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -50,6 +51,7 @@ try {
   await verifyQuizUI(browser, url, errors);
   await verifyQuizPracticeUI(browser, url, errors);
   await verifyFirstProjectUI(browser, url, errors);
+  await verifySkillQuizUI(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);

@@ -95,7 +95,7 @@ async function verifyFreshAssembly(browser,url,errors,capture) {
     await page.locator('#study-lock [data-action=open-online-material]').click();
     await page.locator('#language-select').selectOption('lua');
     await page.locator('.quiz-source').waitFor({state:'visible'});
-    assert.equal(await page.locator('.quiz-topic-picker option').count(),16,'study keeps its general curriculum');
+    assert.equal(await page.locator('.quiz-topic-picker option').count(),32,'study keeps its general curriculum');
     const studyQuiz=quizAt('lua','syntax',0);
     await answer(page,studyQuiz);
     const learned=await saved(page);
@@ -214,7 +214,7 @@ async function verifyLegacyAndCustom(browser,url,errors) {
   const planned=await open(browser,url,errors,custom);
   try {
     await planned.page.locator('.quiz-source').waitFor({state:'visible'});
-    assert.equal(await planned.page.locator('.quiz-topic-picker option').count(),16,'a custom first project keeps its general implementation topics');
+    assert.equal(await planned.page.locator('.quiz-topic-picker option').count(),32,'a custom first project keeps its general implementation topics');
     assert.equal(await planned.page.locator('.quiz-title').innerText(),quizAt('lua','syntax',0).title);
     assert.doesNotMatch(await planned.page.locator('.quiz-position').innerText(),/3部品/);
     assert.equal(await planned.page.locator('#subject-picker').isVisible(),true);
@@ -269,7 +269,7 @@ async function verifySQLInputs(browser,url,errors,capture) {
     await checkMobile(page);
     if(capture)await capture(page,'first-project-sql-inputs');
     await page.locator('[data-mode=study]').click();
-    assert.equal(await page.locator('.quiz-topic-picker option').count(),16);
+    assert.equal(await page.locator('.quiz-topic-picker option').count(),32);
     assert.equal(await page.locator('.quiz-title').innerText(),quizAt('sql','syntax',0).title);
     assert.equal(await page.locator('.quiz-fixture-table caption').first().innerText(),'sample(id, amount, group_id, enabled)');
     assert.doesNotMatch(await page.locator('.quiz-source').inputValue(),/FROM input;/);

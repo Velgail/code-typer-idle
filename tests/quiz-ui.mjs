@@ -73,7 +73,7 @@ export async function verifyQuizUI(browser, url, errors, capture) {
     assert.equal(await counter.locator('dd').innerText(), String(quizAt('sql', 'systems', 3).cases[0].counterLimit));
     await page.locator('[data-subject=syntax]').click();
     await page.locator('#language-select').selectOption('lua');
-    assert.equal(await page.locator('.quiz-topic-picker option').count(), 16, 'all topics are directly accessible');
+    assert.equal(await page.locator('.quiz-topic-picker option').count(), 32, 'all topics are directly accessible');
     assert.equal(await page.locator('#typing-input').isVisible(), false, 'Quiz uses its own free editor');
     assert.equal(await page.locator('#typing-summary').isVisible(), false);
     assert.equal(await page.locator('.quiz-reference').isVisible(), false, 'reference starts closed');

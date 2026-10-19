@@ -1,182 +1,49 @@
-// Reproducible rule measurements, not a simulation of a person's thinking time.
-// Run with --write to refresh the checked-in JSON report.
+// Rule measurements, not observed human completion times. Canonical source
+// length and submitted answer length are deliberately not reward inputs.
 import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
-import {
-  BALANCE_VERSION, DAY, createState, input, openOnlineMaterial, tick,
-  studyGain, skillKnowledge, typingPower, unitRate, quizLesson,
-  quizRewardPreview, completeQuiz, currentProject,
-  QUIZ_STUDY_MULTIPLIER, QUIZ_IMPLEMENTATION_MULTIPLIER,
-  QUIZ_VERIFICATION_MULTIPLIER
-} from '../src/core.js';
-import { lessonAt } from '../src/curriculum.js';
-import { quizCatalog, QUIZ_LANGUAGES } from '../src/quizcatalog.js';
-import { typingKeystrokes, TYPING_REWARD, TYPING_REFERENCE_RATE } from '../src/typing.js';
+import * as game from '../src/core.js';
+import { challengeCatalog } from '../src/challengecatalog.js';
+import { skillQuizCatalog } from '../src/skillquiz.js';
 
-const LEGACY_QUIZ_UNITS = 1200;
-const clone = value => structuredClone(value);
-const quizzes = quizCatalog();
-const outputURL = new URL('../research/quiz-rewards.json', import.meta.url);
-const flags = process.argv.slice(2);
-if (flags.some(flag => flag !== '--write')) throw new Error('Usage: node scripts/analyze-quiz-rewards.mjs [--write]');
-
-function fixture({ lab = 0, knowledge = 0 } = {}) {
-  const state = createState(0);
-  state.mode = 'study';
-  state.studyStyle = 'quiz';
-  state.subject = 'syntax';
-  state.typing.language = 'cpp';
-  state.items.lab = lab;
-  state.skills.syntax = knowledge;
-  openOnlineMaterial(state, 'syntax');
-  return state;
+const flags=process.argv.slice(2);
+if(flags.some(flag=>flag!=='--write'))throw new Error('Usage: node scripts/analyze-quiz-rewards.mjs [--write]');
+const clone=value=>structuredClone(value), challenges=challengeCatalog(),syntax=skillQuizCatalog();
+function fixture(lab=0,knowledge=0){const s=game.createState(0);s.mode='study';s.studyStyle='skill-quiz';s.subject='syntax';s.typing.language='cpp';s.items.lab=lab;s.skills.syntax=knowledge;game.openOnlineMaterial(s);return s;}
+function distribution(values){const sorted=[...values].sort((a,b)=>a-b);return {min:sorted[0],mean:sorted.reduce((a,b)=>a+b,0)/sorted.length,median:sorted[Math.floor(sorted.length/2)],max:sorted.at(-1)};}
+function metadata(catalog){return {count:catalog.length,estimatedMinutes:distribution(catalog.map(q=>q.estimatedMinutes)),difficultyCounts:Object.fromEntries([1,2,3,4].map(n=>[n,catalog.filter(q=>q.difficulty===n).length])),languages:[...new Set(catalog.map(q=>q.language))].map(language=>({language,count:catalog.filter(q=>q.language===language).length}))};}
+function measure(state,role){
+ const s=clone(state);s.studyStyle=role==='skill-quiz'?'skill-quiz':'quiz';
+ const q=role==='skill-quiz'?game.skillQuizLesson(s):game.quizLesson(s),before=JSON.stringify(s);
+ const preview=role==='skill-quiz'?game.skillQuizRewardPreview(s):game.quizRewardPreview(s);
+ assert.equal(JSON.stringify(s),before,'Preview must be pure');
+ const reward=role==='skill-quiz'?game.completeSkillQuiz(s,q.id,q.answer):game.completeQuiz(s,q.id);
+ for(const key of ['amount','learned','verified','studyUnits','progress'])assert.equal(reward[key],preview[key]);
+ const seconds=q.estimatedMinutes*60,power=game.typingPower(state,'study',q.subject),typingUnits=seconds*80*power;
+ const typing=clone(state),copied=game.input(typing,{mode:'study',subject:q.subject,chars:typingUnits,manual:true,countManual:false});
+ const again=role==='skill-quiz'?game.completeSkillQuiz(s,q.id,q.answer):game.completeQuiz(s,q.id);
+ assert.equal(again.studyUnits,0);assert.equal(again.verified,0);
+ return {role,id:q.id,concept:q.concept,difficulty:q.difficulty,estimatedMinutes:q.estimatedMinutes,typingPower:power,typingAtEstimatedTime:{workUnits:typingUnits,nominalKnowledge:game.studyGain(state,typingUnits,q.subject),confirmedKnowledge:copied.amount},reward,studyWorkRatio:reward.studyUnits/typingUnits,nominalKnowledgeRatio:reward.learned/game.studyGain(state,typingUnits,q.subject),repeatWithoutResearch:again};
 }
-
-function copyUnits(state, quiz = quizLesson(state)) {
-  const source = lessonAt(quiz.language, quiz.subject, quiz.index).code;
-  return typingKeystrokes(source) * (TYPING_REWARD.character + TYPING_REWARD.completion)
-    * typingPower(state, 'study', quiz.subject);
-}
-
-function selectQuiz(state, quiz) {
-  state.typing.language = quiz.language;
-  state.subject = quiz.subject;
-  state.quiz.cursors[`${quiz.language}/${quiz.subject}`] = quiz.index;
-}
-
-function measure(state) {
-  const topic = quizLesson(state);
-  const before = JSON.stringify(state);
-  const preview = quizRewardPreview(state);
-  assert.equal(JSON.stringify(state), before, 'Preview must leave the fixture unchanged');
-  const current = clone(state);
-  const reward = completeQuiz(current, topic.id);
-  assert.deepEqual(reward, preview, 'Preview must agree with the actual first-success reward');
-  const old = clone(state);
-  const legacy = input(old, { mode: 'study', subject: topic.subject, chars: LEGACY_QUIZ_UNITS, manual: false });
-  const copied = clone(state);
-  const units = copyUnits(state);
-  const copy = input(copied, { mode: 'study', subject: topic.subject, chars: units, manual: true, countManual: false });
-  return {
-    typingPower: typingPower(state, 'study', topic.subject),
-    copy: { workUnits: units, nominalKnowledge: studyGain(state, units, topic.subject), confirmedKnowledge: copy.amount },
-    legacyQuiz: { workUnits: LEGACY_QUIZ_UNITS, nominalKnowledge: studyGain(state, LEGACY_QUIZ_UNITS, topic.subject), confirmedKnowledge: legacy.amount, verifiedKnowledge: legacy.verified },
-    quiz: { workUnits: reward.studyUnits, nominalKnowledge: reward.learned, confirmedKnowledge: reward.amount, verifiedKnowledge: reward.verified },
-    workRatioToCopy: reward.studyUnits / units,
-    nominalKnowledgeRatioToCopy: reward.learned / studyGain(state, units, topic.subject)
-  };
-}
-
-function distribution(values) {
-  const sorted = [...values].sort((a, b) => a - b);
-  return { min: sorted[0], mean: sorted.reduce((a, b) => a + b, 0) / sorted.length, median: sorted[Math.floor(sorted.length / 2)], max: sorted.at(-1) };
-}
-
-const lessons = quizzes.map(quiz => {
-  const source = lessonAt(quiz.language, quiz.subject, quiz.index).code;
-  return { id: quiz.id, language: quiz.language, subject: quiz.subject, characters: source.length, physicalKeys: typingKeystrokes(source) };
-});
-const corpus = {
-  uniqueQuizCount: quizzes.length,
-  uniqueQuizzesPerSubject: quizzes.filter(quiz => quiz.subject === 'syntax').length,
-  matchedTypingLessonVariant: 0,
-  characters: distribution(lessons.map(lesson => lesson.characters)),
-  physicalKeys: distribution(lessons.map(lesson => lesson.physicalKeys)),
-  languages: QUIZ_LANGUAGES.map(language => {
-    const rows = lessons.filter(lesson => lesson.language === language);
-    return { language, count: rows.length, characters: distribution(rows.map(row => row.characters)), physicalKeys: distribution(rows.map(row => row.physicalKeys)) };
-  })
-};
-
-const initial = fixture();
-const firstQuiz = quizLesson(initial);
-const initialMeasurement = measure(initial);
-const afterFirstQuiz = clone(initial);
-completeQuiz(afterFirstQuiz, firstQuiz.id);
-const rewardAfterRepeatingFirstSuccess = completeQuiz(afterFirstQuiz, firstQuiz.id);
-assert.equal(rewardAfterRepeatingFirstSuccess.amount, 0, 'A repeated success must not award more study knowledge');
-assert.equal(rewardAfterRepeatingFirstSuccess.studyUnits, 0, 'A repeated success must not award more study work');
-const initialCppSyntax = {
-  quizId: firstQuiz.id,
-  title: firstQuiz.title,
-  sourceCharacters: lessonAt('cpp', 'syntax', 0).code.length,
-  physicalKeys: typingKeystrokes(lessonAt('cpp', 'syntax', 0).code),
-  ...initialMeasurement,
-  firstProjectRequiredSyntax: currentProject(initial).req.syntax,
-  syntaxAfterFirstSuccess: skillKnowledge(afterFirstQuiz, 'syntax'),
-  firstProjectKnowledgeMet: skillKnowledge(afterFirstQuiz, 'syntax') >= currentProject(initial).req.syntax,
-  rewardAfterRepeatingFirstSuccess,
-  perfectCopyInputSeconds: typingKeystrokes(lessonAt('cpp', 'syntax', 0).code) / TYPING_REFERENCE_RATE,
-  equalNewWorkQuizSeconds: typingKeystrokes(lessonAt('cpp', 'syntax', 0).code) / TYPING_REFERENCE_RATE * QUIZ_STUDY_MULTIPLIER
-};
-
-const equipment = [0, 1, 5, 20].map(lab => {
-  const state = fixture({ lab, knowledge: 500 });
-  return { lab, initialNominalKnowledge: 500, initialGap: 0, labUnitsPerSecond: unitRate(state, 'lab'), ...measure(state) };
-});
-
-const gapRecovery = [1, 5, 20].map(lab => {
-  const state = fixture({ lab, knowledge: 500 });
-  tick(state, 8 * 3600);
-  const startGap = state.studyGaps.syntax;
-  const old = clone(state), current = clone(state);
-  let newQuestionsUntilGapCleared = null;
-  const syntaxQuizzes = quizzes.filter(quiz => quiz.subject === 'syntax');
-  for (const [index, quiz] of syntaxQuizzes.entries()) {
-    // Legacy behavior is replayed directly: one 1200-unit study input for each
-    // unique first success, with the usual input verification limit of 1 gain.
-    input(old, { mode: 'study', subject: 'syntax', chars: LEGACY_QUIZ_UNITS, manual: false });
-    selectQuiz(current, quiz);
-    completeQuiz(current, quiz.id);
-    if (newQuestionsUntilGapCleared === null && current.studyGaps.syntax === 0) newQuestionsUntilGapCleared = index + 1;
-  }
-  return {
-    lab,
-    elapsedSeconds: 8 * 3600,
-    elapsedHours: 8,
-    elapsedGameDays: 8 * 3600 / DAY,
-    nominalKnowledgeAfterResearch: state.skills.syntax,
-    confirmedKnowledgeAfterResearch: skillKnowledge(state, 'syntax'),
-    gapAfterResearch: startGap,
-    firstQuestion: measure(state),
-    distinctSyntaxQuestions: syntaxQuizzes.length,
-    legacyAfterAllQuestions: { verifiedKnowledge: startGap - old.studyGaps.syntax, remainingGap: old.studyGaps.syntax },
-    currentAfterAllQuestions: { remainingGap: current.studyGaps.syntax, confirmedKnowledge: skillKnowledge(current, 'syntax') },
-    newQuestionsUntilGapCleared
-  };
-});
-
-const report = {
-  schemaVersion: 1,
-  balanceVersion: BALANCE_VERSION,
-  reproduce: 'node scripts/analyze-quiz-rewards.mjs --write',
-  assumptions: {
-    purpose: 'Actual rule measurements of first-success rewards, not a playthrough, affordability proof, or measured human solution time.',
-    fixtures: 'Fresh state with cash 100, no experience/assets, no books/monitor/keyboard, only free syntax material opened. The only item is the stated lab level; direct item assignment isolates equipment effects.',
-    labAffordability: 'Lab levels 1/5/20 have cumulative unmodified prices 2000/242000/3486784400000. Level 20 is an extreme fixture, not an early-game purchase route.',
-    initialKnowledge: 'Equipment and gap scenarios begin with nominal and confirmed syntax 500, gap 0. Initial C++ scenario starts at 0.',
-    automation: 'Only lab study runs during the 8-hour interval. No development or OCR equipment; syntax remains the selected subject after satisfying the first project.',
-    time: `Eight hours means 28800 elapsed simulation seconds. DAY=${DAY} seconds, so this is ${28800 / DAY} game days. No automation time passes between the measured quiz completions.`,
-    physicalKeys: 'typingKeystrokes from src/typing.js replaces each ASCII space run with ceil(length/4) Tab keys, including short runs. Newlines and other characters each count once. No typing errors.',
-    matchedSource: 'Work uses the canonical same-topic typing lesson at variant 0, never the submitted answer length; whitespace padding cannot increase it.',
-    copyReward: 'Perfect copying receives 12 units per physical key plus completion 4, multiplied by current study typingPower. A batch input measures equal nominal XP, without interleaved automation.',
-    legacy: 'The removed 1200-unit baseline is calculated with input directly. It verifies up to one new nominal knowledge gain, exactly as old completeQuiz did.',
-    current: `Actual quizRewardPreview/completeQuiz; study work multiplier ${QUIZ_STUDY_MULTIPLIER}, implementation multiplier ${QUIZ_IMPLEMENTATION_MULTIPLIER}, verification limit ${QUIZ_VERIFICATION_MULTIPLIER} times new nominal knowledge. The verification limit includes the one gain already confirmed by input.`,
-    finiteClaims: 'Each subject has 128 distinct quizzes across eight languages. Gap-recovery order is language catalog order, then topic index. Each is a first success; completed/rewarded claims prevent repeat farming.',
-    interpretation: 'Four times work units does not imply four times knowledge because the XP curve diminishes. It does not imply four times hourly earnings: reading, thinking, compiling, and retries are unmeasured. Equal-new-work seconds compare only perfect physical typing at 300 keys/min.'
-  },
-  corpus,
-  initialCppSyntax,
-  equipment,
-  gapRecovery
-};
-
-if (flags.includes('--write')) {
-  writeFileSync(outputURL, `${JSON.stringify(report, null, 2)}\n`);
-  console.log('Wrote research/quiz-rewards.json');
-  console.table(gapRecovery.map(row => ({
-    lab: row.lab, gapAfter8Hours: row.gapAfterResearch,
-    oldGapAfter128Questions: row.legacyAfterAllQuestions.remainingGap,
-    newQuestionsToVerifyGap: row.newQuestionsUntilGapCleared
-  })));
-} else console.log(JSON.stringify(report, null, 2));
+const equipment=[0,1,5,20].map(lab=>({lab,labUnitsPerSecond:game.unitRate(fixture(lab),'lab'),initialKnowledge:500,roles:['skill-quiz','challenge'].map(role=>measure(fixture(lab,500),role))}));
+const gapRecovery=[1,5,20].flatMap(lab=>['skill-quiz','challenge'].map(role=>{
+ const s=fixture(lab,500);s.studyStyle=role==='skill-quiz'?'skill-quiz':'quiz';
+ const q=role==='skill-quiz'?game.skillQuizLesson(s):game.quizLesson(s);
+ const success=()=>role==='skill-quiz'?game.completeSkillQuiz(s,q.id,q.answer):game.completeQuiz(s,q.id);
+ success();game.tick(s,8*3600);
+ const nominal=s.skills.syntax,gap=s.studyGaps.syntax,work=s.stats.study,first=success(),second=success();
+ assert.equal(s.skills.syntax,nominal,'Known success must not grant another nominal XP reward');
+ assert.equal(s.stats.study,work);assert.equal(second.verified,0);
+ return {lab,role,elapsedSeconds:28800,elapsedGameDays:28800/game.DAY,nominalKnowledge:nominal,unverifiedBefore:gap,reconfirmation:first,repeatedWithoutResearch:second,remainingGap:s.studyGaps.syntax};
+}));
+const report={schemaVersion:2,balanceVersion:game.BALANCE_VERSION,reproduce:'node scripts/analyze-quiz-rewards.mjs --write',assumptions:{
+ roles:'Quiz is constrained syntax completion graded in core. Challenge is open implementation with executable test cases. Learning and implementation are separate outputs; they cannot be added as one utility unit.',
+ fixtures:'Actual createState with only the stated lab level directly assigned to isolate equipment effects. Free syntax material opened; no books/monitor/keyboard/experience/assets. Equipment scenarios begin at K500; initial scenarios begin at K0. This is not an equipment affordability route.',
+ effort:'80 work units/second is perfect typing at 300 physical keys/min with 12 character + 4 completion units. Reward time comes from authored estimatedMinutes; difficulty is represented by that estimate, not multiplied again.',
+ policy:'New Quiz initial study = authored seconds * 80 * 1.5 * study typingPower. Challenge initial study = authored seconds * 80 * 4 * study typingPower; initial implementation = authored seconds * 80 * 2 * dev typingPower. Same-family transfer into another language pays 60%; previously implemented same ID pays 25% on another project.',
+ firstProject:'The first fixed project retains its separate three staged implementation components and their canonical-source rewards. Generic Challenge estimated-time policy does not replace those components.',
+ verification:'First success also confirms at most three new nominal gains of the existing unverified pool, including the one gain confirmed by input. Known correct answers confirm only available auto-derived gaps and grant no new nominal XP. Topic watermarks prevent repeating the same success without further research.',
+ time:'Eight hours is 28800 simulation seconds. No time passes between answers. Reading, thinking, editing, compilation, mistakes and retries are unmeasured. Four times effort is not four times knowledge or hourly earnings.',
+ historical:'This schema supersedes earlier 1200-unit/typing-source-length comparisons and old finite 512-Challenge totals. Those figures are not current reward formulas.'
+},catalogs:{skillQuiz:metadata(syntax),challenge:metadata(challenges)},initial:{skillQuiz:measure(fixture(),'skill-quiz'),challenge:measure(fixture(),'challenge')},equipment,gapRecovery};
+if(flags.includes('--write')){writeFileSync(new URL('../research/quiz-rewards.json',import.meta.url),`${JSON.stringify(report,null,2)}\n`);console.log('Wrote research/quiz-rewards.json');console.table(gapRecovery.map(row=>({lab:row.lab,role:row.role,gap:row.unverifiedBefore,confirmed:row.reconfirmation.verified,repeat:row.repeatedWithoutResearch.verified})));}else console.log(JSON.stringify(report,null,2));

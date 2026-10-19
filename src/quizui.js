@@ -302,12 +302,15 @@ function renderCases(ui, quiz, result, stale, running) {
     const values = create('dl', 'quiz-case-values');
     const args = test.input ?? test.args ?? [];
     const sqlFixture = quiz?.language === 'sql' && Array.isArray(test.fixtureRows);
-    if (sqlFixture) {
+    const sqlScript = quiz?.language === 'sql' && typeof test.fixtureSql==='string';
+    const sqlTables=quiz?.language==='sql' && Array.isArray(test.fixtureTables)?test.fixtureTables:sqlFixture?[{name:test.fixtureTable || quiz.fixtureTable || 'sample',columns:test.fixtureColumns || quiz.fixtureColumns || ['id','amount','group_id','enabled'],rows:test.fixtureRows}]:[];
+    if (sqlTables.length) {
       const entry = create('div', 'quiz-fixture-input');
       const content = create('dd');
+      for(const fixture of sqlTables){
       const table = create('table', 'quiz-fixture-table');
-      const columns=test.fixtureColumns || quiz.fixtureColumns || ['id','amount','group_id','enabled'];
-      const tableName=test.fixtureTable || quiz.fixtureTable || 'sample';
+      const columns=fixture.columns;
+      const tableName=fixture.name;
       table.append(create('caption', '', `${tableName}(${columns.join(', ')})`));
       const head = create('thead'), header = create('tr');
       for (const name of columns) {
@@ -317,17 +320,22 @@ function renderCases(ui, quiz, result, stale, running) {
       }
       head.append(header);
       const body = create('tbody');
-      for (const record of test.fixtureRows) {
+      for (const record of fixture.rows) {
         const line = create('tr');
         for (const value of record) line.append(create('td', '', textValue(value)));
         body.append(line);
       }
       table.append(head, body);
       content.append(table);
+      }
       entry.append(create('dt', '', '入力DB'), content);
       values.append(entry);
     }
-    const pairs = [...(sqlFixture ? [] : [['入力', args]]), ...(sqlFixture && quiz.topicId === 'recursive_counter' ? [['quiz_config.counter_limit', test.counterLimit]] : []), ['期待する結果', test.expected]];
+    if(sqlScript && !sqlTables.length){
+      const entry=create('div','quiz-fixture-input'),content=create('dd');
+      content.append(create('pre','quiz-fixture-sql',test.fixtureSql));entry.append(create('dt','','入力DB'),content);values.append(entry);
+    }
+    const pairs = [...(sqlTables.length || sqlScript ? [] : [['入力', args]]), ...(sqlFixture && quiz.topicId === 'recursive_counter' ? [['quiz_config.counter_limit', test.counterLimit]] : []), ['期待する結果', test.expected]];
     if (!stale && !running && match && ('actual' in match || 'output' in match)) pairs.push(['実際の結果', 'actual' in match ? match.actual : match.output]);
     for (const [label, value] of pairs) {
       const entry = create('div');

@@ -48,3 +48,9 @@ test('truncated output and oversized source fail before earning progress',async(
   const {runner,workers}=fixture();assert.equal((await runner.run(quiz,'x'.repeat(24001))).passed,false);assert.equal(workers.length,0);
   const pending=runner.run(quiz,'output');ready(workers[0]);result(workers[0],{stdout:'0\n10',outputTruncated:true});assert.equal((await pending).passed,false);
 });
+test('structured Challenge output checks full arrays, strings, object fields and output count',()=>{
+ assert.equal(compareQuizOutput('[1,2]\n"hello"\n{"value":3}\n',[[1,2],'hello',{value:3}],[],'json-lines').passed,true);
+ for(const source of ['[1,3]\n"hello"\n{"value":3}','[1,2]\n"hello"\n{"value":3,"extra":0}','[1,2]\nhello\n{"value":3}','[1,2]\n"hello"\n{"value":3}\n0'])assert.equal(compareQuizOutput(source,[[1,2],'hello',{value:3}],[],'json-lines').passed,false);
+ assert.equal(compareQuizOutput('"1"',[1],[],'json-lines').passed,false);
+ assert.equal(compareQuizOutput('[]',[[]],[],'json-lines').passed,true);
+});

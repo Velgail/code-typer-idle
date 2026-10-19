@@ -3,18 +3,18 @@
 import assert from 'node:assert/strict';
 import { writeFileSync } from 'node:fs';
 import * as game from '../src/core.js';
-import { quizCatalog } from '../src/quizcatalog.js';
-import { lessonAt } from '../src/curriculum.js';
+import { challengeCatalog } from '../src/challengecatalog.js';
+import { skillQuizAt, skillQuizCatalog } from '../src/skillquiz.js';
 import { typingKeystrokes } from '../src/typing.js';
 import { simulate, SCENARIOS } from './simulate-balance.mjs';
 
 const flags = process.argv.slice(2);
 if (flags.some(flag => flag !== '--write')) throw new Error('Usage: node scripts/analyze-quiz-career.mjs [--write]');
 const clone = value => structuredClone(value);
-const quizzes = quizCatalog();
+const quizzes = challengeCatalog();
 const generalIds = quizzes.map(quiz => quiz.id);
 const outputURL = new URL('../research/quiz-career.json', import.meta.url);
-const keys = quiz => typingKeystrokes(quiz.rewardSource ?? lessonAt(quiz.language, quiz.subject, quiz.index).code);
+const keys = quiz => typingKeystrokes(quiz.rewardSource ?? quiz.referenceSource);
 
 function select(state, quiz) {
   state.mode = 'dev'; state.devStyle = 'quiz'; state.subject = quiz.subject;
@@ -108,13 +108,12 @@ function measureBank(snapshot, language, newLearning) {
   };
 }
 
-function capacityBound(snapshot, language) {
-  const required = Object.keys(game.currentProject(snapshot).req);
-  const bank = quizzes.filter(quiz => required.includes(quiz.subject) && (language === 'all' || quiz.language === language));
-  const physicalKeys = bank.reduce((sum, quiz) => sum + keys(quiz), 0);
-  // Steady policy and fixed equipment; efficiency <= 1 and abstraction <= 3.
-  const base = 32 * physicalKeys * (game.handPower(snapshot) * game.ideMultiplier(snapshot) + game.devCapacity(snapshot) / 160);
-  return { language, questions: bank.length, physicalKeys, noDebtNoAbstractionBonusCharacters: base, maxAbstractionThreeCharacters: base * 3, maxPercent: base * 3 / game.currentProject(snapshot).target * 100 };
+function skillQuizComparison(snapshot) {
+  const state=clone(snapshot),subject=Object.keys(game.currentProject(state).req)[0];
+  state.mode='dev';state.devStyle='skill-quiz';state.subject=subject;state.typing.language='cpp';
+  state.skillQuiz.cursors[`cpp/${subject}`]=0;
+  const quiz=skillQuizAt('cpp',subject,0);
+  return {id:quiz.id,estimatedMinutes:quiz.estimatedMinutes,difficulty:quiz.difficulty,reward:game.completeSkillQuiz(state,quiz.id,quiz.answer)};
 }
 
 function observeCareer(scenario) {
@@ -136,11 +135,10 @@ function observeCareer(scenario) {
     const summary = {
       key, state: summarizeState(state, meta),
       purchasesAlreadyMadeThisRun: baseline.purchaseHistory.filter(purchase => purchase.run === meta.run && purchase.seconds <= meta.seconds).length,
-      firstQuestion: measureOne(state)
+      firstQuestion: measureOne(state), syntaxQuizComparison: skillQuizComparison(state)
     };
     if (state.projectIndex === 0) summary.firstProjectParts = measureFirstParts(state);
     else summary.banks = ['cpp', 'all'].flatMap(language => [false, true].map(newLearning => measureBank(state, language, newLearning)));
-    if (state.projectIndex === 4) summary.fixedEquipmentBounds = ['cpp', 'all'].map(language => capacityBound(state, language));
     return summary;
   });
   assert.equal(snapshots.length, 5, 'All five stage snapshots must be observed');
@@ -154,18 +152,19 @@ function observeCareer(scenario) {
 const fresh = game.createState(0);
 game.openOnlineMaterial(fresh, 'syntax');
 const report = {
-  schemaVersion: 1, balanceVersion: game.BALANCE_VERSION,
+  schemaVersion: 2, balanceVersion: game.BALANCE_VERSION,
+  catalogs: {challengeCount:quizzes.length,cppChallengeCount:quizzes.filter(quiz=>quiz.language==='cpp').length,skillQuizCount:skillQuizCatalog().length},
   reproduce: 'node scripts/analyze-quiz-career.mjs --write',
   assumptions: {
     baseline: 'Unmodified simulate() standard policies for continuous typing 300 physical keys/min and clicking 8/s. Free online materials, OCR/office disabled, real purchases and prestige, no cash/knowledge/equipment/experience grants.',
     observation: 'onBeforeInput runs immediately before each actual manual input, after mode/subject/review decisions. It only deep-clones the first eligible state at each stage. The source career is never changed by the observer.',
     timing: 'Manual input and core time advance in one-second steps. Purchasing, project selection, publication, and prestige decisions run every 15 seconds. Recorded activeSeconds includes the current input second.',
     snapshots: 'First knowledge-ready implementation state of the first project, first commercial project, funding indie after five prestiges, first 3D, and first AAA. This benchmark follows fixed tutorial projects, not custom plans.',
-    quizExperiment: 'Each experiment uses a deep clone. It changes only UI mode/language/subject/cursor/review choices and calls completeQuiz. No time passes while solving: no extra purchases, sales, automatic implementation, or automatic study are credited.',
-    learningCounterfactual: 'newLearning=false marks general quiz rewarded IDs as already claimed without changing knowledge or equipment. This isolates implementation/repair capacity conservatively; it is not a separately simulated earlier quiz route.',
-    finiteBank: 'General bank has 512 distinct problems; C++ has 64. Only subjects required by the current project are eligible (48 C++/384 all-language problems for indie). Each implementation is used at most once on this project. The first project uses its separate staged part quizzes.',
+    quizExperiment: 'Each experiment uses a deep clone. It changes only UI mode/language/subject/cursor/review choices and calls completeQuiz. All Challenge tests are assumed to pass; this script does not run compilers or solve tasks. No time passes while solving: no extra purchases, sales, automatic implementation, or automatic study are credited.',
+    learningCounterfactual: 'newLearning=false marks general quiz rewarded IDs as already claimed without changing knowledge or equipment. This suppresses new nominal XP but ordinary known-answer gap verification remains available. It is not a separately simulated earlier quiz route.',
+    finiteBank: 'The current challengeCatalog determines the bank sizes reported below. Only subjects required by the project are eligible. One implementation per ID per project; same-family language transfer pays 60%, previously implemented same ID pays 25%. The first project has its separate staged parts. Syntax Quiz adds study/verification and never implementation.',
     maintenance: 'Use remaining, unclaimed problems for actual review when defect/efficiency thresholds require it, or after implementation completes. A problem cannot be spent on both implementation and review on the same project.',
-    upperBound: 'For steady policy, fixed equipment, sufficient knowledge: characters <= 32 * sum(physical keys) * (handPower * IDE + devCapacity / 160) * abstraction, with abstraction <= 3 and debt efficiency <= 1. This is a bound, not extra granted progress.',
+    rewardBasis: 'Challenge work is based on authored estimatedMinutes and current equipment, never source length. The former source-length 32*sum(keys) upper bound and old 512-bank counts do not apply to this schema. Initial study/implementation shares and transfer/reuse are applied by actual core APIs.',
     interpretation: 'Snapshot question counts are not a full quiz-driven career time. Reading, thinking, editing, compilation, failures, and retries are unmeasured. Quiz reward work is abstract implementation effort, not literal submitted source length.'
   },
   firstProjectFreshStart: {
