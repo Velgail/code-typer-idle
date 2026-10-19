@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "balanceVersion": 19,
+  "reproduce": "node scripts/analyze-quiz-rewards.mjs --write",
+  "assumptions": {
+    "purpose": "Actual rule measurements of first-success rewards, not a playthrough, affordability proof, or measured human solution time.",
+    "fixtures": "Fresh state with cash 100, no experience/assets, no books/monitor/keyboard, only free syntax material opened. The only item is the stated lab level; direct item assignment isolates equipment effects.",
+    "labAffordability": "Lab levels 1/5/20 have cumulative unmodified prices 2000/242000/3486784400000. Level 20 is an extreme fixture, not an early-game purchase route.",
+    "initialKnowledge": "Equipment and gap scenarios begin with nominal and confirmed syntax 500, gap 0. Initial C++ scenario starts at 0.",
+    "automation": "Only lab study runs during the 8-hour interval. No development or OCR equipment; syntax remains the selected subject after satisfying the first project.",
+    "time": "Eight hours means 28800 elapsed simulation seconds. DAY=3600 seconds, so this is 8 game days. No automation time passes between the measured quiz completions.",
+    "physicalKeys": "typingKeystrokes from src/typing.js replaces each ASCII space run with ceil(length/4) Tab keys, including short runs. Newlines and other characters each count once. No typing errors.",
+    "matchedSource": "Work uses the canonical same-topic typing lesson at variant 0, never the submitted answer length; whitespace padding cannot increase it.",
+    "copyReward": "Perfect copying receives 12 units per physical key plus completion 4, multiplied by current study typingPower. A batch input measures equal nominal XP, without interleaved automation.",
+    "legacy": "The removed 1200-unit baseline is calculated with input directly. It verifies up to one new nominal knowledge gain, exactly as old completeQuiz did.",
+    "current": "Actual quizRewardPreview/completeQuiz; study work multiplier 4, implementation multiplier 2, verification limit 3 times new nominal knowledge. The verification limit includes the one gain already confirmed by input.",
+    "finiteClaims": "Each subject has 128 distinct quizzes across eight languages. Gap-recovery order is language catalog order, then topic index. Each is a first success; completed/rewarded claims prevent repeat farming.",
+    "interpretation": "Four times work units does not imply four times knowledge because the XP curve diminishes. It does not imply four times hourly earnings: reading, thinking, compiling, and retries are unmeasured. Equal-new-work seconds compare only perfect physical typing at 300 keys/min."
+  },
+  "corpus": {
+    "uniqueQuizCount": 512,
+    "uniqueQuizzesPerSubject": 128,
+    "matchedTypingLessonVariant": 0,
+    "characters": {
+      "min": 185,
+      "mean": 276.677734375,
+      "median": 273,
+      "max": 443
+    },
+    "physicalKeys": {
+      "min": 170,
+      "mean": 252.162109375,
+      "median": 246,
+      "max": 395
+    },
+    "languages": [
+      {
+        "language": "cpp",
+        "count": 64,
+        "characters": {
+          "min": 201,
+          "mean": 272.828125,
+          "median": 273,
+          "max": 405
+        },
+        "physicalKeys": {
+          "min": 186,
+          "mean": 246.109375,
+          "median": 246,
+          "max": 357
+        }
+      },
+      {
+        "language": "csharp",
+        "count": 64,
+        "characters": {
+          "min": 188,
+          "mean": 276.671875,
+          "median": 271,
+          "max": 411
+        },
+        "physicalKeys": {
+          "min": 176,
+          "mean": 250.5625,
+          "median": 247,
+          "max": 363
+        }
+      },
+      {
+        "language": "rust",
+        "count": 64,
+        "characters": {
+          "min": 193,
+          "mean": 288.015625,
+          "median": 279,
+          "max": 443
+        },
+        "physicalKeys": {
+          "min": 181,
+          "mean": 261.90625,
+          "median": 252,
+          "max": 395
+        }
+      },
+      {
+        "language": "go",
+        "count": 64,
+        "characters": {
+          "min": 197,
+          "mean": 262.4375,
+          "median": 256,
+          "max": 389
+        },
+        "physicalKeys": {
+          "min": 182,
+          "mean": 235.15625,
+          "median": 229,
+          "max": 341
+        }
+      },
+      {
+        "language": "python",
+        "count": 64,
+        "characters": {
+          "min": 185,
+          "mean": 243.859375,
+          "median": 234,
+          "max": 368
+        },
+        "physicalKeys": {
+          "min": 170,
+          "mean": 219.4375,
+          "median": 212,
+          "max": 316
+        }
+      },
+      {
+        "language": "java",
+        "count": 64,
+        "characters": {
+          "min": 207,
+          "mean": 279.453125,
+          "median": 274,
+          "max": 411
+        },
+        "physicalKeys": {
+          "min": 192,
+          "mean": 252.875,
+          "median": 252,
+          "max": 363
+        }
+      },
+      {
+        "language": "sql",
+        "count": 64,
+        "characters": {
+          "min": 252,
+          "mean": 312.1875,
+          "median": 309,
+          "max": 380
+        },
+        "physicalKeys": {
+          "min": 240,
+          "mean": 300.1875,
+          "median": 297,
+          "max": 368
+        }
+      },
+      {
+        "language": "lua",
+        "count": 64,
+        "characters": {
+          "min": 207,
+          "mean": 277.96875,
+          "median": 270,
+          "max": 416
+        },
+        "physicalKeys": {
+          "min": 192,
+          "mean": 251.0625,
+          "median": 244,
+          "max": 368
+        }
+      }
+    ]
+  },
+  "initialCppSyntax": {
+    "quizId": "quiz/v1/cpp/syntax/clamp_health",
+    "title": "体力の上限と下限",
+    "sourceCharacters": 286,
+    "physicalKeys": 247,
+    "typingPower": 1,
+    "copy": {
+      "workUnits": 3952,
+      "nominalKnowledge": 4.715489078597295,
+      "confirmedKnowledge": 4.715489078597295
+    },
+    "legacyQuiz": {
+      "workUnits": 1200,
+      "nominalKnowledge": 1.4318286675902718,
+      "confirmedKnowledge": 1.4318286675902718,
+      "verifiedKnowledge": 0
+    },
+    "quiz": {
+      "workUnits": 15808,
+      "nominalKnowledge": 15.223348327424487,
+      "confirmedKnowledge": 15.223348327424487,
+      "verifiedKnowledge": 0
+    },
+    "workRatioToCopy": 4,
+    "nominalKnowledgeRatioToCopy": 3.2283710286850966,
+    "firstProjectRequiredSyntax": 12,
+    "syntaxAfterFirstSuccess": 15.223348327424487,
+    "firstProjectKnowledgeMet": true,
+    "rewardAfterRepeatingFirstSuccess": {
+      "kind": "answered",
+      "amount": 0,
+      "learned": 0,
+      "verified": 0,
+      "progress": 0,
+      "fixed": 0,
+      "debtRemoved": 0,
+      "studyUnits": 0,
+      "implementationUnits": 0,
+      "reason": ""
+    },
+    "perfectCopyInputSeconds": 49.4,
+    "equalNewWorkQuizSeconds": 197.6
+  },
+  "equipment": [
+    {
+      "lab": 0,
+      "initialNominalKnowledge": 500,
+      "initialGap": 0,
+      "labUnitsPerSecond": 0,
+      "typingPower": 1,
+      "copy": {
+        "workUnits": 3952,
+        "nominalKnowledge": 0.36519353836757007,
+        "confirmedKnowledge": 0.36519353836757773
+      },
+      "legacyQuiz": {
+        "workUnits": 1200,
+        "nominalKnowledge": 0.11090282219332577,
+        "confirmedKnowledge": 0.11090282219333858,
+        "verifiedKnowledge": 0
+      },
+      "quiz": {
+        "workUnits": 15808,
+        "nominalKnowledge": 1.4599756073596382,
+        "confirmedKnowledge": 1.4599756073596382,
+        "verifiedKnowledge": 0
+      },
+      "workRatioToCopy": 4,
+      "nominalKnowledgeRatioToCopy": 3.99781336188419
+    },
+    {
+      "lab": 1,
+      "initialNominalKnowledge": 500,
+      "initialGap": 0,
+      "labUnitsPerSecond": 8,
+      "typingPower": 1.05,
+      "copy": {
+        "workUnits": 4149.6,
+        "nominalKnowledge": 0.3834497166346118,
+        "confirmedKnowledge": 0.38344971663462957
+      },
+      "legacyQuiz": {
+        "workUnits": 1200,
+        "nominalKnowledge": 0.11090282219332577,
+        "confirmedKnowledge": 0.11090282219333858,
+        "verifiedKnowledge": 0
+      },
+      "quiz": {
+        "workUnits": 16598.4,
+        "nominalKnowledge": 1.532918576315069,
+        "confirmedKnowledge": 1.532918576315069,
+        "verifiedKnowledge": 0
+      },
+      "workRatioToCopy": 4,
+      "nominalKnowledgeRatioToCopy": 3.997704287719641
+    },
+    {
+      "lab": 5,
+      "initialNominalKnowledge": 500,
+      "initialGap": 0,
+      "labUnitsPerSecond": 83.9808,
+      "typingPower": 1.52488,
+      "copy": {
+        "workUnits": 6026.32576,
+        "nominalKnowledge": 0.5568229970655737,
+        "confirmedKnowledge": 0.5568229970655807
+      },
+      "legacyQuiz": {
+        "workUnits": 1200,
+        "nominalKnowledge": 0.11090282219332577,
+        "confirmedKnowledge": 0.11090282219333858,
+        "verifiedKnowledge": 0
+      },
+      "quiz": {
+        "workUnits": 24105.30304,
+        "nominalKnowledge": 2.225437524707047,
+        "confirmedKnowledge": 2.225437524707047,
+        "verifiedKnowledge": 0
+      },
+      "workRatioToCopy": 4,
+      "nominalKnowledgeRatioToCopy": 3.996669563640473
+    },
+    {
+      "lab": 20,
+      "initialNominalKnowledge": 500,
+      "initialGap": 0,
+      "labUnitsPerSecond": 566588.2762842705,
+      "typingPower": 3542.1767267766904,
+      "copy": {
+        "workUnits": 13998682.42422148,
+        "nominalKnowledge": 938.8068263311824,
+        "confirmedKnowledge": 938.8068263311825
+      },
+      "legacyQuiz": {
+        "workUnits": 1200,
+        "nominalKnowledge": 0.11090282219332577,
+        "confirmedKnowledge": 0.11090282219333858,
+        "verifiedKnowledge": 0
+      },
+      "quiz": {
+        "workUnits": 55994729.69688592,
+        "nominalKnowledge": 2743.9805397507034,
+        "confirmedKnowledge": 2743.9805397507034,
+        "verifiedKnowledge": 0
+      },
+      "workRatioToCopy": 4,
+      "nominalKnowledgeRatioToCopy": 2.922838290891071
+    }
+  ],
+  "gapRecovery": [
+    {
+      "lab": 1,
+      "elapsedSeconds": 28800,
+      "elapsedHours": 8,
+      "elapsedGameDays": 8,
+      "nominalKnowledgeAfterResearch": 521.074001520713,
+      "confirmedKnowledgeAfterResearch": 515.8055011405354,
+      "gapAfterResearch": 5.268500380177601,
+      "firstQuestion": {
+        "typingPower": 1.05,
+        "copy": {
+          "workUnits": 4149.6,
+          "nominalKnowledge": 0.37562000801889767,
+          "confirmedKnowledge": 0.751240016037741
+        },
+        "legacyQuiz": {
+          "workUnits": 1200,
+          "nominalKnowledge": 0.10863739507059147,
+          "confirmedKnowledge": 0.2172747901411185,
+          "verifiedKnowledge": 0.10863739507059147
+        },
+        "quiz": {
+          "workUnits": 16598.4,
+          "nominalKnowledge": 1.501669381759835,
+          "confirmedKnowledge": 6.006677527039187,
+          "verifiedKnowledge": 4.505008145279352
+        },
+        "workRatioToCopy": 4,
+        "nominalKnowledgeRatioToCopy": 3.9978418340385242
+      },
+      "distinctSyntaxQuestions": 128,
+      "legacyAfterAllQuestions": {
+        "verifiedKnowledge": 5.268500380177601,
+        "remainingGap": 0
+      },
+      "currentAfterAllQuestions": {
+        "remainingGap": 0,
+        "confirmedKnowledge": 692.7198810606363
+      },
+      "newQuestionsUntilGapCleared": 2
+    },
+    {
+      "lab": 5,
+      "elapsedSeconds": 28800,
+      "elapsedHours": 8,
+      "elapsedGameDays": 8,
+      "nominalKnowledgeAfterResearch": 703.9727353771434,
+      "confirmedKnowledgeAfterResearch": 652.9795515328584,
+      "gapAfterResearch": 50.99318384428498,
+      "firstQuestion": {
+        "typingPower": 1.52488,
+        "copy": {
+          "workUnits": 6026.32576,
+          "nominalKnowledge": 0.4693239850628939,
+          "confirmedKnowledge": 0.938647970125885
+        },
+        "legacyQuiz": {
+          "workUnits": 1200,
+          "nominalKnowledge": 0.09346722443582926,
+          "confirmedKnowledge": 0.18693444887162514,
+          "verifiedKnowledge": 0.09346722443582926
+        },
+        "quiz": {
+          "workUnits": 24105.30304,
+          "nominalKnowledge": 1.876359043644726,
+          "confirmedKnowledge": 7.505436174578676,
+          "verifiedKnowledge": 5.6290771309339505
+        },
+        "workRatioToCopy": 4,
+        "nominalKnowledgeRatioToCopy": 3.9980037316722177
+      },
+      "distinctSyntaxQuestions": 128,
+      "legacyAfterAllQuestions": {
+        "verifiedKnowledge": 11.913935674067467,
+        "remainingGap": 39.07924817021751
+      },
+      "currentAfterAllQuestions": {
+        "remainingGap": 0,
+        "confirmedKnowledge": 919.4926490958559
+      },
+      "newQuestionsUntilGapCleared": 10
+    },
+    {
+      "lab": 20,
+      "elapsedSeconds": 28800,
+      "elapsedHours": 8,
+      "elapsedGameDays": 8,
+      "nominalKnowledgeAfterResearch": 136797.6054394442,
+      "confirmedKnowledgeAfterResearch": 102723.20407958314,
+      "gapAfterResearch": 34074.401359861055,
+      "firstQuestion": {
+        "typingPower": 3542.1767267766904,
+        "copy": {
+          "workUnits": 13998682.42422148,
+          "nominalKnowledge": 78.20891946522745,
+          "confirmedKnowledge": 156.4178389304434
+        },
+        "legacyQuiz": {
+          "workUnits": 1200,
+          "nominalKnowledge": 0.006705210675828619,
+          "confirmedKnowledge": 0.013410421350272372,
+          "verifiedKnowledge": 0.006705210675828619
+        },
+        "quiz": {
+          "workUnits": 55994729.69688592,
+          "nominalKnowledge": 312.70175563852536,
+          "confirmedKnowledge": 1250.8070225541014,
+          "verifiedKnowledge": 938.1052669155761
+        },
+        "workRatioToCopy": 4,
+        "nominalKnowledgeRatioToCopy": 3.9982876349232264
+      },
+      "distinctSyntaxQuestions": 128,
+      "legacyAfterAllQuestions": {
+        "verifiedKnowledge": 0.8582656308426522,
+        "remainingGap": 34073.54309423021
+      },
+      "currentAfterAllQuestions": {
+        "remainingGap": 0,
+        "confirmedKnowledge": 173031.14263674946
+      },
+      "newQuestionsUntilGapCleared": 38
+    }
+  ]
+}

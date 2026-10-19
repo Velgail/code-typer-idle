@@ -130,6 +130,13 @@ function mount(root) {
   storage.id = `${editorId}-storage`;
   const cursor = create('span', 'quiz-cursor', 'Ln 1, Col 1');
   editorFooter.append(keyboard, storage, cursor);
+  const reward = create('section', 'quiz-rewards');
+  reward.setAttribute('aria-label', 'Quizの成果');
+  reward.hidden = true;
+  const rewardTitle = create('h4', 'quiz-rewards-title');
+  const rewardItems = create('dl', 'quiz-rewards-items');
+  const rewardNote = create('p', 'quiz-rewards-note');
+  reward.append(rewardTitle, rewardItems, rewardNote);
   const actions = create('div', 'quiz-actions');
   const run = create('button', 'primary-button quiz-run', 'テストを実行');
   run.type = 'button';
@@ -185,8 +192,8 @@ function mount(root) {
   const referenceCode = create('pre', 'reference-code');
   referenceCode.tabIndex = 0;
   reference.append(referenceHeading, referenceCode);
-  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
-  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
+  root.replaceChildren(heading, topicPicker, description, parameters, editorLabel, editor, editorFooter, reward, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
+  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, editor, cursor, reward, rewardTitle, rewardItems, rewardNote, rewardKey: null, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
   mounted.set(root, ui);
   const updateCursor = () => {
     const before = editor.value.slice(0, editor.selectionStart).split('\n');
@@ -216,6 +223,7 @@ function mount(root) {
     if (!topicSelect.disabled) ui.model.onSelect?.(Number(topicSelect.value));
   });
   referenceToggle.addEventListener('click', () => {
+    if (ui.model.referenceAvailable === false || ui.model.disabled || referenceToggle.disabled || referenceToggle.hidden || !ui.model.quiz?.referenceSource) return;
     ui.referenceOpen = !ui.referenceOpen;
     reference.hidden = !ui.referenceOpen;
     referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
@@ -230,6 +238,32 @@ function mount(root) {
     write(reviewToggle, ui.reviewOpen ? '写経した教材を閉じる' : '写経した教材を見直す');
   });
   return ui;
+}
+
+function renderRewards(ui, summary) {
+  const items = Array.isArray(summary?.items) ? summary.items : [];
+  const available = !!summary && !!(summary.title || summary.note || items.length);
+  const key = available ? JSON.stringify([summary.title, items, summary.note, summary.kind]) : null;
+  if (ui.rewardKey === key) return;
+  ui.rewardKey = key;
+  ui.reward.hidden = !available;
+  if (!available) {
+    write(ui.rewardTitle, '');
+    write(ui.rewardNote, '');
+    ui.rewardItems.replaceChildren();
+    return;
+  }
+  ui.reward.dataset.kind = ['preview', 'awarded', 'claimed'].includes(summary.kind) ? summary.kind : 'preview';
+  write(ui.rewardTitle, summary.title || '');
+  ui.rewardTitle.hidden = !summary.title;
+  ui.rewardItems.replaceChildren(...items.map(item => {
+    const row = create('div');
+    row.append(create('dt', '', item.label), create('dd', '', item.value));
+    return row;
+  }));
+  ui.rewardItems.hidden = !items.length;
+  write(ui.rewardNote, summary.note || '');
+  ui.rewardNote.hidden = !summary.note;
 }
 
 function renderReview(ui, quiz, lesson, result, running, disabled) {
@@ -324,6 +358,11 @@ function renderCases(ui, quiz, result, stale, running) {
  * progress: {phase:'download'|'prepare'|'compile'|'execute', loaded?, total?}.
  * reviewLesson: null or {title, code, explanation:string|string[]}; only the
  * caller's previously copied material for this topic, separate from its answer.
+ * referenceAvailable: defaults to true; false keeps the answer locked and its
+ * source out of the rendered code until the caller permits it after a pass.
+ * rewardSummary: null or {title, items:[{label,value}], note,
+ * kind:'preview'|'awarded'|'claimed'}; all calculations and wording are supplied
+ * by the caller, including whether a previous result should remain visible.
  * No calls in this module award progress or evaluate the supplied source.
  */
 export function renderQuizUI(options) {
@@ -398,9 +437,14 @@ export function renderQuizUI(options) {
   ui.cancel.hidden = !running || typeof options.onCancel !== 'function';
   ui.next.hidden = typeof options.onNext !== 'function' || !passed;
   ui.next.disabled = !!disabled || !!running;
+  const referenceAvailable = options.referenceAvailable !== false && !!quiz?.referenceSource;
   ui.referenceToggle.hidden = !quiz?.referenceSource;
-  ui.referenceToggle.disabled = !!disabled;
-  write(ui.referenceCode, quiz?.referenceSource || '');
+  ui.referenceToggle.disabled = !!disabled || !referenceAvailable;
+  if (!referenceAvailable) ui.referenceOpen = false;
+  ui.reference.hidden = !referenceAvailable || !ui.referenceOpen;
+  ui.referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
+  write(ui.referenceToggle, referenceAvailable ? ui.referenceOpen ? '解答例を閉じる' : '解答例を見る' : '解答例は合格後に公開');
+  write(ui.referenceCode, referenceAvailable ? quiz.referenceSource : '');
   const status = running ? progressLabel(progress) : summary;
   write(ui.status, status);
   ui.status.dataset.kind = running ? 'running' : passed ? 'success' : errorStates.has(resultStatus) || ['fail', 'failed', 'wrong-answer'].includes(resultStatus) ? 'error' : 'neutral';
@@ -418,6 +462,7 @@ export function renderQuizUI(options) {
   })].filter(Boolean).join('\n').slice(0, 16000) : '';
   write(ui.diagnostics, diagnosticText);
   ui.diagnostics.hidden = !diagnosticText;
+  renderRewards(ui, options.rewardSummary);
   renderReview(ui, quiz, options.reviewLesson, result, running, disabled);
   renderCases(ui, quiz, result, stale, running);
 }

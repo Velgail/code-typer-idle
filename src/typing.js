@@ -17,6 +17,8 @@ export const LANGUAGES = [
 export const TYPING_REWARD = { character: 12, completion: 4, officeCompletion: 4 };
 export const TYPING_REFERENCE_RATE = 5;
 export const typingCompletionMultiplier = mode => mode === 'work' ? TYPING_REWARD.officeCompletion : TYPING_REWARD.completion;
+// Match the editor's four-space Tab: indentation is one physical keystroke.
+export const typingKeystrokes = source => String(source).replace(/ +/g, spaces => '\t'.repeat(Math.ceil(spaces.length / 4))).length;
 const VARIANTS = 16;
 const DATA = {
   cpp: {

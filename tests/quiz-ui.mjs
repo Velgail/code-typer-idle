@@ -2,7 +2,7 @@
 // deterministic protocol fixture. Real runtime checks are a separate suite.
 import assert from 'node:assert/strict';
 import { quizAt } from '../src/quizcatalog.js';
-import { skillKnowledge, QUIZ_UNITS } from '../src/core.js';
+import { skillKnowledge, quizRewardPreview } from '../src/core.js';
 import { CURRICULUM_VERSION, lessonAt } from '../src/curriculum.js';
 
 const SAVE = 'code-typer-idle:save:v1';
@@ -84,11 +84,11 @@ export async function verifyQuizUI(browser, url, errors, capture) {
     await page.locator('.quiz-more-cases > summary').click();
     assert.equal(await page.locator('.quiz-case:visible').count(), quiz.cases.length, 'the entire test list remains accessible');
     await page.locator('.quiz-more-cases > summary').click();
-    await page.locator('.quiz-reference-toggle').click();
-    assert.equal(await page.locator('.quiz-reference').isVisible(), true);
+    assert.equal(await page.locator('.quiz-reference-toggle').isDisabled(), true, 'reference answers unlock only after solving');
+    assert.match(await page.locator('.quiz-reference-toggle').innerText(), /合格後/);
+    assert.equal(await page.locator('.quiz-reference pre').innerText(), '', 'the locked answer is not rendered');
     let saved = await snapshot(page);
-    assert.equal(skillKnowledge(saved, 'syntax'), 0, 'viewing reference does not reward');
-    await page.locator('.quiz-reference-toggle').click();
+    assert.equal(skillKnowledge(saved, 'syntax'), 0);
     await run(page, `${quiz.starterSource}\n-- CTI_COMPILE_ERROR`, 'compile-error');
     assert.match(await page.locator('.quiz-status').innerText(), /コンパイルエラー/);
     saved = await snapshot(page);
@@ -106,7 +106,13 @@ export async function verifyQuizUI(browser, url, errors, capture) {
     assert.ok(firstKnowledge > 0, 'first complete pass awards understanding');
     assert.ok(first.quiz.completed.includes(quiz.id));
     assert.equal(first.stats.manual, before.stats.manual, 'editing and execution are not typing reward');
-    assert.equal(first.stats.chars - before.stats.chars, QUIZ_UNITS, 'only the one-time successful learning work is counted');
+    assert.equal(first.stats.chars - before.stats.chars, quizRewardPreview(before,quiz).studyUnits, 'only the one-time successful learning work is counted');
+    assert.equal(await page.locator('.quiz-reference-toggle').isDisabled(), false);
+    await page.locator('.quiz-reference-toggle').click();
+    assert.equal(await page.locator('.quiz-reference').isVisible(), true);
+    assert.equal(await page.locator('.quiz-reference pre').innerText(), quiz.referenceSource);
+    assert.equal(skillKnowledge(await snapshot(page),'syntax'),firstKnowledge,'reviewing the answer gives no extra reward');
+    await page.locator('.quiz-reference-toggle').click();
     await page.locator('.quiz-run').click();
     await page.waitForFunction(() => document.querySelector('#quiz-panel').dataset.quizStatus === 'passed');
     const repeated = await snapshot(page);

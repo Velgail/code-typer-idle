@@ -17,6 +17,16 @@
 .quiz-source:disabled { color:var(--muted); }
 .quiz-editor-footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px 12px; padding:9px 12px; color:var(--muted); background:var(--panel-2); border:1px solid var(--border); border-top:0; border-radius:0 0 8px 8px; font-size:10px; }
 .quiz-cursor { font-family:var(--mono); white-space:nowrap; }
+.quiz-rewards { margin:14px 0 0; padding:12px 14px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); }
+.quiz-rewards-title { margin:0 0 8px; color:var(--muted); font-size:11px; font-weight:normal; }
+.quiz-rewards-items { display:flex; flex-wrap:wrap; gap:8px 24px; margin:0; }
+.quiz-rewards-items > div { display:flex; align-items:baseline; flex-wrap:wrap; gap:6px 10px; min-width:0; }
+.quiz-rewards-items dt { color:var(--muted); font-size:12px; }
+.quiz-rewards-items dd { margin:0; color:var(--green); font:14px/1.6 var(--mono); overflow-wrap:anywhere; }
+.quiz-rewards-note { margin:8px 0 0; color:var(--muted); font-size:11px; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+.quiz-rewards[data-kind="awarded"] { border-color:#4e7656; }
+.quiz-rewards[data-kind="awarded"] .quiz-rewards-title { color:var(--green); }
+.quiz-rewards[data-kind="claimed"] .quiz-rewards-items dd { color:var(--muted); }
 .quiz-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:16px; }
 .quiz-actions .primary-button,.quiz-actions .secondary-button { min-height:42px; padding:10px 16px; }
 .quiz-actions .text-button { margin-left:auto; padding:10px 0; font-size:12px; }

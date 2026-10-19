@@ -18,6 +18,7 @@ import { verifyAutomationQuality } from './automation-quality-ui.mjs';
 import { verifyFreeMaterialUI } from './free-material-ui.mjs';
 import { runPlannerChecks } from './planner-ui.mjs';
 import { verifyQuizUI } from './quiz-ui.mjs';
+import { verifyQuizPracticeUI } from './quiz-practice-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -46,6 +47,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 const errors = [];
 try {
   await verifyQuizUI(browser, url, errors);
+  await verifyQuizPracticeUI(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);

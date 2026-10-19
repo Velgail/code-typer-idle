@@ -6,7 +6,7 @@ import {
   buy, input, tick, release, prestige, prestigePreview, applyOffline,
   projectAccess, projectExperience, selectProject, salesForecast, titleSalesRate, remainingSales, availableOfficeWork, shopUnlocked,
   developmentReadiness, learningGoal, readingLesson, nextReading, answerReading, READING_UNITS,
-  quizLesson, nextQuiz, setQuizDraft, completeQuiz, QUIZ_UNITS,
+  quizLesson, nextQuiz, setQuizDraft, completeQuiz, quizRewardPreview, quizEligible, quizContextKey,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
   productionOptions, productionCost, orderProduction,
@@ -106,27 +106,31 @@ let courseLoading;
 let legacyCourseLoading;
 const quizRunner = new QuizRunner();
 let quizRun = 0, quizOwner = null, quizContext = '', quizResult = null, quizRunning = false, quizProgress = '';
-const activeQuiz = () => view === 'workspace' && state.mode === 'study' && state.studyStyle === 'quiz' && hasStudyMaterial(state);
+const activeQuiz = () => view === 'workspace' && quizEligible(state) && hasStudyMaterial(state);
 function cancelQuiz() { quizRun++; quizRunner.cancel(); quizRunning = false; quizProgress = ''; }
 function syncQuizContext() {
-  const key = activeQuiz() ? quizLesson(state).id : '';
+  const key = activeQuiz() ? quizContextKey(state) : '';
   if (quizOwner !== state || quizContext !== key) {
     cancelQuiz(); quizOwner = state; quizContext = key; quizResult = null;
   }
 }
 async function submitQuiz(source) {
   if (!activeQuiz() || blocked || paused || quizRunning) return;
-  const owner = state, quiz = quizLesson(state);
+  const owner = state, quiz = quizLesson(state), context = quizContextKey(state);
   if (!setQuizDraft(state, source)) return;
   const run = ++quizRun; quizRunning = true; quizResult = null; dirty = true; save(); render();
   let result;
   try { result = await quizRunner.run(quiz, source, { onProgress: text => { if (run !== quizRun) return; quizProgress = text; render(); } }); }
   catch (error) { result = { status: 'error', passed: false, cases: [], error: String(error.message || error) }; }
-  if (run !== quizRun || owner !== state || !activeQuiz() || quizLesson(state).id !== quiz.id || state.quiz.drafts[quiz.id] !== source) return;
+  if (run !== quizRun || owner !== state || !activeQuiz() || quizContextKey(state) !== context || state.quiz.drafts[quiz.id] !== source) return;
   quizRunning = false; quizProgress = ''; quizResult = { ...result, source };
   if (result.passed && !blocked && !paused) {
     const reward = completeQuiz(state, quiz.id);
-    if (reward.kind === 'correct') { toast(`全件成功！ +${format(reward.amount, 3)} K`); unlock(); }
+    quizResult.reward = reward;
+    if (reward.kind === 'correct') {
+      const gains = [reward.amount > 0 && `理解度 +${format(reward.amount, 3)} K`, reward.progress > 0 && `制作 +${format(reward.progress)}文字`, reward.fixed > 0 && `不具合修正 ${format(reward.fixed)}`, reward.debtRemoved > 0 && `整理 ${format(reward.debtRemoved)}`].filter(Boolean);
+      toast(`全件成功！ ${gains.join(' · ')}`); unlock();
+    }
     dirty = true; save();
   }
   render();
@@ -147,9 +151,28 @@ function renderQuiz() {
     }
     reviewLesson = { ...completed, code };
   }
-  const topics = Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: state.quiz.completed.includes(q.id) }; });
-  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, draft: state.quiz.drafts[quiz.id] ?? quiz.starterSource, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
-    position: `この分野 ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題クリア · ${state.quiz.completed.includes(quiz.id) ? '理解度は獲得済み' : `初回全件成功 +${format(studyPreview(state,QUIZ_UNITS),3)} K`}`,
+  const claims = state.mode==='dev' ? state.quizWork : state.quiz.completed;
+  const topics = Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: claims.includes(q.id) }; });
+  const draft = state.quiz.drafts[quiz.id] ?? quiz.starterSource;
+  const preview = quizRewardPreview(state, quiz);
+  const previous = quizResult?.passed && quizResult.source === draft ? quizResult.reward : null;
+  const newlyApplicable = previous?.reason && preview.implementationUnits>0;
+  const awarded = newlyApplicable ? null : previous;
+  const reward = awarded || preview;
+  const items = [
+    reward.learned > 0 && {label:'新しく学ぶ理解',value:`+${format(reward.learned,3)} K`},
+    reward.verified > 0 && {label:'未確認から確かめる理解',value:`${format(reward.verified,3)} K`},
+    reward.progress > 0 && {label:'制作の進捗',value:`+${format(reward.progress)}文字`},
+    reward.fixed > 0 && {label:'不具合の修正',value:format(reward.fixed)},
+    reward.debtRemoved > 0 && {label:'負債の整理',value:format(reward.debtRemoved)}
+  ].filter(Boolean);
+  const rewardSummary = {
+    title: newlyApplicable ? 'この作品へ適用できるもの' : awarded ? '今回の成果' : items.length ? '全件成功で得られるもの' : '獲得済み',
+    kind: awarded ? 'awarded' : items.length ? 'preview' : 'claimed',items,
+    note: reward.reason || (items.length ? '学習は各課題の初回のみ。実装・修正への適用は作品ごとに1回。' : 'この課題の報酬は獲得済みです。何度でも解き直せます。')
+  };
+  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, rewardSummary, referenceAvailable: state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
+    position: `${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題`,
     onDraft: source => { if (blocked || paused || !activeQuiz()) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
     onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },
     onNext: () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },
@@ -280,6 +303,7 @@ function switchMode(next) {
   if (blocked) return;
   rememberCourseCursor(state);
   state.mode = next;
+  if (next === 'dev' && state.devStyle === 'quiz') selectQuizSubject();
   dirty = true;
   render();
   focusTypingInput();
@@ -291,8 +315,11 @@ function selectLearningSubject(id=state.subject){
     state.studyStyle='practice';state.typing.source='standard';state.typing.context='';
   }
 }
+function selectQuizSubject() {
+  if (!Object.hasOwn(currentProject(state).req,state.subject)) state.subject=Object.keys(currentProject(state).req)[0] || 'syntax';
+}
 function focusTypingInput() {
-  if (state.inputStyle === 'typing' && !$('typing-input').disabled && !$('typing-input').hidden && !(state.mode === 'study' && ['reading','quiz'].includes(state.studyStyle)) && !blocked && !paused && view === 'workspace' && !$('modal').open && (state.mode !== 'study' || hasStudyMaterial(state))) $('typing-input').focus({ preventScroll: true });
+  if (state.inputStyle === 'typing' && !$('typing-input').disabled && !$('typing-input').hidden && !quizEligible(state) && !(state.mode === 'study' && state.studyStyle === 'reading') && !blocked && !paused && view === 'workspace' && !$('modal').open && (state.mode !== 'study' || hasStudyMaterial(state))) $('typing-input').focus({ preventScroll: true });
 }
 function chooseProject(index) {
   if(blocked || paused)return false;
@@ -315,7 +342,7 @@ function beep(kind) {
   } catch { /* Sound is optional if the browser cannot play it. */ }
 }
 function doInput(options = {}) {
-  if (blocked || paused || state.mode==='study' && ['reading','quiz'].includes(state.studyStyle)) return;
+  if (blocked || paused || quizEligible(state) || state.mode==='study' && state.studyStyle==='reading') return;
   const result = input(state, options);
   if (options.countManual !== false) { tapNumber++; lastManualTimes.push(performance.now()); }
   lastManualTimes = lastManualTimes.filter(t => t > performance.now() - 2000);
@@ -442,7 +469,7 @@ function renderEditor() {
     $('input-feedback').textContent = '';
     $('input-feedback').classList.remove('error');
   }
-  const reading = state.mode === 'study' && ['reading','quiz'].includes(state.studyStyle);
+  const reading = quizEligible(state) || state.mode === 'study' && state.studyStyle === 'reading';
   $('code-editor').classList.toggle('hidden', reading || officeFinished);
   const correctionEmpty=office && state.workTask==='correction' && !prompt;
   $('typing-input').hidden = studyLocked || reading || courseEmpty || correctionEmpty || officeFinished;
@@ -480,7 +507,8 @@ function renderTask() {
   const viewportBottom = viewportTop + (window.visualViewport?.height || innerHeight);
   const inputWasVisible = fieldRect && fieldRect.bottom > viewportTop && fieldRect.top < viewportBottom;
   const p = currentProject(state), mode = state.mode, ratio = knowledgeRatio(state);
-  const reading = mode === 'study' && ['reading','quiz'].includes(state.studyStyle);
+  const studyEditor = mode === 'study' && ['reading','quiz'].includes(state.studyStyle);
+  const quiz = quizEligible(state), reading = studyEditor || quiz;
   const typing = state.inputStyle === 'typing';
   const language = LANGUAGES.find(l => l.id === state.typing.language);
   $('type-button').querySelector('.keycap').classList.toggle('hidden', !typing);
@@ -521,18 +549,19 @@ function renderTask() {
     }
   }
   document.querySelectorAll('[data-mode]').forEach(b => { b.classList.toggle('active', b.dataset.mode === mode); b.setAttribute('aria-selected', b.dataset.mode === mode); });
-  document.querySelectorAll('[data-input-style]').forEach(b => { b.classList.toggle('active', b.dataset.inputStyle === state.inputStyle); b.setAttribute('aria-pressed', b.dataset.inputStyle === state.inputStyle); });
+  document.querySelectorAll('[data-input-style]').forEach(b => { const active = !quiz && b.dataset.inputStyle === state.inputStyle; b.classList.toggle('active', active); b.setAttribute('aria-pressed', active); });
+  document.querySelectorAll('[data-dev-style]').forEach(b => { b.hidden=mode!=='dev' || !!(state.planner.active && state.planner.allocation==='assets' && !state.refactor);b.classList.toggle('active',quiz);b.setAttribute('aria-pressed',quiz);b.disabled=blocked || paused; });
   $('language-select').value = language.id;
-  document.querySelector('.input-style-picker').classList.toggle('hidden', reading);
+  document.querySelector('.input-style-picker').classList.toggle('hidden', studyEditor);
   $('quick-actions').classList.toggle('hidden', reading);
   $('typing-actions').classList.toggle('hidden', reading);
   $('study-style-picker').classList.toggle('hidden', mode !== 'study');
-  document.querySelector('.input-note').classList.toggle('hidden', mode === 'study' && state.studyStyle === 'quiz');
+  document.querySelector('.input-note').classList.toggle('hidden', quiz);
   document.querySelectorAll('[data-study-style]').forEach(b => { b.classList.toggle('active', b.dataset.studyStyle === state.studyStyle); b.setAttribute('aria-pressed', b.dataset.studyStyle === state.studyStyle); });
   document.querySelector('.language-label').classList.toggle('hidden', mode === 'work');
   document.querySelector('[data-input-style=typing]').innerHTML = `${mode === 'work' ? '伝票タイピング' : 'コードタイピング'} <small>報酬UP</small>`;
   $('language-select').title = `${language.description} / 全${PROMPT_COUNT.toLocaleString()}問`;
-  $('subject-picker').classList.toggle('hidden', mode !== 'study');
+  $('subject-picker').classList.toggle('hidden', mode !== 'study' && !quiz);
   $('project-progress').classList.toggle('hidden', mode !== 'dev');
   $('build-panel').classList.toggle('hidden', mode !== 'dev');
   $('production-panel').classList.toggle('hidden', mode !== 'dev' || !productionOptions(state).length);
@@ -540,14 +569,14 @@ function renderTask() {
   $('development-details').classList.toggle('hidden', mode !== 'dev');
   $('dev-actions').classList.toggle('hidden', mode !== 'dev');
   const lesson = SKILLS.find(s => s.id === state.subject);
-  const studyLocked = mode === 'study' && !hasStudyMaterial(state);
+  const studyLocked = (mode === 'study' || quiz) && !hasStudyMaterial(state);
   const textbook = SHOP.find(item => item.id === `book-${state.subject}`);
   $('study-lock').classList.toggle('hidden', !studyLocked);
   document.querySelector('[data-action=open-online-material]').disabled=blocked || paused;
   $('study-lock-message').textContent = `${lesson.name}のオンライン教材は無料です。公開チュートリアルを開いて学び始めよう。`;
-  $('study-material').classList.toggle('hidden',mode!=='study' || studyLocked);
+  $('study-material').classList.toggle('hidden',mode!=='study' && !quiz || studyLocked);
   const materialName=hasTextbook(state)?`${textbook.name} Lv.${level(state,textbook.id)}`:`オンライン教材：${lesson.name}（無料）`;
-  const materialSource=state.studyStyle==='course'?'Exercism / 言語別の講座':state.studyStyle==='reading'?'参考コード読解':state.studyStyle==='quiz'?'実装してテストで確かめる':'コード演習';
+  const materialSource=quiz?'実装してテストで確かめる':state.studyStyle==='course'?'Exercism / 言語別の講座':state.studyStyle==='reading'?'参考コード読解':'コード演習';
   $('study-material-label').textContent=`${materialName} · ${materialSource} · 学習 ×${format(studyMultiplier(state),2)}`;
   const upgrade=$('study-material-upgrade'),bookPrice=itemCost(state,textbook);
   upgrade.textContent=`${hasTextbook(state)?'教本を充実させる':'教本で学習効率を上げる'} ${yen(bookPrice)}`;
@@ -571,7 +600,8 @@ function renderTask() {
   $('subject-picker').querySelectorAll('[data-subject]').forEach(b => {
     const id=b.dataset.subject,required=p.req[id],current=skillKnowledge(state,id);
     b.classList.toggle('active',id===state.subject);b.setAttribute('aria-pressed',id===state.subject);
-    const label=`${SKILLS.find(s=>s.id===id).short}を学ぶ`,progress=required?current>=required?'✓ 必要分を習得':`${format(current,1)} / ${format(required)}`:'';
+    const label=`${SKILLS.find(s=>s.id===id).short}${mode==='dev'?'':'を学ぶ'}`,progress=required?current>=required?'✓ 必要分を習得':`${format(current,1)} / ${format(required)}`:'';
+    b.querySelector('span').textContent=label;
     b.querySelector('small').textContent=progress;
     b.classList.toggle('subject-complete',!!required && current>=required);
     b.setAttribute('aria-label',progress?`${label} · ${progress}`:label);
@@ -619,7 +649,7 @@ function commentNotes(lesson) {
 }
 function renderLearning() {
   renderQuiz();
-  const quiz = state.mode === 'study' && state.studyStyle === 'quiz';
+  const quiz = quizEligible(state);
   const reading = state.mode === 'study' && state.studyStyle === 'reading', locked = state.mode === 'study' && !hasStudyMaterial(state);
   $('reading-panel').classList.toggle('hidden', !reading || locked);
   const last = state.typing.lastCompleted;
@@ -947,7 +977,7 @@ function render() {
   $('expense-billing').textContent = state.dailyAccrued ? `ホスティング会社への本日発生済み料金：${yen(state.dailyAccrued)}。日の終わりに精算。` : '';
   $('day-ring').style.strokeDashoffset = String(100.53 * state.dayElapsed / DAY);
   $('total-chars').innerHTML = `${format(state.stats.chars, 0)}<em> chars</em>`;
-  $('input-power').textContent = `${format(state.inputStyle==='typing'?typingPower(state)*TYPING_REWARD.character:handPower(state), 2)}文字 / ${state.inputStyle==='typing'?'正解キー':'クリック'}`;
+  $('input-power').textContent = quizEligible(state) ? 'Quizの全件成功で成果を反映' : `${format(state.inputStyle==='typing'?typingPower(state)*TYPING_REWARD.character:handPower(state), 2)}文字 / ${state.inputStyle==='typing'?'正解キー':'クリック'}`;
   $('royalty').innerHTML = `${yen(netRoyaltyRate(state))}<em> / 秒</em>`;
   const selling = state.catalog.filter(p => p.active !== false && titleSalesRate(p) > .01).length;
   $('published-count').textContent = selling ? `${selling}作品を販売中 · 現在の受取` : state.catalog.length ? '現在、ゲームの売上なし' : 'まだ、最初の一歩。';
@@ -1020,8 +1050,11 @@ document.addEventListener('click', async event => {
   if(b.dataset.workTask && !blocked && !paused){state.workTask=b.dataset.workTask;state.typing.context='';dirty=true;render();focusTypingInput();}
   if (b.dataset.inputStyle && !blocked) {
     if(state.mode==='work' && state.workTask==='correction')state.typing.context='';
-    state.inputStyle = b.dataset.inputStyle; lastEditorKey = ''; render();
+    state.inputStyle = b.dataset.inputStyle; if(state.mode==='dev')state.devStyle='typing'; dirty=true; lastEditorKey = ''; render();
     focusTypingInput();
+  }
+  if (b.dataset.devStyle === 'quiz' && !blocked && !paused && state.mode==='dev') {
+    state.devStyle='quiz'; selectQuizSubject(); dirty=true; render(); save();
   }
   if (b.dataset.studyStyle && !blocked) {
     const next=b.dataset.studyStyle;
@@ -1059,6 +1092,7 @@ for (const type of ['keydown', 'keyup']) $('type-button').addEventListener(type,
   if (state.inputStyle === 'click' && (event.key === 'Enter' || event.key === ' ')) event.preventDefault();
 });
 function processTypingInput({ countErrors = true, rewardScale = 1 } = {}) {
+  if (quizEligible(state)) return;
   if (blocked || paused || $('modal').open || view !== 'workspace' || state.inputStyle !== 'typing' || state.mode==='dev' && state.planner?.active && state.planner.allocation==='assets' && !state.refactor) return;
   if (state.mode === 'study' && (!hasStudyMaterial(state) || ['reading','quiz'].includes(state.studyStyle))) return;
   if(state.mode==='work' && state.workTask!=='correction' && availableOfficeWork(state)<=0)return;
