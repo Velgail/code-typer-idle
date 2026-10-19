@@ -25,6 +25,7 @@ await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const url=`http://127.0.0.1:${server.address().port}${prefix}`;
 const browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH || (existsSync('/usr/bin/chromium')?'/usr/bin/chromium':undefined),args:['--no-sandbox']});
 const selected=process.argv.find(a=>a.startsWith('--language='))?.split('=')[1];
+const firstProjectOnly=process.argv.includes('--first-project-only');
 const languages=selected?[selected]:['cpp','csharp','rust','go','python','java','sql','lua'];
 const results=[];
 try{
@@ -33,8 +34,9 @@ try{
     const errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(url+'quiz-proof.html');
     console.log(`Checking ${language} reference implementations…`);
-    const report=await page.evaluate(async({language,id,base})=>{
+    const report=await page.evaluate(async({language,id,base,firstProjectOnly})=>{
       const {quizCatalog}=await import(base+`build/quizcatalog.${id}.js`);
+      const {firstProjectQuizCatalog}=await import(base+`build/firstproject.${id}.js`);
       const {compareQuizOutput}=await import(base+`build/quizrunner.${id}.js`);
       const worker=new Worker(base+`build/quizworker.${id}.js`,{type:'module'});
       const send=(message,expectedType,timeout=30000)=>new Promise((resolve,reject)=>{
@@ -51,7 +53,7 @@ try{
       const start=performance.now();
       await send({type:'initialize',language},'ready',300000);
       const loadMs=performance.now()-start;
-      const questions=quizCatalog().filter(q=>q.language===language);
+      const questions=(firstProjectOnly?firstProjectQuizCatalog():[...quizCatalog(),...firstProjectQuizCatalog()]).filter(q=>q.language===language);
       const rows=[];
       for(const q of questions){
         const harness=q.createHarness(q.referenceSource),at=performance.now();
@@ -65,7 +67,7 @@ try{
       const broken=await send({type:'execute',source:language==='sql'?'SELECT ???':harness.source+'\n@ syntax invalid ###'},'result');
       worker.terminate();
       return {language,loadMs:Math.round(loadMs),crossOriginIsolated,referenceCount:rows.length,caseCount:rows.reduce((n,r)=>n+r.cases,0),passed:rows.filter(r=>r.passed).length,wrongRejected,syntaxRejected:!!broken.error,rows};
-    },{language,id:release.id,base:url});
+    },{language,id:release.id,base:url,firstProjectOnly});
     report.pageErrors=errors;results.push(report);
     await mkdir('work/quiz-validation',{recursive:true});
     await writeFile(`work/quiz-validation/${language}.json`,JSON.stringify(report,null,2)+'\n');
@@ -73,10 +75,10 @@ try{
     for(const failed of report.rows.filter(r=>!r.passed).slice(0,5))console.log(JSON.stringify(failed).slice(0,2000));
     await context.close();
   }
-  const evidence={version:release.version,build:release.id,browser:browser.version(),transport:'ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath',results};
+  const evidence={version:release.version,build:release.id,browser:browser.version(),selection:firstProjectOnly?'first project only':'general and first project',transport:'ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath',results};
   await mkdir('work/quiz-validation',{recursive:true});await writeFile('work/quiz-validation/results.json',JSON.stringify(evidence,null,2)+'\n');
   for(const result of results){
-    assert.equal(result.referenceCount,64,result.language+' coverage');
+    assert.equal(result.referenceCount,firstProjectOnly?3:67,result.language+' coverage');
     assert.equal(result.passed,result.referenceCount,result.language+' reference implementations');
     assert.ok(result.wrongRejected,result.language+' wrong answer');assert.ok(result.syntaxRejected,result.language+' syntax error');assert.deepEqual(result.pageErrors,[],result.language+' page errors');
   }

@@ -6,7 +6,7 @@ import {
   buy, input, tick, release, prestige, prestigePreview, applyOffline,
   projectAccess, projectExperience, selectProject, salesForecast, titleSalesRate, remainingSales, availableOfficeWork, shopUnlocked,
   developmentReadiness, learningGoal, readingLesson, nextReading, answerReading, READING_UNITS,
-  quizLesson, nextQuiz, setQuizDraft, completeQuiz, quizRewardPreview, quizEligible, quizContextKey,
+  quizLesson, nextQuiz, setQuizDraft, completeQuiz, quizRewardPreview, quizEligible, quizContextKey, firstProjectQuizMode,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
   productionOptions, productionCost, orderProduction,
@@ -23,6 +23,7 @@ import { learningGuide } from './learningguide.js';
 import { PLANNING_CATALOG } from './planningcatalog.js';
 import { amendPlan } from './planning.js';
 import { quizAt, QUIZ_TOPICS_PER_SUBJECT } from './quizcatalog.js';
+import { FIRST_PROJECT_PARTS } from './firstproject.js';
 import { QuizRunner } from './quizrunner.js';
 import { renderQuizUI } from './quizui.js';
 
@@ -106,9 +107,10 @@ let courseLoading;
 let legacyCourseLoading;
 const quizRunner = new QuizRunner();
 let quizRun = 0, quizOwner = null, quizContext = '', quizResult = null, quizRunning = false, quizProgress = '';
-const activeQuiz = () => view === 'workspace' && quizEligible(state) && hasStudyMaterial(state);
+const activeQuiz = () => view === 'workspace' && quizEligible(state) && hasStudyMaterial(state,quizLesson(state).subject);
 function cancelQuiz() { quizRun++; quizRunner.cancel(); quizRunning = false; quizProgress = ''; }
 function syncQuizContext() {
+  if (firstProjectQuizMode(state)) state.subject='syntax';
   const key = activeQuiz() ? quizContextKey(state) : '';
   if (quizOwner !== state || quizContext !== key) {
     cancelQuiz(); quizOwner = state; quizContext = key; quizResult = null;
@@ -129,7 +131,8 @@ async function submitQuiz(source) {
     quizResult.reward = reward;
     if (reward.kind === 'correct') {
       const gains = [reward.amount > 0 && `理解度 +${format(reward.amount, 3)} K`, reward.progress > 0 && `制作 +${format(reward.progress)}文字`, reward.fixed > 0 && `不具合修正 ${format(reward.fixed)}`, reward.debtRemoved > 0 && `整理 ${format(reward.debtRemoved)}`].filter(Boolean);
-      toast(`全件成功！ ${gains.join(' · ')}`); unlock();
+      const part = Number.isInteger(quiz.firstProjectPart) && reward.progress>0 && state.progress>=FIRST_PROJECT_PARTS[quiz.firstProjectPart].end-1e-7 ? FIRST_PROJECT_PARTS[quiz.firstProjectPart] : null;
+      toast(`${part?`${part.title}を組み込みました。`:'全件成功！'} ${gains.join(' · ')}`); unlock();
     }
     dirty = true; save();
   }
@@ -151,8 +154,9 @@ function renderQuiz() {
     }
     reviewLesson = { ...completed, code };
   }
+  const firstBuild = firstProjectQuizMode(state);
   const claims = state.mode==='dev' ? state.quizWork : state.quiz.completed;
-  const topics = Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: claims.includes(q.id) }; });
+  const topics = firstBuild ? FIRST_PROJECT_PARTS.map(part=>({index:part.index,title:part.title,completed:state.progress>=part.end-1e-7})) : Array.from({length: QUIZ_TOPICS_PER_SUBJECT}, (_, index) => { const q = quizAt(state.typing.language, state.subject, index); return { index, title: q.title, completed: claims.includes(q.id) }; });
   const draft = state.quiz.drafts[quiz.id] ?? quiz.starterSource;
   const preview = quizRewardPreview(state, quiz);
   const previous = quizResult?.passed && quizResult.source === draft ? quizResult.reward : null;
@@ -169,14 +173,14 @@ function renderQuiz() {
   const rewardSummary = {
     title: newlyApplicable ? 'この作品へ適用できるもの' : awarded ? '今回の成果' : items.length ? '全件成功で得られるもの' : '獲得済み',
     kind: awarded ? 'awarded' : items.length ? 'preview' : 'claimed',items,
-    note: reward.reason || (items.length ? '学習は各課題の初回のみ。実装・修正への適用は作品ごとに1回。' : 'この課題の報酬は獲得済みです。何度でも解き直せます。')
+    note: reward.reason || (firstBuild && items.length ? 'この部品の動作をテストし、数当てゲームへ組み込みます。' : items.length ? '学習は各課題の初回のみ。実装・修正への適用は作品ごとに1回。' : 'この課題の報酬は獲得済みです。何度でも解き直せます。')
   };
-  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, rewardSummary, referenceAvailable: state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
-    position: `${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題`,
+  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, rewardSummary, referenceAvailable: state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: firstBuild ? quiz.firstProjectPart : state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
+    position: firstBuild ? `組込済み ${topics.filter(q=>q.completed).length} / 3部品` : `${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${QUIZ_TOPICS_PER_SUBJECT}題`,
     onDraft: source => { if (blocked || paused || !activeQuiz()) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
     onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },
-    onNext: () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },
-    onSelect: index => { if (blocked || paused || !Number.isSafeInteger(index) || index<0 || index>=QUIZ_TOPICS_PER_SUBJECT) return; cancelQuiz(); state.quiz.cursors[`${state.typing.language}/${state.subject}`]=index; dirty=true;render();save(); }
+    onNext: firstBuild ? undefined : () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },
+    onSelect: index => { if (blocked || paused || !Number.isSafeInteger(index) || index<0 || index>=(firstBuild?3:QUIZ_TOPICS_PER_SUBJECT)) return; cancelQuiz(); if(firstBuild)state.quiz.firstParts[state.typing.language]=index;else state.quiz.cursors[`${state.typing.language}/${state.subject}`]=index; dirty=true;render();save(); }
   });
 }
 async function loadCourses(forState = state) {
@@ -561,7 +565,7 @@ function renderTask() {
   document.querySelector('.language-label').classList.toggle('hidden', mode === 'work');
   document.querySelector('[data-input-style=typing]').innerHTML = `${mode === 'work' ? '伝票タイピング' : 'コードタイピング'} <small>報酬UP</small>`;
   $('language-select').title = `${language.description} / 全${PROMPT_COUNT.toLocaleString()}問`;
-  $('subject-picker').classList.toggle('hidden', mode !== 'study' && !quiz);
+  $('subject-picker').classList.toggle('hidden', mode !== 'study' && (!quiz || firstProjectQuizMode(state)));
   $('project-progress').classList.toggle('hidden', mode !== 'dev');
   $('build-panel').classList.toggle('hidden', mode !== 'dev');
   $('production-panel').classList.toggle('hidden', mode !== 'dev' || !productionOptions(state).length);

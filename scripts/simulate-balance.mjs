@@ -104,7 +104,7 @@ function investmentQuotes(state, index, scenario, models, { ocr, reuse, paybackT
   }).filter(quote => quote.savedSeconds > 0 && quote.payback <= paybackTitles).sort((a, b) => a.payback - b.payback);
 }
 
-export function simulate(scenario, { horizon = 90 * 86400, stopAfter = Infinity, maxRuns = 40, repeats = true, ocr = false, office = ocr, onlineMaterials = true, policy = 'steady', maintenance = true, reuse = true, outsource = false, paybackTitles = 3, onEvent = null } = {}) {
+export function simulate(scenario, { horizon = 90 * 86400, stopAfter = Infinity, maxRuns = 40, repeats = true, ocr = false, office = ocr, onlineMaterials = true, policy = 'steady', maintenance = true, reuse = true, outsource = false, paybackTitles = 3, onEvent = null, onBeforeInput = null } = {}) {
   let state = game.createState(0), time = 0, nextDecision = 0, stage = null, fundingFor = null;
   game.setDevelopmentPolicy(state, policy);
   const milestones = [], prestiges = [], stages = [], runs = [], purchaseHistory = [], materialsOpened = [], modes = emptyModes(), income = emptyIncome();
@@ -234,6 +234,7 @@ export function simulate(scenario, { horizon = 90 * 86400, stopAfter = Infinity,
         const correction = state.workTask === 'correction' ? nextOCRError(state.ocr) : null;
         const model = correction ? manualInputModel(scenario, 'work', { workLength: correction.correctValue.length }) : models[state.mode];
         const before = snapshot(state), power = scenario.typing ? game.typingPower(state) : game.handPower(state);
+        onBeforeInput?.(state, { seconds: time, activeSeconds, run: runNumber() });
         const result = game.input(state, { chars: power * model.unitsPerSecond });
         outputSince(state, currentStage.output, 'manual', before);
         if (state.mode === 'work') {

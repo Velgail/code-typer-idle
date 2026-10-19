@@ -4,6 +4,7 @@ import { createState, openOnlineMaterial, quizLesson, nextQuiz, setQuizDraft, co
 import * as game from '../src/core.js';
 import { lessonAt } from '../src/curriculum.js';
 import { TYPING_REWARD, typingCompletionMultiplier, typingKeystrokes } from '../src/typing.js';
+import { FIRST_PROJECT_PARTS, FIRST_PROJECT_LANGUAGES, firstProjectQuizAt, firstProjectQuizCatalog } from '../src/firstproject.js';
 
 const copy=value=>structuredClone(value);
 const near=(actual,expected,message)=>assert.ok(Math.abs(actual-expected)<=Math.max(1,Math.abs(actual),Math.abs(expected))*1e-9,message || `${actual} != ${expected}`);
@@ -25,6 +26,182 @@ function begin(s,extra={}){
   const result=game.startCustomProject(s,puzzle(extra));assert.equal(result.ok,true,result.reason);return result.id;
 }
 function enablePrestige(s){s.runBest=2;s.runExperience[Object.keys(s.experience)[0]]=1;}
+
+test('first-project exercises are exclusive to the first fixed game outside review mode',()=>{
+  const s=study();s.mode='dev';s.devStyle='quiz';assert.equal(game.firstProjectQuizMode(s),true);
+  assert.equal(quizLesson(s).id,firstProjectQuizAt('lua',0).id);
+  for(const mutate of [x=>x.mode='study',x=>x.devStyle='typing',x=>x.projectIndex=1,x=>x.refactor=true]){
+    const other=copy(s);mutate(other);assert.equal(game.firstProjectQuizMode(other),false);assert.equal(quizLesson(other).firstProjectPart,undefined);
+  }
+  begin(s);assert.equal(game.firstProjectQuizMode(s),false);assert.equal(quizLesson(s).firstProjectPart,undefined);
+});
+
+test('first-project part boundaries tolerate floating point residue without changing saved progress',()=>{
+  const s=createState(0);
+  for(const [progress,index] of [[-1,0],[0,0],[999.9,0],[1000-5e-8,1],[1000,1],[1999.9,1],[2000,2],[2999.9,2],[3000,2]]){
+    s.progress=progress;assert.equal(game.firstProjectPart(s).index,index,String(progress));assert.equal(s.progress,progress);
+  }
+});
+
+test('a generic learning exercise unlocks three separate components instead of finishing the first game',()=>{
+  const s=study(),generic=rewarded(s);assert.ok(game.skillKnowledge(s,'syntax')>=12);assert.equal(s.progress,0);
+  s.mode='dev';s.devStyle='quiz';assert.notEqual(quizLesson(s).id,generic.id);assert.equal(quizLesson(s).firstProjectPart,0);
+  assert.equal(completeQuiz(s,generic.id).kind,'none','the old study answer cannot complete an unrelated project component');
+  for(const part of FIRST_PROJECT_PARTS){
+    const q=quizLesson(s);assert.equal(q.firstProjectPart,part.index);
+    const before=s.progress,units=typingKeystrokes(q.rewardSource)*16*4*game.typingPower(s,'study','syntax');
+    const preview=game.quizRewardPreview(s),r=completeQuiz(s,q.id);
+    assert.deepEqual(r,preview);near(r.studyUnits,units);assert.equal(s.progress,part.end);near(r.progress,part.end-before);
+    for(const language of FIRST_PROJECT_LANGUAGES)assert.equal(s.quiz.firstParts[language],Math.min(2,part.index+1));
+  }
+  assert.equal(s.progress,3000);assert.equal(quizLesson(s).firstProjectPart,2);assert.equal(s.quizWork.length,3);
+  assert.equal(completeQuiz(s,quizLesson(s).id).implementationUnits,0);assert.equal(s.progress,3000);
+});
+
+test('all eight first-project language routes apply exactly one thousand implementation characters per component',()=>{
+  for(const language of FIRST_PROJECT_LANGUAGES){
+    const s=study(language);expert(s);s.mode='dev';s.devStyle='quiz';
+    for(const part of FIRST_PROJECT_PARTS){
+      const q=quizLesson(s),r=completeQuiz(s,q.id);
+      assert.equal(q.firstProjectPart,part.index,language);assert.equal(r.progress,1000,`${language}/${part.index}`);
+      assert.equal(s.progress,part.end,language);assert.equal(s.stats.valid,part.end,language);
+    }
+  }
+});
+
+test('all eight fresh direct implementation routes assemble the first game with staged knowledge and unchanged four-copy learning rewards',()=>{
+  for(const language of FIRST_PROJECT_LANGUAGES){
+    const s=study(language);s.mode='dev';s.devStyle='quiz';
+    assert.equal(s.skills.syntax,0);assert.equal(s.cash,100);assert.deepEqual(s.items,{});
+    for(const part of FIRST_PROJECT_PARTS){
+      assert.equal(game.currentProject(s).req.syntax,(part.index+1)*4,`${language}/${part.index} requirement`);
+      const q=quizLesson(s),units=typingKeystrokes(q.rewardSource)*16*4*game.typingPower(s,'study','syntax');
+      const gain=game.studyGain(s,units,'syntax'),preview=game.quizRewardPreview(s),r=completeQuiz(s,q.id);
+      assert.deepEqual(r,preview);near(r.studyUnits,units,language);near(r.learned,gain,language);
+      assert.equal(r.progress,1000,`${language}/${part.index} progress`);assert.equal(s.progress,part.end,language);
+      assert.ok(game.skillKnowledge(s,'syntax')>=(part.index+1)*4,`${language}/${part.index} learned knowledge`);
+    }
+    assert.equal(s.progress,3000,language);assert.ok(game.skillKnowledge(s,'syntax')>=12,language);
+    assert.equal(game.currentProject(s).req.syntax,12);assert.equal(s.stats.manual,0);assert.equal(s.cash,100);assert.deepEqual(s.items,{});
+  }
+});
+
+test('staged first-game requirements depend on actual progress and preserve the full requirement in other modes',()=>{
+  const s=study();s.mode='dev';s.devStyle='quiz';
+  for(const [progress,expected] of [[0,4],[750,4],[1000,8],[1750,8],[2000,12],[3000,12]]){
+    s.progress=progress;s.quiz.firstParts.lua=2;
+    assert.equal(game.currentProject(s).req.syntax,expected,'selecting a future task cannot change the current requirement');
+    for(const mutate of [x=>x.mode='study',x=>{x.devStyle='typing';x.inputStyle='typing';},x=>{x.devStyle='typing';x.inputStyle='click';},x=>x.refactor=true]){
+      const other=copy(s);mutate(other);assert.equal(game.currentProject(other).req.syntax,12);assert.equal(other.progress,progress);
+    }
+  }
+  assert.deepEqual(game.projectAt(0).req,{syntax:12},'the shared project definition is never rewritten');
+  begin(s);const requirements=copy(game.currentProject(s).req);s.devStyle='typing';assert.deepEqual(game.currentProject(s).req,requirements);
+  s.devStyle='quiz';assert.deepEqual(game.currentProject(s).req,requirements,'a custom project retains its own requirements');
+});
+
+test('switching away from staged implementation can change validity without removing already assembled code',()=>{
+  const s=study();s.mode='dev';s.devStyle='quiz';s.skills.syntax=5;s.progress=500;
+  assert.equal(game.knowledgeRatio(s),1.25);assert.equal(game.validity(s),1);
+  const before={progress:s.progress,debt:s.debt,defects:s.defects,valid:s.stats.valid};
+  s.devStyle='typing';assert.equal(game.currentProject(s).req.syntax,12);assert.equal(game.validity(s),0);
+  assert.deepEqual({progress:s.progress,debt:s.debt,defects:s.defects,valid:s.stats.valid},before);
+  s.devStyle='quiz';assert.equal(game.currentProject(s).req.syntax,4);assert.equal(game.validity(s),1);
+  assert.deepEqual({progress:s.progress,debt:s.debt,defects:s.defects,valid:s.stats.valid},before);
+});
+
+test('large automatic batches stop at a staged component and reevaluate incomplete knowledge on the next batch',()=>{
+  const s=study();s.mode='dev';s.devStyle='quiz';s.skills.syntax=5;s.items={library:5,assistant:3,ide:5};
+  assert.equal(game.currentProject(s).req.syntax,4);assert.equal(game.validity(s),1);
+  game.input(s,{mode:'dev',chars:100000,manual:false,automation:true});
+  assert.equal(s.progress,1000);assert.equal(game.currentProject(s).req.syntax,8);assert.equal(game.knowledgeRatio(s),5/8);assert.equal(game.validity(s),.25);
+  const expected=game.developmentGain(s,100,false),before=s.progress,defects=s.defects;
+  const second=game.input(s,{mode:'dev',chars:100,manual:false,automation:true});
+  assert.equal(second.kind,'defect');near(s.progress-before,expected);assert.ok(s.progress<2000);assert.ok(s.defects>defects);
+});
+
+test('fully understood automatic batches complete at most one staged component each',()=>{
+  const s=study();s.mode='dev';s.devStyle='quiz';s.skills.syntax=12;s.items={library:5,assistant:3,ide:5};
+  for(const part of FIRST_PROJECT_PARTS){
+    game.input(s,{mode:'dev',chars:100000,manual:false,automation:true});
+    assert.equal(s.progress,part.end);assert.equal(s.stats.valid,part.end);assert.equal(s.crashed,false);
+  }
+  assert.equal(s.progress,3000);assert.equal(game.currentProject(s).req.syntax,12);
+});
+
+test('ordinary development and development overrides outside the staged mode keep their original batch size',()=>{
+  for(const arrange of [
+    s=>{s.devStyle='typing';s.inputStyle='typing';},
+    s=>{s.devStyle='typing';s.inputStyle='click';},
+    s=>s.mode='study',
+    s=>s.mode='work'
+  ]){
+    const s=study();s.mode='dev';s.devStyle='quiz';s.skills.syntax=12;s.items={library:5,assistant:3};arrange(s);
+    game.input(s,{mode:'dev',chars:100000,manual:false,automation:true});assert.equal(s.progress,3000);
+  }
+  const explicit=study();expert(explicit);explicit.mode='dev';explicit.devStyle='quiz';
+  game.input(explicit,{mode:'dev',chars:100000,manual:false,automation:true,progressLimit:400});assert.equal(explicit.progress,400,'an explicit smaller limit is still respected');
+});
+
+test('future and past components may teach once but cannot create work outside their own interval',()=>{
+  const s=study();expert(s);s.mode='dev';s.devStyle='quiz';s.quiz.firstParts.lua=2;
+  const future=quizLesson(s),r=completeQuiz(s,future.id);assert.ok(r.studyUnits>0);assert.equal(r.progress,0);assert.ok(r.reason);assert.deepEqual(s.quizWork,[]);
+  s.quiz.firstParts.lua=0;const first=quizLesson(s);assert.equal(completeQuiz(s,first.id).progress,1000);
+  s.typing.language='cpp';assert.equal(quizLesson(s).firstProjectPart,1,'language switches follow the current unfinished component');
+  s.quiz.firstParts.cpp=0;const past=quizLesson(s),pastResult=completeQuiz(s,past.id);
+  assert.ok(pastResult.studyUnits>0);assert.equal(pastResult.progress,0);assert.ok(pastResult.reason);assert.equal(s.progress,1000);
+  assert.equal(s.quizWork.includes(past.id),false,'the blocked claim was not spent');
+  s.typing.language='lua';assert.equal(quizLesson(s).firstProjectPart,1);assert.equal(completeQuiz(s,quizLesson(s).id).progress,1000);
+  assert.equal(quizLesson(s).id,future.id);const last=completeQuiz(s,future.id);
+  assert.equal(last.studyUnits,0);assert.equal(last.progress,1000,'previously solved future work becomes applicable when its turn arrives');
+});
+
+test('first-project part selection is independent from generic study cursors and next stops at the last component',()=>{
+  const s=study();s.quiz.cursors['lua/syntax']=7;s.mode='dev';s.devStyle='quiz';
+  assert.equal(quizLesson(s).firstProjectPart,0);nextQuiz(s);assert.equal(quizLesson(s).firstProjectPart,1);
+  nextQuiz(s);nextQuiz(s);assert.equal(quizLesson(s).firstProjectPart,2);assert.equal(s.quiz.cursors['lua/syntax'],7);
+  s.mode='study';assert.equal(quizLesson(s).index,7);nextQuiz(s);assert.equal(quizLesson(s).index,8);assert.equal(s.quiz.firstParts.lua,2);
+});
+
+test('the implementation limit is applied before debt, defects and build changes and does not cap ordinary work',()=>{
+  const s=development();s.projectIndex=0;const capped=copy(s),expected=copy(s),ordinary=copy(s);
+  ordinary.devStyle='typing';
+  const needed=1000/(game.abstraction(s)*game.ideMultiplier(s));
+  game.input(expected,{mode:'dev',chars:needed,manual:true,countManual:false});
+  game.input(capped,{mode:'dev',chars:1e6,manual:true,countManual:false,progressLimit:1000});
+  game.input(ordinary,{mode:'dev',chars:1e6,manual:true,countManual:false});
+  assert.equal(capped.progress,1000);near(capped.debt,expected.debt);near(capped.defects,expected.defects);
+  assert.deepEqual(capped.build,expected.build);assert.equal(capped.stats.valid,expected.stats.valid);assert.equal(ordinary.progress,3000);
+  const before=copy(capped);game.input(capped,{mode:'dev',chars:1e6,manual:true,countManual:false,progressLimit:1000});
+  assert.equal(capped.progress,1000);assert.equal(capped.debt,before.debt);assert.equal(capped.defects,before.defects);assert.deepEqual(capped.build,before.build);
+});
+
+test('first-project IDs, drafts, reward claims and safe part selections survive reload',()=>{
+  const s=study();expert(s);s.mode='dev';s.devStyle='quiz';const q=quizLesson(s);setQuizDraft(s,q.referenceSource);completeQuiz(s,q.id);
+  s.quiz.firstParts={lua:1,python:2,cpp:3,rust:1.5,sql:'1',unknown:0};s.quizWork.push(q.id,'unknown');
+  const loaded=deserialize(serialize(s,0));assert.equal(loaded.progress,1000);assert.deepEqual(loaded.quiz.firstParts,{python:2,lua:1});
+  assert.deepEqual(loaded.quiz.completed,[q.id]);assert.deepEqual(loaded.quiz.rewarded,[q.id]);assert.deepEqual(loaded.quizWork,[q.id]);
+  assert.equal(loaded.quiz.drafts[q.id],q.referenceSource);assert.equal(quizLesson(loaded).firstProjectPart,1);
+  const catalog=firstProjectQuizCatalog();s.quiz.completed=catalog.map(row=>row.id);s.quiz.rewarded=[...s.quiz.completed];s.quizWork=[...s.quiz.completed];
+  const all=deserialize(serialize(s,0));assert.equal(all.quiz.completed.length,24);assert.equal(all.quiz.rewarded.length,24);assert.equal(all.quizWork.length,24);
+});
+
+test('old saves keep their first-game progress and resume the corresponding component with empty new records',()=>{
+  for(const progress of [0,750,1000,1750,2000,3000]){
+    const old=study();expert(old);old.mode='dev';old.devStyle='quiz';old.progress=progress;old.balanceVersion=19;delete old.quiz.firstParts;
+    const loaded=deserialize(JSON.stringify(old));assert.equal(loaded.progress,progress);assert.deepEqual(loaded.quiz.firstParts,{});
+    assert.deepEqual(loaded.quizWork,[]);assert.equal(quizLesson(loaded).firstProjectPart,Math.min(2,Math.floor(progress/1000)));
+    if(progress<3000){const r=completeQuiz(loaded,quizLesson(loaded).id);assert.equal(loaded.progress,progress<1000?1000:progress<2000?2000:3000);assert.ok(r.progress<=1000);}
+  }
+});
+
+test('first-game component claims stay with their paused work and a newly selected first game starts at its first part',()=>{
+  const s=study();expert(s);s.mode='dev';s.devStyle='quiz';const q=quizLesson(s);completeQuiz(s,q.id);
+  const firstClaims=copy(s.quizWork);begin(s);assert.deepEqual(s.quizWork,[]);assert.equal(game.firstProjectQuizMode(s),false);
+  assert.equal(game.pauseCustomProject(s),true);assert.equal(s.progress,1000);assert.deepEqual(s.quizWork,firstClaims);assert.equal(quizLesson(s).firstProjectPart,1);
+  const fresh=study();expert(fresh);fresh.mode='dev';fresh.devStyle='quiz';fresh.projectIndex=1;fresh.quiz.firstParts.lua=2;
+  assert.equal(game.selectProject(fresh,0),true);assert.deepEqual(fresh.quiz.firstParts,{});assert.equal(quizLesson(fresh).firstProjectPart,0);
+});
 
 test('learning gives four perfect copies of the canonical topic, using study equipment power in either mode',()=>{
   assert.equal(game.QUIZ_STUDY_MULTIPLIER,4);assert.equal(game.QUIZ_IMPLEMENTATION_MULTIPLIER,2);assert.equal(game.QUIZ_VERIFICATION_MULTIPLIER,3);
@@ -97,7 +274,7 @@ test('an implementation blocked by incomplete knowledge can be retried later wit
 test('access, subject, completed work and a failing build do not spend the implementation claim',()=>{
   const fixtures=[
     ['access',s=>{s.projectIndex=4;s.legacyPermit=-1;}],
-    ['unrelated subject',s=>{s.projectIndex=0;s.subject='graphics';openOnlineMaterial(s,'graphics');rewarded(s);}],
+    ['unrelated subject',s=>{s.projectIndex=1;s.subject='systems';openOnlineMaterial(s,'systems');rewarded(s);}],
     ['completed work',s=>{s.progress=game.currentProject(s).target;}],
     ['failing build',s=>{s.crashed=true;}]
   ];
@@ -148,7 +325,7 @@ test('code application preserves material supplier bills and cannot buy or finis
 });
 
 test('a fixed-title release opens the next implementation claim without refreshing lifelong learning',()=>{
-  const s=study(),q=rewarded(s);expert(s);s.mode='dev';s.devStyle='quiz';
+  const s=study(),q=rewarded(s);expert(s);s.mode='dev';s.devStyle='quiz';s.projectIndex=1;s.legacyPermit=2;
   const r=completeQuiz(s,q.id);assert.ok(r.progress>0);assert.deepEqual(s.quizWork,[q.id]);
   s.progress=game.currentProject(s).target;s.debt=0;s.defects=0;s.crashed=false;
   assert.ok(game.release(s));assert.deepEqual(s.quizWork,[]);assert.deepEqual(s.quiz.rewarded,[q.id]);
@@ -178,7 +355,7 @@ test('prestige keeps lifelong learning but starts with a fresh implementation cl
 });
 
 test('quiz submission contexts distinguish changes in mode, project, release, repair and allocation',()=>{
-  const s=study(),initial=game.quizContextKey(s),q=quizLesson(s).id;
+  const s=study();s.projectIndex=2;const initial=game.quizContextKey(s),q=quizLesson(s).id;
   s.mode='dev';s.devStyle='quiz';assert.notEqual(game.quizContextKey(s),initial);const dev=game.quizContextKey(s);
   for(const mutate of [x=>x.refactor=true,x=>x.nextTitleId++,x=>x.projectIndex++,x=>x.planner.allocation='assets',x=>x.developmentPolicy='prototype']){
     const changed=copy(s);mutate(changed);assert.equal(quizLesson(changed).id,q);assert.notEqual(game.quizContextKey(changed),dev);
@@ -216,7 +393,7 @@ test('drafts and cursors are independent by language and subject; only recent bo
 });
 
 test('legacy saves default to practice; malformed and unknown quiz data do not enter the save',()=>{
-  const legacy=createState(0);delete legacy.quiz;delete legacy.quizWork;const loaded=deserialize(JSON.stringify(legacy));assert.deepEqual(loaded.quiz,{cursors:{},completed:[],rewarded:[],drafts:{}});assert.deepEqual(loaded.quizWork,[]);
+  const legacy=createState(0);delete legacy.quiz;delete legacy.quizWork;const loaded=deserialize(JSON.stringify(legacy));assert.deepEqual(loaded.quiz,{cursors:{},firstParts:{},completed:[],rewarded:[],drafts:{}});assert.deepEqual(loaded.quizWork,[]);
   const s=createState(0),id=quizLesson(s).id;
   nextQuiz(s);const uncompleted=quizLesson(s).id;
   s.quiz={cursors:{'cpp/syntax':100,'rust/design':3,'unknown/syntax':2},completed:[id,id,'unknown'],rewarded:[id,id,uncompleted,'unknown'],drafts:{[id]:'x'.repeat(24001),unknown:'code'}};

@@ -1,0 +1,1854 @@
+{
+  "schemaVersion": 1,
+  "balanceVersion": 20,
+  "reproduce": "node scripts/analyze-quiz-career.mjs --write",
+  "assumptions": {
+    "baseline": "Unmodified simulate() standard policies for continuous typing 300 physical keys/min and clicking 8/s. Free online materials, OCR/office disabled, real purchases and prestige, no cash/knowledge/equipment/experience grants.",
+    "observation": "onBeforeInput runs immediately before each actual manual input, after mode/subject/review decisions. It only deep-clones the first eligible state at each stage. The source career is never changed by the observer.",
+    "timing": "Manual input and core time advance in one-second steps. Purchasing, project selection, publication, and prestige decisions run every 15 seconds. Recorded activeSeconds includes the current input second.",
+    "snapshots": "First knowledge-ready implementation state of the first project, first commercial project, funding indie after five prestiges, first 3D, and first AAA. This benchmark follows fixed tutorial projects, not custom plans.",
+    "quizExperiment": "Each experiment uses a deep clone. It changes only UI mode/language/subject/cursor/review choices and calls completeQuiz. No time passes while solving: no extra purchases, sales, automatic implementation, or automatic study are credited.",
+    "learningCounterfactual": "newLearning=false marks general quiz rewarded IDs as already claimed without changing knowledge or equipment. This isolates implementation/repair capacity conservatively; it is not a separately simulated earlier quiz route.",
+    "finiteBank": "General bank has 512 distinct problems; C++ has 64. Only subjects required by the current project are eligible (48 C++/384 all-language problems for indie). Each implementation is used at most once on this project. The first project uses its separate staged part quizzes.",
+    "maintenance": "Use remaining, unclaimed problems for actual review when defect/efficiency thresholds require it, or after implementation completes. A problem cannot be spent on both implementation and review on the same project.",
+    "upperBound": "For steady policy, fixed equipment, sufficient knowledge: characters <= 32 * sum(physical keys) * (handPower * IDE + devCapacity / 160) * abstraction, with abstraction <= 3 and debt efficiency <= 1. This is a bound, not extra granted progress.",
+    "interpretation": "Snapshot question counts are not a full quiz-driven career time. Reading, thinking, editing, compilation, failures, and retries are unmeasured. Quiz reward work is abstract implementation effort, not literal submitted source length."
+  },
+  "firstProjectFreshStart": {
+    "method": "Actual new save, free syntax material opened, no prior study or other input; switch directly to development quizzes.",
+    "initialCash": 100,
+    "initialSyntax": 0,
+    "firstQuestion": {
+      "newLearning": true,
+      "quizId": "first-build/v1/cpp/accept-guess",
+      "physicalKeys": 167,
+      "reward": {
+        "kind": "correct",
+        "amount": 12.37351865121917,
+        "learned": 12.37351865121917,
+        "verified": 0,
+        "progress": 1000,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 10688,
+        "implementationUnits": 5344,
+        "reason": ""
+      },
+      "progressPercent": 33.33333333333333,
+      "finalDebt": 45,
+      "finalDefects": 6
+    },
+    "parts": {
+      "bank": "first-project-parts",
+      "steps": [
+        {
+          "quizId": "first-build/v1/cpp/accept-guess",
+          "progress": 1000,
+          "knowledge": 12.37351865121917,
+          "reward": {
+            "kind": "correct",
+            "amount": 12.37351865121917,
+            "learned": 12.37351865121917,
+            "verified": 0,
+            "progress": 1000,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 10688,
+            "implementationUnits": 5344,
+            "reason": ""
+          }
+        },
+        {
+          "quizId": "first-build/v1/cpp/compare-guess",
+          "progress": 2000,
+          "knowledge": 18.967994481273443,
+          "reward": {
+            "kind": "correct",
+            "amount": 6.594475830054273,
+            "learned": 6.594475830054273,
+            "verified": 0,
+            "progress": 1000,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 12608,
+            "implementationUnits": 6304,
+            "reason": ""
+          }
+        },
+        {
+          "quizId": "first-build/v1/cpp/round-status",
+          "progress": 3000,
+          "knowledge": 26.10785636318562,
+          "reward": {
+            "kind": "correct",
+            "amount": 7.139861881912175,
+            "learned": 7.139861881912175,
+            "verified": 0,
+            "progress": 1000,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 16384,
+            "implementationUnits": 8192,
+            "reason": ""
+          }
+        }
+      ],
+      "complete": true
+    }
+  },
+  "careers": [
+    {
+      "scenario": {
+        "id": "click",
+        "name": "クリック 8回/秒・連続",
+        "rate": 8,
+        "yield": 1,
+        "returning": false
+      },
+      "baseline": {
+        "status": "aaa",
+        "aaaReached": true,
+        "aaaSeconds": 209235,
+        "elapsedSeconds": 209235,
+        "activeSeconds": 209235,
+        "lives": 15,
+        "publications": 76,
+        "purchaseCount": 187,
+        "minimumCash": 6.150889807147905,
+        "officeWorkShare": 0,
+        "ocr": false,
+        "office": false
+      },
+      "snapshots": [
+        {
+          "key": "first-project",
+          "state": {
+            "seconds": 1260,
+            "activeSeconds": 1261,
+            "run": 1,
+            "projectIndex": 0,
+            "project": "小さな数当てゲーム",
+            "target": 3000,
+            "progress": 0,
+            "cash": 100,
+            "items": {},
+            "experience": {
+              "craft": 0,
+              "design": 0,
+              "audience": 0
+            },
+            "confirmedKnowledge": {
+              "syntax": 12.01367650780929,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 0,
+            "defects": 0,
+            "devCapacity": 0,
+            "handPower": 1,
+            "ideMultiplier": 1,
+            "devTypingPower": 1,
+            "abstraction": 1.0003419126952322,
+            "developmentEfficiency": 1,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 0,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "first-build/v1/cpp/accept-guess",
+            "physicalKeys": 167,
+            "reward": {
+              "kind": "correct",
+              "amount": 5.734903378018057,
+              "learned": 5.734903378018057,
+              "verified": 0,
+              "progress": 1000,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 10688,
+              "implementationUnits": 5344,
+              "reason": ""
+            },
+            "progressPercent": 33.33333333333333,
+            "finalDebt": 45,
+            "finalDefects": 6
+          },
+          "firstProjectParts": {
+            "bank": "first-project-parts",
+            "steps": [
+              {
+                "quizId": "first-build/v1/cpp/accept-guess",
+                "progress": 1000,
+                "knowledge": 17.748579885827347,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 5.734903378018057,
+                  "learned": 5.734903378018057,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 10688,
+                  "implementationUnits": 5344,
+                  "reason": ""
+                }
+              },
+              {
+                "quizId": "first-build/v1/cpp/compare-guess",
+                "progress": 2000,
+                "knowledge": 23.491394160350644,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 5.7428142745232975,
+                  "learned": 5.7428142745232975,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 12608,
+                  "implementationUnits": 6304,
+                  "reason": ""
+                }
+              },
+              {
+                "quizId": "first-build/v1/cpp/round-status",
+                "progress": 3000,
+                "knowledge": 30.040339912981647,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 6.548945752631003,
+                  "learned": 6.548945752631003,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 16384,
+                  "implementationUnits": 8192,
+                  "reason": ""
+                }
+              }
+            ],
+            "complete": true
+          }
+        },
+        {
+          "key": "first-commercial",
+          "state": {
+            "seconds": 22575,
+            "activeSeconds": 22576,
+            "run": 2,
+            "projectIndex": 2,
+            "project": "雨のダンジョン",
+            "target": 60000,
+            "progress": 0,
+            "cash": 100,
+            "items": {},
+            "experience": {
+              "craft": 5,
+              "design": 2,
+              "audience": 1
+            },
+            "confirmedKnowledge": {
+              "syntax": 60.00710936023151,
+              "design": 35.04218267786835,
+              "graphics": 30.00202395419757,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 0,
+            "defects": 0,
+            "devCapacity": 0,
+            "handPower": 1.7826237921249264,
+            "ideMultiplier": 1,
+            "devTypingPower": 1.7826237921249264,
+            "abstraction": 1.0000202395419757,
+            "developmentEfficiency": 1,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 0,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 7.300331431349747,
+              "learned": 7.300331431349747,
+              "verified": 0,
+              "progress": 14090.143625237008,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 28179.716905910835,
+              "implementationUnits": 14089.858452955417,
+              "reason": ""
+            },
+            "progressPercent": 23.483572708728346,
+            "finalDebt": 379.9256175385309,
+            "finalDefects": 84.54086175142204
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 48,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 434.54698581308946,
+              "debtRemoved": 1910.302548363424,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1910.302548363424,
+                "defects": 434.54698581308946
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 48,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 37.28301627113608,
+              "verified": 0,
+              "fixed": 434.54698581308946,
+              "debtRemoved": 1910.302548363424,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1910.302548363424,
+                "defects": 434.54698581308946
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 384,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 434.54698581308946,
+              "debtRemoved": 1910.302548363424,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1910.302548363424,
+                "defects": 434.54698581308946
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 384,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 37.28301627113608,
+              "verified": 0,
+              "fixed": 434.54698581308946,
+              "debtRemoved": 1910.302548363424,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1910.302548363424,
+                "defects": 434.54698581308946
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "funding-indie",
+          "state": {
+            "seconds": 38850,
+            "activeSeconds": 38851,
+            "run": 6,
+            "projectIndex": 2,
+            "project": "雨のダンジョン",
+            "target": 60000,
+            "progress": 0,
+            "cash": 4600,
+            "items": {
+              "library": 1,
+              "keyboard": 1
+            },
+            "experience": {
+              "craft": 29,
+              "design": 22,
+              "audience": 25
+            },
+            "confirmedKnowledge": {
+              "syntax": 75.00710936023151,
+              "design": 43.79218267786835,
+              "graphics": 37.50202395419757,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 317.6071911451502,
+            "defects": 0,
+            "devCapacity": 5.769615364994152,
+            "handPower": 3.606009603121345,
+            "ideMultiplier": 1,
+            "devTypingPower": 3.6420696991525587,
+            "abstraction": 1.0750202395419757,
+            "developmentEfficiency": 0.9871474956649929,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 2,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 13.050446417837037,
+              "learned": 13.050446417837037,
+              "verified": 0,
+              "progress": 30548.780165526914,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 57003.799806142226,
+              "implementationUnits": 28786.918902101825,
+              "reason": ""
+            },
+            "progressPercent": 50.91463360921152,
+            "finalDebt": 842.5792340151429,
+            "finalDefects": 195.50178833236004
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 48,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 415.9886825278407,
+              "debtRemoved": 1465.0085325135553,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1465.0085325135553,
+                "defects": 415.9886825278407
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 48,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 46.97018695183354,
+              "verified": 0,
+              "fixed": 415.9886825278407,
+              "debtRemoved": 1465.0085325135553,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1465.0085325135553,
+                "defects": 415.9886825278407
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 384,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 415.9886825278407,
+              "debtRemoved": 1465.0085325135553,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1465.0085325135553,
+                "defects": 415.9886825278407
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 384,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 46.97018695183354,
+              "verified": 0,
+              "fixed": 415.9886825278407,
+              "debtRemoved": 1465.0085325135553,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1465.0085325135553,
+                "defects": 415.9886825278407
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "first-3d",
+          "state": {
+            "seconds": 87705,
+            "activeSeconds": 87706,
+            "run": 6,
+            "projectIndex": 3,
+            "project": "軌道上の街",
+            "target": 2500000,
+            "progress": 0,
+            "cash": 4431.473778484548,
+            "items": {
+              "library": 3,
+              "keyboard": 3,
+              "assistant": 1,
+              "ide": 1,
+              "engineer": 1,
+              "book-syntax": 3,
+              "lab": 3,
+              "monitor": 2,
+              "book-design": 2,
+              "book-graphics": 1
+            },
+            "experience": {
+              "craft": 29,
+              "design": 22,
+              "audience": 25
+            },
+            "confirmedKnowledge": {
+              "syntax": 550.0176095244155,
+              "design": 700.0027648215444,
+              "graphics": 600.0622723539947,
+              "systems": 300.00588732060766
+            },
+            "studyGaps": {
+              "syntax": 0.26692819521200517,
+              "design": 0.04906922471984804,
+              "graphics": 0,
+              "systems": 0.006691500520438069
+            },
+            "debt": 701.1040913680861,
+            "defects": 0,
+            "devCapacity": 268.6332913941277,
+            "handPower": 5.048413444369883,
+            "ideMultiplier": 1.35,
+            "devTypingPower": 6.292086089713067,
+            "abstraction": 1.000001184923519,
+            "developmentEfficiency": 0.999166854638091,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 20,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 45.44239070634217,
+              "learned": 45.17546251113016,
+              "verified": 0.26692819521200517,
+              "progress": 67083.21829078112,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 87193.01218347515,
+              "implementationUnits": 49732.64845309208,
+              "reason": ""
+            },
+            "progressPercent": 2.683328731631245,
+            "finalDebt": 1730.3383980487406,
+            "finalDefects": 403.0876632825975
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 64,
+              "attemptedQuestions": 41,
+              "implementationQuestions": 38,
+              "reviewQuestions": 3,
+              "implementationUnits": 2049954.0218791412,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 17115.13681581153,
+              "debtRemoved": 48285.627710391054,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 48285.627710391054,
+                "defects": 17115.13681581153
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 64,
+              "attemptedQuestions": 41,
+              "implementationQuestions": 38,
+              "reviewQuestions": 3,
+              "implementationUnits": 2049954.0218791412,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 1212.546504927697,
+              "verified": 0.3159974199318532,
+              "fixed": 17099.457075777493,
+              "debtRemoved": 47713.88996054935,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 47713.88996054934,
+                "defects": 17099.457075777493
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 512,
+              "attemptedQuestions": 41,
+              "implementationQuestions": 38,
+              "reviewQuestions": 3,
+              "implementationUnits": 2049954.0218791412,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 17115.13681581153,
+              "debtRemoved": 48285.627710391054,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 48285.627710391054,
+                "defects": 17115.13681581153
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 512,
+              "attemptedQuestions": 41,
+              "implementationQuestions": 38,
+              "reviewQuestions": 3,
+              "implementationUnits": 2049954.0218791412,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 1212.546504927697,
+              "verified": 0.3159974199318532,
+              "fixed": 17099.457075777493,
+              "debtRemoved": 47713.88996054935,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 47713.88996054934,
+                "defects": 17099.457075777493
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "first-aaa",
+          "state": {
+            "seconds": 179565,
+            "activeSeconds": 179566,
+            "run": 15,
+            "projectIndex": 4,
+            "project": "NO MAN’S DEADLINE",
+            "target": 620000000,
+            "progress": 0,
+            "cash": 446327.5804106991,
+            "items": {
+              "library": 6,
+              "keyboard": 7,
+              "assistant": 5,
+              "ide": 4,
+              "engineer": 3,
+              "cluster": 1,
+              "lab": 6,
+              "monitor": 7,
+              "book-syntax": 6,
+              "book-design": 5,
+              "book-graphics": 5,
+              "book-systems": 3
+            },
+            "experience": {
+              "craft": 167,
+              "design": 171,
+              "audience": 199
+            },
+            "confirmedKnowledge": {
+              "syntax": 3000.23616873828,
+              "design": 5004.813841679866,
+              "graphics": 4500.018094769862,
+              "systems": 4000.05865275179
+            },
+            "studyGaps": {
+              "syntax": 220.12894156883453,
+              "design": 420.99143560139896,
+              "graphics": 270.9540756332563,
+              "systems": 153.70429636676002
+            },
+            "debt": 14561.861890965949,
+            "defects": 0,
+            "devCapacity": 21246.90415853877,
+            "handPower": 15.188241183945582,
+            "ideMultiplier": 2.4,
+            "devTypingPower": 70.51872076347364,
+            "abstraction": 1.0000012063179908,
+            "developmentEfficiency": 0.9999338296469342,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 58,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 442.4801704206275,
+              "learned": 222.35122885179294,
+              "verified": 220.12894156883453,
+              "progress": 1337625.0221235687,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 322582.4771980113,
+              "implementationUnits": 557379.9689144957,
+              "reason": ""
+            },
+            "progressPercent": 0.21574597131025303,
+            "finalDebt": 26096.321080431127,
+            "finalDefects": 8026.217046215724
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 64,
+              "attemptedQuestions": 64,
+              "implementationQuestions": 64,
+              "reviewQuestions": 0,
+              "implementationUnits": 35543691.863855146,
+              "progress": 85155974.58047602,
+              "progressPercent": 13.734834609754195,
+              "remainingProgress": 534844025.41952395,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "finalDebt": 774635.5452071395,
+              "finalDefects": 513172.00558879744,
+              "crashed": false,
+              "atCodeCompletion": null,
+              "completeAndClean": false,
+              "releaseAcceptedByCore": false
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 64,
+              "attemptedQuestions": 64,
+              "implementationQuestions": 64,
+              "reviewQuestions": 0,
+              "implementationUnits": 35543691.863855146,
+              "progress": 86827140.61162573,
+              "progressPercent": 14.00437751800415,
+              "remainingProgress": 533172859.38837427,
+              "learned": 9086.740531104198,
+              "verified": 1065.7787491702497,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "finalDebt": 786716.5977732611,
+              "finalDefects": 523291.28462191677,
+              "crashed": false,
+              "atCodeCompletion": null,
+              "completeAndClean": false,
+              "releaseAcceptedByCore": false
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 512,
+              "attemptedQuestions": 474,
+              "implementationQuestions": 462,
+              "reviewQuestions": 12,
+              "implementationUnits": 278127567.90469444,
+              "progress": 620000000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 3973803.455895759,
+              "debtRemoved": 6785304.6829932,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 462,
+                "implementationQuestions": 462,
+                "reviewQuestions": 0,
+                "debt": 6785304.6829932,
+                "defects": 3973803.455895759
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 512,
+              "attemptedQuestions": 378,
+              "implementationQuestions": 372,
+              "reviewQuestions": 6,
+              "implementationUnits": 212328872.11437625,
+              "progress": 620000000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 40857.37501239161,
+              "verified": 1065.7787491702497,
+              "fixed": 3970186.341763398,
+              "debtRemoved": 6700445.321636617,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 372,
+                "implementationQuestions": 372,
+                "reviewQuestions": 0,
+                "debt": 6700445.321636616,
+                "defects": 3970186.341763398
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ],
+          "fixedEquipmentBounds": [
+            {
+              "language": "cpp",
+              "questions": 64,
+              "physicalKeys": 15751,
+              "noDebtNoAbstractionBonusCharacters": 85304860.47325236,
+              "maxAbstractionThreeCharacters": 255914581.41975707,
+              "maxPercent": 41.276545390283395
+            },
+            {
+              "language": "all",
+              "questions": 512,
+              "physicalKeys": 129107,
+              "noDebtNoAbstractionBonusCharacters": 699222564.9876319,
+              "maxAbstractionThreeCharacters": 2097667694.9628959,
+              "maxPercent": 338.33349918756386
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": {
+        "id": "typing",
+        "name": "タイピング 300打鍵/分・連続",
+        "rate": 5,
+        "yield": 1,
+        "typing": true,
+        "returning": false
+      },
+      "baseline": {
+        "status": "aaa",
+        "aaaReached": true,
+        "aaaSeconds": 65325,
+        "elapsedSeconds": 65325,
+        "activeSeconds": 65325,
+        "lives": 15,
+        "publications": 78,
+        "purchaseCount": 170,
+        "minimumCash": 3.4371127736703784,
+        "officeWorkShare": 0,
+        "ocr": false,
+        "office": false
+      },
+      "snapshots": [
+        {
+          "key": "first-project",
+          "state": {
+            "seconds": 135,
+            "activeSeconds": 136,
+            "run": 1,
+            "projectIndex": 0,
+            "project": "小さな数当てゲーム",
+            "target": 3000,
+            "progress": 0,
+            "cash": 100,
+            "items": {},
+            "experience": {
+              "craft": 0,
+              "design": 0,
+              "audience": 0
+            },
+            "confirmedKnowledge": {
+              "syntax": 12.439233892987462,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 0,
+            "defects": 0,
+            "devCapacity": 0,
+            "handPower": 1,
+            "ideMultiplier": 1,
+            "devTypingPower": 1,
+            "abstraction": 1.0109808473246866,
+            "developmentEfficiency": 1,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 0,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "first-build/v1/cpp/accept-guess",
+            "physicalKeys": 167,
+            "reward": {
+              "kind": "correct",
+              "amount": 5.660812068306344,
+              "learned": 5.660812068306344,
+              "verified": 0,
+              "progress": 1000,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 10688,
+              "implementationUnits": 5344,
+              "reason": ""
+            },
+            "progressPercent": 33.33333333333333,
+            "finalDebt": 45,
+            "finalDefects": 6
+          },
+          "firstProjectParts": {
+            "bank": "first-project-parts",
+            "steps": [
+              {
+                "quizId": "first-build/v1/cpp/accept-guess",
+                "progress": 1000,
+                "knowledge": 18.100045961293805,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 5.660812068306344,
+                  "learned": 5.660812068306344,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 10688,
+                  "implementationUnits": 5344,
+                  "reason": ""
+                }
+              },
+              {
+                "quizId": "first-build/v1/cpp/compare-guess",
+                "progress": 2000,
+                "knowledge": 23.797406919789275,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 5.697360958495469,
+                  "learned": 5.697360958495469,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 12608,
+                  "implementationUnits": 6304,
+                  "reason": ""
+                }
+              },
+              {
+                "quizId": "first-build/v1/cpp/round-status",
+                "progress": 3000,
+                "knowledge": 30.31121811023798,
+                "reward": {
+                  "kind": "correct",
+                  "amount": 6.513811190448706,
+                  "learned": 6.513811190448706,
+                  "verified": 0,
+                  "progress": 1000,
+                  "fixed": 0,
+                  "debtRemoved": 0,
+                  "studyUnits": 16384,
+                  "implementationUnits": 8192,
+                  "reason": ""
+                }
+              }
+            ],
+            "complete": true
+          }
+        },
+        {
+          "key": "first-commercial",
+          "state": {
+            "seconds": 2295,
+            "activeSeconds": 2296,
+            "run": 2,
+            "projectIndex": 2,
+            "project": "雨のダンジョン",
+            "target": 60000,
+            "progress": 0,
+            "cash": 100,
+            "items": {},
+            "experience": {
+              "craft": 5,
+              "design": 2,
+              "audience": 1
+            },
+            "confirmedKnowledge": {
+              "syntax": 60.01188121580705,
+              "design": 35.72353460754738,
+              "graphics": 30.337460585062047,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 0,
+            "defects": 0,
+            "devCapacity": 0,
+            "handPower": 1.7826237921249264,
+            "ideMultiplier": 1,
+            "devTypingPower": 1.7826237921249264,
+            "abstraction": 1.0000594060790353,
+            "developmentEfficiency": 1,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 0,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 7.300065236340515,
+              "learned": 7.300065236340515,
+              "verified": 0,
+              "progress": 14137.406171725175,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 28179.716905910835,
+              "implementationUnits": 14089.858452955417,
+              "reason": ""
+            },
+            "progressPercent": 23.56234361954196,
+            "finalDebt": 380.5826434086847,
+            "finalDefects": 84.82443703035105
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 48,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 434.38569220630393,
+              "debtRemoved": 1907.1251399139687,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1907.1251399139687,
+                "defects": 434.38569220630393
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 48,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 37.281992062877165,
+              "verified": 0,
+              "fixed": 434.2853663978906,
+              "debtRemoved": 1906.8201023257986,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1906.8201023257986,
+                "defects": 434.2853663978906
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 384,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 434.38569220630393,
+              "debtRemoved": 1907.1251399139687,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1907.1251399139687,
+                "defects": 434.38569220630393
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 384,
+              "attemptedQuestions": 6,
+              "implementationQuestions": 5,
+              "reviewQuestions": 1,
+              "implementationUnits": 79804.50192584872,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 37.281992062877165,
+              "verified": 0,
+              "fixed": 434.2853663978906,
+              "debtRemoved": 1906.8201023257986,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 5,
+                "implementationQuestions": 5,
+                "reviewQuestions": 0,
+                "debt": 1906.8201023257986,
+                "defects": 434.2853663978906
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "funding-indie",
+          "state": {
+            "seconds": 3960,
+            "activeSeconds": 3961,
+            "run": 6,
+            "projectIndex": 2,
+            "project": "雨のダンジョン",
+            "target": 60000,
+            "progress": 0,
+            "cash": 4600,
+            "items": {
+              "library": 1,
+              "keyboard": 1
+            },
+            "experience": {
+              "craft": 29,
+              "design": 22,
+              "audience": 25
+            },
+            "confirmedKnowledge": {
+              "syntax": 75.01188121580705,
+              "design": 44.47353460754738,
+              "graphics": 37.83746058506205,
+              "systems": 0
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 317.08201082929156,
+            "defects": 0,
+            "devCapacity": 5.769615364994152,
+            "handPower": 3.606009603121345,
+            "ideMultiplier": 1,
+            "devTypingPower": 3.6420696991525587,
+            "abstraction": 1.0750594060790353,
+            "developmentEfficiency": 0.9873017462496503,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 2,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 13.050078657166523,
+              "learned": 13.050078657166523,
+              "verified": 0,
+              "progress": 30648.889388155698,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 57003.799806142226,
+              "implementationUnits": 28786.918902101825,
+              "reason": ""
+            },
+            "progressPercent": 51.08148231359283,
+            "finalDebt": 843.3183982152829,
+            "finalDefects": 196.11612886118849
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 48,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 415.87280536489095,
+              "debtRemoved": 1463.4120360541187,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1463.4120360541187,
+                "defects": 415.87280536489095
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 48,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 46.969157085894224,
+              "verified": 0,
+              "fixed": 415.63613881942763,
+              "debtRemoved": 1462.749933610109,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1462.749933610109,
+                "defects": 415.63613881942763
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 384,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 415.87280536489095,
+              "debtRemoved": 1463.4120360541187,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1463.4120360541187,
+                "defects": 415.87280536489095
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 384,
+              "attemptedQuestions": 4,
+              "implementationQuestions": 3,
+              "reviewQuestions": 1,
+              "implementationUnits": 113632.57461355983,
+              "progress": 60000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 46.969157085894224,
+              "verified": 0,
+              "fixed": 415.63613881942763,
+              "debtRemoved": 1462.749933610109,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 3,
+                "implementationQuestions": 3,
+                "reviewQuestions": 0,
+                "debt": 1462.749933610109,
+                "defects": 415.63613881942763
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "first-3d",
+          "state": {
+            "seconds": 14280,
+            "activeSeconds": 14281,
+            "run": 6,
+            "projectIndex": 3,
+            "project": "軌道上の街",
+            "target": 2500000,
+            "progress": 0,
+            "cash": 4211.134775929185,
+            "items": {
+              "library": 3,
+              "keyboard": 3,
+              "assistant": 2,
+              "ide": 1,
+              "engineer": 1,
+              "book-syntax": 3,
+              "monitor": 3,
+              "lab": 3,
+              "book-design": 2,
+              "book-graphics": 2
+            },
+            "experience": {
+              "craft": 29,
+              "design": 22,
+              "audience": 25
+            },
+            "confirmedKnowledge": {
+              "syntax": 550.424508659555,
+              "design": 702.8838858230316,
+              "graphics": 600.5571219975816,
+              "systems": 300.59804811290473
+            },
+            "studyGaps": {
+              "syntax": 0,
+              "design": 0.007650365425703906,
+              "graphics": 0,
+              "systems": 0
+            },
+            "debt": 444.17698382028277,
+            "defects": 0,
+            "devCapacity": 284.7882144161114,
+            "handPower": 5.048413444369883,
+            "ideMultiplier": 1.35,
+            "devTypingPower": 6.366877400000028,
+            "abstraction": 1.000231550177939,
+            "developmentEfficiency": 0.9995527137772929,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 23,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 52.531097854159384,
+              "learned": 52.531097854159384,
+              "verified": 0,
+              "progress": 67925.6574369953,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 87193.01218347515,
+              "implementationUnits": 50323.798969600226,
+              "reason": ""
+            },
+            "progressPercent": 2.717026297479812,
+            "finalDebt": 1474.7937406746737,
+            "finalDefects": 407.88307195019894
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 64,
+              "attemptedQuestions": 40,
+              "implementationQuestions": 38,
+              "reviewQuestions": 2,
+              "implementationUnits": 2029975.9893123247,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 17055.665248204616,
+              "debtRemoved": 47483.70613961775,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 47483.70613961775,
+                "defects": 17055.665248204616
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 64,
+              "attemptedQuestions": 40,
+              "implementationQuestions": 38,
+              "reviewQuestions": 2,
+              "implementationUnits": 2029975.9893123247,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 1448.243817741221,
+              "verified": 0.007650365425703906,
+              "fixed": 17040.713485117907,
+              "debtRemoved": 46930.51689781837,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 46930.51689781837,
+                "defects": 17040.713485117907
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 512,
+              "attemptedQuestions": 40,
+              "implementationQuestions": 38,
+              "reviewQuestions": 2,
+              "implementationUnits": 2029975.9893123247,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 17055.665248204616,
+              "debtRemoved": 47483.70613961775,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 47483.70613961775,
+                "defects": 17055.665248204616
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 512,
+              "attemptedQuestions": 40,
+              "implementationQuestions": 38,
+              "reviewQuestions": 2,
+              "implementationUnits": 2029975.9893123247,
+              "progress": 2500000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 1448.243817741221,
+              "verified": 0.007650365425703906,
+              "fixed": 17040.713485117907,
+              "debtRemoved": 46930.51689781837,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 38,
+                "implementationQuestions": 38,
+                "reviewQuestions": 0,
+                "debt": 46930.51689781837,
+                "defects": 17040.713485117907
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ]
+        },
+        {
+          "key": "first-aaa",
+          "state": {
+            "seconds": 47280,
+            "activeSeconds": 47281,
+            "run": 15,
+            "projectIndex": 4,
+            "project": "NO MAN’S DEADLINE",
+            "target": 620000000,
+            "progress": 0,
+            "cash": 144994.6883167969,
+            "items": {
+              "library": 6,
+              "keyboard": 7,
+              "ide": 4,
+              "assistant": 5,
+              "engineer": 3,
+              "cluster": 1,
+              "monitor": 6,
+              "book-syntax": 6,
+              "book-design": 4,
+              "lab": 6,
+              "book-graphics": 4,
+              "book-systems": 3
+            },
+            "experience": {
+              "craft": 167,
+              "design": 171,
+              "audience": 199
+            },
+            "confirmedKnowledge": {
+              "syntax": 3022.083985159678,
+              "design": 5000.203117362271,
+              "graphics": 4500.128829226438,
+              "systems": 4003.719047506508
+            },
+            "studyGaps": {
+              "syntax": 0.13731955846476301,
+              "design": 0.4575357760308292,
+              "graphics": 0.5626787069307829,
+              "systems": 0
+            },
+            "debt": 10112.245535241876,
+            "defects": 0,
+            "devCapacity": 21246.90415853877,
+            "handPower": 15.188241183945582,
+            "ideMultiplier": 2.4,
+            "devTypingPower": 70.51872076347364,
+            "abstraction": 1.0000085886150958,
+            "developmentEfficiency": 0.9999579227288602,
+            "projectAccessAllowed": true
+          },
+          "purchasesAlreadyMadeThisRun": 55,
+          "firstQuestion": {
+            "newLearning": true,
+            "quizId": "quiz/v1/cpp/syntax/clamp_health",
+            "physicalKeys": 247,
+            "reward": {
+              "kind": "correct",
+              "amount": 208.79610365788903,
+              "learned": 208.65878409942428,
+              "verified": 0.13731955846476301,
+              "progress": 1337667.1267368044,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "studyUnits": 322582.4771980113,
+              "implementationUnits": 557379.9689144957,
+              "reason": ""
+            },
+            "progressPercent": 0.21575276237690394,
+            "finalDebt": 21638.281158674636,
+            "finalDefects": 8026.293410191854
+          },
+          "banks": [
+            {
+              "language": "cpp",
+              "newLearning": false,
+              "availableQuestions": 64,
+              "attemptedQuestions": 64,
+              "implementationQuestions": 64,
+              "reviewQuestions": 0,
+              "implementationUnits": 35543691.863855146,
+              "progress": 85170825.75722161,
+              "progressPercent": 13.737229960842196,
+              "remainingProgress": 534829174.2427784,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "finalDebt": 769742.8379607733,
+              "finalDefects": 513229.9703252143,
+              "crashed": false,
+              "atCodeCompletion": null,
+              "completeAndClean": false,
+              "releaseAcceptedByCore": false
+            },
+            {
+              "language": "cpp",
+              "newLearning": true,
+              "availableQuestions": 64,
+              "attemptedQuestions": 64,
+              "implementationQuestions": 64,
+              "reviewQuestions": 0,
+              "implementationUnits": 35543691.863855146,
+              "progress": 86504388.14517562,
+              "progressPercent": 13.952320668576712,
+              "remainingProgress": 533495611.85482436,
+              "learned": 7862.7966351194655,
+              "verified": 1.1575340414263753,
+              "fixed": 0,
+              "debtRemoved": 0,
+              "finalDebt": 779765.6207511841,
+              "finalDefects": 521305.42594934546,
+              "crashed": false,
+              "atCodeCompletion": null,
+              "completeAndClean": false,
+              "releaseAcceptedByCore": false
+            },
+            {
+              "language": "all",
+              "newLearning": false,
+              "availableQuestions": 512,
+              "attemptedQuestions": 472,
+              "implementationQuestions": 461,
+              "reviewQuestions": 11,
+              "implementationUnits": 276625620.36620337,
+              "progress": 620000000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 0,
+              "verified": 0,
+              "fixed": 3973143.524049575,
+              "debtRemoved": 6775605.853649971,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 461,
+                "implementationQuestions": 461,
+                "reviewQuestions": 0,
+                "debt": 6775605.85364997,
+                "defects": 3973143.524049575
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            },
+            {
+              "language": "all",
+              "newLearning": true,
+              "availableQuestions": 512,
+              "attemptedQuestions": 386,
+              "implementationQuestions": 379,
+              "reviewQuestions": 7,
+              "implementationUnits": 217355252.04838145,
+              "progress": 620000000,
+              "progressPercent": 100,
+              "remainingProgress": 0,
+              "learned": 36183.36444878945,
+              "verified": 1.1575340414263753,
+              "fixed": 3970219.759639721,
+              "debtRemoved": 6705760.553645756,
+              "finalDebt": 0,
+              "finalDefects": 0,
+              "crashed": false,
+              "atCodeCompletion": {
+                "attemptedQuestions": 379,
+                "implementationQuestions": 379,
+                "reviewQuestions": 0,
+                "debt": 6705760.553645757,
+                "defects": 3970219.759639721
+              },
+              "completeAndClean": true,
+              "releaseAcceptedByCore": true
+            }
+          ],
+          "fixedEquipmentBounds": [
+            {
+              "language": "cpp",
+              "questions": 64,
+              "physicalKeys": 15751,
+              "noDebtNoAbstractionBonusCharacters": 85304860.47325236,
+              "maxAbstractionThreeCharacters": 255914581.41975707,
+              "maxPercent": 41.276545390283395
+            },
+            {
+              "language": "all",
+              "questions": 512,
+              "physicalKeys": 129107,
+              "noDebtNoAbstractionBonusCharacters": 699222564.9876319,
+              "maxAbstractionThreeCharacters": 2097667694.9628959,
+              "maxPercent": 338.33349918756386
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

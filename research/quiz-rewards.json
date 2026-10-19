@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "balanceVersion": 19,
+  "balanceVersion": 20,
   "reproduce": "node scripts/analyze-quiz-rewards.mjs --write",
   "assumptions": {
     "purpose": "Actual rule measurements of first-success rewards, not a playthrough, affordability proof, or measured human solution time.",

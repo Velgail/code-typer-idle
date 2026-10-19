@@ -1,6 +1,7 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
-import { quizAt, quizById, QUIZ_TOPICS_PER_SUBJECT } from './quizcatalog.js';
+import { quizAt, quizById, QUIZ_TOPICS_PER_SUBJECT, QUIZ_LANGUAGES } from './quizcatalog.js';
+import { FIRST_PROJECT_PARTS, firstProjectQuizAt, firstProjectQuizById, firstProjectQuizCatalog } from './firstproject.js';
 import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier, typingKeystrokes } from './typing.js';
 import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceEfficiency, incurredDebt, changeDefectRate, addDebt, repayDebt, debtBreakdown } from './maintenance.js';
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
@@ -12,7 +13,7 @@ import { estimatePlan, amendPlan } from './planning.js';
 import { PLANNING_CATALOG, PLANNING_EXAMPLES } from './planningcatalog.js';
 import { createPlannerState, activePlanningProject, planningRuntime, projectFromPlanning, verifiedFoundations, learnPlanning, normalizePlannerState, ASSET_WORK_CHARACTERS } from './plannerstate.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 19;
+export const BALANCE_VERSION = 20;
 export const MAX_SAVE_BYTES = 8 * 1024 * 1024;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
@@ -83,9 +84,14 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.runBest >= 8 || s.catalog.some(p=>p.index>=7) }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', devStyle: 'typing', quizWork: [], reading: { cursors: {}, answers: {} }, quiz: { cursors: {}, completed: [], rewarded: [], drafts: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, planner:createPlannerState(), mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', devStyle: 'typing', quizWork: [], reading: { cursors: {}, answers: {} }, quiz: { cursors: {}, firstParts: {}, completed: [], rewarded: [], drafts: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, planner:createPlannerState(), mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
 }
-export const currentProject=s=>{const project=activePlanningProject(s);return project?projectFromPlanning(project):projectAt(s.projectIndex);};
+export const currentProject=s=>{
+  const project=activePlanningProject(s);
+  if(project)return projectFromPlanning(project);
+  const fixed=projectAt(s.projectIndex);
+  return firstProjectQuizMode(s)?{...fixed,req:{syntax:(firstProjectPart(s).index+1)*4}}:fixed;
+};
 const cloneWork=value=>JSON.parse(JSON.stringify(value));
 const WORK_FIELDS=['progress','debt','debtSources','defects','developmentPolicy','reviewedAt','build','production','mistakes','crashed','refactor','projectCarryover','autoEnabled','mode','subject','quizWork'];
 const captureProjectWork=s=>Object.fromEntries(WORK_FIELDS.map(key=>[key,cloneWork(s[key])]));
@@ -272,6 +278,7 @@ export function selectProject(s,index){
   const carryOnly=s.projectCarryover && !s.progress && !s.defects && Object.entries(s.debtSources).every(([id,n])=>id==='reuse' || !n);
   if(s.progress || s.debt && !carryOnly || s.defects || s.crashed || Object.keys(s.production).length || needsBuild(s) && !carryOnly)return false;
   s.projectIndex=index;s.quizWork=[];s.refactor=false;s.build=createBuildState();markBuildChanges(s,s.debt);s.autoEnabled=false;
+  if(index===0)s.quiz.firstParts={};
   log(s,`${projectAt(index).name} の新作制作を始めます。`,'success');
   return true;
 }
@@ -323,7 +330,19 @@ export const QUIZ_STUDY_MULTIPLIER = 4;
 export const QUIZ_IMPLEMENTATION_MULTIPLIER = 2;
 export const QUIZ_VERIFICATION_MULTIPLIER = 3;
 export const QUIZ_DRAFT_LIMIT = 24000;
-const normalizeQuizClaims = value => Array.isArray(value) ? [...new Set(value.filter(id=>typeof id==='string' && quizById(id)))].slice(0,512) : [];
+const normalizeQuizClaims = value => Array.isArray(value) ? [...new Set(value.filter(id=>typeof id==='string' && (quizById(id) || firstProjectQuizById(id))))].slice(0,536) : [];
+const FIRST_PROJECT_EPSILON = 1e-7;
+export function firstProjectQuizMode(s) {
+  return s.mode==='dev' && s.devStyle==='quiz' && s.projectIndex===0 && !activePlanningProject(s) && !s.refactor;
+}
+export function firstProjectPart(s) {
+  const index=Math.min(FIRST_PROJECT_PARTS.length-1,Math.floor((Math.max(0,s.progress)+FIRST_PROJECT_EPSILON)/1000));
+  return FIRST_PROJECT_PARTS[index];
+}
+function selectedFirstProjectPart(s) {
+  const selected=s.quiz.firstParts?.[s.typing.language];
+  return Number.isSafeInteger(selected) && selected>=0 && selected<FIRST_PROJECT_PARTS.length ? selected : firstProjectPart(s).index;
+}
 export function quizContextKey(s) {
   const project=activePlanningProject(s);
   return JSON.stringify([s.mode,quizLesson(s).id,s.mode==='study'?s.studyStyle:s.devStyle,s.refactor,s.developmentPolicy,s.resets,s.projectIndex,s.nextTitleId,project?.id,project?.codeTarget,project?.snapshot.plan,s.planner.allocation]);
@@ -332,9 +351,15 @@ export function quizEligible(s) {
   return s.mode==='study' && s.studyStyle==='quiz' || s.mode==='dev' && s.devStyle==='quiz' && !(activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor);
 }
 export function quizLesson(s) {
+  if(firstProjectQuizMode(s))return firstProjectQuizAt(s.typing.language,selectedFirstProjectPart(s));
   return quizAt(s.typing.language, s.subject, s.quiz.cursors[`${s.typing.language}/${s.subject}`] || 0);
 }
 export function nextQuiz(s) {
+  if(firstProjectQuizMode(s)){
+    s.quiz.firstParts ||= {};
+    s.quiz.firstParts[s.typing.language]=Math.min(FIRST_PROJECT_PARTS.length-1,selectedFirstProjectPart(s)+1);
+    return;
+  }
   const key = `${s.typing.language}/${s.subject}`;
   s.quiz.cursors[key] = ((s.quiz.cursors[key] || 0) + 1) % QUIZ_TOPICS_PER_SUBJECT;
 }
@@ -350,7 +375,8 @@ export function setQuizDraft(s, source) {
 function applyQuizReward(s,lesson) {
   const result={kind:'answered',amount:0,learned:0,verified:0,progress:0,fixed:0,debtRemoved:0,studyUnits:0,implementationUnits:0,reason:''};
   if(!hasStudyMaterial(s,lesson.subject))return {...result,kind:'none',reason:'この分野の無料教材を開いてください。'};
-  const keys=typingKeystrokes(lessonAt(lesson.language,lesson.subject,lesson.index).code);
+  const part=Number.isSafeInteger(lesson.firstProjectPart) ? FIRST_PROJECT_PARTS[lesson.firstProjectPart] : null;
+  const keys=typingKeystrokes(part ? lesson.rewardSource : lessonAt(lesson.language,lesson.subject,lesson.index).code);
   const base=keys*(TYPING_REWARD.character+typingCompletionMultiplier('study'));
   if(!s.quiz.rewarded.includes(lesson.id)){
     const before=skillKnowledge(s,lesson.subject),gap=s.studyGaps[lesson.subject] || 0;
@@ -367,7 +393,10 @@ function applyQuizReward(s,lesson) {
   }
   if(s.mode==='dev' && !s.quizWork.includes(lesson.id)){
     const custom=activePlanningProject(s);
-    if(custom && s.planner.allocation==='assets' && !s.refactor)result.reason='素材制作ではコードの実装を適用できません。';
+    if(part && !firstProjectQuizMode(s))result.reason='この部品は最初の数当てゲームで実装します。';
+    else if(part && s.progress<(part.end-1000)-FIRST_PROJECT_EPSILON)result.reason='先に現在の部品を完成させると、この部品を実装できます。';
+    else if(part && s.progress>=part.end-FIRST_PROJECT_EPSILON)result.reason='この部品の実装は完了しています。現在の部品へ進んでください。';
+    else if(custom && s.planner.allocation==='assets' && !s.refactor)result.reason='素材制作ではコードの実装を適用できません。';
     else if(!Object.hasOwn(currentProject(s).req,lesson.subject))result.reason='この分野は現在の企画の実装対象に含まれません。';
     else if(!projectAccess(s).allowed)result.reason=projectAccess(s).reason;
     else if(knowledgeRatio(s)<1)result.reason='企画に必要な理解度を揃えると、同じ課題を実装へ適用できます。';
@@ -379,12 +408,16 @@ function applyQuizReward(s,lesson) {
       // only after the newly verified knowledge has been applied.
       const units=bounded(base*QUIZ_IMPLEMENTATION_MULTIPLIER*typingPower(s,'dev',lesson.subject));
       const beforeProgress=s.progress,beforeDefects=s.defects,beforeDebt=s.debt;
-      input(s,{mode:'dev',chars:units,manual:true,countManual:false});
+      input(s,{mode:'dev',chars:units,manual:true,countManual:false,progressLimit:part?.end ?? Infinity});
       result.progress=Math.max(0,s.progress-beforeProgress);
       result.fixed=Math.max(0,beforeDefects-s.defects);
       result.debtRemoved=Math.max(0,beforeDebt-s.debt);
       if(result.progress>0 || result.fixed>0 || result.debtRemoved>0){
         result.implementationUnits=units;s.quizWork.push(lesson.id);result.kind='correct';
+        if(part && s.progress>=part.end-FIRST_PROJECT_EPSILON){
+          const next=Math.min(FIRST_PROJECT_PARTS.length-1,part.index+1);
+          s.quiz.firstParts=Object.fromEntries(QUIZ_LANGUAGES.map(language=>[language,next]));
+        }
       }
     }
   }
@@ -395,7 +428,7 @@ export function quizRewardPreview(s,lesson=quizLesson(s)) {
 }
 export function completeQuiz(s, id) {
   const lesson=quizLesson(s);
-  if(id!==lesson.id || !hasStudyMaterial(s) || !['study','dev'].includes(s.mode))return {kind:'none',amount:0};
+  if(id!==lesson.id || !hasStudyMaterial(s,lesson.subject) || !['study','dev'].includes(s.mode))return {kind:'none',amount:0};
   const result=applyQuizReward(s,lesson);
   if(!s.quiz.completed.includes(id))s.quiz.completed.push(id);
   return result;
@@ -628,7 +661,7 @@ function automateOffice(s,chars){
   s.office.remaining=Math.max(0,availableOfficeWork(s)-chars);s.stats.chars=add(s.stats.chars,chars);
   settleOfficeWork(s,chars,true);
 }
-export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false } = {}) {
+export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false, progressLimit = Infinity } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
   if (mode === 'study' && !hasStudyMaterial(s, subject)) return { kind: 'textbook', amount: 0 };
   if(mode==='dev' && activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor)return automation?produceCustomAssets(s,{effort:Math.min(LIMIT,chars),manual:false,automation:true}):{kind:'assets',amount:0};
@@ -688,7 +721,8 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
       return { kind: 'crash', amount: 0 };
     }
   }
-  const accepted=developmentGain(s,chars,manual);
+  const implementationLimit=firstProjectQuizMode(s)?Math.min(progressLimit,firstProjectPart(s).end):progressLimit;
+  const accepted=Math.min(developmentGain(s,chars,manual),Math.max(0,implementationLimit-s.progress));
   if(!s.progress && !s.debt)s.reviewedAt=s.stats.time;
   const risk=planningRisk(s);
   const introducedDefects=accepted*changeDefectRate(s,debtLimit(s))*(automation?AUTO_DEVELOPMENT_DEFECTS:1)*(1+risk.integration);
@@ -835,6 +869,7 @@ export function prestige(s,now=Date.now()){
   // A new project must not consume an old partially entered exercise.
   fresh.typing.offset=0;fresh.typing.roundErrors=0;fresh.typing.bonusBase=0;fresh.typing.correction=null;fresh.typing.context='';
   for(let index=1;index<=Math.max(4,s.runBest);index++)if(projectAccess(fresh,index).allowed)fresh.projectIndex=index;
+  if(fresh.projectIndex===0)fresh.quiz.firstParts={};
   fresh.subject=Object.keys(projectAt(fresh.projectIndex).req).find(id=>skillKnowledge(fresh,id)<projectAt(fresh.projectIndex).req[id]) || 'syntax';
   fresh.mode=knowledgeRatio(fresh)>=1?'dev':'study';
   log(fresh,`覚えた遊びと制作の経験を持ち、${fresh.resets+1}回目の開発人生へ。確かめた知識も覚えています。`,'success');
@@ -911,6 +946,10 @@ export function deserialize(raw) {
   if (x.settings?.commentLocale === 'en') s.settings.commentLocale = 'en';
   // Rebuild known IDs instead of trusting arbitrary imported object keys.
   const quizIds = new Set();
+  for(const language of QUIZ_LANGUAGES){
+    const selected=x.quiz?.firstParts?.[language];
+    if(Number.isSafeInteger(selected) && selected>=0 && selected<FIRST_PROJECT_PARTS.length)s.quiz.firstParts[language]=selected;
+  }
   for (const language of ['cpp', 'csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua']) for (const subject of SKILLS.map(k => k.id)) {
     const key = `${language}/${subject}`, cursor = x.reading?.cursors?.[key];
     const quizCursor = x.quiz?.cursors?.[key];
@@ -924,6 +963,13 @@ export function deserialize(raw) {
         s.quiz.completed.push(quizId);
         if(Array.isArray(x.quiz?.rewarded) && x.quiz.rewarded.includes(quizId))s.quiz.rewarded.push(quizId);
       }
+    }
+  }
+  for(const quiz of firstProjectQuizCatalog()){
+    quizIds.add(quiz.id);
+    if(Array.isArray(x.quiz?.completed) && x.quiz.completed.includes(quiz.id)){
+      s.quiz.completed.push(quiz.id);
+      if(Array.isArray(x.quiz?.rewarded) && x.quiz.rewarded.includes(quiz.id))s.quiz.rewarded.push(quiz.id);
     }
   }
   for (const [id,source] of Object.entries(x.quiz?.drafts && typeof x.quiz.drafts==='object' ? x.quiz.drafts : {}).slice(-12)) {

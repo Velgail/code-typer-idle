@@ -19,6 +19,7 @@ import { verifyFreeMaterialUI } from './free-material-ui.mjs';
 import { runPlannerChecks } from './planner-ui.mjs';
 import { verifyQuizUI } from './quiz-ui.mjs';
 import { verifyQuizPracticeUI } from './quiz-practice-ui.mjs';
+import { verifyFirstProjectUI } from './firstproject-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -48,6 +49,7 @@ const errors = [];
 try {
   await verifyQuizUI(browser, url, errors);
   await verifyQuizPracticeUI(browser, url, errors);
+  await verifyFirstProjectUI(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
@@ -524,6 +526,7 @@ try {
     assert.ok(requests.some(path => path.includes(`app.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`core.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`career.${nextId}.js`)), 'career rules must update with the rest of the cached module graph');
+    assert.ok(requests.some(path => path.includes(`firstproject.${nextId}.js`)), 'first-game components must update with the cached module graph');
     assert.ok(requests.some(path => path.includes(`curriculum.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`idioms.${nextId}.js`)));
     assert.ok(requests.some(path => path.includes(`builds.${nextId}.js`)));

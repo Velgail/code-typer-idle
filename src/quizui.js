@@ -306,9 +306,11 @@ function renderCases(ui, quiz, result, stale, running) {
       const entry = create('div', 'quiz-fixture-input');
       const content = create('dd');
       const table = create('table', 'quiz-fixture-table');
-      table.append(create('caption', '', 'sample(id, amount, group_id, enabled)'));
+      const columns=test.fixtureColumns || quiz.fixtureColumns || ['id','amount','group_id','enabled'];
+      const tableName=test.fixtureTable || quiz.fixtureTable || 'sample';
+      table.append(create('caption', '', `${tableName}(${columns.join(', ')})`));
       const head = create('thead'), header = create('tr');
-      for (const name of ['id', 'amount', 'group_id', 'enabled']) {
+      for (const name of columns) {
         const cell = create('th', '', name);
         cell.scope = 'col';
         header.append(cell);
