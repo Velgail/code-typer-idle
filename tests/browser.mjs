@@ -23,6 +23,7 @@ import { verifyFirstProjectUI } from './firstproject-ui.mjs';
 import { verifySkillQuizUI } from './skillquiz-ui.mjs';
 import { verifyChallengeStatements } from './challenge-statement-ui.mjs';
 import { runCodeEditorChecks } from './codeeditor-ui.mjs';
+import { verifyReadingChoices } from './reading-choice-ui.mjs';
 import { TYPING_REWARD, typingCompletionMultiplier } from '../src/typing.js';
 const { chromium } = createRequire(import.meta.url)('playwright');
 const root = resolve('docs');
@@ -56,6 +57,7 @@ try {
   await verifySkillQuizUI(browser, url, errors);
   await verifyChallengeStatements(browser, url, errors);
   await runCodeEditorChecks(browser, url, errors);
+  await verifyReadingChoices(browser, url, errors);
   await runPlannerChecks({ browser, url, errors });
   await verifyClickKeyboardGuard(browser, url, errors);
   await verifyEarlyGameUI(browser, url, errors);
@@ -317,7 +319,7 @@ try {
   assert.equal(afterReading.typing.offset,beforeReading.typing.offset,'reading must preserve unfinished typing');
   assert.ok((await seeded.locator('.reading-explanation').textContent()).includes(readLesson.comments[0].ja));
   assert.match(await seeded.locator('#reading-panel .reading-trace').textContent(), /health = -8/);
-  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),4);
+  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),questionFor(readLesson).choices.length);
   await seeded.locator('[data-action=next-reading]').click();
   const wrongLesson=lessonAt('cpp','syntax',1);
   const wrongChoice=questionFor(wrongLesson).choices.find(n=>n!==wrongLesson.answer);
@@ -325,7 +327,7 @@ try {
   let readingSave=await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));
   assert.equal(readingSave.stats.study,afterReading.stats.study,'incorrect reading answers grant nothing');
   await seeded.reload(); await seeded.waitForSelector('#reading-question');
-  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),4);
+  assert.equal(await seeded.locator('[data-read-answer]:disabled').count(),questionFor(wrongLesson).choices.length);
   assert.match(await seeded.locator('.reading-explanation').textContent(),/不正解/);
   await seeded.locator('#save-button').click();
   readingSave=await seeded.evaluate(() => JSON.parse(localStorage.getItem('code-typer-idle:save:v1')));

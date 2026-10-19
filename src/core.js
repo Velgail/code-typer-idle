@@ -1,5 +1,6 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
+import { isReadingChoice } from './readingchoices.js';
 import { challengeAt, challengeById, challengeTopics, challengeCatalog } from './challengecatalog.js';
 import { skillQuizAt, skillQuizById, skillQuizTopics, gradeSkillQuiz, SKILL_QUIZ_ANSWER_LIMIT } from './skillquiz.js';
 import { QUIZ_LANGUAGES } from './quizcatalog.js';
@@ -505,7 +506,7 @@ export function answerReading(s, choice) {
   if (!hasStudyMaterial(s)) return { kind: 'textbook', amount: 0 };
   const lesson = readingLesson(s);
   if (Object.hasOwn(s.reading.answers, lesson.baseId)) return { kind: 'answered', amount: 0 };
-  if (!Number.isSafeInteger(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
+  if (!isReadingChoice(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
   s.reading.answers[lesson.baseId] = choice;
   const correct = choice === lesson.answer;
   const reward = correct ? input(s, { mode: 'study', subject: s.subject, chars: READING_UNITS, manual: false }) : { amount: 0 };
@@ -1030,7 +1031,7 @@ export function deserialize(raw) {
     if (Number.isSafeInteger(cursor) && cursor >= 0 && cursor < TOPICS_PER_SUBJECT) s.reading.cursors[key] = cursor;
     for (let index = 0; index < TOPICS_PER_SUBJECT; index++) {
       const id = lessonAt(language, subject, index).baseId, answer = x.reading?.answers?.[id];
-      if (Number.isSafeInteger(answer)) s.reading.answers[id] = answer;
+      if (isReadingChoice(answer)) s.reading.answers[id] = answer;
     }
   }
   for(const quiz of [...challengeCatalog(),...firstProjectQuizCatalog()]){

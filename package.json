@@ -13,6 +13,7 @@
     "test:curriculum": "node scripts/validate-curriculum.mjs",
     "test:quiz": "node scripts/validate-quizzes.mjs",
     "test:runtimes": "node scripts/check-runtime-assets.mjs",
-    "learning:audit": "node scripts/analyze-learning-catalog.mjs"
+    "learning:audit": "node scripts/analyze-learning-catalog.mjs",
+    "reading:audit": "node scripts/analyze-reading-choices.mjs"
   }
 }

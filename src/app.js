@@ -30,6 +30,8 @@ import { FIRST_PROJECT_PARTS } from './firstproject.js';
 import { QuizRunner } from './quizrunner.js';
 import { renderQuizUI } from './quizui.js';
 import { highlightTypingCode } from './typinghighlight.js';
+import { renderHighlightedCode } from './codehighlight.js';
+import { readingChoiceLabel } from './readingchoices.js';
 
 const $ = id => document.getElementById(id);
 const esc = text => String(text).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -714,7 +716,13 @@ function renderLearning() {
   if (lastReadingKey === key) return;
   lastReadingKey = key;
   const answeredCount = Array.from({length:16}, (_,i)=>lessonAt(lesson.language,lesson.subject,i)).filter(l=>Object.hasOwn(state.reading.answers,l.baseId)).length;
-  $('reading-panel').innerHTML = `<p class="panel-note">回答済み ${answeredCount} / 16本 · 各題の初回正解で理解ボーナス</p>${answeredCount === 16 ? '<div class="modal-callout">この言語・分野の読解を一巡しました。写経で学習を続けるか、ほかの言語や分野の参考コードを選べます。<button class="secondary-button" data-study-style="practice">写経で学習を続ける →</button></div>' : ''}<h3>${esc(lesson.title)}</h3><pre class="reference-code" tabindex="0" aria-label="参考コード">${esc(lesson.code)}</pre><h4 id="reading-question" tabindex="-1">${esc(question.prompt)}</h4><div class="reading-choices">${question.choices.map(value => `<button class="secondary-button ${answered && value === lesson.answer ? 'correct-choice' : answered && value === choice ? 'wrong-choice' : ''}" data-read-answer="${value}" ${answered || blocked || paused ? 'disabled' : ''}>${value}${answered && value === lesson.answer ? ' ✓' : ''}</button>`).join('')}</div>${answered ? `<div class="reading-explanation" role="status"><p><b>${choice === lesson.answer ? '正解。理解度を獲得済み。' : '不正解。今回の理解度加算はありません。'}</b> 答えは ${lesson.answer}。</p>${commentNotes(lesson)}<pre class="reading-trace">${esc(lesson.explanation)}</pre></div><button class="secondary-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>次の参考コード →</button>` : `<p class="panel-note">コードの処理を追って、結果を選んでください。初回正解で理解度が増えます。</p><button class="text-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>この題材を後で読む →</button>`}`;
+  const options = question.options || question.choices.map(value=>({value,correct:value===lesson.answer,reason:null}));
+  const selectedOption = answered ? options.find(option=>option.value===choice) : null;
+  const misconceptions = options.filter(option=>!option.correct && option.reason);
+  const selectedReason = answered && choice !== lesson.answer && selectedOption?.reason ? `<p class="reading-selected-reason">この値になる読み違いの例：${esc(selectedOption.reason)}</p>` : '';
+  const choiceNotes = answered && misconceptions.length ? `<details class="reading-choice-notes"><summary>選択肢ごとの考え方</summary><dl>${misconceptions.map(option=>`<div><dt>${esc(readingChoiceLabel(option.value))}</dt><dd>${esc(option.reason)}</dd></div>`).join('')}</dl></details>` : '';
+  $('reading-panel').innerHTML = `<p class="panel-note">回答済み ${answeredCount} / 16本 · 各題の初回正解で理解ボーナス</p>${answeredCount === 16 ? '<div class="modal-callout">この言語・分野の読解を一巡しました。写経で学習を続けるか、ほかの言語や分野の参考コードを選べます。<button class="secondary-button" data-study-style="practice">写経で学習を続ける →</button></div>' : ''}<h3>${esc(lesson.title)}</h3><pre class="reference-code" tabindex="0" aria-label="参考コード"></pre><h4 id="reading-question" tabindex="-1">${esc(question.prompt)}</h4><div class="reading-choices">${question.choices.map(value => `<button class="secondary-button ${answered && value === lesson.answer ? 'correct-choice' : answered && value === choice ? 'wrong-choice' : ''}" data-read-answer="${esc(String(value))}" ${answered || blocked || paused ? 'disabled' : ''}>${esc(readingChoiceLabel(value))}${answered && value === lesson.answer ? ' ✓' : ''}</button>`).join('')}</div>${answered ? `<div class="reading-explanation" role="status"><p><b>${choice === lesson.answer ? '正解。理解度を獲得済み。' : '不正解。今回の理解度加算はありません。'}</b> 答えは ${esc(readingChoiceLabel(lesson.answer))}。</p>${selectedReason}${commentNotes(lesson)}<pre class="reading-trace">${esc(lesson.explanation)}</pre>${choiceNotes}</div><button class="secondary-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>次の参考コード →</button>` : `<p class="panel-note">コードの処理を追って、結果を選んでください。初回正解で理解度が増えます。</p><button class="text-button" data-action="next-reading" ${blocked || paused ? 'disabled' : ''}>この題材を後で読む →</button>`}`;
+  renderHighlightedCode($('reading-panel').querySelector('.reference-code'), lesson.code, lesson.language);
 }
 function renderLearningGuide(lesson) {
   const panel=$('learning-guide'), guide=learningGuide(lesson);
@@ -1111,7 +1119,7 @@ document.addEventListener('click', async event => {
     state.studyStyle=next;dirty=true;render();focusTypingInput();
   }
   if (b.dataset.learn && !blocked) { state.subject = b.dataset.learn; state.studyStyle = 'practice'; state.typing.source='standard'; state.typing.context=''; switchMode('study'); }
-  if (b.dataset.readAnswer !== undefined && !blocked && !paused) { const result = answerReading(state, Number(b.dataset.readAnswer)); if (result.kind === 'correct') toast(`読解に正解！ +${format(result.amount, 3)} K`); dirty = true; unlock(); render(); save(); }
+  if (b.dataset.readAnswer !== undefined && !blocked && !paused) { const value=b.dataset.readAnswer, choice=value==='null'?null:['runtime-error','compile-error'].includes(value)?value:Number(value); const result = answerReading(state, choice); if (result.kind === 'correct') toast(`読解に正解！ +${format(result.amount, 3)} K`); dirty = true; unlock(); render(); save(); }
   if (b.dataset.subject && !blocked) { rememberCourseCursor(state); state.subject = b.dataset.subject; dirty = true; render(); focusTypingInput(); }
   if (b.dataset.shop) {
     shopTab = b.dataset.shop;
