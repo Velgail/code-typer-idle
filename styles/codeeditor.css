@@ -1,0 +1,16 @@
+.code-editor-wrap { position:relative; min-width:0; max-width:100%; background:#111a15; border-radius:8px 8px 0 0; }
+.code-editor-highlight { position:absolute; z-index:0; overflow:hidden; pointer-events:none; user-select:none; color:var(--text); }
+.code-editor-code { display:block; position:relative; box-sizing:border-box; margin:0; border:0; border-radius:0; overflow:visible; color:var(--text); background:none; font:inherit; transform-origin:top left; }
+.code-editor-wrap textarea.code-editor-active { position:relative; z-index:1; margin:0; color:transparent; -webkit-text-fill-color:transparent; background:transparent; caret-color:var(--green); }
+.code-editor-wrap textarea.code-editor-active::selection { color:transparent; -webkit-text-fill-color:transparent; background:rgb(166 220 174 / 30%); }
+.code-editor-wrap textarea.code-editor-active::placeholder { color:var(--muted); -webkit-text-fill-color:var(--muted); }
+.code-editor-wrap:has(textarea:disabled) .code-editor-highlight { opacity:.6; }
+.code-editor-completions { position:absolute; z-index:20; display:grid; width:280px; max-width:100%; max-height:200px; overflow:auto; padding:4px; border:1px solid var(--green); border-radius:6px; background:var(--panel-2,#1b281f); box-shadow:0 8px 24px rgb(0 0 0 / 35%); }
+.code-editor-completions[hidden] { display:none; }
+.code-editor-completion { display:block; width:100%; margin:0; padding:6px 8px; border:0; border-radius:3px; color:var(--text); background:none; font:12px/1.5 var(--mono); text-align:left; overflow-wrap:anywhere; cursor:pointer; }
+.code-editor-completion[aria-selected="true"] { color:var(--green); background:rgb(166 220 174 / 12%); }
+@media (forced-colors:active) {
+  .code-editor-highlight { display:none; }
+  .code-editor-wrap textarea.code-editor-active { color:CanvasText; -webkit-text-fill-color:CanvasText; background:Canvas; caret-color:CanvasText; }
+  .code-editor-wrap textarea.code-editor-active::selection { color:HighlightText; -webkit-text-fill-color:HighlightText; background:Highlight; }
+}

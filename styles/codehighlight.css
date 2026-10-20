@@ -1,0 +1,9 @@
+/* Color alone marks syntax so the display layer matches editable text metrics. */
+.ct-syntax-keyword { color: #efbc91; }
+.ct-syntax-type { color: #9ecce0; }
+.ct-syntax-string { color: #b9d994; }
+.ct-syntax-comment { color: #87a99a; }
+.ct-syntax-number { color: #e0ca8d; }
+.ct-syntax-function { color: #b5d7ce; }
+.ct-syntax-operator { color: #bfcec7; }
+.ct-syntax-identifier { color: inherit; }

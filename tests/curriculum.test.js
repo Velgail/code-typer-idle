@@ -9,7 +9,7 @@ test('all topics have purposeful English typing comments, Japanese notes, and st
     assert.equal(topics.length, 16);
     assert.equal(new Set(topics.map(t=>t.id)).size,16);
   }
-  const answerPositions = new Set(), sortedPositions = new Set();
+  const answerPositions = new Set();
   for (const language of ['cpp','csharp','rust','go','python','java','sql','lua']) for (const subject of Object.keys(TOPICS)) for (let index=0;index<256;index++) {
     const lesson = lessonAt(language,subject,index), question=questionFor(lesson);
     assert.equal(lesson.version, CURRICULUM_VERSION);
@@ -22,13 +22,19 @@ test('all topics have purposeful English typing comments, Japanese notes, and st
       assert.ok(!lesson.code.includes(c.ja));
     }
     assert.ok(Number.isSafeInteger(lesson.answer));
-    assert.equal(new Set(question.choices).size,4);
+    assert.ok(question.choices.length>=2&&question.choices.length<=4,lesson.id);
+    assert.equal(new Set(question.choices).size,question.choices.length,lesson.id);
     assert.equal(question.choices[question.answerIndex],lesson.answer);
+    assert.deepEqual(question.options.map(option=>option.value),question.choices);
+    assert.equal(question.options.filter(option=>option.correct).length,1);
+    for(const option of question.options.filter(option=>!option.correct)) {
+      assert.ok(option.reason&&option.misconception,lesson.id);
+      assert.notEqual(option.value,lesson.answer,lesson.id);
+    }
     assert.deepEqual(questionFor(lesson),question);
     answerPositions.add(question.answerIndex);
-    sortedPositions.add([...question.choices].sort((a,b)=>a-b).indexOf(lesson.answer));
   }
-  assert.equal(answerPositions.size,4); assert.equal(sortedPositions.size,4);
+  assert.equal(answerPositions.size,4);
   assert.equal(localeForComments('ja-JP'),'ja'); assert.equal(localeForComments('en-US'),'en');
 });
 test('reading is textbook-gated, pays only the first correct answer, and persists across reloads', () => {

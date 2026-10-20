@@ -1,4 +1,5 @@
 import { idiomAt } from './idioms.js';
+import { authoredReadingOptions } from './readingchoices.js';
 // Original, self-contained teaching examples. Shared algorithms are rendered
 // with each language's syntax; SQL has its own relational exercises below.
 export const CURRICULUM_VERSION = 2;
@@ -240,11 +241,10 @@ export function lessonAt(language, subject, index) {
 }
 export function questionFor(lesson) {
  let seed=0;for(const char of lesson.id)seed=(Math.imul(seed,31)+char.charCodeAt(0))>>>0;
- // Vary the number of smaller distractors; sorting must not reveal the answer.
- const offsets=[[-3,-2,-1],[-2,-1,1],[-1,1,2],[1,2,3]][(seed>>>4)%4];
- const choices=[lesson.answer,...offsets.map(n=>lesson.answer+n)];
- for(let i=choices.length-1;i>0;i--){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const j=seed%(i+1);[choices[i],choices[j]]=[choices[j],choices[i]];}
- return {prompt:lesson.language==='sql'?'この問い合わせの結果は？':`${functionName(lesson.language,lesson.topicId)}() の戻り値は？`,choices,answerIndex:choices.indexOf(lesson.answer)};
+ const variant=Number(lesson.id.split('/').at(-1));
+ const options=authoredReadingOptions(lesson,variant,lesson.language==='sql'?sqlRows(variant):null);
+ for(let i=options.length-1;i>0;i--){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const j=seed%(i+1);[options[i],options[j]]=[options[j],options[i]];}
+ return {prompt:lesson.language==='sql'?'この問い合わせの結果は？':`${functionName(lesson.language,lesson.topicId)}() の戻り値は？`,options,choices:options.map(option=>option.value),answerIndex:options.findIndex(option=>option.correct)};
 }
 export const BASE_LESSON_COUNT = 8 * 4 * TOPICS_PER_SUBJECT;
 export const LESSON_COUNT = BASE_LESSON_COUNT * VARIANT_COUNT;

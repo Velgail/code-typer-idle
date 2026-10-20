@@ -15,6 +15,10 @@ jobs:
       - run: npm run build
       - run: git diff --exit-code -- docs
       - run: npm test
+      - run: npm run learning:audit -- --write
+      - run: git diff --exit-code -- research/learning-catalog.json
+      - run: npm run reading:audit -- --write
+      - run: git diff --exit-code -- research/reading-choices.json
       - run: npm run test:runtimes
   browser:
     runs-on: ubuntu-latest

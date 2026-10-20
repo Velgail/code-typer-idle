@@ -1,441 +1,881 @@
 {
-  "schemaVersion": 1,
-  "balanceVersion": 20,
+  "schemaVersion": 2,
+  "balanceVersion": 21,
   "reproduce": "node scripts/analyze-quiz-rewards.mjs --write",
   "assumptions": {
-    "purpose": "Actual rule measurements of first-success rewards, not a playthrough, affordability proof, or measured human solution time.",
-    "fixtures": "Fresh state with cash 100, no experience/assets, no books/monitor/keyboard, only free syntax material opened. The only item is the stated lab level; direct item assignment isolates equipment effects.",
-    "labAffordability": "Lab levels 1/5/20 have cumulative unmodified prices 2000/242000/3486784400000. Level 20 is an extreme fixture, not an early-game purchase route.",
-    "initialKnowledge": "Equipment and gap scenarios begin with nominal and confirmed syntax 500, gap 0. Initial C++ scenario starts at 0.",
-    "automation": "Only lab study runs during the 8-hour interval. No development or OCR equipment; syntax remains the selected subject after satisfying the first project.",
-    "time": "Eight hours means 28800 elapsed simulation seconds. DAY=3600 seconds, so this is 8 game days. No automation time passes between the measured quiz completions.",
-    "physicalKeys": "typingKeystrokes from src/typing.js replaces each ASCII space run with ceil(length/4) Tab keys, including short runs. Newlines and other characters each count once. No typing errors.",
-    "matchedSource": "Work uses the canonical same-topic typing lesson at variant 0, never the submitted answer length; whitespace padding cannot increase it.",
-    "copyReward": "Perfect copying receives 12 units per physical key plus completion 4, multiplied by current study typingPower. A batch input measures equal nominal XP, without interleaved automation.",
-    "legacy": "The removed 1200-unit baseline is calculated with input directly. It verifies up to one new nominal knowledge gain, exactly as old completeQuiz did.",
-    "current": "Actual quizRewardPreview/completeQuiz; study work multiplier 4, implementation multiplier 2, verification limit 3 times new nominal knowledge. The verification limit includes the one gain already confirmed by input.",
-    "finiteClaims": "Each subject has 128 distinct quizzes across eight languages. Gap-recovery order is language catalog order, then topic index. Each is a first success; completed/rewarded claims prevent repeat farming.",
-    "interpretation": "Four times work units does not imply four times knowledge because the XP curve diminishes. It does not imply four times hourly earnings: reading, thinking, compiling, and retries are unmeasured. Equal-new-work seconds compare only perfect physical typing at 300 keys/min."
+    "roles": "Quiz is constrained syntax completion graded in core. Challenge is open implementation with executable test cases. Learning and implementation are separate outputs; they cannot be added as one utility unit.",
+    "fixtures": "Actual createState with only the stated lab level directly assigned to isolate equipment effects. Free syntax material opened; no books/monitor/keyboard/experience/assets. Equipment scenarios begin at K500; initial scenarios begin at K0. This is not an equipment affordability route.",
+    "effort": "80 work units/second is perfect typing at 300 physical keys/min with 12 character + 4 completion units. Reward time comes from authored estimatedMinutes; difficulty is represented by that estimate, not multiplied again.",
+    "policy": "New Quiz initial study = authored seconds * 80 * 1.5 * study typingPower. Challenge initial study = authored seconds * 80 * 4 * study typingPower; initial implementation = authored seconds * 80 * 2 * dev typingPower. Same-family transfer into another language pays 60%; previously implemented same ID pays 25% on another project.",
+    "firstProject": "The first fixed project retains its separate three staged implementation components and their canonical-source rewards. Generic Challenge estimated-time policy does not replace those components.",
+    "verification": "First success also confirms at most three new nominal gains of the existing unverified pool, including the one gain confirmed by input. Known correct answers confirm only available auto-derived gaps and grant no new nominal XP. Topic watermarks prevent repeating the same success without further research.",
+    "time": "Eight hours is 28800 simulation seconds. No time passes between answers. Reading, thinking, editing, compilation, mistakes and retries are unmeasured. Four times effort is not four times knowledge or hourly earnings.",
+    "historical": "This schema supersedes earlier 1200-unit/typing-source-length comparisons and old finite 512-Challenge totals. Those figures are not current reward formulas."
   },
-  "corpus": {
-    "uniqueQuizCount": 512,
-    "uniqueQuizzesPerSubject": 128,
-    "matchedTypingLessonVariant": 0,
-    "characters": {
-      "min": 185,
-      "mean": 276.677734375,
-      "median": 273,
-      "max": 443
+  "catalogs": {
+    "skillQuiz": {
+      "count": 1024,
+      "estimatedMinutes": {
+        "min": 0.5,
+        "mean": 1.9281249999999952,
+        "median": 2,
+        "max": 4
+      },
+      "difficultyCounts": {
+        "1": 256,
+        "2": 256,
+        "3": 256,
+        "4": 256
+      },
+      "languages": [
+        {
+          "language": "cpp",
+          "count": 128
+        },
+        {
+          "language": "csharp",
+          "count": 128
+        },
+        {
+          "language": "rust",
+          "count": 128
+        },
+        {
+          "language": "go",
+          "count": 128
+        },
+        {
+          "language": "python",
+          "count": 128
+        },
+        {
+          "language": "java",
+          "count": 128
+        },
+        {
+          "language": "sql",
+          "count": 128
+        },
+        {
+          "language": "lua",
+          "count": 128
+        }
+      ]
     },
-    "physicalKeys": {
-      "min": 170,
-      "mean": 252.162109375,
-      "median": 246,
-      "max": 395
-    },
-    "languages": [
-      {
-        "language": "cpp",
-        "count": 64,
-        "characters": {
-          "min": 201,
-          "mean": 272.828125,
-          "median": 273,
-          "max": 405
-        },
-        "physicalKeys": {
-          "min": 186,
-          "mean": 246.109375,
-          "median": 246,
-          "max": 357
-        }
+    "challenge": {
+      "count": 1024,
+      "estimatedMinutes": {
+        "min": 2,
+        "mean": 5.6435546875,
+        "median": 4,
+        "max": 18
       },
-      {
-        "language": "csharp",
-        "count": 64,
-        "characters": {
-          "min": 188,
-          "mean": 276.671875,
-          "median": 271,
-          "max": 411
-        },
-        "physicalKeys": {
-          "min": 176,
-          "mean": 250.5625,
-          "median": 247,
-          "max": 363
-        }
+      "difficultyCounts": {
+        "1": 285,
+        "2": 516,
+        "3": 151,
+        "4": 72
       },
-      {
-        "language": "rust",
-        "count": 64,
-        "characters": {
-          "min": 193,
-          "mean": 288.015625,
-          "median": 279,
-          "max": 443
+      "languages": [
+        {
+          "language": "cpp",
+          "count": 128
         },
-        "physicalKeys": {
-          "min": 181,
-          "mean": 261.90625,
-          "median": 252,
-          "max": 395
+        {
+          "language": "csharp",
+          "count": 128
+        },
+        {
+          "language": "rust",
+          "count": 128
+        },
+        {
+          "language": "go",
+          "count": 128
+        },
+        {
+          "language": "python",
+          "count": 128
+        },
+        {
+          "language": "java",
+          "count": 128
+        },
+        {
+          "language": "sql",
+          "count": 128
+        },
+        {
+          "language": "lua",
+          "count": 128
         }
+      ]
+    }
+  },
+  "initial": {
+    "skillQuiz": {
+      "role": "skill-quiz",
+      "id": "skill-quiz/v1/cpp/syntax/value-init",
+      "concept": "Value-initialize an integer",
+      "difficulty": 1,
+      "estimatedMinutes": 0.7,
+      "typingPower": 1,
+      "typingAtEstimatedTime": {
+        "workUnits": 3360,
+        "nominalKnowledge": 4.009120269252762,
+        "confirmedKnowledge": 4.009120269252762
       },
-      {
-        "language": "go",
-        "count": 64,
-        "characters": {
-          "min": 197,
-          "mean": 262.4375,
-          "median": 256,
-          "max": 389
-        },
-        "physicalKeys": {
-          "min": 182,
-          "mean": 235.15625,
-          "median": 229,
-          "max": 341
-        }
+      "reward": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "correct",
+        "amount": 6.013680403879142,
+        "learned": 6.013680403879142,
+        "verified": 0,
+        "studyUnits": 5040,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      {
-        "language": "python",
-        "count": 64,
-        "characters": {
-          "min": 185,
-          "mean": 243.859375,
-          "median": 234,
-          "max": 368
-        },
-        "physicalKeys": {
-          "min": 170,
-          "mean": 219.4375,
-          "median": 212,
-          "max": 316
-        }
-      },
-      {
-        "language": "java",
-        "count": 64,
-        "characters": {
-          "min": 207,
-          "mean": 279.453125,
-          "median": 274,
-          "max": 411
-        },
-        "physicalKeys": {
-          "min": 192,
-          "mean": 252.875,
-          "median": 252,
-          "max": 363
-        }
-      },
-      {
-        "language": "sql",
-        "count": 64,
-        "characters": {
-          "min": 252,
-          "mean": 312.1875,
-          "median": 309,
-          "max": 380
-        },
-        "physicalKeys": {
-          "min": 240,
-          "mean": 300.1875,
-          "median": 297,
-          "max": 368
-        }
-      },
-      {
-        "language": "lua",
-        "count": 64,
-        "characters": {
-          "min": 207,
-          "mean": 277.96875,
-          "median": 270,
-          "max": 416
-        },
-        "physicalKeys": {
-          "min": 192,
-          "mean": 251.0625,
-          "median": 244,
-          "max": 368
-        }
+      "studyWorkRatio": 1.5,
+      "nominalKnowledgeRatio": 1.4999999999999998,
+      "repeatWithoutResearch": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       }
-    ]
-  },
-  "initialCppSyntax": {
-    "quizId": "quiz/v1/cpp/syntax/clamp_health",
-    "title": "体力の上限と下限",
-    "sourceCharacters": 286,
-    "physicalKeys": 247,
-    "typingPower": 1,
-    "copy": {
-      "workUnits": 3952,
-      "nominalKnowledge": 4.715489078597295,
-      "confirmedKnowledge": 4.715489078597295
     },
-    "legacyQuiz": {
-      "workUnits": 1200,
-      "nominalKnowledge": 1.4318286675902718,
-      "confirmedKnowledge": 1.4318286675902718,
-      "verifiedKnowledge": 0
-    },
-    "quiz": {
-      "workUnits": 15808,
-      "nominalKnowledge": 15.223348327424487,
-      "confirmedKnowledge": 15.223348327424487,
-      "verifiedKnowledge": 0
-    },
-    "workRatioToCopy": 4,
-    "nominalKnowledgeRatioToCopy": 3.2283710286850966,
-    "firstProjectRequiredSyntax": 12,
-    "syntaxAfterFirstSuccess": 15.223348327424487,
-    "firstProjectKnowledgeMet": true,
-    "rewardAfterRepeatingFirstSuccess": {
-      "kind": "answered",
-      "amount": 0,
-      "learned": 0,
-      "verified": 0,
-      "progress": 0,
-      "fixed": 0,
-      "debtRemoved": 0,
-      "studyUnits": 0,
-      "implementationUnits": 0,
-      "reason": ""
-    },
-    "perfectCopyInputSeconds": 49.4,
-    "equalNewWorkQuizSeconds": 197.6
+    "challenge": {
+      "role": "challenge",
+      "id": "quiz/v1/cpp/syntax/clamp_health",
+      "concept": "基礎の入出力",
+      "difficulty": 1,
+      "estimatedMinutes": 2,
+      "typingPower": 1,
+      "typingAtEstimatedTime": {
+        "workUnits": 9600,
+        "nominalKnowledge": 11.454629340722175,
+        "confirmedKnowledge": 11.454629340722175
+      },
+      "reward": {
+        "kind": "correct",
+        "amount": 25.587535404160707,
+        "learned": 25.587535404160707,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 38400,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      },
+      "studyWorkRatio": 4,
+      "nominalKnowledgeRatio": 2.2338160967980745,
+      "repeatWithoutResearch": {
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    }
   },
   "equipment": [
     {
       "lab": 0,
-      "initialNominalKnowledge": 500,
-      "initialGap": 0,
       "labUnitsPerSecond": 0,
-      "typingPower": 1,
-      "copy": {
-        "workUnits": 3952,
-        "nominalKnowledge": 0.36519353836757007,
-        "confirmedKnowledge": 0.36519353836757773
-      },
-      "legacyQuiz": {
-        "workUnits": 1200,
-        "nominalKnowledge": 0.11090282219332577,
-        "confirmedKnowledge": 0.11090282219333858,
-        "verifiedKnowledge": 0
-      },
-      "quiz": {
-        "workUnits": 15808,
-        "nominalKnowledge": 1.4599756073596382,
-        "confirmedKnowledge": 1.4599756073596382,
-        "verifiedKnowledge": 0
-      },
-      "workRatioToCopy": 4,
-      "nominalKnowledgeRatioToCopy": 3.99781336188419
+      "initialKnowledge": 500,
+      "roles": [
+        {
+          "role": "skill-quiz",
+          "id": "skill-quiz/v1/cpp/syntax/value-init",
+          "concept": "Value-initialize an integer",
+          "difficulty": 1,
+          "estimatedMinutes": 0.7,
+          "typingPower": 1,
+          "typingAtEstimatedTime": {
+            "workUnits": 3360,
+            "nominalKnowledge": 0.3104969215339503,
+            "confirmedKnowledge": 0.3104969215339679
+          },
+          "reward": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "correct",
+            "amount": 0.46570925534587104,
+            "learned": 0.46570925534587104,
+            "verified": 0,
+            "studyUnits": 5040,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 1.5,
+          "nominalKnowledgeRatio": 1.4998836479444757,
+          "repeatWithoutResearch": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          }
+        },
+        {
+          "role": "challenge",
+          "id": "quiz/v1/cpp/syntax/clamp_health",
+          "concept": "基礎の入出力",
+          "difficulty": 1,
+          "estimatedMinutes": 2,
+          "typingPower": 1,
+          "typingAtEstimatedTime": {
+            "workUnits": 9600,
+            "nominalKnowledge": 0.8868786128206508,
+            "confirmedKnowledge": 0.8868786128206239
+          },
+          "reward": {
+            "kind": "correct",
+            "amount": 3.5428187034013376,
+            "learned": 3.5428187034013376,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 38400,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 4,
+          "nominalKnowledgeRatio": 3.994705309369981,
+          "repeatWithoutResearch": {
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "reason": ""
+          }
+        }
+      ]
     },
     {
       "lab": 1,
-      "initialNominalKnowledge": 500,
-      "initialGap": 0,
       "labUnitsPerSecond": 8,
-      "typingPower": 1.05,
-      "copy": {
-        "workUnits": 4149.6,
-        "nominalKnowledge": 0.3834497166346118,
-        "confirmedKnowledge": 0.38344971663462957
-      },
-      "legacyQuiz": {
-        "workUnits": 1200,
-        "nominalKnowledge": 0.11090282219332577,
-        "confirmedKnowledge": 0.11090282219333858,
-        "verifiedKnowledge": 0
-      },
-      "quiz": {
-        "workUnits": 16598.4,
-        "nominalKnowledge": 1.532918576315069,
-        "confirmedKnowledge": 1.532918576315069,
-        "verifiedKnowledge": 0
-      },
-      "workRatioToCopy": 4,
-      "nominalKnowledgeRatioToCopy": 3.997704287719641
+      "initialKnowledge": 500,
+      "roles": [
+        {
+          "role": "skill-quiz",
+          "id": "skill-quiz/v1/cpp/syntax/value-init",
+          "concept": "Value-initialize an integer",
+          "difficulty": 1,
+          "estimatedMinutes": 0.7,
+          "typingPower": 1.05,
+          "typingAtEstimatedTime": {
+            "workUnits": 3528,
+            "nominalKnowledge": 0.32601923825301377,
+            "confirmedKnowledge": 0.3260192382530249
+          },
+          "reward": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "correct",
+            "amount": 0.48898902947081524,
+            "learned": 0.48898902947081524,
+            "verified": 0,
+            "studyUnits": 5292,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 1.5,
+          "nominalKnowledgeRatio": 1.4998778357101905,
+          "repeatWithoutResearch": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          }
+        },
+        {
+          "role": "challenge",
+          "id": "quiz/v1/cpp/syntax/clamp_health",
+          "concept": "基礎の入出力",
+          "difficulty": 1,
+          "estimatedMinutes": 2,
+          "typingPower": 1.05,
+          "typingAtEstimatedTime": {
+            "workUnits": 10080,
+            "nominalKnowledge": 0.9312019281160913,
+            "confirmedKnowledge": 0.9312019281160815
+          },
+          "reward": {
+            "kind": "correct",
+            "amount": 3.7196321702646173,
+            "learned": 3.7196321702646173,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 40320,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 4,
+          "nominalKnowledgeRatio": 3.994442083888058,
+          "repeatWithoutResearch": {
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "reason": ""
+          }
+        }
+      ]
     },
     {
       "lab": 5,
-      "initialNominalKnowledge": 500,
-      "initialGap": 0,
       "labUnitsPerSecond": 83.9808,
-      "typingPower": 1.52488,
-      "copy": {
-        "workUnits": 6026.32576,
-        "nominalKnowledge": 0.5568229970655737,
-        "confirmedKnowledge": 0.5568229970655807
-      },
-      "legacyQuiz": {
-        "workUnits": 1200,
-        "nominalKnowledge": 0.11090282219332577,
-        "confirmedKnowledge": 0.11090282219333858,
-        "verifiedKnowledge": 0
-      },
-      "quiz": {
-        "workUnits": 24105.30304,
-        "nominalKnowledge": 2.225437524707047,
-        "confirmedKnowledge": 2.225437524707047,
-        "verifiedKnowledge": 0
-      },
-      "workRatioToCopy": 4,
-      "nominalKnowledgeRatioToCopy": 3.996669563640473
+      "initialKnowledge": 500,
+      "roles": [
+        {
+          "role": "skill-quiz",
+          "id": "skill-quiz/v1/cpp/syntax/value-init",
+          "concept": "Value-initialize an integer",
+          "difficulty": 1,
+          "estimatedMinutes": 0.7,
+          "typingPower": 1.52488,
+          "typingAtEstimatedTime": {
+            "workUnits": 5123.5968,
+            "nominalKnowledge": 0.4734319924298164,
+            "confirmedKnowledge": 0.47343199242982337
+          },
+          "reward": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "correct",
+            "amount": 0.7100640296873166,
+            "learned": 0.7100640296873166,
+            "verified": 0,
+            "studyUnits": 7685.3952,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 1.5,
+          "nominalKnowledgeRatio": 1.4998226588850132,
+          "repeatWithoutResearch": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          }
+        },
+        {
+          "role": "challenge",
+          "id": "quiz/v1/cpp/syntax/clamp_health",
+          "concept": "基礎の入出力",
+          "difficulty": 1,
+          "estimatedMinutes": 2,
+          "typingPower": 1.52488,
+          "typingAtEstimatedTime": {
+            "workUnits": 14638.848,
+            "nominalKnowledge": 1.3520693477052632,
+            "confirmedKnowledge": 1.3520693477052532
+          },
+          "reward": {
+            "kind": "correct",
+            "amount": 5.397392107428004,
+            "learned": 5.397392107428004,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 58555.392,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 4,
+          "nominalKnowledgeRatio": 3.9919491678355676,
+          "repeatWithoutResearch": {
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "reason": ""
+          }
+        }
+      ]
     },
     {
       "lab": 20,
-      "initialNominalKnowledge": 500,
-      "initialGap": 0,
       "labUnitsPerSecond": 566588.2762842705,
-      "typingPower": 3542.1767267766904,
-      "copy": {
-        "workUnits": 13998682.42422148,
-        "nominalKnowledge": 938.8068263311824,
-        "confirmedKnowledge": 938.8068263311825
-      },
-      "legacyQuiz": {
-        "workUnits": 1200,
-        "nominalKnowledge": 0.11090282219332577,
-        "confirmedKnowledge": 0.11090282219333858,
-        "verifiedKnowledge": 0
-      },
-      "quiz": {
-        "workUnits": 55994729.69688592,
-        "nominalKnowledge": 2743.9805397507034,
-        "confirmedKnowledge": 2743.9805397507034,
-        "verifiedKnowledge": 0
-      },
-      "workRatioToCopy": 4,
-      "nominalKnowledgeRatioToCopy": 2.922838290891071
+      "initialKnowledge": 500,
+      "roles": [
+        {
+          "role": "skill-quiz",
+          "id": "skill-quiz/v1/cpp/syntax/value-init",
+          "concept": "Value-initialize an integer",
+          "difficulty": 1,
+          "estimatedMinutes": 0.7,
+          "typingPower": 3542.1767267766904,
+          "typingAtEstimatedTime": {
+            "workUnits": 11901713.80196968,
+            "nominalKnowledge": 822.1583109593062,
+            "confirmedKnowledge": 822.1583109593062
+          },
+          "reward": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "correct",
+            "amount": 1141.7835357161396,
+            "learned": 1141.7835357161396,
+            "verified": 0,
+            "studyUnits": 17852570.70295452,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 1.5,
+          "nominalKnowledgeRatio": 1.3887636000223487,
+          "repeatWithoutResearch": {
+            "passed": true,
+            "status": "passed",
+            "message": "指定された構文で空欄を埋めました。",
+            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "reason": ""
+          }
+        },
+        {
+          "role": "challenge",
+          "id": "quiz/v1/cpp/syntax/clamp_health",
+          "concept": "基礎の入出力",
+          "difficulty": 1,
+          "estimatedMinutes": 2,
+          "typingPower": 3542.1767267766904,
+          "typingAtEstimatedTime": {
+            "workUnits": 34004896.57705623,
+            "nominalKnowledge": 1886.6454525859915,
+            "confirmedKnowledge": 1886.6454525859917
+          },
+          "reward": {
+            "kind": "correct",
+            "amount": 5222.058579472783,
+            "learned": 5222.058579472783,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 136019586.30822492,
+            "implementationUnits": 0,
+            "studyShare": 1,
+            "implementationShare": 0,
+            "reason": ""
+          },
+          "studyWorkRatio": 4,
+          "nominalKnowledgeRatio": 2.767906695089424,
+          "repeatWithoutResearch": {
+            "kind": "answered",
+            "amount": 0,
+            "learned": 0,
+            "verified": 0,
+            "progress": 0,
+            "fixed": 0,
+            "debtRemoved": 0,
+            "studyUnits": 0,
+            "implementationUnits": 0,
+            "studyShare": 0,
+            "implementationShare": 0,
+            "reason": ""
+          }
+        }
+      ]
     }
   ],
   "gapRecovery": [
     {
       "lab": 1,
+      "role": "skill-quiz",
       "elapsedSeconds": 28800,
-      "elapsedHours": 8,
       "elapsedGameDays": 8,
-      "nominalKnowledgeAfterResearch": 521.074001520713,
-      "confirmedKnowledgeAfterResearch": 515.8055011405354,
-      "gapAfterResearch": 5.268500380177601,
-      "firstQuestion": {
-        "typingPower": 1.05,
-        "copy": {
-          "workUnits": 4149.6,
-          "nominalKnowledge": 0.37562000801889767,
-          "confirmedKnowledge": 0.751240016037741
-        },
-        "legacyQuiz": {
-          "workUnits": 1200,
-          "nominalKnowledge": 0.10863739507059147,
-          "confirmedKnowledge": 0.2172747901411185,
-          "verifiedKnowledge": 0.10863739507059147
-        },
-        "quiz": {
-          "workUnits": 16598.4,
-          "nominalKnowledge": 1.501669381759835,
-          "confirmedKnowledge": 6.006677527039187,
-          "verifiedKnowledge": 4.505008145279352
-        },
-        "workRatioToCopy": 4,
-        "nominalKnowledgeRatioToCopy": 3.9978418340385242
+      "nominalKnowledge": 521.5530073365825,
+      "unverifiedBefore": 5.26600457677966,
+      "reconfirmation": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "correct",
+        "amount": 1.436357856053616,
+        "learned": 0,
+        "verified": 1.436357856053616,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "distinctSyntaxQuestions": 128,
-      "legacyAfterAllQuestions": {
-        "verifiedKnowledge": 5.268500380177601,
-        "remainingGap": 0
+      "repeatedWithoutResearch": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "currentAfterAllQuestions": {
-        "remainingGap": 0,
-        "confirmedKnowledge": 692.7198810606363
+      "remainingGap": 3.829646720726044
+    },
+    {
+      "lab": 1,
+      "role": "challenge",
+      "elapsedSeconds": 28800,
+      "elapsedGameDays": 8,
+      "nominalKnowledge": 524.7180446506782,
+      "unverifiedBefore": 5.2496031201036155,
+      "reconfirmation": {
+        "kind": "correct",
+        "amount": 5.2496031201036155,
+        "learned": 0,
+        "verified": 5.2496031201036155,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
       },
-      "newQuestionsUntilGapCleared": 2
+      "repeatedWithoutResearch": {
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
+      },
+      "remainingGap": 0
     },
     {
       "lab": 5,
+      "role": "skill-quiz",
       "elapsedSeconds": 28800,
-      "elapsedHours": 8,
       "elapsedGameDays": 8,
-      "nominalKnowledgeAfterResearch": 703.9727353771434,
-      "confirmedKnowledgeAfterResearch": 652.9795515328584,
-      "gapAfterResearch": 50.99318384428498,
-      "firstQuestion": {
-        "typingPower": 1.52488,
-        "copy": {
-          "workUnits": 6026.32576,
-          "nominalKnowledge": 0.4693239850628939,
-          "confirmedKnowledge": 0.938647970125885
-        },
-        "legacyQuiz": {
-          "workUnits": 1200,
-          "nominalKnowledge": 0.09346722443582926,
-          "confirmedKnowledge": 0.18693444887162514,
-          "verifiedKnowledge": 0.09346722443582926
-        },
-        "quiz": {
-          "workUnits": 24105.30304,
-          "nominalKnowledge": 1.876359043644726,
-          "confirmedKnowledge": 7.505436174578676,
-          "verifiedKnowledge": 5.6290771309339505
-        },
-        "workRatioToCopy": 4,
-        "nominalKnowledgeRatioToCopy": 3.9980037316722177
+      "nominalKnowledge": 704.5712385205234,
+      "unverifiedBefore": 50.965293622709446,
+      "reconfirmation": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "correct",
+        "amount": 1.7947471494956408,
+        "learned": 0,
+        "verified": 1.7947471494956408,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "distinctSyntaxQuestions": 128,
-      "legacyAfterAllQuestions": {
-        "verifiedKnowledge": 11.913935674067467,
-        "remainingGap": 39.07924817021751
+      "repeatedWithoutResearch": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "currentAfterAllQuestions": {
-        "remainingGap": 0,
-        "confirmedKnowledge": 919.4926490958559
+      "remainingGap": 49.170546473213804
+    },
+    {
+      "lab": 5,
+      "role": "challenge",
+      "elapsedSeconds": 28800,
+      "elapsedGameDays": 8,
+      "nominalKnowledge": 708.5263725351077,
+      "unverifiedBefore": 50.78224510692047,
+      "reconfirmation": {
+        "kind": "correct",
+        "amount": 13.617152784639266,
+        "learned": 0,
+        "verified": 13.617152784639266,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
       },
-      "newQuestionsUntilGapCleared": 10
+      "repeatedWithoutResearch": {
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
+      },
+      "remainingGap": 37.165092322281204
     },
     {
       "lab": 20,
+      "role": "skill-quiz",
       "elapsedSeconds": 28800,
-      "elapsedHours": 8,
       "elapsedGameDays": 8,
-      "nominalKnowledgeAfterResearch": 136797.6054394442,
-      "confirmedKnowledgeAfterResearch": 102723.20407958314,
-      "gapAfterResearch": 34074.401359861055,
-      "firstQuestion": {
-        "typingPower": 3542.1767267766904,
-        "copy": {
-          "workUnits": 13998682.42422148,
-          "nominalKnowledge": 78.20891946522745,
-          "confirmedKnowledge": 156.4178389304434
-        },
-        "legacyQuiz": {
-          "workUnits": 1200,
-          "nominalKnowledge": 0.006705210675828619,
-          "confirmedKnowledge": 0.013410421350272372,
-          "verifiedKnowledge": 0.006705210675828619
-        },
-        "quiz": {
-          "workUnits": 55994729.69688592,
-          "nominalKnowledge": 312.70175563852536,
-          "confirmedKnowledge": 1250.8070225541014,
-          "verifiedKnowledge": 938.1052669155761
-        },
-        "workRatioToCopy": 4,
-        "nominalKnowledgeRatioToCopy": 3.9982876349232264
+      "nominalKnowledge": 136897.34163705155,
+      "unverifiedBefore": 33813.88952533378,
+      "reconfirmation": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "correct",
+        "amount": 299.09963867781795,
+        "learned": 0,
+        "verified": 299.09963867781795,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "distinctSyntaxQuestions": 128,
-      "legacyAfterAllQuestions": {
-        "verifiedKnowledge": 0.8582656308426522,
-        "remainingGap": 34073.54309423021
+      "repeatedWithoutResearch": {
+        "passed": true,
+        "status": "passed",
+        "message": "指定された構文で空欄を埋めました。",
+        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
+        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "reason": ""
       },
-      "currentAfterAllQuestions": {
-        "remainingGap": 0,
-        "confirmedKnowledge": 173031.14263674946
+      "remainingGap": 33514.78988665596
+    },
+    {
+      "lab": 20,
+      "role": "challenge",
+      "elapsedSeconds": 28800,
+      "elapsedGameDays": 8,
+      "nominalKnowledge": 137556.5869918878,
+      "unverifiedBefore": 32958.63210310365,
+      "reconfirmation": {
+        "kind": "correct",
+        "amount": 2270.6802507624643,
+        "learned": 0,
+        "verified": 2270.6802507624643,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
       },
-      "newQuestionsUntilGapCleared": 38
+      "repeatedWithoutResearch": {
+        "kind": "answered",
+        "amount": 0,
+        "learned": 0,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 0,
+        "implementationUnits": 0,
+        "studyShare": 0,
+        "implementationShare": 0,
+        "reason": ""
+      },
+      "remainingGap": 30687.951852341186
     }
   ]
 }

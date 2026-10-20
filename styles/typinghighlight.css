@@ -1,0 +1,9 @@
+/* Accepted text and the next-character marker keep their progress colors.
+   Syntax spans change color only; all glyph and line metrics stay inherited. */
+.typing-code .typed-code [data-typing-token],
+.typing-code .next-character [data-typing-token] {
+  color: inherit;
+}
+.typing-code .pending-code [data-typing-token] {
+  opacity: .84;
+}

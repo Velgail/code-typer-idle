@@ -1,0 +1,636 @@
+{
+  "schemaVersion": 1,
+  "balanceVersion": 21,
+  "reproduce": "node scripts/analyze-learning-catalog.mjs --write",
+  "interpretation": {
+    "quiz": "Constrained blanks with an explicit required technique and full lexical-token answer validation. Not an arbitrary-program compiler.",
+    "challenge": "Open implementations tested by real browser language runtimes. Correct alternative algorithms are accepted.",
+    "counts": "Language-specific questions are counted individually. A shared Challenge family translated into another language is not counted as a new algorithm.",
+    "times": "Per-question estimatedMinutes are authored pacing targets. Reading, thinking and retry time have not been measured in a human study.",
+    "typing": "The existing 8192 built-in copying prompts are 512 templates with 16 input-data variants; they are not 8192 distinct concepts. Exercism copying courses remain separate."
+  },
+  "totals": {
+    "quizzes": 1024,
+    "challenges": 1024,
+    "firstProjectChallenges": 24,
+    "newChallenges": 512,
+    "challengeFamilies": 304,
+    "executableTestCases": 16014
+  },
+  "coverage": {
+    "arrayInput": 308,
+    "stringInput": 135,
+    "arrayOutput": 295,
+    "stringOutput": 42
+  },
+  "rows": [
+    {
+      "language": "cpp",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "cpp",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "cpp",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "cpp",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "csharp",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "csharp",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "csharp",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "csharp",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "rust",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "rust",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "rust",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "rust",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "go",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "go",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "go",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "go",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "python",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "python",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "python",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "python",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "java",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "java",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "java",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "java",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    },
+    {
+      "language": "sql",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        10,
+        8,
+        4
+      ]
+    },
+    {
+      "language": "sql",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        10,
+        8,
+        4
+      ]
+    },
+    {
+      "language": "sql",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        10,
+        8,
+        4
+      ]
+    },
+    {
+      "language": "sql",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        10,
+        8,
+        4
+      ]
+    },
+    {
+      "language": "lua",
+      "subject": "syntax",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        11,
+        19,
+        2,
+        0
+      ]
+    },
+    {
+      "language": "lua",
+      "subject": "design",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        10,
+        18,
+        4,
+        0
+      ]
+    },
+    {
+      "language": "lua",
+      "subject": "graphics",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        21,
+        3,
+        1
+      ]
+    },
+    {
+      "language": "lua",
+      "subject": "systems",
+      "quizCount": 32,
+      "quizByDifficulty": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "challengeCount": 32,
+      "newChallengeCount": 16,
+      "challengeByDifficulty": [
+        7,
+        10,
+        8,
+        7
+      ]
+    }
+  ]
+}

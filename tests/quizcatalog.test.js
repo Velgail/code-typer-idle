@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {lessonAt} from '../src/curriculum.js';
+import {lessonAt,TOPICS,evaluateTopic} from '../src/curriculum.js';
+import {SHARED_CHALLENGE_STATEMENTS} from '../src/challengestatements.js';
 import {quizAt,quizById,quizId,quizCatalog,QUIZ_LANGUAGES,QUIZ_SUBJECTS,QUIZ_TOPICS_PER_SUBJECT} from '../src/quizcatalog.js';
 
 const catalog=quizCatalog();
@@ -40,7 +41,7 @@ test('each problem tests one implementation against many data inputs and rejects
 test('parameters describe their role and problem statements specify actual behavior',()=>{
  for(const q of catalog){
   assert.match(q.description,/[\u3040-\u9fff]/,q.id);
-  assert.ok(q.description.length>60,q.id);
+  assert.ok(q.description.length>=20,q.id);
   for(const p of q.parameters){
    assert.ok(p.name&&p.type,q.id);assert.match(p.description,/[\u3040-\u9fff]/,q.id);
    assert.notEqual(p.description,`${p.name}の値`,q.id);
@@ -48,6 +49,49 @@ test('parameters describe their role and problem statements specify actual behav
   }
  }
  assert.match(find('cpp','clamp_health').parameters.find(p=>p.name==='limit').description,/上限/);
+});
+
+test('shared Challenges describe results with separate constraints and verified worked examples',()=>{
+ const topics=Object.values(TOPICS).flatMap(topics=>topics.slice(0,14));
+ assert.equal(Object.keys(SHARED_CHALLENGE_STATEMENTS).length,56);
+ for(const topic of topics){
+  const q=find('cpp',topic.id);
+  assert.doesNotMatch(q.description,/処理仕様:|を0から .*未満まで1ずつ増やして|for文|範囲for/);
+  assert.ok(Array.isArray(q.constraints)&&q.constraints.length>=1,q.id);
+  assert.ok(q.constraints.every(value=>typeof value==='string'&&value.length>0),q.id);
+  assert.ok(q.examples.length>=2,q.id);
+  for(const example of q.examples){
+   assert.equal(example.args.length,q.parameters.length,q.id);
+   const inputs=Object.fromEntries(q.parameters.map((p,i)=>[p.name,example.args[i]]));
+   assert.equal(evaluateTopic({...topic,inputs:()=>inputs},0),example.expected,`${q.id}: ${JSON.stringify(example.args)}`);
+   assert.ok(example.explanation.length>0,q.id);
+  }
+  for(const language of QUIZ_LANGUAGES.filter(language=>language!=='sql')){
+   const translated=find(language,topic.id);
+   assert.equal(translated.description,q.description,translated.id);
+   assert.deepEqual(translated.constraints,q.constraints,translated.id);
+   assert.deepEqual(translated.examples,q.examples,translated.id);
+  }
+ }
+});
+
+test('collected coins accept the equivalent formula and examples preserve the initial balance',()=>{
+ const q=find('cpp','sum_coins');
+ assert.match(q.description,/現在の所持金は total/);
+ assert.doesNotMatch(q.description,/for|ループ|繰り返し|1ずつ増や/);
+ assert.ok(q.examples.some(example=>example.args[2]!==0&&example.args[0]>0));
+ assert.ok(q.examples.some(example=>example.args[2]!==0&&example.args[0]===0&&example.expected===example.args[2]));
+ for(const {args:[pickups,coin,total],expected} of [...q.cases,...q.examples]){
+  assert.equal(total+coin*pickups,expected);
+ }
+});
+
+test('overwritten scratch arguments are explicitly excluded from the requested result',()=>{
+ const ignored={apply_armor:'damage',nearest_bucket:'bucket',inventory_capacity:'accepted',cooldown_gate:'wait',damage_pipeline:'damage',clamp_channel:'result',pool_slots:'free'};
+ for(const [id,name] of Object.entries(ignored)){
+  const q=find('cpp',id);
+  assert.match(q.parameters.find(parameter=>parameter.name===name).description,/戻り値には影響しません/);
+ }
 });
 
 test('common algorithms use the same cases and outcomes in all seven imperative languages',()=>{

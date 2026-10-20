@@ -1,0 +1,201 @@
+// Original distractors for the language-specific reading examples.
+// Each value models the stated misreading of the displayed program. There is
+// deliberately no answer-offset or random fallback when a topic has fewer
+// convincing alternatives. The caller removes collisions with the right answer.
+const choice = (value, misconception, reason) => ({ value, misconception, reason });
+const sumValues = v => [
+  choice(3, '合計と要素数の取り違え', '値の合計ではなく、列に入っている3個の要素を数えた場合の値。'),
+  choice(11, '先頭要素の数え落とし', `先頭の${v + 2}を読み飛ばし、残りの4と7だけを足した場合の値。`),
+];
+const heal = v => [
+  choice(v + 10, '体力への加算を読み落とす', `回復前の体力${v + 10}のまま。このインスタンスの体力に5を加えた後の値が返る。`),
+  choice(5, '加算を代入と読む', `体力に5を加える処理を、体力そのものを5に置き換える処理と読んだ場合の値。`),
+];
+const capturedTotal = v => [
+  choice(v, 'クロージャの状態更新を外側へ反映しない', `外側の合計${v}が変わらないと読んだ場合の値。二つの呼び出しは同じ変数を更新する。`),
+  choice(v + 7, '二つ目の呼び出しを読み落とす', `${v}に最初の7だけを加えた値。後の呼び出しによる3の加算も残る。`),
+  choice(v + 3, '呼び出しごとに累計を初期化する', `最後の呼び出しだけが残ると考え、${v}に3だけを加えた場合の値。`),
+];
+const optionalValue = (v, name) => v % 2 ? [
+  choice(0, '欠損を数値のゼロと取り違える', `${name}には値がないが、整数の0が保存されているわけではない。明示された既定値${v + 20}が選ばれる。`),
+] : [
+  choice(v + 20, '値がある場合にも既定値を使う', `${name}には${v + 5}が入っている。既定値${v + 20}は値がない場合にだけ使う。`),
+];
+const mappedPixels = v => [
+  choice(v + 12, '射影前の列を集計する', `変換前の${v + 2}、4、6をそのまま合計した値。集計対象では各値が2倍になっている。`),
+];
+const cleanup = v => [
+  choice(v + 2, 'ブロック終了時の後始末を読み落とす', `ブロック内の2だけを加えた値。ブロックを出ると後始末でも5が加わる。`),
+  choice(v + 5, 'ブロック本体の処理を読み落とす', `後始末の5だけを加えた値。本体で加えた2も残っている。`),
+];
+
+const models = {
+  cpp_vector_sum: sumValues,
+  cpp_map_lookup: v => [
+    choice(0, '見つかったキーを未登録と読む', `potionは${v + 3}として登録されている。0はfindがendを返した場合の分岐。`),
+  ],
+  cpp_struct_method: heal,
+  cpp_lambda_policy: v => [
+    choice(297, '値キャプチャと参照キャプチャの取り違え', `外側を99へ変更した後の値をラムダも使うと考えると、3 × 99 = 297。実際の値キャプチャは${v + 2}を保持する。`),
+  ],
+  cpp_pixel_array: v => [
+    choice(40, '配列要素への加算を読み落とす', `pixels[2]の更新前の値。pixels[1]の${v + 20}を加えた後の要素が返る。`),
+    choice(v + 28, '添字を1起点で読む', `pixels[2]を2番目、pixels[1]を先頭だと思うと、${v + 20}に8を加えて${v + 28}になる。C++の添字は0起点。`),
+  ],
+  cpp_sprite_sort: v => [
+    choice(v + 10, 'sortの結果を反映しない', `並べ替える前の先頭値。sortはdepths自体を昇順へ変更する。`),
+    choice(30, '昇順と降順の取り違え', '大きい順に並べた場合の先頭値。比較関数を指定しないsortは小さい順に並べる。'),
+  ],
+  cpp_unique_owner: v => [
+    choice(-1, 'move後にも元の所有者が値を持つと読む', 'sourceが空にならないと考えて選ぶ分岐。unique_ptrのmove後、sourceは空でtargetが値を所有する。'),
+  ],
+  cpp_raii_scope: v => [
+    choice(v, 'デストラクターを実行しないと読む', `Guardが内側のスコープを出てもcountが${v}のままだと考えた値。そこでデストラクターの5が加わる。`),
+    choice(5, '参照先への加算を代入と読む', 'value += 5をvalue = 5と取り違え、初期値を捨てた場合の値。'),
+  ],
+
+  csharp_list_filter: v => [
+    choice(v + 34, '条件で除外される得点も足す', `4も含めて4 + ${v + 10} + 20を計算した値。4は10未満なので加算されない。`),
+    choice(2, '選ばれた値の合計と個数の取り違え', `条件を満たす${v + 10}と20を、加算せず2件と数えた値。`),
+  ],
+  csharp_nullable_value: v => optionalValue(v, 'saved'),
+  csharp_delegate: capturedTotal,
+  csharp_interface_map: v => [
+    choice(0, '検索成功時にも失敗側の値を使う', `keyには${v + 8}が保存されている。TryGetValueは成功し、out valueへその値を入れる。`),
+  ],
+  csharp_linq_pixels: mappedPixels,
+  csharp_rect_tuple: v => [
+    choice(v + 7, '面積を二辺の和として計算する', `幅${v + 3}と高さ4を足した値。返す式はItem1とItem2の積になっている。`),
+  ],
+  csharp_dictionary_cache: v => [
+    choice(v + 208, '同じキーの更新で件数も増えると読む', `cache[1]の更新を別項目の追加と考え、Countを2として2 × 100 + ${v + 8}を計算した値。`),
+    choice(v + 105, '既存値への加算を読み落とす', `Countは1だが保存値を更新前の${v + 5}として計算した値。`),
+  ],
+  csharp_queue_order: v => [
+    choice(91, 'Queueを後入れ先出しとして読む', '最後に入れた9を取り出すと、9 × 10 + 1になる。Queueは先に入れた値から取り出す。'),
+    choice((v + 3) * 10 + 2, '取り出す前の件数を使う', `取り出した${v + 3}は合っているが、Countを取り出す前の2として計算した値。Dequeue後は1件。`),
+  ],
+
+  rust_vector_iter: sumValues,
+  rust_option: v => optionalValue(v, 'saved'),
+  rust_result: v => v % 2 ? [
+    choice('runtime-error', 'Errの値を例外送出と取り違える', 'Err("missing")を作った時点で処理が異常終了すると思った結果。ErrはResultの値であり、matchのErr側で復旧値を返す。'),
+  ] : [
+    choice(v + 1, 'OkなのにErr側の復旧値を使う', `loadedはOk(${v + 8})なので、Err側の${v + 1}ではなく成功値を取り出す。`),
+  ],
+  rust_enum_state: v => v % 2 ? [
+    choice(0, '状態名を番号ゼロに置き換える', `Idleを「最初の状態だから0」と読んだ値。このmatchは番号ではなくidle_frameの${v}を返す。`),
+  ] : [
+    choice(v, 'Runningのデータを取り出さない', `Idle用のidle_frameを選んだ値。実際はRunningに格納された${v + 3}がframeへ束縛される。`),
+  ],
+  rust_slice_pixels: v => [
+    choice(v + 20, '借用した範囲への変更を元配列へ反映しない', `更新前の${v + 2} + 4 + 6 + 8。可変スライスの変更はpixelsの要素へ反映される。`),
+    choice(v + 50, '範囲の終端3も含める', '1..3を添字1・2・3の範囲だと思い、3個に10ずつ加えた値。終端3は含まれない。'),
+  ],
+  rust_iterator_filter: v => [
+    choice(v + 6, 'filterで除外する値まで合計する', `-3も含めて-3 + ${v + 2} + 7を計算した値。filterは正の値だけを通す。`),
+  ],
+  rust_move_owner: v => [
+    choice('compile-error', '代入にはCopyが必要だと思う', 'VecはCopyではないからlet target = sourceでエラーになると思った結果。この代入はコピーではなく所有権の移動として成立する。'),
+  ],
+  rust_box_value: v => [
+    choice(v + 5, '逆参照先への更新を読み落とす', `Boxを作った時点の値。*value += 3はBoxの中身を更新する。`),
+    choice(3, '逆参照先への加算を代入と読む', '*value += 3を*value = 3と読み、元の値を捨てた場合の値。'),
+  ],
+
+  go_slice_range: v => [
+    choice(3, 'rangeの値と添字の取り違え', '0、1、2の添字を合計した値。最初の戻り値は_で捨てており、coinには各要素の値が入る。'),
+  ],
+  go_map_presence: v => [
+    choice(-1, '存在判定を反転して読む', `potionは${v + 3}として登録済み。okはtrueなので、!okの失敗分岐には入らない。`),
+  ],
+  go_closure: capturedTotal,
+  go_type_assertion: v => v % 2 ? [
+    choice(0, '失敗時のゼロ値をそのまま返す', `intへの型アサーション失敗時、number自体は0になる。ただし!okの分岐が先に復旧値${v}を返す。`),
+  ] : [
+    choice(v, '成功している型アサーションを失敗と読む', `動的型はintなのでnumberに${v + 8}が入り、復旧用の${v}は返らない。`),
+  ],
+  go_pixel_slice: v => [
+    choice(v + 6, '部分sliceを独立したコピーとして読む', `元配列が更新されないと思い、${v + 2} + 4を計算した値。viewとpixelsは同じ基底配列を共有する。`),
+  ],
+  go_rune_frame: v => [
+    choice(v + 5, 'Unicodeの符号位置とUTF-8のバイト数の取り違え', 'AとBは各1バイト、界は3バイトなので計5バイト。rangeで数えるのは3個の符号位置。'),
+  ],
+  go_buffered_channel: v => [
+    choice('runtime-error', 'close後の受信と送信の規則を取り違える', '閉じたchannelから受信するとpanicになると思った結果。close後でもバッファ内の値は受信でき、読み切るとrangeが終了する。'),
+  ],
+  go_deferred_cleanup: v => [
+    choice(v + 5, 'returnへの代入後のdeferを反映しない', `return valueで代入した直後の値。名前付き戻り値resultは、その後deferで3増える。`),
+  ],
+
+  python_list_comprehension: v => [
+    choice((v + 34) * 2, '内包表記の条件を読み落とす', `4も残して全要素を2倍した合計。if score >= 10によって4は除外される。`),
+    choice(v + 30, '条件だけ適用して式の変換を読み落とす', `残した${v + 10}と20をそのまま足した値。内包表記のscore * 2も各値へ適用される。`),
+  ],
+  python_dict_default: v => [
+    choice('runtime-error', 'getを添字による辞書検索と取り違える', '未登録のkeyを読んでKeyErrorになると思った結果。stock.get("key", 5)は未登録時に5を返す。'),
+  ],
+  python_dataclass: heal,
+  python_closure: v => [
+    choice('runtime-error', '外側の変数を読むだけでもnonlocalが必要だと思う', 'reward内にnonlocal multiplierがないため名前を解決できないと思った結果。外側の変数を読むだけならnonlocalは不要。'),
+  ],
+  python_zip_pixels: v => [
+    choice((v + 6) * 2 + 60, 'zipを全組み合わせとして読む', `左の各値を右の両方と組み合わせた場合の合計。zipは同じ位置の2組だけを作る。`),
+  ],
+  python_tuple_unpack: v => [
+    choice(v + 43, 'アンパックの左右を逆にする', `xに4、yに${v + 3}を入れたと考え、4 × 10 + ${v + 3}を計算した値。`),
+    choice(v + 7, '座標の符号化に使う10倍を読み落とす', `x + yだけを計算した値。返す式ではxを10倍してからyを加える。`),
+  ],
+  python_counter: v => [
+    choice(11, 'Counterを重複を除くだけの集合として読む', '識別子1も最後の識別子も1回として1 × 10 + 1を計算した値。Counterは識別子1の2回分を数える。'),
+  ],
+  python_context_cleanup: cleanup,
+
+  java_array_list: sumValues,
+  java_optional: v => optionalValue(v, 'saved'),
+  java_local_class: heal,
+  java_function_policy: v => [
+    choice('compile-error', 'キャプチャする変数にはfinalの明記が必要だと思う', 'multiplierにfinalが書かれていないためラムダで使えないと思った結果。初期化後に再代入しない変数はeffectively finalとしてキャプチャできる。'),
+  ],
+  java_int_stream: mappedPixels,
+  java_copy_pixels: v => [
+    choice(2 * (v + 13), '配列コピーを参照の共有として読む', `copy[0]の10加算がsource[0]にも反映されると思い、${v + 13}を2回足した値。copyOfは独立した配列を作る。`),
+    choice(2 * (v + 3), 'コピー側の更新も読み落とす', `両方を更新前の${v + 3}として足した値。元配列は変わらないがコピー側は10増えている。`),
+  ],
+  java_map_merge: v => [
+    choice(3, 'mergeを新しい値による上書きと読む', `既存の${v + 5}を捨てて3で置き換えた場合の値。既存キーにはInteger::sumが適用される。`),
+    choice(v + 5, '既存キーではmergeを何もしないと読む', `merge前の値。既存キーでも新しい3と結合して更新する。`),
+  ],
+  java_auto_close: cleanup,
+
+  lua_sequence: v => [
+    choice(6, 'ipairsの添字と要素の値の取り違え', '1、2、3の添字を合計した値。最初の戻り値は_に入り、coinには各要素の値が入る。'),
+  ],
+  lua_table_default: v => [
+    choice('runtime-error', 'テーブルの未登録キーを読むとエラーになると思う', 'stock.keyの参照時点でエラーになると思った結果。Luaの未登録キーはnilを返すため、orの右側の5が選ばれる。'),
+  ],
+  lua_metatable: heal,
+  lua_closure: capturedTotal,
+  lua_pixel_table: v => [
+    choice(v + 6, 'テーブルの代入を独立したコピーとして読む', `元のpixelsは更新されないと思い、${v + 2} + 4を計算した値。viewとpixelsは同じテーブルを指す。`),
+  ],
+  lua_frame_string: v => [
+    choice(v + 3, '取り出した数値の後の加算を読み落とす', `文字列から取り出して数値に変換したところまでの値。返す式ではさらに1を加える。`),
+  ],
+  lua_coroutine: v => [
+    choice((v + 4) * 2, 'resumeごとにcoroutineが先頭から動くと読む', `両方のresumeが最初のyieldから${v + 4}を受け取ると思った場合の値。2回目はyieldの後から続く。`),
+    choice(6, 'yieldで得た値を合計へ残さない', `coroutineの最後のreturnだけを答えた値。最初のresumeで得た${v + 4}もfirstに残っている。`),
+  ],
+  lua_protected_call: v => v % 2 ? [
+    choice('runtime-error', 'pcallの中のerrorが呼び出し元へ伝わると思う', 'error("missing")がそのまま外へ伝わり終了すると思った結果。pcallはエラーを受け止めてokをfalseにし、復旧分岐へ進む。'),
+  ] : [
+    choice(v, 'pcallが成功した場合にも復旧分岐を選ぶ', `処理は${v + 5}を正常に返す。okはtrueなので、復旧用の${v}を返す分岐には入らない。`),
+  ],
+};
+
+export function idiomReadingDistractors(lesson, variant) {
+  const model = models[lesson?.topicId];
+  if (!model || !Number.isInteger(variant) || variant < 0 || variant > 15) return null;
+  if (lesson.language && !lesson.topicId.startsWith(`${lesson.language}_`)) return null;
+  return model(variant);
+}
