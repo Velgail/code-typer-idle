@@ -1,6 +1,34 @@
 // Original, dependency-free exercises. Each row teaches a distinct technique;
 // difficulty groups contain eight exercises, rather than numeric variants.
 const GO_IMPORTS = {fmt:'fmt',strings:'strings',strconv:'strconv',utf8:'unicode/utf8',math:'math',sort:'sort',errors:'errors',context:'context',sync:'sync',atomic:'sync/atomic',io:'io',os:'os',filepath:'path/filepath',json:'encoding/json',binary:'encoding/binary',time:'time',bufio:'bufio',bytes:'bytes'};
+// Curated equivalent spellings keep the lesson's technique intact. Arbitrary
+// implementations are evaluated by Challenges, not by this completion bank.
+const GO_ALTERNATIVES = {
+  'syntax/rune-literal':["'\\x41'", "'\\u0041'", "'\\U00000041'"],
+  'syntax/half-open-slice':['1:len(history)'],
+  'syntax/map-comma-ok':['stock[`potion`]'],
+  'syntax/full-slice-capacity':[':1:1'],
+  'design/nil-guard':['nil == player'],
+  'design/strategy-function':['scores[j] < scores[i]'],
+  'design/closure-factory':['offset + value'],
+  'design/generic-map':['make([]B, len(input), len(input))'],
+  'design/validation-boundary':['0 > n'],
+  'design/bounded-retry':['3 > attempt'],
+  'design/owned-slice':['make([]byte, len(data), len(data))'],
+  'graphics/vector-addition':['by + ay'],
+  'graphics/opacity-scale':['100','100.','1e2','100e0'],
+  'graphics/row-major-index':['x + y * width'],
+  'graphics/rgba-array':['[4]byte'],
+  'graphics/degrees-to-radians':['math.Pi / 180.0'],
+  'graphics/linear-interpolation':['a + t * (b - a)'],
+  'graphics/aabb-overlap':['bLeft < aRight && aLeft < bRight','bRight > aLeft && aRight > bLeft'],
+  'graphics/point-half-open':['left <= x && x < right','x < right && x >= left','left <= x && right > x'],
+  'graphics/camera-culling':['left >= viewRight || right <= viewLeft'],
+  'graphics/premultiplied-color':['alpha * red'],
+  'graphics/fixed-step-accumulator':['step <= accumulator'],
+  'graphics/normalized-direction':['0 < length'],
+  'systems/bounded-read':['1 + limit']
+};
 function goCode(body, answer, note, declarations='') {
   const text=body+'\n'+answer+'\n'+declarations;
   const imports=Object.entries(GO_IMPORTS).filter(([name])=>new RegExp('\\b'+name+'\\.').test(text)).map(([,path])=>JSON.stringify(path));
@@ -9,7 +37,8 @@ function goCode(body, answer, note, declarations='') {
 function goRows(subject, groups) {
   return groups.flatMap((rows, level)=>rows.map(([slug,title,prompt,body,answer,incorrect,explanation,note,declarations='',alternatives])=>({
     id:`${subject}/${slug}`,subject,concept:slug,title,difficulty:level+1,minutes:[0.75,1.5,2.5,4][level],
-    prompt:`${title}。${prompt}`,code:goCode(body,answer,note,declarations),answer,incorrect,explanation,...(alternatives?{alternatives}:{})
+    prompt:`${title}。${prompt}`,code:goCode(body,answer,note,declarations),answer,incorrect,explanation,
+    ...((alternatives || GO_ALTERNATIVES[`${subject}/${slug}`])?{alternatives:alternatives || GO_ALTERNATIVES[`${subject}/${slug}`]}:{})
   })));
 }
 const linkPrerequisites=(rows,links)=>rows.map(row=>links[row.id]?{...row,prerequisites:links[row.id]}:row);
@@ -105,7 +134,7 @@ const GO_GRAPHICS = [
   ['position-translation','横方向へ移動する','現在のxへ速度を加える複合代入演算子を入れてください。','x,velocity := 5,2\nx ____ velocity\nfmt.Println(x)','+=',['=','-='],'+=は現在位置に変位を加えます。=では位置を速度そのものに置き換えてしまいます。','Move the object relative to its current position.'],
   ['vector-addition','二次元の変位を合成する','縦成分もそれぞれ足し合わせてください。','ax,ay,bx,by := 2,3,4,-1\nx,y := ax+bx,____\nfmt.Println(x,y)','ay+by',['ay+bx','ax+by'],'ベクトルの加算は同じ軸の成分同士で行います。横と縦の成分を混ぜないことが基本です。','Combine independent movements on matching axes.'],
   ['clamp-channel','色成分の上限を守る','255を超えた色成分を255へ制限してください。','red:=300\nif red > 255 { red = ____ }\nfmt.Println(red)','255',['0','red'],'8bitの色成分は0〜255です。ここでは上限超過を検出済みなので、最大値へ丸めます。','Clamp an overbright red channel to its upper bound.'],
-  ['opacity-scale','不透明度を割合へ変換する','百分率を0〜1へ直すため、実数100で割ってください。','percent:=float64(25)\nalpha:=percent / ____\nfmt.Println(alpha)','100.0',['255.0','1.0'],'百分率は100で割って正規化します。0〜255の色成分と同じ尺度ではありません。','Convert opacity percent into a normalized alpha.'],
+  ['opacity-scale','不透明度を割合へ変換する','float64の百分率を100で割り、0〜1の割合へ直してください。','percent:=float64(25)\nalpha:=percent / ____\nfmt.Println(alpha)','100.0',['255.0','1.0'],'百分率は100で割って正規化します。ここではpercentがfloat64なので、型なし定数100でもfloat64に変換されて実数除算になります。','Convert opacity percent into a normalized alpha.'],
   ['row-major-index','画像の座標を一次元添字へ直す','行優先の配列で、行の開始位置にxを足してください。','width,x,y:=8,3,2\nindex:=____\nfmt.Println(index)','y*width+x',['x*width+y','x+y'],'行優先では一行がwidth要素なので、y*widthが行頭です。最後にその行のxを加えます。','Locate a pixel in row-major storage.'],
   ['rectangle-width','左右の境界から幅を求める','右端から左端を引いてください。','left,right:=2.0,9.0\nwidth:=____\nfmt.Println(width)','right-left',['left-right','right+left'],'同じ座標系の右端と左端の差が幅です。境界の位置そのものを足す計算ではありません。','Measure the horizontal span between two edges.'],
   ['frame-cycle','アニメーションを循環させる','剰余演算子でフレーム番号を0〜frameCount-1へ戻してください。','tick,frameCount:=17,6\nframe:=tick ____ frameCount\nfmt.Println(frame)','%',['/','*'],'剰余により一定枚数ごとに0へ戻れます。ここではframeCountが正であることを前提としています。','Wrap an animation frame within its sprite count.'],
@@ -277,11 +306,55 @@ const GO_PREREQUISITES = {
 };
 export const GO_SKILL_QUIZZES = linkPrerequisites([...goRows('syntax',GO_SYNTAX),...goRows('design',GO_DESIGN),...goRows('graphics',GO_GRAPHICS),...goRows('systems',GO_SYSTEMS)],GO_PREREQUISITES);
 
+const PYTHON_ALTERNATIVES = {
+  'syntax/tuple-unpack':['(x, y)','[x, y]'],
+  'syntax/f-string':['F'],
+  'syntax/set-literal':['{"rare", "quest"}','{"quest", "rare",}'],
+  'syntax/list-comprehension':['if 0 <= score'],
+  'syntax/conditional-expression':['"play" if 0 < lives else "over"'],
+  'syntax/sequence-pattern':['("move", distance)','"move", distance'],
+  'syntax/chained-comparison':['high >= value >= low'],
+  'syntax/raw-regex':['R'],
+  'design/safe-default-list':['list()'],
+  'design/dataclass-fields':['dataclass()'],
+  'design/super-initialization':['super(Player, self)'],
+  'design/factory-function':['lambda: dict(score=0)'],
+  'design/class-pattern':['Message("save", value)','Message(payload=value, kind="save")'],
+  'graphics/point-components':['x, y'],
+  'graphics/channel-clamp':['min(255, max(0, red))','max(min(red, 255), 0)','min(max(red, 0), 255)'],
+  'graphics/pixel-index':['x + y * width'],
+  'graphics/color-unpacking':['(red, green, blue)','[red, green, blue]'],
+  'graphics/lerp-position':['a + t * (b - a)'],
+  'graphics/rectangle-hit-test':['top <= y < bottom and left <= x < right','right > x >= left and bottom > y >= top'],
+  'graphics/sprite-row-slice':['start:width + start'],
+  'graphics/premultiplied-alpha':['alpha * channel'],
+  'graphics/fixed-step-loop':['step <= accumulator'],
+  'graphics/barycentric-attribute':['weight * value'],
+  'graphics/normalization-zero':['0 < length'],
+  'systems/binary-layout':['"!I"'],
+  'systems/digest-bytes':['payload.encode()','payload.encode("utf8")']
+};
+// Python's ordinary string delimiters are interchangeable in these authored
+// answers: each literal has no escapes or embedded quotes. Generate their
+// combinations in the data, rather than normalizing all languages' strings.
+function pythonQuoteVariants(source) {
+  const literals=[...source.matchAll(/"([^"\\\r\n]*)"/g)];
+  let variants=[source];
+  for(const match of literals){
+    if(match[1].includes("'"))continue;
+    // Replacing delimiters preserves offsets, including in mixed-quote answers.
+    variants=variants.flatMap(value=>[value,value.slice(0,match.index)+"'"+match[1]+"'"+value.slice(match.index+match[0].length)]);
+  }
+  return variants;
+}
 function pythonRows(subject, groups) {
-  return groups.flatMap((rows,level)=>rows.map(([slug,title,prompt,body,answer,incorrect,explanation,note,alternatives])=>({
-    id:`${subject}/${slug}`,subject,concept:slug,title,difficulty:level+1,minutes:[0.75,1.5,2.5,4][level],
-    prompt:`${title}。${prompt}`,code:`# ${note}\n${body}\n`,answer,incorrect,explanation,...(alternatives?{alternatives}:{})
-  })));
+  return groups.flatMap((rows,level)=>rows.map(([slug,title,prompt,body,answer,incorrect,explanation,note,alternatives])=>{
+    const accepted=[...new Set([answer,...(alternatives || PYTHON_ALTERNATIVES[`${subject}/${slug}`] || [])].flatMap(pythonQuoteVariants))].filter(value=>value!==answer);
+    return {
+      id:`${subject}/${slug}`,subject,concept:slug,title,difficulty:level+1,minutes:[0.75,1.5,2.5,4][level],
+      prompt:`${title}。${prompt}`,code:`# ${note}\n${body}\n`,answer,incorrect,explanation,...(accepted.length?{alternatives:accepted}:{})
+    };
+  }));
 }
 const PYTHON_SYNTAX = [
  [
@@ -386,7 +459,7 @@ const PYTHON_GRAPHICS = [
   ['lerp-position','始点と終点の間を補間する','t=0でa、t=1でbになる一次補間式を使ってください。','a, b, t = 10.0, 30.0, 0.25\nx = ____\nprint(x)','a + (b - a) * t',['(a + b) * t','b + (b - a) * t'],'始点aへ差分のt倍を加えます。両端を代入して確認すると式の取り違えを見つけやすくなります。','Interpolate from the start coordinate to the destination.'],
   ['rectangle-hit-test','右端を含まない矩形の当たり判定をする','連鎖比較とandで両軸の範囲を確認してください。','x, y = 3, 4\nleft, top, right, bottom = 0, 0, 10, 10\ninside = ____\nprint(inside)','left <= x < right and top <= y < bottom',['left <= x < right or top <= y < bottom','left < x <= right and top < y <= bottom'],'両軸が範囲内である必要があります。右端と下端を除く規約で隣接する領域の二重判定を減らせます。','Require both coordinates inside the half-open rectangle.'],
   ['negative-world-tile','負の座標もタイルへ変換する','床除算で、0より左にある座標を左隣のタイルへ割り当ててください。','x, tile_width = -1, 16\ncolumn = x ____ tile_width\nprint(column)','//',['/','%'],'Pythonの//は負の無限大へ丸めます。int(x/tile_width)は0へ丸めるため、負側で別のタイルになります。','Choose the tile to the left of zero for a negative position.'],
-  ['draw-command-record','描画操作を後で処理できるよう記録する','辞書として種類と座標を保持してください。','commands = []\ncommands.append(____)\nprint(commands[0]["kind"])','{"kind": "sprite", "x": 3, "y": 4}',['("sprite", 3, 4)','{"sprite", 3, 4}'],'フィールド名を持つ命令データは後で検査や並べ替えができます。ここではkindキーで参照する契約です。','Record a named drawing command for a later pass.'],
+  ['draw-command-record','描画操作を後で処理できるよう記録する','kindを"sprite"、xを3、yを4とする辞書で、描画の種類と座標を保持してください。','commands = []\ncommands.append(____)\nprint(commands[0]["kind"])','{"kind": "sprite", "x": 3, "y": 4}',['("sprite", 3, 4)','{"sprite", 3, 4}'],'フィールド名を持つ命令データは後で検査や並べ替えができます。ここではkindキーで参照する契約です。','Record a named drawing command for a later pass.'],
   ['palette-map','色名をRGBへ変換する','辞書のgetで未知の色を既定色へ戻してください。','palette = {"red": (255, 0, 0)}\ncolor = palette.____("unknown", (0, 0, 0))\nprint(color)','get',['pop','setdefault'],'getは辞書を変えず、未登録なら指定の値を返します。popは削除、setdefaultは新しいキーの挿入を伴います。','Resolve a palette entry without modifying the palette.'],
   ['sprite-row-slice','画像から一行だけを取り出す','行頭から幅の分だけの半開区間を切り出してください。','pixels = list(range(12))\nwidth, row = 4, 1\nstart = row * width\nline = pixels[____]\nprint(line)','start:start + width',['start:width','row:row + width'],'終端は要素数でなく元配列での位置です。startへwidthを加え、一行の長さを確保します。','Extract exactly one scanline from the flattened pixel data.']
  ],
@@ -428,7 +501,7 @@ const PYTHON_SYSTEMS = [
   ['temporary-directory','一時ディレクトリを後片付けする','TemporaryDirectoryをwithで管理してください。','from tempfile import TemporaryDirectory\nfrom pathlib import Path\nwith ____() as folder:\n    path = Path(folder) / "slot.txt"\n    path.write_text("ready", encoding="utf-8")\n    print(path.read_text(encoding="utf-8"))','TemporaryDirectory',['Path','str'],'TemporaryDirectoryはスコープ終了時に配下を削除します。名前の衝突と後片付けを自前で扱う量を減らせます。','Keep temporary save files inside a self-cleaning directory.'],
   ['binary-layout','固定のバイト順で整数を復元する','structの書式でビッグエンディアンの符号なし32bit整数を指定してください。','import struct\npacket = b"\\x00\\x00\\x00\\x07"\nvalue, = struct.unpack(____, packet)\nprint(value)','">I"',['"<I"','">h"'],'>はビッグエンディアン、Iは32bitの符号なし整数です。通信相手のサイズとバイト順の両方へ合わせます。','Decode the network packet using its fixed endian layout.'],
   ['shell-tokenization','引用符付きコマンドを分解する','shlex.splitで引用された空白を一つの引数として残してください。','import shlex\ncommand = \'load "slot one"\'\nparts = ____(command)\nprint(parts)','shlex.split',['str.split','list'],'shlexはシェルに似た引用規則で分解します。OSのコマンドを実行する必要はなく、ただの文字列処理として使えます。','Keep a quoted save name together while parsing a command.'],
-  ['digest-bytes','データのSHA-256を求める','hashlib.sha256へバイト列を渡してください。','import hashlib\npayload = "save"\ndigest = hashlib.sha256(____).hexdigest()\nprint(len(digest))','payload.encode("utf-8")',['payload','str(payload)'],'ハッシュ関数はバイト列を受け取ります。エンコードの規約を固定しないと同じ文字列でも結果を比較できません。','Hash the explicitly encoded save bytes.'],
+  ['digest-bytes','データのSHA-256を求める','payloadをUTF-8のバイト列へエンコードしてhashlib.sha256へ渡してください。','import hashlib\npayload = "save"\ndigest = hashlib.sha256(____).hexdigest()\nprint(len(digest))','payload.encode("utf-8")',['payload','str(payload)'],'ハッシュ関数はバイト列を受け取ります。保存データはUTF-8に統一します。別のエンコードでは同じ文字列でもハッシュ値が変わるため、結果を比較するにはエンコードの規約を固定します。','Hash the explicitly encoded save bytes.'],
   ['secure-token','推測されにくい識別子を作る','secrets.token_hexでランダムなトークンを作ってください。','import secrets\ntoken = secrets.____(16)\nprint(len(token))','token_hex',['randbelow','choice'],'token_hexは指定バイト数の乱数を16進文字列へ変えます。認証用途には通常のrandomよりsecretsを使います。','Generate a token suitable for an unguessable identifier.'],
   ['deque-queue','先頭から効率よく取り出す','dequeのpopleftで到着順に取り出してください。','from collections import deque\nqueue = deque(["first", "second"])\nprint(queue.____())','popleft',['pop','remove'],'popleftは先頭を取り出します。list.pop(0)のように残り全要素をずらす必要がなく、キューに向いています。','Process the oldest queued event first.'],
   ['counter-frequency','イベント別の件数を数える','Counterで各文字列の出現回数を集計してください。','from collections import Counter\nevents = ["save", "move", "save"]\ncounts = ____(events)\nprint(counts["save"])','Counter',['set','list'],'Counterは要素ごとの出現回数を数える辞書型です。集合では種類は残りますが回数は失われます。','Count repeated event names without manual bookkeeping.']

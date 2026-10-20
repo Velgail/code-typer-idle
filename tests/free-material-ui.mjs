@@ -62,10 +62,14 @@ async function verifyNoOCRRoute(browser,url,errors,capture){
   try{
     assert.match(await page.locator('#goal-action').innerText(),/無料教材を開く/);
     assert.equal(await page.locator('#goal-action').isDisabled(),false);
+    assert.equal(await page.locator('#study-style-description').isVisible(),false);
     await page.locator('#goal-action').click();
     assert.equal(await page.locator('[data-mode=study]').getAttribute('aria-selected'),'true');
     assert.equal(await page.locator('#study-lock').isVisible(),false);
-    assert.match(await page.locator('#study-material-label').innerText(),/コード演習/);
+    assert.equal(await page.locator('#study-style-picker [data-study-style=practice]').innerText(),'短いコードを写す');
+    assert.equal(await page.locator('#study-style-picker [data-study-style=course]').innerText(),'演習の実装を写す');
+    assert.match(await page.locator('#study-style-description').innerText(),/短い処理例を順に写します.*結果と処理の流れ/);
+    assert.match(await page.locator('#study-material-label').innerText(),/短い処理例/);
     assert.match(await page.locator('#study-material-label').innerText(),/無料/);
     assert.match(await page.locator('#study-material-label').innerText(),/×\s*1/);
     assert.equal(await page.locator('#study-material-upgrade').isDisabled(),true,'a book is an optional unaffordable upgrade, not a learning gate');
@@ -80,6 +84,7 @@ async function verifyNoOCRRoute(browser,url,errors,capture){
     }
     assert.equal(await page.locator('#goal-action').getAttribute('data-goal-kind'),'dev');
     await page.locator('#goal-action').click();
+    assert.equal(await page.locator('#study-style-description').isVisible(),false,'copying guidance stays in the study controls');
     for(let round=0;s.progress<projectAt(0).target;round++){
       assert.ok(round<20);await typeQuestion(page);s=await snapshot(page);
     }
@@ -103,6 +108,7 @@ async function verifyNoOCRRoute(browser,url,errors,capture){
     await page.locator('#study-lock [data-action=open-online-material]').click();
     assert.equal(await page.locator('#study-lock').isVisible(),false);
     await page.locator('[data-study-style=reading]').click();
+    assert.equal(await page.locator('#study-style-description').isVisible(),false,'reading keeps its own contextual instructions');
     s=await snapshot(page);const lesson=readingLesson(s);
     await page.locator(`[data-read-answer="${lesson.answer}"]`).click();
     const answered=await snapshot(page);assert.ok(skillKnowledge(answered,'graphics')>skillKnowledge(s,'graphics'),'free materials also support finite comprehension lessons');
@@ -110,10 +116,13 @@ async function verifyNoOCRRoute(browser,url,errors,capture){
     await page.locator('[data-study-style=course]').click();
     await page.waitForSelector('#course-exercise');
     assert.match(await page.locator('#study-material-label').innerText(),/Exercism/);
+    assert.match(await page.locator('#study-style-description').innerText(),/Exercismの演習と入力区間を選び、参考実装を写します/);
+    assert.equal(await page.locator('#course-panel h3').innerText(),'Exercismの参考実装');
+    assert.equal(await page.locator('#course-panel summary').first().innerText(),'元の課題と参考実装を見る');
     assert.equal(await page.locator('#course-panel .course-credit a').filter({hasText:/Exercism/}).count(),1,'external course authorship stays distinct from game tutorials');
     assert.equal(await page.locator('#study-lock').isVisible(),false);
     await page.locator('[data-study-style=practice]').click();
-    assert.match(await page.locator('#study-material-label').innerText(),/コード演習/);
+    assert.match(await page.locator('#study-material-label').innerText(),/短い処理例/);
     secondStart=await snapshot(page);assertNoPurchases(secondStart);assert.equal(secondStart.cash,100);
     for(const id of ['syntax','design','graphics'])assert.ok(secondStart.onlineMaterials.includes(id));
     await page.reload();await page.waitForSelector('.buy-button');

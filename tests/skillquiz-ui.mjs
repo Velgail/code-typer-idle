@@ -161,6 +161,53 @@ async function verifyEditorAssistance(browser,url,errors) {
   } finally {await context.close();}
 }
 
+async function verifyCppZeroInitializers(browser,url,errors,capture) {
+  const seed=baseSeed(),previous=skillQuizAt('rust','syntax',0);
+  seed.skillQuiz.completed=[previous.id];
+  const {context,page}=await open(browser,url,errors,seed);
+  try {
+    await page.locator(ANSWER).waitFor({state:'visible'});
+    const quiz=skillQuizAt('cpp','syntax',0),before=await saved(page);
+    assert.equal(quiz.id,'skill-quiz/v1/cpp/syntax/value-init','the repaired question retains its saved identity');
+    const prompt=await page.locator(`${PANEL} .skill-quiz-prompt`).innerText();
+    assert.match(prompt,/score/);assert.match(prompt,/0/);
+    assert.match(prompt,/波括弧|リスト初期化/,'the prompt explicitly states the list-initialization technique being practiced');
+
+    for(const source of ['()','(0)','= 0','{1}','= 1','= 0; score = 1']) {
+      await answer(page,source);
+      assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'failed',`rejects ${source}`);
+      sameLearning(await saved(page),before,`invalid initializer ${source} has no reward`);
+      assert.deepEqual((await saved(page)).skillQuiz.completed,[previous.id]);
+    }
+
+    const preview=skillQuizRewardPreview(await saved(page));
+    await answer(page,'{0}');
+    assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'passed','the initializer reported by the player is accepted');
+    const earned=await saved(page);
+    close(skillKnowledge(earned,'syntax')-skillKnowledge(before,'syntax'),preview.amount,'first valid initializer pays the usual Quiz reward');
+    assert.deepEqual(earned.skillQuiz.completed,[previous.id,quiz.id]);
+    assert.equal(await page.locator(`${PANEL} .skill-quiz-code`).textContent(),quiz.code.replace('____','{0}'));
+
+    for(const source of ['{}','= {}','= {0}']) {
+      await answer(page,source);
+      assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'passed',`accepts ${source}`);
+      assert.equal(await page.locator(`${PANEL} .skill-quiz-code`).textContent(),quiz.code.replace('____',source),'the completed source displays the actual submitted spelling');
+      const after=await saved(page);
+      sameLearning(after,earned,`changing to ${source} does not repeat the first-success reward`);
+      assert.deepEqual(after.skillQuiz.completed,earned.skillQuiz.completed,'existing passes survive alternative answers');
+    }
+
+    await page.reload();await page.locator(ANSWER).waitFor({state:'visible'});
+    const restored=await saved(page);
+    sameLearning(restored,earned,'reload retains the original reward');
+    assert.deepEqual([...restored.skillQuiz.completed].sort(),[...earned.skillQuiz.completed].sort(),'reload preserves passes even when save normalization sorts the ledger');
+    await answer(page,'{0}',{keyboard:true});
+    assert.equal(await page.locator(PANEL).getAttribute('data-quiz-status'),'passed');
+    sameLearning(await saved(page),earned,'a different spelling after reload cannot farm rewards');
+    if(capture)await capture(page,'skill-quiz-cpp-zero-initializers');
+  } finally {await context.close();}
+}
+
 async function verifyPersistenceAndFocus(browser,url,errors) {
   const legacy=quizAt('lua','syntax',0),seed=baseSeed();
   seed.quiz.completed=[legacy.id];seed.quiz.rewarded=[legacy.id];seed.quizWork=[legacy.id];
@@ -261,6 +308,7 @@ async function verifyRealPythonChallenge(browser,url,errors,capture) {
 export async function verifySkillQuizUI(browser,url,errors,capture) {
   await verifyMaterialGate(browser,url,errors);
   await verifyEditorAssistance(browser,url,errors);
+  await verifyCppZeroInitializers(browser,url,errors,capture);
   await verifyGradingAndControls(browser,url,errors,capture);
   await verifyPersistenceAndFocus(browser,url,errors);
   await verifyRealPythonChallenge(browser,url,errors,capture);
