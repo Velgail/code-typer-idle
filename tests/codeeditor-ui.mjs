@@ -103,6 +103,13 @@ export async function runCodeEditorChecks(browser, url, errors) {
       return { codeWidth: code.getBoundingClientRect().width, editorWidth: editor.clientWidth, whiteSpace: getComputedStyle(code).whiteSpace, text: code.textContent, value: editor.value };
     });
     assert.equal(wrapping.codeWidth, wrapping.editorWidth); assert.equal(wrapping.whiteSpace, 'pre-wrap'); assert.equal(wrapping.text, `${wrapping.value}\u200b`);
+    await page.evaluate(() => window.__codeEditorChecks.handle.update({language:'cpp',context:'int player; int planet;'}));
+    await editor.fill('pl');await editor.press('End');await editor.press('Tab');
+    assert.equal(await editor.getAttribute('aria-expanded'),'true');
+    await editor.evaluate(el=>{el.readOnly=true;window.__codeEditorChecks.handle.refresh();});
+    assert.equal(await editor.getAttribute('aria-expanded'),'false','locking an editor closes any outstanding completion candidates');
+    const readOnlyDraft=await editor.inputValue();await editor.press('Tab');
+    assert.equal(await editor.inputValue(),readOnlyDraft,'completion cannot change a read-only textarea');
     await page.evaluate(() => window.__codeEditorChecks.handle.destroy());
     assert.equal(await page.locator('#code-editor-fixture .code-editor-wrap').count(), 0);
     assert.equal(await editor.getAttribute('aria-autocomplete'), null, 'destroy restores the native textarea attributes');

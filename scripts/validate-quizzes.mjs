@@ -13,13 +13,16 @@ import { firstProjectQuizCatalog } from '../src/firstproject.js';
 const {chromium}=createRequire(import.meta.url)('playwright');
 const argument=name=>{const equals=process.argv.find(value=>value.startsWith(name+'='));if(equals)return equals.slice(name.length+1);const i=process.argv.indexOf(name);return i<0?undefined:process.argv[i+1];};
 const selected=argument('--language');
+const selectedTopics=(argument('--topics') || '').split(',').filter(Boolean);
 const firstProjectOnly=process.argv.includes('--first-project-only');
 const newOnly=process.argv.includes('--new-only');
 assert.ok(!(firstProjectOnly&&newOnly),'--first-project-only and --new-only select different catalogs');
 if(selected)assert.ok(CHALLENGE_LANGUAGES.includes(selected),`Unknown language: ${selected}`);
-const languages=selected?[selected]:CHALLENGE_LANGUAGES;
-const selectQuestions=(catalog,first)=>firstProjectOnly?first:newOnly?catalog.filter(q=>q.id.startsWith('challenge/')):[...catalog,...first];
+const selectQuestions=(catalog,first)=>(firstProjectOnly?first:newOnly?catalog.filter(q=>q.id.startsWith('challenge/')):[...catalog,...first]).filter(q=>!selectedTopics.length || selectedTopics.includes(q.topicId));
 const sourceQuestions=selectQuestions(challengeCatalog(),firstProjectQuizCatalog());
+const languages=selected?[selected]:CHALLENGE_LANGUAGES.filter(language=>sourceQuestions.some(q=>q.language===language));
+assert.ok(languages.length,'No challenges match the selected topics');
+for(const topic of selectedTopics)assert.ok(sourceQuestions.some(q=>q.topicId===topic),`Unknown topic: ${topic}`);
 const expectedCounts=Object.fromEntries(languages.map(language=>[language,sourceQuestions.filter(q=>q.language===language).length]));
 // Count equality alone misses a stale build with changed cases or models.
 const expectedFingerprints=Object.fromEntries(languages.map(language=>[language,createHash('sha256').update(JSON.stringify(sourceQuestions.filter(q=>q.language===language).map(q=>[q.id,q.referenceSource,q.starterSource,q.cases]))).digest('hex')]));
@@ -49,7 +52,7 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto(url+'quiz-proof.html');
   console.log(`Checking ${language} Challenge reference implementations…`);
-  const report=await page.evaluate(async({language,id,base,firstProjectOnly,newOnly})=>{
+  const report=await page.evaluate(async({language,id,base,firstProjectOnly,newOnly,selectedTopics})=>{
    const {challengeCatalog}=await import(base+`build/challengecatalog.${id}.js`);
    const {firstProjectQuizCatalog}=await import(base+`build/firstproject.${id}.js`);
    const {compareQuizOutput}=await import(base+`build/quizrunner.${id}.js`);
@@ -76,7 +79,7 @@ try{
     await send({type:'initialize',language},'ready',300000);
     const loadMs=performance.now()-start;
     const catalog=challengeCatalog(),first=firstProjectQuizCatalog();
-    const questions=(firstProjectOnly?first:newOnly?catalog.filter(q=>q.id.startsWith('challenge/')):[...catalog,...first]).filter(q=>q.language===language);
+    const questions=(firstProjectOnly?first:newOnly?catalog.filter(q=>q.id.startsWith('challenge/')):[...catalog,...first]).filter(q=>q.language===language && (!selectedTopics.length || selectedTopics.includes(q.topicId)));
     if(!questions.length)throw Error(`No built challenges selected for ${language}`);
     const catalogBytes=new TextEncoder().encode(JSON.stringify(questions.map(q=>[q.id,q.referenceSource,q.starterSource,q.cases])));
     const catalogFingerprint=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',catalogBytes)),byte=>byte.toString(16).padStart(2,'0')).join('');
@@ -117,7 +120,7 @@ try{
     const reusableWorkerClean=isolated.every(row=>row.passed)&&check(replay,correctHarness).passed;
     return {language,catalogFingerprint,loadMs:Math.round(loadMs),crossOriginIsolated,referenceCount:rows.length,caseCount:rows.reduce((n,r)=>n+r.cases,0),passed:rows.filter(r=>r.passed).length,wrongRejected,syntaxRejected:!!broken.error,extraColumnRejected,reusableWorkerClean,isolation:isolated,rows};
    }finally{worker.terminate();}
-  },{language,id:release.id,base:url,firstProjectOnly,newOnly});
+  },{language,id:release.id,base:url,firstProjectOnly,newOnly,selectedTopics});
   report.pageErrors=errors;results.push(report);
   await mkdir('work/quiz-validation',{recursive:true});
   await writeFile(`work/quiz-validation/${language}.json`,JSON.stringify(report,null,2)+'\n');
@@ -125,7 +128,7 @@ try{
   for(const failed of report.rows.filter(row=>!row.passed).slice(0,5))console.log(JSON.stringify(failed).slice(0,2000));
   await context.close();
  }
- const evidence={version:release.version,build:release.id,browser:browser.version(),selection:firstProjectOnly?'first project only':newOnly?'new Challenges only':'all Challenges and first project',expectedCounts,expectedFingerprints,transport:'ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath; reused worker',results};
+ const evidence={version:release.version,build:release.id,browser:browser.version(),selection:selectedTopics.length?`topics: ${selectedTopics.join(', ')}`:firstProjectOnly?'first project only':newOnly?'new Challenges only':'all Challenges and first project',expectedCounts,expectedFingerprints,transport:'ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath; reused worker',results};
  await mkdir('work/quiz-validation',{recursive:true});await writeFile('work/quiz-validation/results.json',JSON.stringify(evidence,null,2)+'\n');
  for(const result of results){
   assert.equal(result.referenceCount,expectedCounts[result.language],result.language+' source/build coverage');

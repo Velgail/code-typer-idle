@@ -6,6 +6,7 @@ const root = new URL('../docs/', import.meta.url);
 const license = await readFile(new URL('../LICENSE', root), 'utf8');
 const licenseHeader = `/*\n${license}\n*/\n`;
 const modules = ['app', 'core', 'career', 'typing', 'codehighlight', 'codeeditor', 'typinghighlight', 'readingchoices', 'readingchoices/shared', 'readingchoices/idioms', 'readingchoices/sql', 'updates', 'office', 'officequality', 'curriculum', 'idioms', 'courses', 'learningguide', 'maintenance', 'builds', 'course', 'planning', 'planningcatalog', 'planningrules', 'planningtechnology', 'planninggameplay', 'planningbusiness', 'plannerstate', 'quizcatalog', 'challengestatements', 'challengecatalog', 'challengesql', 'skillquiz', 'skillquizui', 'skillquizdata/cpprust', 'skillquizdata/csharpjava', 'skillquizdata/go-python', 'skillquizdata/lua-sql', 'firstproject', 'quizrunner', 'quizworker', 'quizui', ...['cpp','csharp','rust','go','python','java','sql','lua'].map(language=>`runners/${language}`)];
+modules.push('challengeaccess', 'contestchallenges', 'contractchallenges');
 const sources = await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, root), 'utf8')));
 const css = (await Promise.all(['docs/style.css','styles/quiz.css','styles/codehighlight.css','styles/codeeditor.css','styles/typinghighlight.css','styles/readingchoices.css'].map(path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')))).join('\n');
 const htmlPath = new URL('index.html', root);

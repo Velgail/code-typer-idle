@@ -2,6 +2,7 @@
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
 import { isReadingChoice } from './readingchoices.js';
 import { challengeAt, challengeById, challengeTopics, challengeCatalog } from './challengecatalog.js';
+import { describeChallengeAccess } from './challengeaccess.js';
 import { skillQuizAt, skillQuizById, skillQuizTopics, gradeSkillQuiz, SKILL_QUIZ_ANSWER_LIMIT } from './skillquiz.js';
 import { QUIZ_LANGUAGES } from './quizcatalog.js';
 import { FIRST_PROJECT_PARTS, firstProjectQuizAt, firstProjectQuizById, firstProjectQuizCatalog } from './firstproject.js';
@@ -63,7 +64,7 @@ export function projectAt(index) {
   return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', online: true, serverDaily: Math.min(LIMIT, 5e11 * pow(50, n - 1)), target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '配信中の宇宙を増やすたび、次の宇宙の要件定義が届く。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
-  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の解説を整理した教本。学習量 +100% / Lv（加算）`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
+  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習量 +100% / Lv（加算）。ChallengeはLv1で応用、Lv2で発展、Lv3で競技、Lv4で難関を解禁`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
   { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },
@@ -424,6 +425,15 @@ export function quizLesson(s) {
   if(firstProjectQuizMode(s))return firstProjectQuizAt(s.typing.language,selectedFirstProjectPart(s));
   return challengeAt(s.typing.language, s.subject, s.quiz.cursors[`${s.typing.language}/${s.subject}`] || 0);
 }
+export function challengeAccess(s, lesson = quizLesson(s)) {
+  const bookId = `book-${lesson.subject}`;
+  return describeChallengeAccess(lesson, {
+    ownedLevel: level(s, bookId),
+    hasMaterial: hasStudyMaterial(s, lesson.subject),
+    review: s.quiz.completed.includes(lesson.id),
+    bookName: SHOP.find(item => item.id === bookId)?.name
+  });
+}
 export function nextQuiz(s) {
   if(firstProjectQuizMode(s)){
     s.quiz.firstParts ||= {};
@@ -431,14 +441,19 @@ export function nextQuiz(s) {
     return;
   }
   const key = `${s.typing.language}/${s.subject}`;
-  s.quiz.cursors[key] = ((s.quiz.cursors[key] || 0) + 1) % challengeTopics(s.typing.language,s.subject).length;
+  const topics = challengeTopics(s.typing.language, s.subject), current = s.quiz.cursors[key] || 0;
+  for (let offset = 1; offset <= topics.length; offset++) {
+    const index = (current + offset) % topics.length;
+    if (challengeAccess(s, topics[index]).available) { s.quiz.cursors[key] = index; return; }
+  }
 }
 export function setQuizDraft(s, source) {
   return storeExerciseDraft(s,'quiz',quizLesson(s).id,source);
 }
 function applyQuizReward(s,lesson) {
   const result={kind:'answered',amount:0,learned:0,verified:0,progress:0,fixed:0,debtRemoved:0,studyUnits:0,implementationUnits:0,studyShare:0,implementationShare:0,reason:''};
-  if(!hasStudyMaterial(s,lesson.subject))return {...result,kind:'none',reason:'この分野の無料教材を開いてください。'};
+  const access = challengeAccess(s, lesson);
+  if(!access.available)return {...result,kind:'none',reason:access.reason};
   const part=Number.isSafeInteger(lesson.firstProjectPart) ? FIRST_PROJECT_PARTS[lesson.firstProjectPart] : null;
   const base=part?typingKeystrokes(lesson.rewardSource)*(TYPING_REWARD.character+typingCompletionMultiplier('study')):exerciseBase(lesson);
   if(!s.quiz.rewarded.includes(lesson.id)){
@@ -497,9 +512,9 @@ export function quizRewardPreview(s,lesson=quizLesson(s)) {
 }
 export function completeQuiz(s, id) {
   const lesson=quizLesson(s);
-  if(id!==lesson.id || !hasStudyMaterial(s,lesson.subject) || !['study','dev'].includes(s.mode))return {kind:'none',amount:0};
+  if(id!==lesson.id || !['study','dev'].includes(s.mode))return {kind:'none',amount:0};
   const result=applyQuizReward(s,lesson);
-  if(!s.quiz.completed.includes(id))s.quiz.completed.push(id);
+  if(result.kind!=='none' && !s.quiz.completed.includes(id))s.quiz.completed.push(id);
   return result;
 }
 export function answerReading(s, choice) {

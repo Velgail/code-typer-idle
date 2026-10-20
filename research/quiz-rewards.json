@@ -25,7 +25,9 @@
         "1": 256,
         "2": 256,
         "3": 256,
-        "4": 256
+        "4": 256,
+        "5": 0,
+        "6": 0
       },
       "languages": [
         {
@@ -63,43 +65,45 @@
       ]
     },
     "challenge": {
-      "count": 1024,
+      "count": 1108,
       "estimatedMinutes": {
         "min": 2,
-        "mean": 5.6435546875,
+        "mean": 7.540613718411552,
         "median": 4,
-        "max": 18
+        "max": 55
       },
       "difficultyCounts": {
         "1": 285,
         "2": 516,
         "3": 151,
-        "4": 72
+        "4": 107,
+        "5": 28,
+        "6": 21
       },
       "languages": [
         {
           "language": "cpp",
-          "count": 128
+          "count": 140
         },
         {
           "language": "csharp",
-          "count": 128
+          "count": 140
         },
         {
           "language": "rust",
-          "count": 128
+          "count": 140
         },
         {
           "language": "go",
-          "count": 128
+          "count": 140
         },
         {
           "language": "python",
-          "count": 128
+          "count": 140
         },
         {
           "language": "java",
-          "count": 128
+          "count": 140
         },
         {
           "language": "sql",
@@ -107,7 +111,7 @@
         },
         {
           "language": "lua",
-          "count": 128
+          "count": 140
         }
       ]
     }
@@ -116,7 +120,7 @@
     "skillQuiz": {
       "role": "skill-quiz",
       "id": "skill-quiz/v1/cpp/syntax/value-init",
-      "concept": "Value-initialize an integer",
+      "concept": "List-initialize an integer to zero",
       "difficulty": 1,
       "estimatedMinutes": 0.7,
       "typingPower": 1,
@@ -128,9 +132,9 @@
       "reward": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "correct",
         "amount": 6.013680403879142,
         "learned": 6.013680403879142,
@@ -149,9 +153,9 @@
       "repeatWithoutResearch": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "answered",
         "amount": 0,
         "learned": 0,
@@ -219,7 +223,7 @@
         {
           "role": "skill-quiz",
           "id": "skill-quiz/v1/cpp/syntax/value-init",
-          "concept": "Value-initialize an integer",
+          "concept": "List-initialize an integer to zero",
           "difficulty": 1,
           "estimatedMinutes": 0.7,
           "typingPower": 1,
@@ -231,9 +235,9 @@
           "reward": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "correct",
             "amount": 0.46570925534587104,
             "learned": 0.46570925534587104,
@@ -252,9 +256,9 @@
           "repeatWithoutResearch": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "answered",
             "amount": 0,
             "learned": 0,
@@ -322,7 +326,7 @@
         {
           "role": "skill-quiz",
           "id": "skill-quiz/v1/cpp/syntax/value-init",
-          "concept": "Value-initialize an integer",
+          "concept": "List-initialize an integer to zero",
           "difficulty": 1,
           "estimatedMinutes": 0.7,
           "typingPower": 1.05,
@@ -334,9 +338,9 @@
           "reward": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "correct",
             "amount": 0.48898902947081524,
             "learned": 0.48898902947081524,
@@ -355,9 +359,9 @@
           "repeatWithoutResearch": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "answered",
             "amount": 0,
             "learned": 0,
@@ -425,7 +429,7 @@
         {
           "role": "skill-quiz",
           "id": "skill-quiz/v1/cpp/syntax/value-init",
-          "concept": "Value-initialize an integer",
+          "concept": "List-initialize an integer to zero",
           "difficulty": 1,
           "estimatedMinutes": 0.7,
           "typingPower": 1.52488,
@@ -437,9 +441,9 @@
           "reward": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "correct",
             "amount": 0.7100640296873166,
             "learned": 0.7100640296873166,
@@ -458,9 +462,9 @@
           "repeatWithoutResearch": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "answered",
             "amount": 0,
             "learned": 0,
@@ -528,7 +532,7 @@
         {
           "role": "skill-quiz",
           "id": "skill-quiz/v1/cpp/syntax/value-init",
-          "concept": "Value-initialize an integer",
+          "concept": "List-initialize an integer to zero",
           "difficulty": 1,
           "estimatedMinutes": 0.7,
           "typingPower": 3542.1767267766904,
@@ -540,9 +544,9 @@
           "reward": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "correct",
             "amount": 1141.7835357161396,
             "learned": 1141.7835357161396,
@@ -561,9 +565,9 @@
           "repeatWithoutResearch": {
             "passed": true,
             "status": "passed",
-            "message": "指定された構文で空欄を埋めました。",
-            "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-            "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+            "message": "空欄の条件を満たしています。",
+            "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+            "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
             "kind": "answered",
             "amount": 0,
             "learned": 0,
@@ -635,9 +639,9 @@
       "reconfirmation": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "correct",
         "amount": 1.436357856053616,
         "learned": 0,
@@ -654,9 +658,9 @@
       "repeatedWithoutResearch": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "answered",
         "amount": 0,
         "learned": 0,
@@ -719,9 +723,9 @@
       "reconfirmation": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "correct",
         "amount": 1.7947471494956408,
         "learned": 0,
@@ -738,9 +742,9 @@
       "repeatedWithoutResearch": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "answered",
         "amount": 0,
         "learned": 0,
@@ -803,9 +807,9 @@
       "reconfirmation": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "correct",
         "amount": 299.09963867781795,
         "learned": 0,
@@ -822,9 +826,9 @@
       "repeatedWithoutResearch": {
         "passed": true,
         "status": "passed",
-        "message": "指定された構文で空欄を埋めました。",
-        "explanation": "空の波括弧による値初期化では整数が0になる。丸括弧だけでは関数宣言になる。",
-        "completedSource": "// Value-initialize an integer.\n\n\nint main() { int score{}; return score; }",
+        "message": "空欄の条件を満たしています。",
+        "explanation": "{}は空のリストによる値初期化で整数を0にする。{0}はリスト初期化で値0を指定する。={}と={0}もリスト初期化なので正解。=0はコピー初期化、(0)は直接初期化で0になるが、今回は波括弧を使う指定を満たさない。()だけでは変数ではなく関数の宣言になる。",
+        "completedSource": "// List-initialize an integer to zero.\n\n\nint main() { int score{}; return score; }",
         "kind": "answered",
         "amount": 0,
         "learned": 0,

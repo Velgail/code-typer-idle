@@ -6,6 +6,14 @@
 .quiz-topic-picker label { flex:none; color:var(--muted); font-size:12px; }
 .quiz-topic-picker select { width:100%; min-width:0; padding:10px; color:var(--text); background:var(--bg); border:1px solid var(--border); border-radius:6px; font:12px var(--sans); }
 .quiz-topic-picker select:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+.quiz-difficulty-picker { display:flex; align-items:center; gap:12px; margin:14px 0; }
+.quiz-difficulty-picker label { flex:none; color:var(--muted); font-size:12px; }
+.quiz-difficulty-select { min-width:0; max-width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; color:var(--text); background:var(--bg); font:12px var(--sans); }
+.quiz-difficulty-select:focus-visible { outline:2px solid var(--green); outline-offset:2px; }
+.quiz-access { display:flex; align-items:center; flex-wrap:wrap; gap:10px 16px; margin:0 0 14px; padding:12px 14px; border:1px solid var(--border); border-radius:6px; background:var(--panel-2); }
+.quiz-access-reason { flex:1 1 220px; margin:0; font-size:12px; line-height:1.8; overflow-wrap:anywhere; }
+.quiz-open-book { padding:8px 12px; font-size:12px; }
+.quiz-assessment { margin:0 0 14px; line-height:1.8; }
 .quiz-description { margin:10px 0 14px; font-size:13px; line-height:1.9; white-space:pre-wrap; overflow-wrap:anywhere; }
 .quiz-parameters { display:grid; gap:6px; margin:0 0 16px; color:var(--muted); font-size:12px; line-height:1.7; overflow-wrap:anywhere; }
 .quiz-parameters > div { display:grid; grid-template-columns:minmax(70px,auto) minmax(0,1fr); gap:8px 14px; }
@@ -82,6 +90,8 @@
 .quiz-reference .reference-code { max-height:360px; margin:10px 0 0; }
 .quiz-panel [hidden] { display:none; }
 @media (max-width:600px) {
+  .quiz-difficulty-picker { align-items:stretch; flex-direction:column; gap:6px; }
+  .quiz-difficulty-select { width:100%; }
   .quiz-source { min-height:230px; padding:12px; font-size:12px; }
   .quiz-actions { gap:8px; }
   .quiz-actions .primary-button,.quiz-actions .secondary-button { flex:1 1 auto; padding:10px 12px; }

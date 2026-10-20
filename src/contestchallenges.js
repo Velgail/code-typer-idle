@@ -1,0 +1,209 @@
+// Original programming problems. The reference generator uses the shared IR;
+// expected values come from separately authored JavaScript implementations.
+const algorithmAssessment={
+ kind:'algorithm',
+ criteria:['入力に応じた最適値・結果を、すべての採点ケースで返す'],
+ limitations:['計算結果の採点であり、クラス構成や保守性は評価しません。']
+};
+
+function minimumCapacity([weights,days]){
+ let low=Math.max(0,...weights),high=weights.reduce((sum,x)=>sum+x,0);
+ while(low<high){
+  const capacity=Math.floor((low+high)/2);let used=1,load=0;
+  for(const weight of weights){if(load+weight>capacity){used++;load=0;}load+=weight;}
+  if(used<=days)high=capacity;else low=capacity+1;
+ }
+ return low;
+}
+function intervalPlanning([input]){
+ const jobs=[];for(let i=0;i<input.length;i+=3)jobs.push(input.slice(i,i+3));
+ jobs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const memo=new Map();
+ const solve=i=>{
+  if(i===jobs.length)return 0;if(memo.has(i))return memo.get(i);
+  let low=i+1,high=jobs.length;
+  while(low<high){const mid=Math.floor((low+high)/2);if(jobs[mid][0]<jobs[i][1])low=mid+1;else high=mid;}
+  const answer=Math.max(solve(i+1),jobs[i][2]+solve(low));memo.set(i,answer);return answer;
+ };
+ return solve(0);
+}
+function travelingCourier([cities,costs]){
+ if(cities<2)return 0;const count=1<<cities,dp=new Int32Array(count*cities).fill(1000000000);
+ dp[cities]=0;
+ for(let visited=1;visited<count;visited+=2)for(let last=0;last<cities;last++){
+  const distance=dp[visited*cities+last];if(distance===1000000000)continue;
+  for(let next=1;next<cities;next++)if(!(visited&(1<<next))){
+   const index=((visited|(1<<next))*cities)+next;
+   dp[index]=Math.min(dp[index],distance+costs[last*cities+next]);
+  }
+ }
+ let result=1000000000;for(let last=1;last<cities;last++)result=Math.min(result,dp[(count-1)*cities+last]+costs[last*cities]);
+ return result;
+}
+function keyDoorPath([grid,width,height,start,goal]){
+ const count=grid.length,keyAt=code=>code>=10&&code<=13?1<<(code-10):0;
+ const first=keyAt(grid[start])*count+start,distances=new Int32Array(count*16).fill(-1),queue=[first];distances[first]=0;
+ for(let head=0;head<queue.length;head++){
+  const state=queue[head],cell=state%count,keys=Math.floor(state/count);
+  if(cell===goal)return distances[state];
+  const x=cell%width,y=Math.floor(cell/width);
+  for(const [dx,dy] of [[-1,0],[1,0],[0,-1],[0,1]]){
+   const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=width||ny>=height)continue;
+   const next=ny*width+nx,code=grid[next];if(code===1)continue;
+   if(code>=20&&code<=23&&!(keys&(1<<(code-20))))continue;
+   const nextState=(keys|keyAt(code))*count+next;
+   if(distances[nextState]!==-1)continue;distances[nextState]=distances[state]+1;queue.push(nextState);
+  }
+ }
+ return -1;
+}
+function mergeCost([chunks]){
+ const prefix=[0];for(const x of chunks)prefix.push(prefix.at(-1)+x);const memo=new Map();
+ const solve=(left,right)=>{
+  if(left>=right)return 0;const key=left*chunks.length+right;if(memo.has(key))return memo.get(key);
+  let best=1000000000;for(let split=left;split<right;split++)best=Math.min(best,solve(left,split)+solve(split+1,right));
+  const answer=best+prefix[right+1]-prefix[left];memo.set(key,answer);return answer;
+ };
+ return chunks.length?solve(0,chunks.length-1):0;
+}
+function rangeSums([initial,operations]){
+ const values=[...initial],out=[];
+ for(let i=0;i<operations.length;i+=3){
+  const [kind,a,b]=operations.slice(i,i+3);
+  if(kind===0)values[a]=b;else out.push(values.slice(a,b).reduce((sum,x)=>sum+x,0));
+ }
+ return out;
+}
+
+export function registerContestChallenges(D,ir){
+ const {V,S,A,P,C,F,W,R,B,N,add,sub,mul,div,mod,eq,ne,lt,le,gt,ge,and,band,bor,shl,at,len,filled,copy,min,max}=ir;
+ const meta=(constraints,parameterDescriptions,oracle,examples,scaleNotes)=>({constraints,parameterDescriptions,oracle,examples,scaleNotes,skipGenericContract:true,assessment:algorithmAssessment});
+ const largeWeights=Array.from({length:1536},(_,i)=>(i*7919)%99991+1);
+ D('syntax','binary-search-minimum-capacity','指定日数で運びきる最小容量','答えの二分探索',5,25,
+  [['weights','array'],['days','int']],'int',[
+   N('Bound the answer between the heaviest item and the total load.'),
+   V('low','int',0),V('high','int',0),F('i',0,len('weights'),[S('low',max('low',at('weights','i'))),S('high',add('high',at('weights','i')))]),
+   W(lt('low','high'),[
+    V('capacity','int',add('low',div(sub('high','low'),2))),V('usedDays','int',1),V('load','int',0),
+    F('i',0,len('weights'),[C(gt(add('load',at('weights','i')),'capacity'),[S('usedDays',add('usedDays',1)),S('load',0)]),S('load',add('load',at('weights','i')))]),
+    C(le('usedDays','days'),[S('high','capacity')],[S('low',add('capacity',1))])
+   ]),R('low')
+  ],[[[],1],[[7],1],[[1,2,3,4,5],2],[[10,1,1,1],2],[[5,5,5],1],[[5,5,5],8],[[1,100,1,100],3],[largeWeights,31]],
+  '荷物をweightsの順のまま、最大days日で運ぶ。1日の荷物は連続区間とし、荷物は分割しない。毎日の合計が共通の容量を超えないようにできる最小の容量を返す。使わない日があってもよい。空の荷物列なら0。',['io/lower-bound'],
+  meta(['weightsは0〜1536個。各重さは1〜100000。daysは1〜2048。','各日の順序と荷物の順序を入れ替えてはいけません。'],
+   {weights:'到着順の荷物の重さ。すべて正整数。',days:'使用できる最大の日数。'},minimumCapacity,
+   [{args:[[1,2,3,4,5],2],expected:9,explanation:'[1,2,3]と[4,5]に分ければ容量9。容量8では2日で運びきれません。'}],
+   ['1536個の荷物と、大きな容量の探索範囲を持つケースを含みます。']));
+
+ const scheduled=[];for(let i=0;i<128;i++){const start=(i*197)%1024;scheduled.push(start,start+1+(i*13)%61,1+(i*3571)%7000);}
+ D('syntax','weighted-interval-planning','重ならない案件の最大報酬','重み付き区間スケジューリング',5,35,
+  [['jobs','array']],'int',[
+   V('count','int',div(len('jobs'),3)),V('order','array',filled(0)),F('i',0,'count',[P('order','i')]),
+   N('Sort job indexes by finish time without changing the supplied jobs.'),
+   F('i',1,'count',[
+    V('selected','int',at('order','i')),V('selectedEnd','int',at('jobs',add(mul('selected',3),1))),V('j','int',sub('i',1)),
+    W(ge('j',0),[C(le(at('jobs',add(mul(at('order','j'),3),1)),'selectedEnd'),[B]),A('order',add('j',1),at('order','j')),S('j',sub('j',1))]),A('order',add('j',1),'selected')
+   ]),
+   V('best','array',filled(add('count',1))),F('i',0,'count',[
+    V('selected','int',at('order','i')),V('startTime','int',at('jobs',mul('selected',3))),V('reward','int',at('jobs',add(mul('selected',3),2))),V('low','int',0),V('high','int','i'),
+    W(lt('low','high'),[V('middle','int',add('low',div(sub('high','low'),2))),V('finishTime','int',at('jobs',add(mul(at('order','middle'),3),1))),C(le('finishTime','startTime'),[S('low',add('middle',1))],[S('high','middle')])]),
+    A('best',add('i',1),max(at('best','i'),add(at('best','low'),'reward')))
+   ]),R(at('best','count'))
+  ],[[[]],[[0,2,5]],[[0,3,10,0,1,6,1,3,7]],[[0,2,9,2,4,9,0,4,19]],[[1,2,0,2,3,0]],[[4,6,8,0,3,5,2,4,10,3,4,4]],[[0,1,5,0,1,5,1,2,2]],[scheduled]],
+  'jobsは[start,end,reward]を連結した列。時刻が重ならない案件だけを選び、報酬の合計を最大化して返す。endと次のstartが同じなら両方選べる。入力の並び順は任意。各案件は一度だけ選べ、何も選ばない場合の報酬は0。',['io/merge-intervals'],
+  meta(['jobsの長さは3の倍数で、案件数は0〜192。0<=start<end<=1000000。rewardは0〜100000。','同じ時刻の案件や同じ内容の案件も、独立した候補として与えられます。'],
+   {jobs:'開始時刻・終了時刻・報酬を3要素ずつ並べた案件列。'},intervalPlanning,
+   [{args:[[0,3,10,0,1,6,1,3,7]],expected:13,explanation:'報酬10の長い案件ではなく、報酬6と7の案件を続けて選びます。'}],
+   ['未整列の128案件、終了時刻の一致、区間端点での接続を含みます。']));
+
+ const courierCosts=n=>Array.from({length:n*n},(_,i)=>Math.floor(i/n)===i%n?0:1+(Math.floor(i/n)*37+(i%n)*71+Math.floor(i/n)*(i%n)*13)%97);
+ D('systems','traveling-courier','全拠点を巡回する最小配送費','訪問集合を持つ動的計画法',6,55,
+  [['cities','int'],['costs','array']],'int',[
+   C(lt('cities',2),[R(0)]),V('states','int',shl(1,'cities')),V('dp','array',filled(mul('states','cities'),1000000000)),A('dp','cities',0),
+   N('A state records the visited cities and the final city of the route.'),
+   F('visited',1,'states',[C(ne(band('visited',1),0),[
+    F('last',0,'cities',[
+     V('distance','int',at('dp',add(mul('visited','cities'),'last'))),
+     C(lt('distance',1000000000),[
+      F('next',1,'cities',[V('bit','int',shl(1,'next')),C(eq(band('visited','bit'),0),[
+       V('nextState','int',add(mul(bor('visited','bit'),'cities'),'next')),V('candidate','int',add('distance',at('costs',add(mul('last','cities'),'next')))),A('dp','nextState',min(at('dp','nextState'),'candidate'))
+      ])])
+     ])
+    ])
+   ])]),
+   V('answer','int',1000000000),F('last',1,'cities',[V('distance','int',at('dp',add(mul(sub('states',1),'cities'),'last'))),S('answer',min('answer',add('distance',at('costs',mul('last','cities')))))]),R('answer')
+  ],[[0,[]],[1,[0]],[2,[0,4,5,0]],[3,[0,1,9,8,0,2,3,7,0]],[3,Array(9).fill(0)],[3,Array.from({length:9},(_,i)=>Math.floor(i/3)===i%3?0:10000)],[4,Array.from({length:16},(_,i)=>Math.floor(i/4)===i%4?0:1)],[5,courierCosts(5)],[7,courierCosts(7)],[13,courierCosts(13)]],
+  '拠点0から出発し、それ以外の全拠点を各1回だけ訪問して拠点0へ戻る。costs[from*cities+to]は移動費で、方向により異なってよい。最小の総移動費を返す。拠点が0個または1個なら移動せず0。',['io/weighted-paths'],
+  meta(['citiesは0〜13。costsの長さはcities*cities。各費用は0〜10000、対角成分は0。','すべての拠点間を直接移動できます。途中で拠点0へ戻ったり、他の拠点へ再訪したりしません。'],
+   {cities:'拠点数。番号は0からcities-1。',costs:'行優先の移動費行列。各行が出発拠点、各列が到着拠点。'},travelingCourier,
+   [{args:[3,[0,1,9,8,0,2,3,7,0]],expected:6,explanation:'0→1→2→0の費用は1+2+3=6。逆順は9+7+8=24です。'}],
+   ['13拠点の非対称な移動費行列を含みます。採点は最適な総費用で行い、特定の実装方法は要求しません。']));
+
+ const largeMaze=Array(400).fill(0);
+ for(let row=0;row<20;row++)for(const column of [10,15,18])largeMaze[row*20+column]=1;
+ largeMaze[17*20+10]=20;largeMaze[5*20+15]=21;largeMaze[19*20+18]=22;
+ largeMaze[19*20+2]=10;largeMaze[19*20+12]=11;largeMaze[12*20+17]=12;
+ D('systems','key-door-shortest-path','鍵を持って扉を抜ける最短経路','位置と所持品を持つ幅優先探索',6,50,
+  [['grid','array'],['width','int'],['height','int'],['start','int'],['goal','int']],'int',[
+   V('cells','int',len('grid')),V('firstKeys','int',0),V('firstCode','int',at('grid','start')),C(and(ge('firstCode',10),le('firstCode',13)),[S('firstKeys',shl(1,sub('firstCode',10)))]),
+   V('firstState','int',add(mul('firstKeys','cells'),'start')),V('distance','array',filled(mul('cells',16),-1)),A('distance','firstState',0),V('queue','array',filled(0)),P('queue','firstState'),V('head','int',0),
+   N('Revisiting a cell with different keys is a different search state.'),
+   W(lt('head',len('queue')),[
+    V('state','int',at('queue','head')),S('head',add('head',1)),V('cell','int',mod('state','cells')),V('keys','int',div('state','cells')),C(eq('cell','goal'),[R(at('distance','state'))]),V('x','int',mod('cell','width')),V('y','int',div('cell','width')),
+    F('direction',0,4,[
+     V('nextCell','int',-1),C(and(eq('direction',0),gt('x',0)),[S('nextCell',sub('cell',1))]),C(and(eq('direction',1),lt(add('x',1),'width')),[S('nextCell',add('cell',1))]),C(and(eq('direction',2),gt('y',0)),[S('nextCell',sub('cell','width'))]),C(and(eq('direction',3),lt(add('y',1),'height')),[S('nextCell',add('cell','width'))]),
+     C(ge('nextCell',0),[
+      V('code','int',at('grid','nextCell')),V('allowed','int',1),V('nextKeys','int','keys'),C(eq('code',1),[S('allowed',0)]),
+      C(and(ge('code',20),le('code',23)),[C(eq(band('keys',shl(1,sub('code',20))),0),[S('allowed',0)])]),C(and(ge('code',10),le('code',13)),[S('nextKeys',bor('keys',shl(1,sub('code',10))))]),
+      C(eq('allowed',1),[V('nextState','int',add(mul('nextKeys','cells'),'nextCell')),C(eq(at('distance','nextState'),-1),[A('distance','nextState',add(at('distance','state'),1)),P('queue','nextState')])])
+     ])
+    ])
+   ]),R(-1)
+  ],[[[0],1,1,0,0],[[0,20,0],3,1,0,2],[[0,10,20,0],4,1,0,3],[[0,0,20,0,0,1,0,1,1,1,10,0,1,1,1],5,3,0,4],[[0,10,20,11,21,0],6,1,0,5],[[10,20,0],3,1,0,2],[[0,0,0,10],4,1,0,2],[[0,10,20,11,21,12,22,13,23,0],10,1,0,9],[[0,23,0],3,1,0,2],[[13,23,0],3,1,0,2],[largeMaze,20,20,0,399]],
+  '上下左右へ1歩ずつ移動し、startからgoalまでの最短歩数を返す。0は床、1は壁、10〜13は4種類の鍵、20〜23は同じ番号の鍵が必要な扉（10の鍵で20の扉）。鍵は踏むと取得して以後ずっと使え、消費しない。同じ場所でも所持する鍵が違えば再訪できる。到達不能なら-1。',['io/graph-distances'],
+  meta(['width,heightは1〜20。gridの長さはwidth*heightで、セルは0,1,10〜13,20〜23のいずれか。','startとgoalは有効なセル添字で、壁や扉ではありません。startの鍵は開始時に取得します。','鍵は複数箇所にあってもよく、対応する鍵のない扉があってもかまいません。'],
+   {grid:'上の行から並べたセル列。鍵と扉の番号もこの列に含む。',goal:'到着するセルの0始まり添字。'},keyDoorPath,
+   [{args:[[0,10,20,0],4,1,0,3],expected:3,explanation:'鍵を取得して対応する扉を通過します。'},
+    {args:[[0,0,20,0,0,1,0,1,1,1,10,0,1,1,1],5,3,0,4],expected:10,explanation:'下側で鍵を取り、来た道を戻ってから上側の扉へ進む必要があります。'}],
+   ['鍵を取って同じ通路へ戻るケースと、20×20のマップを含みます。']));
+
+ const manyChunks=Array.from({length:60},(_,i)=>1+(i*37)%100);
+ D('design','interval-merge-cost','隣り合う素材をまとめる最小費用','区間の動的計画法',5,35,
+  [['chunks','array']],'int',[
+   V('count','int',len('chunks')),C(lt('count',2),[R(0)]),V('prefix','array',filled(add('count',1))),F('i',0,'count',[A('prefix',add('i',1),add(at('prefix','i'),at('chunks','i')))]),V('dp','array',filled(mul('count','count'))),
+   N('Try each final split; merging this interval costs its complete size.'),
+   F('length',2,add('count',1),[F('left',0,add(sub('count','length'),1),[
+    V('right','int',sub(add('left','length'),1)),V('best','int',1000000000),
+    F('split','left','right',[V('candidate','int',add(at('dp',add(mul('left','count'),'split')),at('dp',add(mul(add('split',1),'count'),'right')))),S('best',min('best','candidate'))]),
+    V('intervalSize','int',sub(at('prefix',add('right',1)),at('prefix','left'))),A('dp',add(mul('left','count'),'right'),add('best','intervalSize'))
+   ])]),R(at('dp',sub('count',1)))
+  ],[[[]],[[7]],[[2,3]],[[1,1,1]],[[40,30,30,50]],[[6,1,6]],[[3,2,4,1]],[[1,100,1,1]],[manyChunks]],
+  'chunksは順番を変えられない素材の大きさ。隣り合う2つの素材を、大きさの和を費用として1つにまとめられる。最後の1つになるまでの費用合計の最小値を返す。まとめた素材の大きさは2つの和。空列と1個だけの列は費用0。',['io/common-subsequence'],
+  meta(['chunksは0〜60個で、各大きさは1〜1000。','離れた素材を直接まとめたり、素材を並べ替えたりできません。'],
+   {chunks:'元の順番の素材サイズ。'},mergeCost,
+   [{args:[[40,30,30,50]],expected:300,explanation:'前半を70、後半を80にまとめ、最後に150へまとめると70+80+150=300です。'}],
+   ['60素材のケースを含みます。最小費用を採点し、設計図の構成は採点しません。']));
+
+ const initial=Array.from({length:128},(_,i)=>(i*43)%201-100),operations=[];
+ for(let i=0;i<256;i++){const left=(i*17)%129,right=left+(i*29)%(129-left);operations.push(0,(i*31)%128,(i*79)%2001-1000,1,left,right);}
+ D('design','dynamic-range-sums','更新される配列の区間合計','動的な区間集計（参考実装はFenwick木）',4,15,
+  [['values','array'],['operations','array']],'array',[
+   V('count','int',len('values')),V('current','array',copy('values')),V('tree','array',filled(add('count',1))),V('out','array',filled(0)),
+   N('Each tree entry stores a range ending at its one-based position.'),
+   F('i',0,'count',[V('cursor','int',add('i',1)),W(le('cursor','count'),[A('tree','cursor',add(at('tree','cursor'),at('current','i'))),S('cursor',add('cursor',band('cursor',sub(0,'cursor'))))])]),
+   F('step',0,div(len('operations'),3),[
+    V('kind','int',at('operations',mul('step',3))),V('a','int',at('operations',add(mul('step',3),1))),V('b','int',at('operations',add(mul('step',3),2))),
+    C(eq('kind',0),[
+     V('change','int',sub('b',at('current','a'))),A('current','a','b'),V('cursor','int',add('a',1)),
+     W(le('cursor','count'),[A('tree','cursor',add(at('tree','cursor'),'change')),S('cursor',add('cursor',band('cursor',sub(0,'cursor'))))])
+    ],[
+     V('total','int',0),V('cursor','int','b'),W(gt('cursor',0),[S('total',add('total',at('tree','cursor'))),S('cursor',sub('cursor',band('cursor',sub(0,'cursor'))))]),
+     S('cursor','a'),W(gt('cursor',0),[S('total',sub('total',at('tree','cursor'))),S('cursor',sub('cursor',band('cursor',sub(0,'cursor'))))]),P('out','total')
+    ])
+   ]),R('out')
+  ],[[[],[1,0,0]],[[5],[1,0,1,0,0,-2,1,0,1,1,0,0]],[[1,2,3,4],[1,1,3,0,2,-3,1,0,4,1,2,2,0,2,-3,1,0,3]],[[-2,0,7],[1,0,3,0,0,5,1,0,1]],[[1,2],[]],[[0],[0,0,0,0,0,0,1,0,1]],[initial,operations]],
+  'operationsは[type,a,b]を連結した操作列。type=0なら添字aの値をbへ置き換える（加算ではない）。type=1なら半開区間[a,b)の合計を求める。操作を順に実行し、集計結果だけを順番に返す。空区間の合計は0。元のvaluesが表す初期状態から開始する。',['io/prefix-totals'],
+  meta(['valuesは0〜128個。初期値と更新値は-10000〜10000。operationsの長さは3の倍数で、操作数は0〜512。','typeは0または1。更新では0<=a<values.length、集計では0<=a<=b<=values.length。空配列への更新はありません。'],
+   {values:'更新前の整数配列。',operations:'更新・集計を3要素ずつ並べた時系列の操作列。'},rangeSums,
+   [{args:[[1,2,3,4],[1,1,3,0,2,-3,1,0,4]],expected:[5,4],explanation:'最初の集計は2+3=5。添字2を-3へ置換すると全体の合計は4です。'}],
+   ['128要素に対して、更新と集計を交互に512回行うケースを含みます。']));
+}
