@@ -104,7 +104,16 @@ export async function runCodeEditorChecks(browser, url, errors) {
     });
     assert.equal(wrapping.codeWidth, wrapping.editorWidth); assert.equal(wrapping.whiteSpace, 'pre-wrap'); assert.equal(wrapping.text, `${wrapping.value}\u200b`);
     await page.evaluate(() => window.__codeEditorChecks.handle.update({language:'cpp',context:'int player; int planet;'}));
-    await editor.fill('pl');await editor.press('End');await editor.press('Tab');
+    await editor.fill('pl');
+    // The scroll/wrap fixture intentionally leaves scrollTop=500. Replacing it
+    // with two characters queues native scroll events that dismiss completion.
+    // Drain those layout/scroll deliveries before testing the readonly change.
+    await editor.evaluate(async el=>{
+      el.scrollTop=0;el.scrollLeft=0;
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    });
+    assert.deepEqual(await editor.evaluate(el=>[el.scrollTop,el.scrollLeft]),[0,0]);
+    await editor.press('End');await editor.press('Tab');
     assert.equal(await editor.getAttribute('aria-expanded'),'true');
     await editor.evaluate(el=>{el.readOnly=true;window.__codeEditorChecks.handle.refresh();});
     assert.equal(await editor.getAttribute('aria-expanded'),'false','locking an editor closes any outstanding completion candidates');
