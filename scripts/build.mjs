@@ -5,9 +5,9 @@ const PIPELINE_VERSION = 4;
 const root = new URL('../docs/', import.meta.url);
 const license = await readFile(new URL('../LICENSE', root), 'utf8');
 const licenseHeader = `/*\n${license}\n*/\n`;
-const modules = ['app', 'core', 'career', 'typing', 'updates', 'office', 'officequality', 'curriculum', 'idioms', 'courses', 'learningguide', 'maintenance', 'builds', 'course', 'planning', 'planningcatalog', 'planningrules', 'planningtechnology', 'planninggameplay', 'planningbusiness', 'plannerstate', 'quizcatalog', 'quizrunner', 'quizworker', 'quizui', ...['cpp','csharp','rust','go','python','java','sql','lua'].map(language=>`runners/${language}`)];
+const modules = ['app', 'core', 'career', 'typing', 'codehighlight', 'codeeditor', 'typinghighlight', 'readingchoices', 'readingchoices/shared', 'readingchoices/idioms', 'readingchoices/sql', 'updates', 'office', 'officequality', 'curriculum', 'idioms', 'courses', 'learningguide', 'maintenance', 'builds', 'course', 'planning', 'planningcatalog', 'planningrules', 'planningtechnology', 'planninggameplay', 'planningbusiness', 'plannerstate', 'quizcatalog', 'challengestatements', 'challengecatalog', 'challengesql', 'skillquiz', 'skillquizui', 'skillquizdata/cpprust', 'skillquizdata/csharpjava', 'skillquizdata/go-python', 'skillquizdata/lua-sql', 'firstproject', 'quizrunner', 'quizworker', 'quizui', ...['cpp','csharp','rust','go','python','java','sql','lua'].map(language=>`runners/${language}`)];
 const sources = await Promise.all(modules.map(name => readFile(new URL(`../src/${name}.js`, root), 'utf8')));
-const css = await readFile(new URL('style.css', root), 'utf8') + '\n' + await readFile(new URL('../styles/quiz.css', root), 'utf8');
+const css = (await Promise.all(['docs/style.css','styles/quiz.css','styles/codehighlight.css','styles/codeeditor.css','styles/typinghighlight.css','styles/readingchoices.css'].map(path=>readFile(new URL(`../${path}`,import.meta.url),'utf8')))).join('\n');
 const htmlPath = new URL('index.html', root);
 const template = (await readFile(htmlPath, 'utf8'))
   .replace(/<link rel="stylesheet" href="[^"]+">/, '<link rel="stylesheet" href="__STYLE__">')
@@ -23,9 +23,9 @@ const directory = new URL('build/', root);
 await mkdir(directory, { recursive: true });
 for (let i = 0; i < modules.length; i++) {
   const source = modules[i] === 'course' ? sources[i] : licenseHeader + sources[i].replaceAll('__BUILD_ID__', id)
-    .replace(/from '(\.\/)([a-z/]+)\.js'/g, (_, path, name) => `from '${path}${name}.${assetId(name)}.js'`)
-    .replace(/import\('(\.\/)([a-z/]+)\.js'\)/g, (_, path, name) => `import('${path}${name}.${assetId(name)}.js')`)
-    .replace(/new URL\('(\.\/)([a-z/]+)\.js', import.meta.url\)/g, (_, path, name) => `new URL('${path}${name}.${assetId(name)}.js', import.meta.url)`);
+    .replace(/from '(\.\/)([a-z0-9_/-]+)\.js'/g, (_, path, name) => `from '${path}${name}.${assetId(name)}.js'`)
+    .replace(/import\('(\.\/)([a-z0-9_/-]+)\.js'\)/g, (_, path, name) => `import('${path}${name}.${assetId(name)}.js')`)
+    .replace(/new URL\('(\.\/)([a-z0-9_/-]+)\.js', import.meta.url\)/g, (_, path, name) => `new URL('${path}${name}.${assetId(name)}.js', import.meta.url)`);
   if(modules[i].includes('/')) await mkdir(new URL(`${modules[i].split('/')[0]}/`,directory),{recursive:true});
   await writeFile(new URL(`${modules[i]}.${assetId(modules[i])}.js`, directory), source);
 }

@@ -1,0 +1,366 @@
+// Wrong answers are predictions of particular reading mistakes, not numbers
+// chosen for their distance from the answer. The caller removes predictions
+// that happen to equal the correct result for the current input, and duplicates.
+const choice = (value, misconception, reason) => ({ value, misconception, reason });
+const integer = value => Math.trunc(value);
+const wrap = (value, size) => ((value % size) + size) % size;
+const bitCount = value => {
+ let count = 0;
+ for (let bits = value >>> 0; bits; bits >>>= 1) count += bits & 1;
+ return count;
+};
+const checksum = (seed, initial, count = 5, first = 0, multiplier = 31, modulus = 997) => {
+ let result = initial;
+ for (let i = first; i < first + count; i++) result = (result * multiplier + seed + i) % modulus;
+ return result;
+};
+
+const models = {
+ clamp_health: ({ health, limit }) => [
+  choice(health, '体力の代入を読み飛ばす', `二つの条件分岐による代入を無視すると、開始時の体力${health}をそのまま返してしまいます。`),
+  choice(health < 0 ? limit : health > limit ? 0 : health, '上限と下限を取り違える', `負の体力は0へ、${limit}を超えた体力は上限へ直します。二つの補正先を入れ替えた読み方です。`),
+  choice(health > 0 ? 0 : Math.min(health, limit), '下限の比較方向を逆に読む', health > 0 ? `最初の health < 0 を health > 0 と読むと、正の体力${health}まで0に変えてしまいます。` : `最初の health < 0 を health > 0 と読むと、負の体力${health}を0に直す分岐が実行されません。`),
+  choice(health < 0 ? 0 : limit, '独立した二つのifをif/elseと読む', `2番目のifには health > limit という条件があります。これを最初のifのelseだと読むと、負でない体力をすべて上限${limit}にしてしまいます。`)
+ ],
+ apply_armor: ({ hit, armor }) => [
+  choice(hit - armor, '負のダメージの補正を省く', `${hit}−${armor}の計算だけで終える読み方です。負の結果は、後の分岐で0に直されます。`),
+  choice(hit, '防具による軽減を省く', `攻撃の強さ${hit}を返していますが、この関数は防具${armor}を差し引いた後のダメージを返します。`),
+  choice(Math.max(armor - hit, 0), '引き算の左右を逆に読む', `防具${armor}から攻撃${hit}を引くのではなく、攻撃から防具を引きます。`),
+  choice(hit + armor, '軽減を加算と読む', `防具は攻撃を増やしません。damage = hit - armor の引き算を足し算として計算した結果です。`)
+ ],
+ sum_coins: ({ pickups, coin, total }) => [
+  choice(total + coin, 'ループを1回だけ実行する', `コイン${coin}を1回だけ加えた値です。ループは${pickups}回実行されます。`),
+  choice(coin, '合計への加算を上書きと読む', `total = total + coin を total = coin と読むと、何枚拾っても最後の1枚の額${coin}だけが残ります。`),
+  choice(total + coin * Math.max(0, pickups - 1), '最後の反復を数えない', `iは0から${pickups - 1}まで動きます。0始まりを理由に反復回数まで1回減らした読み方です。`),
+  choice(total + coin * (pickups + 1), 'ループの終端を含める', `i < ${pickups}をi <= ${pickups}と読むと、コインを1枚余計に加えてしまいます。`)
+ ],
+ countdown: ({ remaining, elapsed }) => [
+  choice(remaining - elapsed, '0への補正を省く', `${remaining}−${elapsed}を計算した直後の値です。負なら、その後の分岐で0に変わります。`),
+  choice(remaining, '経過時間を差し引かない', `開始時の残り時間${remaining}です。先頭の代入で、経過時間${elapsed}が差し引かれます。`),
+  choice(Math.max(elapsed - remaining, 0), '経過時間と残り時間を逆に引く', `elapsed - remainingを計算した結果です。このコードは残り時間から経過時間を引きます。`),
+  choice(remaining + elapsed, '経過を時間の追加と読む', `経過時間${elapsed}は残り時間を増やす値ではなく、残り${remaining}から消費される値です。`)
+ ],
+ combo_reward: ({ combo, reward }) => [
+  choice(reward, '追加報酬を反映しない', `開始時の基本報酬${reward}だけを返す読み方です。comboが3を超えると、加算の分岐が実行されます。`),
+  choice(reward + combo * 5, 'コンボ条件を無視する', `コンボ${combo}にかかわらず加点した結果です。加点するのはcombo > 3のときだけです。`),
+  choice(combo > 3 ? combo * 5 : reward, '基本報酬を置き換える', `加点の分岐で追加分${combo}×5だけを代入した値です。コードは基本報酬${reward}を残して加算します。`),
+  choice(combo > 3 ? reward + combo : reward, '5倍を読み落とす', `加点対象はcomboそのものではなく、combo * 5です。5倍する演算を省いた結果です。`),
+  choice(combo >= 3 ? reward + combo * 5 : reward, '厳密な境界を含むと読む', `条件はcombo > 3です。3コンボでも加点すると読み違えています。`)
+ ],
+ wrap_slot: ({ slot, size }, lesson) => [
+  choice(slot, '循環させない', `入力位置${slot}をそのまま使う読み方です。この式は${size}個のスロットの範囲へ戻します。`),
+  ...(['python','lua'].includes(lesson.language) ? [] : [choice(slot % size, '負の余りを補正しない', `負の位置の余りを負の番号のまま扱った値です。式はsizeを加えてから再度余りを取り、0以上に正規化します。`)]),
+  choice(Math.abs(slot) % size, '負の入力位置を絶対値にする', `入力位置${slot}をまず絶対値にしてから余りを取った値です。負の位置は向きを消すのではなく、末尾側へ回り込ませます。`),
+  choice(['python','lua'].includes(lesson.language) ? Math.floor(slot / size) : integer(slot / size), '余りと商を取り違える', `${slot}÷${size}の整数の商です。スロット番号には、何周したかを表す商ではなく余りを使います。`),
+  choice(wrap(slot, size) + 1, 'スロット番号を1始まりで数える', `スロット番号は0から${size - 1}です。正規化した位置を1番から数え直すと、1大きい番号になります。`)
+ ],
+ sum_even: ({ count, total }) => {
+  const values = Array.from({ length: count }, (_, index) => index);
+  const even = values.filter(value => value % 2 === 0);
+  return [
+   choice(total + values.reduce((sum, value) => sum + value, 0), '偶数の条件を省く', `0から${count - 1}までを、奇数も含めてすべて加えた値です。`),
+   choice(total + values.filter(value => value % 2 !== 0).reduce((sum, value) => sum + value, 0), '偶数と奇数を取り違える', `i % 2 == 0は偶数を選びます。余りが1になる奇数を加えた結果です。`),
+   choice(total + even.length, '番号の合計ではなく個数を数える', `該当する偶数は${even.length}個ありますが、コードは1ずつ数えず、番号iそのものを加えます。`),
+   choice(even.at(-1) ?? total, '累積せず最後の番号で上書きする', `total = total + iをtotal = iと読むと、最後に加える偶数の番号だけが残ります。`),
+   choice(total + even.reduce((sum, value) => sum + value, 0) + (count % 2 === 0 ? count : 0), 'ループの終端を含める', `i < ${count}なので、番号${count}は対象外です。終端まで含めると、偶数の終端も加えてしまいます。`)
+  ];
+ },
+ count_bits: ({ mask, count }) => [
+  choice(count + 8, '反復回数を有効ビット数とする', `8回調べることと、8ビットすべてが1であることは違います。1を加えるのはmask & 1が1の回だけです。`),
+  choice(count + (mask & 1) * 8, 'シフトによる変化を読み落とす', `最初の最下位ビット${mask & 1}を8回足した値です。maskは毎回右へ1ビットずれます。`),
+  choice(count + bitCount(mask >>> 1), '調べる前にシフトする', `シフトしてから数えると、元の最下位ビットを調べずに捨ててしまいます。`),
+  choice(count + (mask === 0 ? 0 : Math.floor(Math.log2(mask)) + 1), 'ビットの桁数を数える', `2進数の桁数を足した値です。このコードは0の桁を数えず、1になっている桁だけを数えます。`)
+ ],
+ spend_coins: ({ coins, cost }) => [
+  choice(coins - cost, '支払えるか確認せず引く', `残高${coins}から価格${cost}を必ず引いた結果です。残高不足のときは元の値を返します。`),
+  choice(coins, '購入後も元の残高を返す', `開始時の残高${coins}です。coins >= costを満たす場合は、価格を引いた後の残高になります。`),
+  choice(coins < cost ? coins - cost : coins, '購入条件を逆に読む', `価格に届かないときだけ支払い、支払えるときは残高を変えない読み方です。比較の向きが逆です。`)
+ ],
+ choose_max: ({ record, new_score }) => [
+  choice(Math.min(record, new_score), '比較の向きを逆に読む', `高い方ではなく、低い方の得点を残した値です。`),
+  choice(record, '記録の更新を読み飛ばす', `開始時の記録${record}です。new_scoreがそれを上回る場合、recordへ新しい得点が代入されます。`),
+  choice(new_score, '無条件に新しい得点へ更新する', `今回の得点${new_score}を必ず返す読み方です。低い得点では記録を更新しません。`),
+  choice(new_score > record ? record + new_score : record, '記録の更新を得点の加算と読む', `新しい得点が高い場合の代入はrecord = new_scoreです。記録${record}と今回の得点${new_score}を足していません。`),
+  choice(Math.abs(new_score - record), '記録そのものではなく差を返す', `二つの得点の差です。返されるのは更新後の最高得点で、伸びた点数ではありません。`)
+ ],
+ nearest_bucket: ({ value, width }) => [
+  choice(Math.ceil(value / width), '区間の端数を切り上げる', `${value}÷${width}の端数を切り上げた値です。整数除算では端数を捨て、現在属する区間を求めます。`),
+  choice(Math.round(value / width), '区間番号を四捨五入する', `区間の中央を境に次の番号へ丸める読み方です。境界はwidthの倍数にあり、整数除算を使います。`),
+  choice(value % width, '区間内の位置と区間番号を混同する', `${value}を${width}で割った余りは、区間の中での位置です。コードが返すのは整数の商です。`),
+  choice(integer(value / width) + 1, '区間番号を1始まりで数える', `最初の区間の番号は0です。1番から数えると、区間番号を一つ大きくしてしまいます。`)
+ ],
+ range_check: ({ value, low, high }) => [
+  choice(Number(value >= low || value <= high), 'ANDをORと読む', `下限以上、上限以下の両方が必要です。片方だけでも満たせばよいとすると、範囲外まで1になります。`),
+  choice(Number(value > low && value < high), '範囲の両端を除外する', `比較は>=と<=です。端点${low}と${high}も範囲に含みます。`),
+  choice(Number(!(value >= low && value <= high)), '成功と失敗の戻り値を逆に読む', `この関数は範囲内なら1、範囲外なら0を返します。value=${value}の判定結果を逆の番号で表した値です。`)
+ ],
+ triangular_sum: ({ stages, total }) => [
+  choice(total + stages * (stages - 1) / 2, 'iに加える1を読み落とす', `各反復で加えるのはi + 1です。iだけを足すと0から${stages - 1}の合計になります。`),
+  choice(total + stages, 'ステージ番号ではなく件数を数える', `各ステージで1枚ずつ必要とした値です。コードは1、2、3…と増える枚数を加えます。`),
+  choice(stages, '合計を毎回上書きする', `total = i + 1と読むと、最後のステージ番号${stages}だけが残ります。実際はそれまでのtotalにも加えます。`),
+  choice(total + (stages + 1) * (stages + 2) / 2, 'ループの終端を含める', `i < ${stages}をi <= ${stages}と読むと、実在しない次のステージ${stages + 1}の費用まで加えます。`)
+ ],
+ safe_divide: ({ total, parts }) => [
+  choice(total, '等分せず合計を返す', parts === 0 ? `partsが0なら、合計${total}を返すのではなく、最初の分岐で0を返します。` : `合計${total}をそのまま返した値です。parts=${parts}で等分する計算が必要です。`),
+  ...(parts === 0 ? [] : [
+   choice(total % parts, '商と余りを取り違える', `${total}を${parts}で割った余りです。返されるのは余りを捨てた1個あたりの量です。`),
+   choice(integer(parts / total), '被除数と除数を逆に読む', `parts ÷ totalではなくtotal ÷ partsです。等分する合計と分割数が入れ替わっています。`),
+   choice(Math.round(total / parts), '整数除算を四捨五入する', `整数の割り算は四捨五入せず、小数部分を捨てます。`)
+  ])
+ ],
+
+ inventory_capacity: ({ stored, capacity, delivery }) => {
+  const accepted = Math.min(delivery, Math.max(0, capacity - stored));
+  return [
+   choice(Math.max(0, capacity - stored), '納品数による上限を読み落とす', `空き容量${Math.max(0, capacity - stored)}だけを返した値です。空きがあっても、届いた個数${delivery}より多くは受け入れられません。`),
+   choice(delivery, '空き容量を無視する', `届いた${delivery}個をすべて受け入れた値です。現在の在庫が容量を使っている分も考慮します。`),
+   choice(stored + accepted, '受入個数と受入後の在庫数を混同する', `受入後の在庫数です。この関数が返すのは、新たに受け入れた個数だけです。`),
+   choice(delivery - accepted, '受け入れた個数と断った個数を混同する', `届いた${delivery}個のうち入らなかった個数です。戻り値は受け入れられた個数です。`)
+  ];
+ },
+ state_transition: ({ state, event_id }) => [
+  choice(state, '状態遷移を読み飛ばす', `現在の状態${state}を必ず返す読み方です。定義されたイベントを受けると新しい状態が返されます。`),
+  choice(state + 1, 'イベントを確認せず状態を進める', `どの呼出しでも次の状態へ進むとした値です。状態だけでなくevent_idの一致も必要です。`),
+  choice(state === 0 || event_id === 1 ? 1 : state === 1 || event_id === 2 ? 2 : state, '遷移条件のANDをORと読む', `現在の状態とイベント番号のどちらか一方だけで遷移した値です。両方の一致が必要です。`),
+  choice(state === 0 && event_id === 2 ? 1 : state === 1 && event_id === 1 ? 2 : state, '二つのイベント番号を取り違える', `状態0で待つのはイベント1、状態1で待つのはイベント2です。対応を入れ替えた値です。`)
+ ],
+ command_budget: ({ permission, energy, cost }) => [
+  choice(energy - cost, '許可や予算の確認を省く', `消費量${cost}を常に引いた値です。許可がない場合や不足している場合は、消費せず元のenergyを返します。`),
+  choice(energy, '成功しても消費しない', `開始時のエネルギー${energy}です。許可があり、必要量を持っているときはcostを消費します。`),
+  choice(permission === 0 && energy < cost ? energy : energy - cost, '拒否条件のORをANDと読む', `不許可と不足の両方がそろったときだけ拒否した値です。実際は、どちらか一つでも該当すれば拒否します。`),
+  choice(permission !== 0 && energy > cost ? energy - cost : energy, '必要量ちょうどの場合を拒否する', `energy < costのときだけ不足です。同額でも実行できるため、energy > costへ条件を狭めると読み違えます。`)
+ ],
+ config_override: ({ default_value, override_value }) => [
+  choice(default_value, '上書き設定を無視する', `既定値${default_value}を必ず使った値です。override_valueが−1以外なら、保存された上書き設定を優先します。`),
+  choice(override_value, '未設定を示す−1も設定値とする', `override_valueを必ず返した値です。−1は有効な設定値ではなく、既定値を選ぶ印です。`),
+  choice(override_value === -1 ? default_value : default_value + override_value, '上書きを加算と読む', `上書きがある場合に既定値と合計した値です。上書きは追加量ではなく、代わりに採用する値です。`),
+  choice(Math.max(default_value, override_value), '優先順位を数値の大小と混同する', `二つのうち大きい値を選んだ結果です。上書き設定は、既定値より小さくても優先されます。`)
+ ],
+ reward_policy: ({ difficulty, reward }) => [
+  choice(reward, '条件分岐による置換を省く', `開始時の基本報酬${reward}をそのまま返した値です。難易度に応じて20や30へ置き換わります。`),
+  choice(difficulty > 2 ? reward + 30 : difficulty > 0 ? reward + 20 : reward, '報酬への代入を加算と読む', `reward = 30やreward = 20を、元の報酬へ追加する処理と読んだ値です。`),
+  choice(difficulty > 0 ? 20 : reward, '広い条件で先に確定する', `difficulty > 0だけで20に決めると、3以上の難易度に用意された報酬30を選べません。`),
+  choice(difficulty > 2 ? 30 : 20, '内側の条件を省く', `elseの中にもdifficulty > 0という条件があります。省略すると、難易度0でも20を返してしまいます。`)
+ ],
+ save_version: ({ version, current }) => [
+  choice(Number(version <= current), '版番号の下限を確認しない', `最大版番号${current}以下かだけを調べた値です。版番号0は、上限以内でも読み込めません。`),
+  choice(Number(version > 0), '対応する最大版番号を確認しない', `正の版番号ならすべて許可した値です。current=${current}を超える将来の版は拒否します。`),
+  choice(Number(!(version > 0 && version <= current)), '読込可否の戻り値を逆に読む', `この関数は読込可能なら1、拒否なら0です。version=${version}の判定を逆の戻り値で表しています。`)
+ ],
+ cooldown_gate: ({ now, ready, wait }) => [
+  choice(ready - now, '負の待ち時間を補正しない', `ready - nowを計算した直後の値です。すでに時刻を過ぎていれば0に直します。`),
+  choice(Math.max(now - ready, 0), '時刻の差を逆向きに取る', `現在から実行可能時刻までの残り時間ではなく、実行可能時刻を過ぎた時間を数えた値です。`),
+  choice(wait, '待ち時間への代入を読み飛ばす', `初期値wait=${wait}です。先頭の代入で、実行可能時刻との差に置き換わります。`),
+  choice(Math.max(ready - now + 1, 0), '時間の間隔ではなく両端の時刻を数える', `現在時刻と実行可能時刻の両方を1個ずつ数えた値です。必要なのは時刻の個数ではなく、その間の長さです。`)
+ ],
+ damage_pipeline: ({ raw, resistance, shield }) => [
+  choice(raw - resistance - shield, '負のダメージを0に直さない', `防御とシールドを引くだけで終えた値です。各段階で、負のダメージは0に直されます。`),
+  choice(Math.max(raw - resistance, 0), 'シールドの処理を省く', `防御だけを適用した途中の値です。この後シールド${shield}でも吸収します。`),
+  choice(Math.max(raw - shield, 0), '防御の処理を省く', `シールドだけを適用した値です。その前に防御${resistance}による軽減があります。`),
+  choice(Math.max(Math.max(raw - resistance, 0) + shield, 0), 'シールドをダメージへ加える', `シールドは残りのダメージから引く値です。防御後の値に足すと、吸収の向きが逆になります。`)
+ ],
+ stack_limit: ({ items, limit }) => [
+  choice(Math.floor(items / limit), '端数の束を数えない', `${items}個を${limit}個ずつ分けた完全な束の数です。余りがあれば、その分にも束を一つ用意します。`),
+  choice(items % limit, '束数ではなく余った品物を返す', `品物の余りの個数です。戻り値は、端数も収めた後に必要な束の数です。`),
+  choice(Math.floor(items / limit) + 1, '端数がなくても束を追加する', `整数の商へ必ず1を足した値です。ちょうど分け切れるときは追加の束を用意しません。`)
+ ],
+ event_filter: ({ event_mask, subscription }) => [
+  choice(event_mask | subscription, 'ANDをORと読む', `どちらかにあるビットをすべて残した値です。&は両方にあるビットだけを残します。`),
+  choice(event_mask ^ subscription, '共通ビットと異なるビットを混同する', `二つのマスクで異なるビットを残した値です。ここでは、同時に有効なビットを選びます。`),
+  choice(event_mask, '購読設定を適用しない', `発生したイベント${event_mask}を全部残した値です。購読していないビットは除外されます。`),
+  choice(subscription, '発生したかを確認せず購読設定を返す', `購読設定${subscription}そのものです。購読していても、今回発生していないイベントは残りません。`)
+ ],
+ retry_policy: ({ attempt, limit }) => [
+  choice(attempt < limit ? attempt : -1, '次の試行分を増やさない', `再試行できる場合に現在の試行回数${attempt}を返す読み方です。上限未満なら、次の試行分の1を加えます。`),
+  choice(attempt + 1, '再試行の上限を無視する', `次の回数を無条件に返した値です。すでに${limit}回以上なら、再試行できない印の−1になります。`),
+  choice(attempt <= limit ? attempt + 1 : -1, '上限ちょうどでも再試行する', `条件はattempt < limitです。上限と同じ回数のときにもう1回を許すと、上限を超えます。`)
+ ],
+ priority_choice: ({ urgent, normal }) => [
+  choice(normal > 0 ? 1 : urgent > 0 ? 2 : 0, '通常の仕事を先に選ぶ', `通常の仕事を先に判定した値です。両方待っている場合、コードは先に緊急の仕事を選びます。`),
+  choice(urgent > 0 ? 1 : normal > 0 ? 2 : 0, '優先度の識別子を取り違える', `緊急の仕事に返す識別子は2、通常の仕事は1です。二つを入れ替えた値です。`),
+  choice(urgent > 0 ? 2 : 1, '通常の仕事がない場合を見落とす', `緊急の仕事がなければ必ず1を返す読み方です。通常の仕事もないときは最後のreturn 0へ進みます。`),
+  choice(urgent + normal, '識別子ではなく仕事の件数を返す', `待っている${urgent}件と${normal}件を合計した値です。戻り値は件数ではなく、選んだ種類の識別子です。`)
+ ],
+ transaction_check: ({ balance, amount }) => [
+  choice(balance - amount, '送金前の検証を省く', `残高${balance}から金額${amount}を必ず引いた値です。0以下や残高超過の金額では残高を変えません。`),
+  choice(balance, '有効な送金でも残高を変えない', `開始時の残高${balance}です。金額が正で支払える場合は、送金額を引いた残高が返ります。`),
+  choice(amount <= 0 || amount > balance ? -1 : balance - amount, '拒否時の戻り値をエラー番号と混同する', `送金を拒否したときも、この関数は−1ではなく元の残高${balance}を返します。`)
+ ],
+ progress_snapshot: ({ progress, target }) => [
+  choice(progress, '範囲の補正を読み飛ばす', `入力された進捗${progress}のまま返した値です。負の値と目標超過は保存前に補正します。`),
+  choice(progress < 0 ? target : progress > target ? 0 : progress, '上限と下限を取り違える', `負の進捗を目標値へ、目標超過を0へ直した読み方です。補正の向きが逆です。`),
+  choice(progress > 0 ? 0 : progress > target ? target : progress, '下限の比較方向を逆に読む', progress > 0 ? `progress < 0をprogress > 0と読み、正の進捗${progress}まで0にしてしまった値です。` : `progress < 0をprogress > 0と読むと、負の進捗${progress}を0に直さず返してしまいます。`),
+  choice(Math.min(progress, target), '下限の補正を省く', `上限だけを適用した値です。進捗が負の場合も0にする必要があります。`)
+ ],
+
+ viewport_clip: ({ x, width }) => [
+  choice(Number(x >= 0 || x < width), '範囲条件のANDをORと読む', `左端以上と右端未満の片方だけで表示を許した値です。画面内には両方を満たす必要があります。`),
+  choice(Number(x > 0 && x < width), '左端まで除外する', `左端0は表示範囲に含まれます。x >= 0をx > 0とすると、左端も除外してしまいます。`),
+  choice(Number(x >= 0 && x <= width), '右端も含める', `右端widthは範囲外です。x < widthをx <= widthとすると、右端を表示できると判定します。`),
+  choice(Number(!(x >= 0 && x < width)), '表示できるときの戻り値を逆に読む', `この関数は画面内なら1、画面外なら0です。x=${x}の判定を反対の番号で表した値です。`)
+ ],
+ tile_column: ({ pixel, tile_width }) => [
+  choice(Math.ceil(pixel / tile_width), '途中のタイルを次の列へ丸める', `${pixel}÷${tile_width}を切り上げた値です。タイル内の端数は捨て、現在の列番号を求めます。`),
+  choice(pixel % tile_width, '列番号とタイル内の位置を混同する', `割った余りはタイル内のピクセル位置で、列番号ではありません。`),
+  choice(integer(pixel / tile_width) + 1, '列番号を1始まりで数える', `左端の列番号は0です。1から数えると、列番号が一つずれます。`),
+  choice(pixel, 'ピクセル座標を列番号として返す', `座標${pixel}をそのまま返した値です。1列の幅${tile_width}で区切って列番号に変換します。`)
+ ],
+ frame_index: ({ ticks, frame_ticks, frames }) => [
+  choice(integer(ticks / frame_ticks), 'アニメーションを循環させない', `経過したコマ数を返す読み方です。最後にframes=${frames}で余りを取り、0番へ戻します。`),
+  choice(ticks % frames, '1コマの表示時間を無視する', `時間単位のticksを直接${frames}で割った余りです。先に${frame_ticks}時間を1コマへ換算します。`),
+  choice(integer(ticks / frame_ticks) % frames + 1, 'コマ番号を1始まりで数える', `コマ番号は0から始まります。1番から数え直すと、実際より一つ大きい番号になります。`),
+  choice(integer(ticks / (frame_ticks * frames)), 'コマ番号と周回数を混同する', `アニメーションが何周完了したかを数えた値です。求めるのは周回の中のコマ番号です。`)
+ ],
+ alpha_blend: ({ foreground, background, alpha }) => [
+  choice(integer((foreground * (100 - alpha) + background * alpha) / 100), '前景と背景の割合を逆にする', `前景に${100 - alpha}％、背景に${alpha}％を掛けた値です。alphaは前景の割合です。`),
+  choice(integer(foreground * alpha / 100), '背景の寄与を加えない', `前景${foreground}の${alpha}％だけを返した値です。背景の${100 - alpha}％も足します。`),
+  choice(integer(background * (100 - alpha) / 100), '前景の寄与を加えない', `背景だけを重み付けした値です。前景の割合が0でない場合、前景の寄与も加わります。`),
+  choice(integer((foreground + background) * alpha / 100), '両方の色へ同じ割合を掛ける', `背景にも前景と同じ${alpha}％を掛けた値です。背景は補数の${100 - alpha}％です。`)
+ ],
+ camera_offset: ({ world_x, camera_x }) => [
+  choice(camera_x - world_x, '座標差の向きを逆に取る', `カメラから対象への相対座標はworld_x - camera_xです。逆に引くと左右の符号が反転します。`),
+  choice(world_x, 'カメラ位置を引かない', `ワールド座標${world_x}のまま返した値です。カメラの位置${camera_x}を原点とするために差し引きます。`),
+  choice(world_x + camera_x, 'カメラ位置を加える', `world_x - camera_xを足し算と読んだ値です。カメラを右へ動かすと、対象の画面座標は左へ動きます。`)
+ ],
+ parallax_layer: ({ camera_x, ratio }) => [
+  choice(camera_x * ratio, '移動を遅くせず速くする', `カメラ移動量${camera_x}を${ratio}倍した値です。背景はその${ratio}分の1だけ移動します。`),
+  choice(camera_x % ratio, '整数の商と余りを取り違える', `${camera_x}を${ratio}で割った余りです。背景の移動量は整数の商です。`),
+  choice(camera_x, '背景の移動率を適用しない', `カメラと同じ移動量${camera_x}を返した値です。背景にはratioによる縮小を適用します。`)
+ ],
+ clamp_channel: ({ channel, brightness }) => [
+  choice(channel + brightness, '上限の補正を省く', `明るさを加えた直後の値です。255を超えた場合は、後の分岐で255へ直します。`),
+  choice(channel, '明るさの加算を省く', `補正前の色成分${channel}です。brightness=${brightness}を加えた後で上限を適用します。`),
+  choice(brightness, '加算を明るさだけで上書きする', `result = channel + brightnessをresult = brightnessと読むと、元の色成分が失われます。`),
+  choice((channel + brightness) % 256, '上限で止めず8ビットで折り返す', `8ビットの余りを取った値です。このコードは255を超えると0へ戻るのではなく、255に固定します。`),
+  choice(Math.max(channel + brightness, 255), '上限と下限を逆にする', `255以上へ引き上げた値です。255は下限ではなく上限なので、超えたときだけ抑えます。`)
+ ],
+ pack_color: ({ red, blue }) => [
+  choice(red + blue, 'ビット位置をずらさず加える', `赤${red}と青${blue}をそのまま足した値です。赤は上位8ビットへ移してから組み合わせます。`),
+  choice((red << 8) & blue, 'ORをANDと読む', `上位の赤と下位の青の共通ビットだけを残した値です。ここでは|で二つの領域を合わせます。`),
+  choice((blue << 8) | red, '上位と下位の色を取り違える', `上位8ビットに青、下位8ビットに赤を入れた値です。コードは赤を上位へずらします。`),
+  choice(red * 8 + blue, '8ビットシフトを8倍と読む', `<< 8は8倍ではなく2の8乗、つまり256倍です。赤を8倍する計算では上位8ビットに届きません。`)
+ ],
+ flip_sprite: ({ local_x, width }) => [
+  choice(width - local_x, '0始まりのための1を引かない', `右端の番号はwidthではなくwidth - 1です。1を引き忘れた反転座標です。`),
+  choice(local_x, '左右反転を適用しない', `元の横座標${local_x}です。左端と右端が入れ替わるよう、右端からの距離へ変換します。`),
+  choice(local_x - (width - 1), '右端から引く向きを逆にする', `local_x - (width - 1)を計算した値です。コードは右端の番号からlocal_xを引きます。`)
+ ],
+ sprite_overlap: ({ left, width, other_left, other_width }) => {
+  const first = left < other_left + other_width;
+  const second = other_left < left + width;
+  return [
+   choice(Number(first || second), '二つの重なり条件をORで結ぶ', `一方の左端だけが相手の右端より手前ならよいとした値です。実際には両方の条件が必要です。`),
+   choice(Number(left <= other_left + other_width && other_left <= left + width), '接している端も重なりとする', `比較はどちらも<です。等号を加えると、端同士が接しているだけでも1を返します。`),
+   choice(Number(!(first && second)), '重なりと非重なりの戻り値を逆にする', `この関数は重なるとき1、重ならないとき0です。二つの位置関係を逆の番号で表した値です。`)
+  ];
+ },
+ health_bar: ({ health, maximum, pixels }) => [
+  choice(integer(health / maximum) * pixels, '整数の割り算を先に行う', `health / maximumを整数で計算してから${pixels}倍した値です。満タン未満では割り算の時点で小数部分が失われます。`),
+  choice(health, '体力をそのままピクセル数とする', `体力${health}をそのままバーの幅にした値です。最大体力${maximum}を幅${pixels}へ換算する必要があります。`),
+  choice(pixels, '体力にかかわらず満タンの幅を返す', `満タン時の幅${pixels}です。現在体力の割合を掛けるので、常にこの幅になるわけではありません。`)
+ ],
+ grid_index: ({ row, column, columns }) => [
+  choice(column * columns + row, '行と列を取り違える', `column行を飛ばしてrowを足した値です。行を丸ごと飛ばす数はrow、行内の位置はcolumnです。`),
+  choice(row + column, '1行分の要素数を掛けない', `行番号と列番号だけを足した値です。1行進むたびにcolumns=${columns}個の要素を飛ばします。`),
+  choice(row * (columns + 1) + column, '行の切替に余分な1要素を数える', `1行にcolumns + 1個あるとした値です。メモリ上に行間の追加要素はありません。`),
+  choice(row * columns + column + 1, '通し番号を1始まりで数える', `先頭要素の番号は0です。1番から数えると、通し番号が一つ大きくなります。`)
+ ],
+ screen_scale: ({ pixel, scale, margin }) => [
+  choice((pixel + margin) * scale, '画面の余白も拡大する', `余白${margin}を足してから${scale}倍した値です。コードでは座標だけを拡大してから余白を加えます。`),
+  choice(pixel + margin, '座標の倍率を適用しない', `元の座標${pixel}に余白だけを加えた値です。先にscale=${scale}で拡大します。`),
+  choice(pixel * scale, '画面の余白を加えない', `拡大後の座標だけの値です。最後にmargin=${margin}を加えます。`)
+ ],
+ depth_bucket: ({ depth, bucket_size }) => [
+  choice(Math.ceil(depth / bucket_size), '奥行きの区分を切り上げる', `${depth}÷${bucket_size}を切り上げた値です。所属区分は整数の商で求めます。`),
+  choice(depth % bucket_size, '区分番号と区分内の位置を混同する', `割った余りは区分内の位置です。返すのは何区分目かを表す商です。`),
+  choice(integer(depth / bucket_size) + 1, '区分番号を1始まりで数える', `最初の奥行き区分は0番です。1番から数えると一つ先の番号になってしまいます。`)
+ ],
+
+ align_bytes: ({ bytes, alignment }) => [
+  choice(Math.floor(bytes / alignment) * alignment, '必要量を切り捨てて丸める', `小さい側の${alignment}の倍数へ丸めた値です。領域はbytes=${bytes}以上必要なので、端数があれば切り上げます。`),
+  choice(Math.ceil(bytes / alignment), '配置単位の個数だけを返す', `必要な${alignment}バイト単位の個数です。戻り値をバイト数にするには、最後にalignmentを掛けます。`),
+  choice((Math.floor(bytes / alignment) + 1) * alignment, 'すでにそろっていても次の境界へ進む', `商へ必ず1を足してから${alignment}倍した値です。すでに倍数のときは余計な単位を追加しません。`),
+  choice(bytes, '配置単位への調整を省く', `要求された${bytes}バイトそのものです。配置単位の倍数になるまで増やす場合があります。`)
+ ],
+ ring_write: ({ cursor, capacity }) => [
+  choice(cursor + 1, '末尾からの折返しを省く', `書込み位置を1増やしただけの値です。最後にcapacity=${capacity}の余りを取り、範囲内へ戻します。`),
+  choice(cursor % capacity, '書込み位置を進めない', `元の位置を正規化しただけの値です。余りを取る前に、一つ先の位置へ進みます。`),
+  choice(integer((cursor + 1) / capacity), '次の位置と周回数を混同する', `次の位置をcapacityで割った整数の商です。必要なのは周回数ではなく、余りで表す位置です。`)
+ ],
+ cache_expiry: ({ now, expiry }) => [
+  choice(Number(now <= expiry), '有効期限と同時刻も許可する', `条件はnow < expiryです。同時刻${expiry}では、すでに失効しています。`),
+  choice(Number(now >= expiry), '期限切れのとき1を返すと読む', `この関数はキャッシュが有効なとき1です。now=${now}、expiry=${expiry}を期限切れの条件で判定した値です。`)
+ ],
+ retry_backoff: ({ attempt, wait, maximum }) => [
+  choice(wait * attempt, '倍増を初期値×回数と読む', `初期待ち時間${wait}に再試行回数${attempt}を掛けた値です。各回で直前の待ち時間を2倍するので、増え方は直線ではありません。`),
+  choice(wait * 2 ** attempt, '待ち時間の上限を適用しない', `${wait}を${attempt}回倍増しただけの値です。各反復でmaximum=${maximum}を超えないよう補正します。`),
+  choice(Math.min(wait * 2 ** (attempt + 1), maximum), 'ループを1回余分に実行する', `0からattemptまで含めて、${attempt + 1}回倍増した値です。条件はi < attemptなので、実行回数はattempt回です。`),
+  choice(wait, '倍増による代入を読み飛ばす', `開始時の待ち時間${wait}です。attempt回の反復で待ち時間が更新されます。`)
+ ],
+ queue_budget: ({ budget, job_cost, processed }) => [
+  choice(processed + Math.min(8, Math.ceil(budget / job_cost)), '途中までの仕事も1件と数える', `予算を使い切るまで切り上げて件数を数えた値です。1件分のjob_cost=${job_cost}が残っていなければ処理しません。`),
+  choice(processed + 8, '予算を確認せず8件処理する', `ループが8回あるので必ず8件増えるとした値です。各回、予算が足りたときだけprocessedが増えます。`),
+  choice(budget - Math.min(8, Math.floor(budget / job_cost)) * job_cost, '処理件数ではなく残り予算を返す', `仕事を処理した後の予算です。最後に返されるのはbudgetではなくprocessedです。`),
+  choice(processed + Math.min(8, Math.floor(budget / job_cost)) * job_cost, '件数に消費コストを加える', `処理した仕事のコストを合計した値です。processedへは仕事1件ごとに1を加えます。`),
+  choice(processed + Math.min(8, Math.max(0, Math.floor((budget - 1) / job_cost))), '必要量ちょうどの仕事を拒否する', `budget >= job_costをbudget > job_costと読むと、残り予算とコストが同じ最後の仕事を処理できません。`)
+ ],
+ pool_slots: ({ capacity, occupied }) => [
+  choice(capacity - occupied, '空き領域数の下限を補正しない', `容量${capacity}から使用数${occupied}を引いた直後の値です。負の場合は後の分岐で0に直します。`),
+  choice(occupied, '使用中と空きの数を混同する', `使用中の領域数${occupied}です。空きは容量から使用中の分を差し引いて求めます。`),
+  choice(capacity, '使用中の領域を差し引かない', `プール全体の容量${capacity}です。すでに使われている${occupied}個は新しい要求には渡せません。`),
+  choice(Math.max(occupied - capacity, 0), '空きの差を逆向きに引く', `使用数から容量を引き、負なら0に補正した値です。空き領域は容量から使用数を引く方向で計算します。`)
+ ],
+ token_bucket: ({ tokens, refill, capacity }) => [
+  choice(tokens + refill, '容量の上限を適用しない', `${tokens}に${refill}を補充した直後の値です。容量${capacity}を超えた分は保持できません。`),
+  choice(tokens, 'トークンを補充しない', `補充前の${tokens}個です。この後refillを加え、必要なら容量まで抑えます。`),
+  choice(capacity, '補充のたびに満タンにする', `容量${capacity}そのものです。補充量だけで満タンにならなければ、容量より少ないままです。`),
+  choice(Math.min(refill, capacity), '補充を個数の置換と読む', `tokens = refillとして補充量だけを残した値です。コードは既存のtokensへrefillを加えます。`)
+ ],
+ bounded_checksum: ({ seed, checksum: initial }) => [
+  choice(checksum(seed, initial, 5, 0, 31, Number.POSITIVE_INFINITY), '余りによる縮小を省く', `各段階の% 997を省いた累積値です。コードは毎回997で割った余りに更新します。`),
+  choice(seed + 4, '直前のチェックサムを引き継がない', `毎回checksum = seed + iで上書きした値です。実際には前のチェックサムを31倍してから次の値を加えます。`),
+  choice(checksum(seed, initial, 5, 0, 1), '31倍を読み落とす', `前のチェックサムを31倍せず、5個のメッセージを単に加算した値です。`),
+  choice(checksum(seed, initial, 4), '最後のメッセージを取り込まない', `iを0から3までの4回しか実行しなかった値です。i < 5なので、i=4のメッセージも取り込みます。`),
+  choice(checksum(seed, initial, 5, 1), 'メッセージの添字を1始まりで読む', `iを1から5として、seed + 1から取り込んだ値です。実際は0から4なので、最初はseedそのものです。`)
+ ],
+ packet_pages: ({ bytes, page_size }) => [
+  choice(Math.floor(bytes / page_size), '端数のページを数えない', `完全に埋まるページだけを数えた値です。残りのバイトにもページが一つ必要です。`),
+  choice(Math.floor(bytes / page_size) + 1, 'ちょうどの容量でも1ページ足す', `整数の商に必ず1を足した値です。割り切れるときには追加ページは不要です。`),
+  choice(bytes % page_size, 'ページ数ではなく残りバイト数を返す', `${bytes}を${page_size}で割った余りです。残りバイトの個数と、必要なページ数は違います。`)
+ ],
+ saturating_counter: ({ counter, maximum }) => [
+  choice(counter + 1, '上限を確認せず増やす', `${counter}を必ず1増やした値です。maximum=${maximum}以上なら、加算の分岐は実行されません。`),
+  choice(counter, '増加の代入を読み飛ばす', `開始時のカウンター${counter}です。上限未満なら、returnまでに1増えます。`),
+  choice(maximum, '1増加を上限までの補充と読む', `上限値${maximum}へ一度に変えた値です。1回の呼出しで増えるのは1だけです。`)
+ ],
+ worker_partition: ({ job_id, workers }) => [
+  choice(integer(job_id / workers), '担当番号と仕事の周回数を混同する', `${job_id}を${workers}で割った整数の商です。担当番号には余りを使います。`),
+  choice(job_id, '担当者への振分けを行わない', `仕事の識別番号${job_id}そのものです。担当者番号はworkersで循環する範囲に変換します。`),
+  choice(workers - 1 - job_id % workers, '担当者番号を逆順に付ける', `0から${workers - 1}への順序を逆にして割り当てた値です。余り0は担当者0を表します。`),
+  choice((job_id + 1) % workers, '仕事の識別番号を1進めてから割り当てる', `最初の仕事番号を1と読むと、現在のjob_idにも余分な1を加え、担当が次へずれます。`)
+ ],
+ generation_guard: ({ handle_generation, slot_generation }) => [
+  choice(Number(handle_generation !== slot_generation), '不一致のとき有効と読む', `この関数は世代が一致すると1です。参照側${handle_generation}と領域側${slot_generation}の不一致を有効としてしまっています。`),
+  choice(Number(handle_generation <= slot_generation), '古い世代も受け入れる', `参照側が領域側より古くても許可した値です。必要なのは大小関係ではなく、同じ世代番号であることです。`),
+  choice(Number(handle_generation >= slot_generation), '新しい番号なら許可すると読む', `参照側が同じか新しければ許可した値です。領域の現在の世代と一致している場合だけ有効です。`)
+ ],
+ change_mask: ({ before, after }) => [
+  choice(before & after, '変化したビットではなく共通ビットを選ぶ', `両方で1になっているビットです。^は共通ビットを0にし、異なるビットを1にします。`),
+  choice(before | after, 'どちらかで有効なビットを全部選ぶ', `どちらかが1なら残した値です。変更前から1のままのビットは、変更として数えません。`),
+  choice(after - before, 'ビットごとの違いを数値の差と混同する', `変更後${after}から変更前${before}を引いた値です。XORは各桁が違うかを調べ、整数の引き算は行いません。`)
+ ],
+ batch_remainder: ({ pending, batch_size }) => [
+  choice(integer(pending / batch_size), '残件数と完全なバッチ数を混同する', `${pending}件から作れる完全なバッチの数です。次回へ残すのは、バッチにならない端数の件数です。`),
+  choice(pending, '完了したバッチを取り除かない', `最初の未処理件数${pending}です。batch_size=${batch_size}件ずつの完全なバッチは取り除かれます。`),
+  choice(batch_size - pending % batch_size, '残っている件数と次のバッチまでの不足数を混同する', `次のバッチを満たすまでに必要な追加件数です。このコードはすでに残っている件数を返します。`),
+  choice(integer(pending / batch_size) * batch_size, '残件数ではなく処理済み件数を返す', `完全なバッチとして取り除かれた件数です。戻り値は取り除いた後に残る端数です。`)
+ ]
+};
+
+export function sharedReadingDistractors(lesson, variant = 0) {
+ const model = models[lesson?.topicId];
+ if (!model || !Array.isArray(lesson.bindings) || lesson.bindings.length === 0) return null;
+ const inputs = Object.fromEntries(lesson.bindings.map(binding => [binding.name, Number(binding.initial)]));
+ if (Object.values(inputs).some(value => !Number.isFinite(value))) return null;
+ return model(inputs, lesson).filter(candidate => Number.isFinite(candidate.value));
+}

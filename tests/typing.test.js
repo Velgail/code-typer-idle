@@ -1,8 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createState, input, handPower, serialize, deserialize } from '../src/core.js';
-import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD } from '../src/typing.js';
+import { LANGUAGES, SUBJECT_IDS, TEMPLATE_COUNT, PROMPT_COUNT, promptAt, currentPrompt, acceptCharacter, TYPING_REWARD, typingKeystrokes } from '../src/typing.js';
 import { OFFICE_PROMPT_COUNT, OFFICE_DATA_VERSION, officeOrderAt } from '../src/office.js';
+
+test('physical typing budgets count each Tab of up to four spaces once, without changing source characters', () => {
+  for (let spaces=1;spaces<=12;spaces++) {
+    const source=`x${' '.repeat(spaces)}y\n\tz`;
+    assert.equal(typingKeystrokes(source),5+Math.ceil(spaces/4));
+    assert.equal(source.length,spaces+5);
+  }
+});
 
 test('the embedded curriculum contains 8,192 distinct prompts across eight languages and four subjects', () => {
   const prompts = new Set();

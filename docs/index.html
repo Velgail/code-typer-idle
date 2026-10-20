@@ -7,8 +7,8 @@
   <meta name="description" content="コードを学び、小さなゲームを公開。覚えたコツを次の開発人生へ持ち越し、仲間とAAAを目指す無料の放置型ゲーム、Code Typer Idle。">
   <title>Code Typer Idle — 一文字から、どこまでも。</title>
   <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./build/style.077a9c4ef89fff6e.css">
-  <script type="module" src="./build/app.077a9c4ef89fff6e.js"></script>
+  <link rel="stylesheet" href="./build/style.4ebb4fd45e3072fc.css">
+  <script type="module" src="./build/app.4ebb4fd45e3072fc.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -58,7 +58,7 @@
             <div id="development-readiness" class="development-readiness"></div>
             <div class="work-content"><div class="task-heading"><div><div class="eyebrow" id="task-eyebrow">OFFICE WORK</div><h2 id="task-title">伝票画像のデータ化</h2></div><span class="status-pill" id="task-status"><i></i>事務作業中</span></div><p class="task-description" id="task-description">伝票画像の項目をCSVに整形し、100作業量ごとに納品します。</p>
               <div id="subject-picker" class="subject-picker hidden" aria-label="学習分野"></div>
-              <div id="study-style-picker" class="subject-picker hidden" role="group" aria-label="学習方法"><button class="subject-button" data-study-style="practice">コードを写す</button><button class="subject-button" data-study-style="course">言語別の講座</button><button class="subject-button" data-study-style="reading">参考コードを読む</button><button class="subject-button" data-study-style="quiz">Quiz</button></div>
+              <div id="study-style-picker" class="subject-picker hidden" role="group" aria-label="学習方法"><button class="subject-button" data-study-style="practice">コードを写す</button><button class="subject-button" data-study-style="course">言語別の講座</button><button class="subject-button" data-study-style="reading">参考コードを読む</button><button class="subject-button" data-study-style="skill-quiz">Quiz</button><button class="subject-button" data-study-style="quiz">Challenge</button></div>
               <section id="course-panel" class="course-panel hidden" aria-label="言語別の講座"></section><div id="study-lock" class="modal-callout hidden" role="status"><p id="study-lock-message"></p><button class="primary-button" data-action="open-online-material">無料のオンライン教材を開く</button><button class="text-button" data-action="textbooks">教本を見る</button></div><div id="study-material" class="modal-callout hidden"><p id="study-material-label"></p><button id="study-material-upgrade" class="text-button" data-action="buy-study-book"></button></div>
               <section id="custom-production" class="custom-production hidden" aria-label="企画の制作状況"></section>
               <div id="project-progress" class="project-progress hidden"><div id="progress-summary"></div></div>
@@ -66,8 +66,9 @@
               <details id="development-policy" class="development-policy hidden" aria-label="開発方針"><summary>開発方針を選ぶ <span id="current-policy"></span></summary><div role="group" aria-label="実装の進め方"><button class="secondary-button" data-development-policy="prototype" aria-pressed="false">仮実装で先へ進む</button><button class="secondary-button" data-development-policy="steady" aria-pressed="true">動く形を積み上げる</button><button class="secondary-button" data-development-policy="structured" aria-pressed="false">構造を整えて進める</button></div><p id="development-policy-description"></p></details>
               <details id="development-details" class="development-details hidden"><summary>コードの状態と検証履歴</summary><details id="debt-details"><summary id="debt-summary"></summary><div id="debt-breakdown"></div></details><div id="defect-summary"></div><p id="maintenance-hint" class="panel-note"></p><p id="build-summary" class="panel-note"></p><h4>最近の検証</h4><ol id="build-history"></ol></details>
               <section id="production-panel" class="production-panel hidden" aria-label="素材の購入・外注"><details><summary>素材の購入・外注 <span id="production-total"></span></summary><p class="panel-note">自作するか、既製素材の購入・素材制作を依頼するかを選べます。費用はこの作品で一度だけ支払います。</p><div id="production-services"></div></details></section>
-              <div class="input-toolbar" id="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
+              <div class="input-toolbar" id="input-toolbar"><div class="input-style-picker" role="group" aria-label="入力方式"><button class="active" data-input-style="click" aria-pressed="true">クリック</button><button data-input-style="typing" aria-pressed="false">コードタイピング <small>報酬UP</small></button><button data-dev-style="skill-quiz" aria-pressed="false" hidden>Quizで復習</button><button data-dev-style="quiz" aria-pressed="false" hidden>Challengeで実装</button></div><label class="language-label">言語 <select id="language-select" aria-label="出題言語"></select></label></div>
               <div id="work-task-picker" class="subject-picker hidden" role="group" aria-label="事務の作業"><button class="subject-button active" data-work-task="entry" aria-pressed="true">新規入力</button><button class="subject-button" data-work-task="correction" aria-pressed="false" disabled>OCR再納品 0件</button></div><p id="ocr-status" class="panel-note hidden"></p>
+              <section id="skill-quiz-panel" class="quiz-panel hidden" aria-label="指定した構文を練習する"></section>
               <section id="quiz-panel" class="quiz-panel hidden" aria-label="コードを実装して解く"></section>
               <div id="quick-actions"><div id="manual-actions"><div class="work-output"><span id="output-label">このクリックで得られるもの</span><strong id="output-rate">+1 作業量 <small>/ クリック</small></strong></div><button id="type-button" class="type-button"><span class="type-button-icon" data-icon="keyboard"></span><span><b id="type-label">クリックして働く</b><small id="type-hint">タイピングなら完入力で報酬アップ</small></span><span class="keycap">↵</span></button><div id="job-progress" class="job-progress"><div><span id="job-progress-label">0 / 100 作業量</span><strong id="job-payment">納品で ¥100</strong></div><progress id="job-progress-bar" max="100" value="0" aria-label="納品までの作業量"></progress></div><div id="office-contract" class="office-contract hidden"></div></div></div>
               <section id="office-source" class="office-source" aria-label="原票と入力仕様"><h3>原票：スキャンした伝票</h3><canvas id="office-image" role="img"></canvas><div id="ocr-review" class="ocr-review hidden"></div><details id="office-details"><summary>CSVの入力形式</summary><p>入力順：伝票番号,日付,品名,数量,単価</p><p>日付はYYYY-MM-DD、金額は通貨記号・桁区切りなし。品名の空白は残し、項目は半角カンマで区切ります。</p><small>OCR・入力マクロを導入すると、原票の読み取りと入力を自動化できます。</small></details></section>
@@ -91,7 +92,7 @@
       <section id="roadmap-view" class="hidden secondary-view"></section>
       <section id="achievements-view" class="hidden secondary-view"></section>
     </main>
-    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v2.2.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">自動保存</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
+    <footer class="app-footer"><span><i class="live-dot"></i>Code Typer Idle <span class="version">v2.4.0</span><span class="footer-separator">/</span>小さな入力、大きな野望。</span><span id="save-status">自動保存</span><button id="save-button" class="text-button"><span data-icon="save"></span>今すぐ保存</button></footer>
   </div>
   <dialog id="modal"><div class="modal-header"><h2 id="modal-title"></h2><button id="modal-close" class="icon-button" aria-label="閉じる">×</button></div><div id="modal-body"></div></dialog>
   <div class="toast-container" id="toasts" aria-live="polite" aria-atomic="false"></div>

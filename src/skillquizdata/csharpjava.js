@@ -1,0 +1,397 @@
+// Original, technique-specific completion exercises. These are not IO challenges.
+// A row is [slug, Japanese task, contextual source, answer, distractors, rationale].
+const dependencies={
+ 'C#':{
+  syntax:{
+   2:['value-init','conditional','value-init','value-init','expression-body','value-init','local-inference','value-init'],
+   3:['expression-body','foreach','expression-body','foreach','foreach','short-circuit','coalesce','tryparse-out'],
+   4:['expression-body','index-from-end','switch-expression type-pattern','type-pattern','type-pattern','generic-constraint','generic-constraint','systems/readonly-span ref-return']
+  },
+  design:{
+   2:['method-visibility','method-visibility','method-visibility','constructor','syntax/expression-body','method-visibility','readonly-field','interface-contract'],
+   3:['readonly-field interface-contract','auto-property','init-property','static-factory','interface-contract','covariant-producer','syntax/generic-constraint','readonly-struct'],
+   4:['systems/await-task','systems/observe-cancellation','async-contract','private-field interface-contract','event-notification','readonly-field systems/monitor-lock','syntax/generic-constraint interface-contract','syntax/generic-constraint systems/dictionary-presence']
+  },
+  graphics:{
+   2:['vector-position','squared-distance','vector-position','syntax/foreach','syntax/lambda-parameter','clamp-channel','syntax/short-circuit','grid-offset'],
+   3:['syntax/lambda-parameter','transform-position','row-slice','design/readonly-struct','normalize-direction','transform-position','blend-weight','transform-position'],
+   4:['systems/readonly-span span-fill','syntax/unmanaged-constraint','span-fill','systems/readonly-span','syntax/checked-overflow','blend-weight','systems/clear-pooled-secret','blend-weight']
+  },
+  systems:{
+   2:['using-file','await-task','await-task','await-task','design/private-field','monitor-lock','dictionary-presence','using-file'],
+   3:['await-task','await-task','observe-cancellation','await-task syntax/foreach','queue-order await-task','await-task readonly-span','readonly-span','using-file'],
+   4:['monitor-lock','atomic-increment','async-gate observe-cancellation','observe-cancellation','await-all','await-task','using-file cpu-task','syntax/checked-overflow']
+  }
+ },
+ Java:{
+  syntax:{
+   2:['conditional','value-init','value-init','value-init','array-length','value-init','string-equality','value-init'],
+   3:['generic-method','generic-method','generic-method','string-equality','array-length','value-init','lambda','generic-method'],
+   4:['design/interface-contract','record-value instanceof-pattern','switch-expression instanceof-pattern','switch-expression','generic-method','bounded-type','switch-expression','method-reference']
+  },
+  design:{
+   2:['public-operation','public-operation','super-constructor','constructor','syntax/lambda','final-field','syntax/record-value','final-field'],
+   3:['syntax/generic-method interface-contract','syntax/method-reference','private-state override-annotation','this-reference','syntax/lambda interface-contract','interface-contract','interface-contract','final-field syntax/generic-method'],
+   4:['syntax/catch-conversion','override-annotation','default-behavior','composition','systems/resource-scope interface-contract','syntax/instanceof-pattern syntax/generic-method','generic-repository builder-return','default-behavior']
+  },
+  graphics:{
+   2:['unsigned-alpha','systems/resource-scope','unsigned-alpha','float-opacity','clamp-channel','point-record','point-record','point-record'],
+   3:['byte-channel','argb-image','grid-offset','grid-offset','design/comparator-tie','half-open-clip','argb-image systems/resource-scope','pixel-int-buffer'],
+   4:['systems/binary-order','source-over alpha-color','clip-area','dispose-graphics affine-point','bulk-read-pixels','argb-image','systems/async-supply fill-row','systems/async-supply dispose-graphics']
+  },
+  systems:{
+   2:['syntax/lambda','async-supply','resource-scope','design/private-state','synchronized-update','map-fallback','synchronized-update','syntax/catch-conversion'],
+   3:['synchronized-update','explicit-lock','async-supply restore-interrupt','fifo-queue','executor-shutdown','async-supply','encode-utf8','resource-scope'],
+   4:['executor-shutdown','async-supply','atomic-increment','explicit-lock volatile-publication','atomic-increment','latch-completion','resource-scope executor-shutdown','synchronized-update restore-interrupt']
+  }
+ }
+};
+const alternatives={
+ 'C#':{
+  'syntax/value-init':['default','default(int)'],
+  'syntax/nullable-value':['System.Nullable<int>'],
+  'graphics/grid-offset':['column + row * columns'],
+  'graphics/flip-x':['width - (x + 1)'],
+  'graphics/row-slice':['width * row'],
+  'graphics/premultiply-color':['alpha * rgb']
+ },
+ Java:{
+  'syntax/value-init':['0x0','0b0'],
+  'graphics/grid-offset':['column + row * width'],
+  'graphics/fill-row':['width * (row + 1)']
+ }
+};
+const make=(language,groups)=>groups.flatMap(([subject,difficulty,rows])=>rows.map(([slug,title,body,answer,incorrect,reason,prerequisites],index)=>({
+ id:`${subject}/${slug}`,subject,concept:`${language}: ${slug.replaceAll('-',' ')}`,title,difficulty,
+ minutes:[0,.5,1,2,3.5][difficulty],prompt:`${title}。コメントと前後の処理を読み、指定された技法を使う記述で空欄を埋めてください。`,
+ code:`// ${language} fragment: file-scope imports, type-member declarations, method-body statements.\n// ${slug.replaceAll('-',' ')}: complete the code in this context.\n${body}`,answer,incorrect,
+ explanation:`${reason} この空欄では ${answer} を使います。`,
+ ...(alternatives[language]?.[`${subject}/${slug}`]?{alternatives:alternatives[language][`${subject}/${slug}`]}:{}),
+ ...(difficulty>1?{prerequisites:prerequisites||(dependencies[language][subject][difficulty][index].split(' ').map(id=>id.includes('/')?id:`${subject}/${id}`))}:{})
+})));
+
+export const CSHARP_SKILL_QUIZZES=make('C#',[
+ ['syntax',1,[
+  ['value-init','整数の得点をゼロで初期化する','int score = ____;','0',['null','"0"'],'整数変数の初期値は文字列やnullではなく整数値です。'],
+  ['local-inference','ローカル変数の型を初期値から推論させる','____ playerName = "Ada";','var',['dynamic','object'],'型推論でもコンパイル時の型はstringに確定します。'],
+  ['constant','変更できないコンパイル時定数を宣言する','____ int MaxLives = 3;','const',['static','readonly'],'constは初期化後の代入を禁止します。readonlyはローカル定数の宣言には使えません。'],
+  ['short-circuit','未取得のプレイヤーを参照せず短絡ANDで判定する','Player? player = FindPlayer();\nbool alive = player != null ____ player.Health > 0;\n// FindPlayer returns Player?; Player has int Health.','&&',['&','||'],'左がfalseなら右のプロパティを評価しません。'],
+  ['interpolation','文字列補間で得点を表示する','int score = 7;\nstring label = ____;','$"Score: {score}"',['"Score: {score}"','@"Score: {score}"'], '補間文字列の接頭辞によって波括弧内の式が評価されます。'],
+  ['coalesce','未設定の名前だけを既定値へ置き換える','string? savedName = null;\nstring name = savedName ____ "Guest";','??',['||','+'],'空文字列は設定済みの値なので置換せず、nullだけを補います。'],
+  ['conditional','条件演算子で表示名を選ぶ','bool paused = true;\nstring label = paused ____ "Paused" : "Running";','?',['??','&&'],'条件がtrueなら中央の式、falseなら最後の式を使います。'],
+  ['foreach','配列の全要素を読み取る反復文を書く','int total = 0;\n____ (int coin in new[] { 2, 4, 8 }) total += coin;','foreach',['for','while'],'foreachはコレクションを列挙し、各要素をcoinへ渡します。']
+ ]],
+ ['syntax',2,[
+  ['nullable-value','未取得の整数を表すnullable値型を宣言する','____ lives = null;\nlives = 3;','int?',['int','Nullable'],'int?は整数とnullのどちらも保持できます。'],
+  ['switch-expression','値を返すswitch式を完成させる','int state = 1;\nstring label = state ____ { 0 => "Idle", 1 => "Run", _ => "Other" };','switch',['switch(state)','case'],'switch式は各アームから値を返します。'],
+  ['type-pattern','型パターンで整数を安全に取り出す','object payload = 42;\nif (payload is ____ number) System.Console.WriteLine(number + 1);','int',['string','var'],'型を確認できた分岐の内部だけでnumberを整数として使えます。'],
+  ['tryparse-out','失敗しても例外を投げない整数変換を使う','if (int.TryParse("42", ____ int value)) System.Console.WriteLine(value);','out',['ref','in'],'TryParseは成功フラグを返し、変換結果をout引数に書き込みます。'],
+  ['named-argument','名前付き引数で引数順に依存しない呼び出しをする','static int Area(int width, int height) => width * height;\nint area = Area(height: 4, ____: 3);','width',['height','int'],'引数名はメソッド宣言のパラメーター名と一致させます。'],
+  ['optional-parameter','省略可能な引数に既定値を指定する','static int AddBonus(int score, int bonus ____ 5) => score + bonus;\nint total = AddBonus(10);','=',['==',':'],'既定値は引数を省略した呼び出しで使われます。'],
+  ['tuple-deconstruction','タプルを二つのローカル変数へ分解する','var position = (X: 4, Y: 7);\nvar ____ = position;','(x, y)',['[x, y]','x, y'],'タプルの各要素を左辺の順に対応させます。'],
+  ['expression-body','一つの式だけのメソッドを式本体で書く','static int Square(int value) ____ value * value;','=>',['->','==>'],'式本体は結果をそのまま戻り値にできます。']
+ ]],
+ ['syntax',3,[
+  ['generic-constraint','型制約で比較可能な型だけを受け取る','static T Larger<T>(T left, T right) ____ T : System.IComparable<T>\n    => left.CompareTo(right) >= 0 ? left : right;','where',['when','extends'],'where節によってCompareToを使えることを保証します。'],
+  ['params-array','可変長引数を配列として受け取る','static int Count(____ int[] values) => values.Length;\nint n = Count(1, 2, 3);','params',['ref','out'],'paramsにより末尾の配列パラメーターへ複数の値を渡せます。'],
+  ['lambda-parameter','入力を倍にするラムダをデリゲートへ渡す','System.Func<int, int> twice = value ____ value * 2;','=>',['->','=='],'C#のラムダ演算子は入力と式本体を区切ります。'],
+  ['index-from-end','配列の最後の要素を末尾基準の添字で読む','int[] scores = { 4, 8, 12 };\nint last = scores[____];','^1',['^0','-1'],'末尾から1番目が最後の要素です。末尾から0番目は配列の外です。'],
+  ['range-slice','先頭と末尾を除く範囲を切り出す','int[] values = { 0, 10, 20, 30 };\nint[] middle = values[____];','1..^1',['1..^0','0..^1'],'範囲の終端は含まれません。配列の範囲指定は新しい配列を作ります。'],
+  ['relational-pattern','関係パターンで0以上100以下を判定する','static bool Valid(int health) => health is >= 0 ____ <= 100;','and',['&&','or'],'パターン同士の結合にはandを使い、両側の条件を要求します。'],
+  ['null-conditional','対象がnullならプロパティ参照を実行しない','string? name = null;\nint? length = name____Length;','?.',['.','??'],'null条件演算子は対象がnullならnullableの結果を返します。'],
+  ['discard-output','使わないout値を破棄し成功だけを調べる','bool valid = int.TryParse("12", out ____);','_',['null','void'],'破棄変数は値の受け取りを明示的に省略します。']
+ ]],
+ ['syntax',4,[
+  ['checked-overflow','整数のオーバーフローを例外として検出する','static int Add(int left, int right) => ____(left + right);','checked',['unchecked','checkedAdd'],'checkedの文脈では整数演算の範囲超過を検出します。'],
+  ['ref-return','配列要素そのものへの参照を返す','static ref int Cell(int[] cells, int index) => ____ cells[index];','ref',['out','in'],'ref戻り値はコピーではなく呼び出し側が変更できる格納場所を返します。'],
+  ['switch-guard','型パターンのアームに追加条件を付ける','static int Positive(object value) => value switch { int n ____ n > 0 => n, _ => 0 };','when',['if','where'],'whenはパターン一致後の追加ガードです。'],
+  ['list-pattern','C#11のリストパターンで先頭が0の配列を判定する','// C# 11 or later.\nstatic bool StartsWithZero(int[] values) => values is ____;','[0, ..]',['[0]','[_, 0]'],'スライスパターンは残りの任意個数の要素を受け入れます。'],
+  ['negated-pattern','否定パターンでnull以外を絞り込む','static bool Present(object? value) => value is ____ null;','not',['!','and'],'notはパターンを否定します。'],
+  ['unmanaged-constraint','ポインター操作向けに非参照型だけへ型を制約する','static int Bytes<T>() where T : ____ => System.Runtime.InteropServices.Marshal.SizeOf<T>();','unmanaged',['class','new()'],'unmanagedは参照を含まない値型に制限します。new()だけでは保証できません。'],
+  ['generic-math','C#11と.NET7の数値インターフェースで加算を許可する','// C# 11 / .NET 7 or later.\nstatic T Add<T>(T a, T b) where T : ____ => a + b;','System.Numerics.INumber<T>',['System.IComparable<T>','System.IDisposable'],'数値インターフェースの静的抽象演算子によってTの加算を呼べます。'],
+  ['scoped-span','C#11でSpan引数の参照の逃避範囲を制限する','// C# 11 or later; this method returns a copied integer.\nstatic int First(____ System.ReadOnlySpan<int> values) => values[0];','scoped',['static','readonly'],'scopedは参照を呼び出し元へ逃がさない制約を表します。']
+ ]],
+ ['design',1,[
+  ['constructor','インスタンス生成時に体力を受け取るコンストラクターを書く','class Player {\n    public int Health;\n    public ____(int health) { Health = health; }\n}','Player',['void Player','new'],'コンストラクター名はクラス名と一致し、戻り値型を持ちません。'],
+  ['private-field','体力の直接変更をクラス内部に制限する','class Player {\n    ____ int health = 10;\n    public int Health => health;\n}','private',['public','protected internal'],'privateフィールドは宣言した型の外から直接変更できません。'],
+  ['readonly-field','生成後に依存オブジェクトを差し替えないフィールドを書く','class Screen {\n    private ____ object renderer;\n    public Screen(object value) { renderer = value; }\n}','readonly',['const','static'],'readonlyフィールドは宣言時かコンストラクターで代入できます。'],
+  ['auto-property','外部からは読めるが内部だけで設定できるプロパティを書く','class Player { public int Health { get; ____ set; } = 10; }','private',['public','readonly'],'setのアクセスだけを制限し、getは公開したままにします。'],
+  ['this-field','引数と同名のフィールドを明示して初期化する','class Player {\n    private int health;\n    public Player(int health) { ____.health = health; }\n}','this',['base','Player'],'thisは現在のインスタンスを指します。'],
+  ['static-factory','インスタンスなしで呼べる生成メソッドを定義する','class Player { public ____ Player Create() => new Player(); }','static',['virtual','abstract'],'staticメソッドは型に属し、新しいインスタンスの生成窓口にできます。'],
+  ['enum-state','限定されたゲーム状態を列挙型で表す','____ GameState { Title, Playing, Paused }','enum',['class','struct'],'列挙型で許可された状態名をまとめます。'],
+  ['method-visibility','別アセンブリの呼び出し側へ回復操作を公開する','public class Player {\n    private int health;\n    ____ void Heal(int amount) { health += amount; }\n}','public',['private','internal'],'公開操作を経由させ、内部の表現を隠せます。']
+ ]],
+ ['design',2,[
+  ['interface-contract','クラスが描画契約を実装することを宣言する','interface IDrawable { void Draw(); }\nclass Sprite ____ IDrawable { public void Draw() { } }',':',['implements','extends'],'C#はコロンの後へ基底クラスと実装するインターフェースを書きます。'],
+  ['abstract-method','派生クラスへ実装を要求する抽象メソッドを書く','abstract class Enemy { public ____ void Update(); }','abstract',['virtual','override'],'抽象メソッドは本体を持たず、具象派生型に実装を要求します。'],
+  ['override-method','基底クラスの仮想メソッドを置き換える','class Enemy { public virtual int Damage() => 1; }\nclass Boss : Enemy { public ____ int Damage() => 10; }','override',['new','virtual'],'overrideなら基底型の参照から呼んでも派生実装へディスパッチします。'],
+  ['base-constructor','基底クラスのコンストラクターへ引数を渡す','class Enemy { public Enemy(int health) { } }\nclass Boss : Enemy { public Boss() : ____(100) { } }','base',['this','Enemy'],'baseは基底クラスの初期化を指定します。'],
+  ['func-strategy','報酬計算を戻り値付きデリゲートとして受け取る','static int Reward(int coins, ____ policy) => policy(coins);','System.Func<int, int>',['System.Action<int>','System.Predicate<int>'],'Funcの最後の型引数が戻り値型です。'],
+  ['event-notification','外部から通知を発火できないイベントを公開する','class Game {\n    public ____ System.Action? Finished;\n    public void Finish() => Finished?.Invoke();\n}','event',['delegate','virtual'],'eventは外部へ購読と解除だけを許可します。'],
+  ['readonly-struct','小さな座標値を変更不可の値型として定義する','____ struct Position {\n    public readonly int X;\n    public Position(int x) { X = x; }\n}','readonly',['const','static'],'readonly structはインスタンスのフィールドを変更不可として扱います。'],
+  ['explicit-interface','二つの契約の同名操作を明示実装で区別する','interface IMenu { void Open(); }\nclass Screen : IMenu { void ____() { } }','IMenu.Open',['Open','Screen.Open'],'明示実装はそのインターフェース経由でだけ公開されます。']
+ ]],
+ ['design',3,[
+  ['constructor-injection','読み取り専用の契約として依存リストを受け取る','class Menu {\n    private readonly System.Collections.Generic.IReadOnlyList<string> labels;\n    public Menu(____ labels) { this.labels = labels; }\n}','System.Collections.Generic.IReadOnlyList<string>',['string','System.Collections.Generic.IList<int>'],'受け取る契約を必要な読み取り操作へ絞ります。元のリスト自体の不変性は保証しません。'],
+  ['init-property','初期化時だけ設定できるプロパティを書く','class Options { public int Volume { get; ____; } }','init',['set','private set'],'initアクセサーはオブジェクト初期化後の通常代入を禁止します。'],
+  ['record-copy','recordの非破壊更新で元の設定を保つ','record Options(int Volume);\nvar original = new Options(5);\nvar muted = original ____ { Volume = 0 };','with',['new','is'],'withは元を変更せずコピーを更新します。参照フィールドの中身は浅いコピーです。'],
+  ['extension-method','整数に対する拡張メソッドを定義する','static class Extensions { public static int Twice(____ int value) => value * 2; }','this',['ref','in'],'最初のパラメーターのthisが拡張メソッドの受け手を指定します。'],
+  ['covariant-producer','生成専用の型パラメーターを共変にする','interface ISource<____ T> { T Get(); }','out',['in','ref'],'出力位置にしか使わない型は共変にできます。'],
+  ['contravariant-consumer','入力専用の型パラメーターを反変にする','interface ISink<____ T> { void Put(T value); }','in',['out','ref'],'入力位置にしか使わない型は反変にできます。'],
+  ['generic-factory','引数なしで作れる型だけを生成するファクトリーを書く','static T Create<T>() where T : ____ => new T();','new()',['class','struct()'],'new()制約は公開された引数なしコンストラクターを要求します。'],
+  ['equality-contract','値の比較契約を型付きで実装する','readonly struct Cell : ____ {\n    public int X { get; }\n    public Cell(int x) { X = x; }\n    public bool Equals(Cell other) => X == other.X;\n}','System.IEquatable<Cell>',['System.IComparable<Cell>','System.IDisposable'],'IEquatableは型付き等価比較を定義します。コレクションのキーにする際はobject.EqualsとGetHashCodeも整合させます。']
+ ]],
+ ['design',4,[
+  ['async-contract','非同期取得の完了を契約として返す','interface ISaveStore { ____ LoadAsync(System.Threading.CancellationToken token); }','System.Threading.Tasks.Task<string>',['async string','System.Action<string>'],'Taskは呼び出し側が完了と例外を観測できる戻り値です。インターフェース宣言にasyncは不要です。'],
+  ['cancellation-contract','非同期契約に中断要求を明示的に受け取る','interface ILoader { System.Threading.Tasks.Task LoadAsync(____ token); }','System.Threading.CancellationToken',['System.Threading.CancellationTokenSource','System.Threading.Thread'],'操作側へ要求の観測用トークンを渡し、発行元を渡さない設計にします。'],
+  ['async-disposable','非同期の後始末を提供する契約を実装する','class Session : ____ {\n    public System.Threading.Tasks.ValueTask DisposeAsync() => default;\n}','System.IAsyncDisposable',['System.IDisposable','System.IAsyncResult'],'IAsyncDisposableはValueTaskを返すDisposeAsyncを要求します。'],
+  ['disposed-guard','破棄後の公開操作を例外で拒否する','class Buffer {\n    private bool disposed;\n    public void Read() { if (disposed) throw new ____(nameof(Buffer)); }\n}','System.ObjectDisposedException',['System.ArgumentNullException','System.NotImplementedException'],'破棄済みインスタンスの利用と引数の誤りを区別します。'],
+  ['unsubscribe','購読側の終了時にイベント購読を解除する','class Listener {\n    public static void Detach(Publisher p, System.Action handler) { p.Changed ____ handler; }\n}\n// Publisher exposes event Action Changed.','-=',['+=','='],'解除しない購読は発行元から購読側への参照を残すことがあります。'],
+  ['lazy-dependency','共有依存の初期化をスレッド安全に一度だけ行う','var cache = new System.Lazy<object>(() => new object(), ____);','System.Threading.LazyThreadSafetyMode.ExecutionAndPublication',['System.Threading.LazyThreadSafetyMode.None','System.Threading.LazyThreadSafetyMode.PublicationOnly'],'ExecutionAndPublicationは初期化関数の実行を一つに制限します。'],
+  ['static-abstract-member','C#11で型ごとの生成操作を静的抽象メンバーにする','// C# 11 or later.\ninterface IFactory<T> { static ____ T Create(); }','abstract',['virtual','override'],'静的抽象メンバーは制約された型パラメーター経由の呼び出しに使えます。'],
+  ['notnull-key','辞書キーの型にnull不可の制約を付ける','class Cache<T> where T : ____ {\n    private readonly System.Collections.Generic.Dictionary<T, int> values = new();\n}','notnull',['class?','new()'],'notnullはnullable参照型とnullable値型を型引数から除外する制約です。']
+ ]],
+ ['graphics',1,[
+  ['clamp-channel','色成分を両端込みの範囲に収める','int brightness = 280;\nint channel = System.Math.____(brightness, 0, 255);','Clamp',['Min','Abs'],'Clampは下限と上限を両方適用します。'],
+  ['blend-weight','整数の色成分を浮動小数点の割合へ変換する','int alpha = 128;\nfloat weight = alpha / ____;','255f',['255','256'],'浮動小数点の除数にして整数除算による切捨てを避けます。'],
+  ['round-pixel','中間値を偶数へ丸めて画面座標を求める','float x = 3.5f;\nint pixel = (int)System.MathF.Round(x, ____);','System.MidpointRounding.ToEven',['System.MidpointRounding.ToZero','System.MidpointRounding.AwayFromZero'],'中間値を偶数へ寄せる規則を明示します。'],
+  ['grid-offset','行優先のタイル配列へ座標を変換する','int row = 2, column = 3, columns = 8;\nint index = ____;','row * columns + column',['column * columns + row','row + column'],'完全な行の要素数を飛ばしてから列位置を足します。'],
+  ['flip-x','0始まりの横座標を左右反転する','int width = 8, x = 2;\nint flipped = ____;','width - 1 - x',['width - x','-x'],'最後の有効な添字は幅より1小さい値です。'],
+  ['frame-wrap','アニメーションのコマを最後から先頭へ循環する','int frame = 4, frameCount = 5;\nint next = (frame + 1) ____ frameCount;','%',['/','&'],'正のコマ数で剰余を取り、範囲内へ戻します。'],
+  ['vector-position','二次元座標を標準のベクトル値型で表す','var position = new System.Numerics.____(10f, 20f);','Vector2',['Vector3','Matrix3x2'],'Vector2は二つの浮動小数点成分を持ちます。'],
+  ['squared-distance','平方根を計算せず円形の当たり判定を行う','var delta = new System.Numerics.Vector2(3f, 4f);\nfloat radius = 5f;\nbool inside = delta.____() <= radius * radius;','LengthSquared',['Length','GetHashCode'],'距離の二乗を半径の二乗と比較し、平方根を省略します。']
+ ]],
+ ['graphics',2,[
+  ['vector-lerp','二つの位置の中間を線形補間で得る','var a = new System.Numerics.Vector2(0, 0);\nvar b = new System.Numerics.Vector2(10, 20);\nvar position = System.Numerics.Vector2.____(a, b, .5f);','Lerp',['Normalize','Dot'],'Lerpは割合に応じて二つのベクトル間の値を求めます。'],
+  ['normalize-direction','ゼロでない移動方向を長さ1へ正規化する','var direction = new System.Numerics.Vector2(3, 4);\nvar unit = System.Numerics.Vector2.____(direction);','Normalize',['Abs','SquareRoot'],'方向だけを使いたいときに長さを1へそろえます。ゼロベクトルは別途処理します。'],
+  ['transform-position','二次元位置へ行列による平行移動を適用する','var point = new System.Numerics.Vector2(1, 2);\nvar matrix = System.Numerics.Matrix3x2.CreateTranslation(5, 0);\nvar moved = System.Numerics.Vector2.____(point, matrix);','Transform',['TransformNormal','Normalize'],'位置の変換は平行移動を含みます。TransformNormalは移動を無視します。'],
+  ['span-fill','画素領域を割り当て直さず同じ値で埋める','int[] pixels = new int[64];\nSystem.Span<int> buffer = pixels;\nbuffer.____(unchecked((int)0xff000000));','Fill',['Clear','Add'],'Fillは既存領域の各要素へ指定値を書きます。Clearは既定値へ戻します。'],
+  ['stable-layer-sort','同じ奥行きではIDで描画順を確定する','using System.Linq;\nvar sprites = new[] { (Id: 2, Depth: 3), (Id: 1, Depth: 3) };\nvar ordered = sprites.OrderBy(s => s.Depth).____(s => s.Id);','ThenBy',['OrderBy','Reverse'],'ThenByは主キーの順序を保ったまま副キーを追加します。'],
+  ['pack-alpha','8bitアルファ成分を32bit色の最上位へ配置する','uint alpha = 255, red = 30, green = 40, blue = 50;\nuint argb = (alpha << ____) | (red << 16) | (green << 8) | blue;','24',['8','16'],'ARGBでは上位8bitがアルファの格納位置です。'],
+  ['half-open-clip','画面の右端と下端を含まないクリップ判定を書く','int x = 8, y = 3, width = 8, height = 6;\nbool visible = x >= 0 && y >= 0 && x ____ width && y < height;','<',['<=','>'],'画素番号は幅と高さの直前までです。両座標が有効な範囲にある必要があります。'],
+  ['row-slice','コピーせず画素配列の一行をSpanとして取り出す','using System;\nint[] pixels = new int[32];\nint width = 8, row = 2;\nSpan<int> line = pixels.AsSpan(____, width);','row * width',['row','width'],'行の先頭のオフセットを要素数で指定します。']
+ ]],
+ ['graphics',3,[
+  ['project-points','LINQで全頂点の横座標を取り出す','using System.Linq;\nvar points = new[] { new System.Numerics.Vector2(1, 2) };\nvar xs = points.____(p => p.X).ToArray();','Select',['Where','Any'],'Selectは要素を別の値へ写像します。Whereは要素を選別します。'],
+  ['matrix-order','拡大してから平行移動する行列を合成する','var scale = System.Numerics.Matrix3x2.CreateScale(2);\nvar move = System.Numerics.Matrix3x2.CreateTranslation(10, 0);\nvar transform = ____;','scale * move',['move * scale','scale + move'],'System.Numericsの行ベクトル規約では左側から順に適用します。'],
+  ['overlap-copy','重なる画素領域を安全にコピーする','using System;\nint[] pixels = { 1, 2, 3, 4 };\npixels.AsSpan(0, 3).____(pixels.AsSpan(1, 3));','CopyTo',['SequenceEqual','Fill'],'Span.CopyToは元と先の領域が重なる場合にも正しい順でコピーします。'],
+  ['vertex-layout','ネイティブへ渡す頂点のフィールド順を固定する','[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.____)]\nstruct Vertex { public float X; public float Y; }','Sequential',['Auto','Explicit'],'Sequentialは宣言順の配置です。Explicitには各フィールドのオフセット指定が必要です。'],
+  ['quaternion-rotation','軸と角度から三次元回転を作る','var rotation = System.Numerics.Quaternion.____(System.Numerics.Vector3.UnitY, System.MathF.PI / 2);','CreateFromAxisAngle',['CreateFromYawPitchRoll','Normalize'],'正規化された回転軸とラジアン角でクォータニオンを生成します。'],
+  ['perspective-projection','視野角とクリップ距離で透視投影を作る','var projection = System.Numerics.Matrix4x4.____(System.MathF.PI / 3, 16f / 9, .1f, 100f);','CreatePerspectiveFieldOfView',['CreateOrthographic','CreateLookAt'],'視野角・縦横比・近遠クリップ面を指定する投影行列です。'],
+  ['half-component','.NET5以降で頂点成分を16bit浮動小数点へ変換する','// .NET 5 or later.\nfloat component = .25f;\nSystem.Half packed = ____;','(System.Half)component',['component','(short)component'],'Halfへの明示変換で精度と格納量を変えます。整数shortへの変換とは異なります。'],
+  ['normal-transform','移動成分を混ぜず法線方向だけを変換する','var normal = new System.Numerics.Vector2(0, 1);\nvar matrix = System.Numerics.Matrix3x2.CreateRotation(.5f);\nvar rotated = System.Numerics.Vector2.____(normal, matrix);','TransformNormal',['Transform','Lerp'],'方向は平行移動の影響を受けません。非一様拡大では逆転置なども必要です。']
+ ]],
+ ['graphics',4,[
+  ['reinterpret-pixels','Spanの4byteずつをuint画素として割り当てなしで読む','System.Span<byte> bytes = new byte[16];\nSystem.Span<uint> pixels = System.Runtime.InteropServices.MemoryMarshal.____<byte, uint>(bytes);','Cast',['Read','CreateSpan'],'Castは既存領域を別の要素型として見ます。エンディアンと長さに注意します。'],
+  ['fixed-buffer','unsafeが有効なC#で配列の移動を止めて先頭を参照する','// Compile with unsafe enabled; do not retain p after the block.\nint[] pixels = new int[4];\nunsafe { ____ (int* p = pixels) { p[0] = 7; } }','fixed',['lock','using'],'fixedのブロック中だけGCによる移動を抑え、ポインターを使えます。'],
+  ['simd-block','SIMDの実行環境の要素数で画素の処理幅を決める','int[] channels = new int[System.Numerics.Vector<int>.____];\nvar block = new System.Numerics.Vector<int>(channels);','Count',['Length','Size'],'Vector<T>.Countは実行環境で使うSIMD幅に応じた要素数です。'],
+  ['list-span','.NET5以降でListの内部画素領域をSpanとして借りる','// Do not add or remove list items while this span is in use.\nvar pixels = new System.Collections.Generic.List<int> { 1, 2 };\nvar span = System.Runtime.InteropServices.CollectionsMarshal.____(pixels);','AsSpan',['ToArray','GetValueRefOrAddDefault'],'AsSpanはコピーしません。Listのサイズ変更で借用領域が無効になる危険があります。'],
+  ['checked-buffer-size','画像サイズの積が整数範囲を超えたら検出する','static byte[] Allocate(int width, int height) => new byte[____(width * height * 4)];','checked',['unchecked','sizeof'],'配列長を計算する積のオーバーフローを検出し、小さな誤配列を防ぎます。'],
+  ['premultiply-color','アルファが別にあるRGBを乗算済みアルファの色へ変換する','var rgb = new System.Numerics.Vector3(.8f, .4f, .2f);\nfloat alpha = .5f;\nvar premultiplied = ____;','rgb * alpha',['rgb / alpha','rgb + new System.Numerics.Vector3(alpha)'],'RGBへアルファを掛けます。既に乗算済みなら二重に掛けません。'],
+  ['rented-frame','一時フレーム用に借りた配列を必ずプールへ返す','var pool = System.Buffers.ArrayPool<byte>.Shared;\nbyte[] pixels = pool.Rent(256);\ntry { pixels[0] = 1; }\nfinally { pool.____(pixels, clearArray: true); }','Return',['Clear','Dispose'],'借用領域はfinallyで返却します。要求より大きい配列が来ることもあります。'],
+  ['srgb-linear','sRGBの高輝度側を線形RGBへ変換する','// c is an sRGB component in (0.04045, 1].\nstatic float Linear(float c) => System.MathF.____((c + .055f) / 1.055f, 2.4f);','Pow',['Sqrt','Exp'],'sRGBの非線形分岐でべき乗を使います。低輝度側は別の線形分岐です。']
+ ]],
+ ['systems',1,[
+  ['parse-result','不正な文字列を例外にせず成否を受け取る','bool valid = int.____("42", out int count);','TryParse',['Parse','Convert'],'TryParseは変換結果と成否を分けて返します。'],
+  ['using-file','同期ストリームをスコープ終了時に確実に閉じる','____ var stream = System.IO.File.OpenRead("save.dat");\nint first = stream.ReadByte();','using',['await','lock'],'using宣言はスコープを抜ける際にDisposeを呼びます。'],
+  ['readonly-span','受け取ったビューを通して要素を書き換えられないSpanを選ぶ','static int First(____ values) => values[0];','System.ReadOnlySpan<int>',['System.Span<int>','int'],'ReadOnlySpanはこのビューを通した要素の書き込みを禁止します。'],
+  ['stopwatch','処理時間を壁時計ではなく経過時間で測る','var watch = System.Diagnostics.Stopwatch.____();\nint total = 0; for (int i = 0; i < 10; i++) total += i;\nwatch.Stop();','StartNew',['GetTimestamp','Restart'],'StartNewは開始済みの計測インスタンスを返します。'],
+  ['invariant-number','設定値をOSの小数点表記に依存せず読む','double value = double.Parse("1.5", System.Globalization.CultureInfo.____);','InvariantCulture',['CurrentCulture','InstalledUICulture'],'保存形式の数値には文化に依存しない規則を使います。'],
+  ['dictionary-presence','辞書の未登録と保存されたゼロを区別する','var counts = new System.Collections.Generic.Dictionary<string, int>();\ncounts["job"] = 0;\nbool exists = counts.____("job", out int count);','TryGetValue',['ContainsValue','GetValueOrDefault'],'成否フラグがあるため、未登録と値0を区別できます。'],
+  ['queue-order','FIFOキューから先頭の仕事を取り出す','var queue = new System.Collections.Generic.Queue<int>();\nqueue.Enqueue(1); queue.Enqueue(2);\nint first = queue.____();','Dequeue',['Pop','Peek'],'Dequeueは最も古い要素を取り出してキューから除きます。'],
+  ['unique-members','HashSetへ追加し重複の有無を得る','var seen = new System.Collections.Generic.HashSet<int>();\nbool firstVisit = seen.____(42);','Add',['Contains','Append'],'Addは新規追加できた場合だけtrueを返します。']
+ ]],
+ ['systems',2,[
+  ['await-task','非同期処理の完了までスレッドを塞がず待つ','static async System.Threading.Tasks.Task<int> LoadAsync() {\n    ____ System.Threading.Tasks.Task.Delay(1);\n    return 42;\n}','await',['yield','lock'],'awaitは未完了時に呼び出し元へ制御を返せます。'],
+  ['observe-cancellation','中断要求済みならキャンセル例外を発生させる','static void Check(System.Threading.CancellationToken token) { token.____(); }','ThrowIfCancellationRequested',['Cancel','Dispose'],'CancellationTokenは要求を観測する側です。Cancelは発行元の操作です。'],
+  ['await-all','複数の非同期処理がすべて完了するまで待つ','static async System.Threading.Tasks.Task BothAsync() {\n    var a = System.Threading.Tasks.Task.Delay(1);\n    var b = System.Threading.Tasks.Task.Delay(2);\n    await System.Threading.Tasks.Task.____(a, b);\n}','WhenAll',['WhenAny','WaitAll'],'WhenAllは全Taskの完了を表すTaskを返します。'],
+  ['async-gate','非同期セマフォの取得が成功した後で必ず解放する','static async System.Threading.Tasks.Task UseAsync(System.Threading.SemaphoreSlim gate) {\n    await gate.WaitAsync();\n    try { await System.Threading.Tasks.Task.Delay(1); }\n    finally { gate.____(); }\n}','Release',['Dispose','Wait'],'取得後のfinallyで許可を戻します。'],
+  ['monitor-lock','共有状態を同じロックで保護する','class Counter {\n    private readonly object gate = new();\n    private int value;\n    public void Increment() { ____ (gate) { value++; } }\n}','lock',['using','fixed'],'同じオブジェクトのモニターを使う呼び出し同士を排他にします。'],
+  ['atomic-increment','整数カウンターを競合せず加算する','class Counter {\n    private int value;\n    public int Next() => System.Threading.Interlocked.____(ref value);\n}','Increment',['Read','Exchange'],'Interlocked.Incrementは読み取り・加算・書き込みを原子的に行います。'],
+  ['concurrent-cache','並行辞書で未登録時の値を取得または作成する','var cache = new System.Collections.Concurrent.ConcurrentDictionary<string, int>();\nint value = cache.____("jobs", key => key.Length);','GetOrAdd',['Add','TryGetValue'],'GetOrAddの生成関数は競合時に複数回実行され得るため、副作用を避けます。'],
+  ['partial-read','ストリームの読み込みが要求量未満でも継続する','static int ReadSome(System.IO.Stream stream, byte[] buffer) {\n    int offset = 0, read;\n    while (offset < buffer.Length && (read = stream.Read(buffer, offset, buffer.Length - offset)) > 0) offset ____ read;\n    return offset;\n}','+=',['=','-='],'Readは一度で要求量を満たすとは限らないため、実際の読み込み量を累積します。']
+ ]],
+ ['systems',3,[
+  ['cpu-task','CPU処理をTaskとしてスレッドプールへ送る','static System.Threading.Tasks.Task<int> ComputeAsync() => System.Threading.Tasks.Task.____(() => 6 * 7);','Run',['Delay','WhenAll'],'Task.Runは同期CPU処理をスレッドプールへ送ります。I/Oの非同期APIを置き換える必要はありません。'],
+  ['configure-await','ライブラリーの待機で同期コンテキストの復帰を要求しない','static async System.Threading.Tasks.Task WaitAsync() {\n    await System.Threading.Tasks.Task.Delay(1).ConfigureAwait(____);\n}','false',['true','null'],'falseは捕捉した同期コンテキストへの復帰を要求しません。別スレッドでの実行を保証するものではありません。'],
+  ['periodic-timer','.NET6以降の周期タイマーを非同期に待つ','// .NET 6 or later.\nstatic async System.Threading.Tasks.Task TickAsync(System.Threading.CancellationToken token) {\n    using var timer = new System.Threading.PeriodicTimer(System.TimeSpan.FromSeconds(1));\n    if (await timer.____(token)) System.Console.WriteLine("tick");\n}','WaitForNextTickAsync',['Wait','Change'],'タイマーの次のtickを待ち、破棄時はfalseとなります。'],
+  ['async-enumeration','非同期の列挙を要素ごとに待って処理する','static async System.Threading.Tasks.Task PrintAsync(System.Collections.Generic.IAsyncEnumerable<int> values) {\n    ____ (int value in values) System.Console.WriteLine(value);\n}','await foreach',['foreach','await for'],'非同期列挙ではMoveNextAsyncを待つ必要があります。'],
+  ['bounded-channel','待ち行列が無制限に増えないチャネルを作る','var channel = System.Threading.Channels.Channel.____<int>(8);','CreateBounded',['CreateUnbounded','Create'],'有界チャネルの既定動作は満杯なら書き込み側を待たせる方式です。'],
+  ['async-memory-read','Memoryを使う非同期読み込みAPIへキャンセルを渡す','static async System.Threading.Tasks.Task<int> ReadAsync(System.IO.Stream stream, System.Memory<byte> buffer, System.Threading.CancellationToken token) {\n    return await stream.____(buffer, token);\n}','ReadAsync',['Read','BeginRead'],'Memoryは非同期操作をまたいで保持できるビューです。'],
+  ['big-endian-value','ネットワーク順の4byteを符号付き整数として読む','System.ReadOnlySpan<byte> data = new byte[] { 0, 0, 1, 0 };\nint value = System.Buffers.Binary.BinaryPrimitives.____(data);','ReadInt32BigEndian',['ReadInt32LittleEndian','ReadInt16BigEndian'],'ネットワーク順は上位バイトを先に置く規約です。'],
+  ['clear-pooled-secret','機密データを持つ借用配列を消去して返却する','var pool = System.Buffers.ArrayPool<byte>.Shared;\nbyte[] secret = pool.Rent(32);\ntry { secret[0] = 7; }\nfinally { pool.Return(secret, clearArray: ____); }','true',['false','null'],'返却時の消去によって次の利用者へ内容が残ることを避けます。']
+ ]],
+ ['systems',4,[
+  ['volatile-read','公開された参照をメモリ順序付きで読み取る','class Shared {\n    private object? value;\n    public object? Read() => System.Threading.Volatile.____(ref value);\n}','Read',['Write','Exchange'],'Volatile.Readは適切な順序で公開された値を読む操作です。複合操作の原子性は別途必要です。'],
+  ['compare-exchange','値が観測値と同じ場合だけ更新するCASを書く','class Counter {\n    private int value;\n    public bool TryChange(int observed, int next) => System.Threading.Interlocked.____(ref value, next, observed) == observed;\n}','CompareExchange',['Exchange','Increment'],'比較対象と一致したときだけ書き込み、元の値を返します。'],
+  ['cancel-gate-ownership','キャンセルされ得るセマフォを取得前に解放しない構造にする','static async System.Threading.Tasks.Task UseAsync(System.Threading.SemaphoreSlim gate, System.Threading.CancellationToken token) {\n    ____;\n    try { await System.Threading.Tasks.Task.Delay(1, token); }\n    finally { gate.Release(); }\n}','await gate.WaitAsync(token)',['gate.WaitAsync(token)','gate.Release()'],'取得のawaitはtryの外に置き、取得失敗時にはReleaseへ進ませません。'],
+  ['linked-cancellation','親キャンセルとローカル中断要求を一つのトークンへまとめる','static void Setup(System.Threading.CancellationToken parent) {\n    using var linked = System.Threading.CancellationTokenSource.____(parent);\n    linked.CancelAfter(System.TimeSpan.FromSeconds(3));\n}','CreateLinkedTokenSource',['Create','CancelAfter'],'リンク先は親要求を引き継ぎ、ローカルの期限も設定できます。'],
+  ['cancel-losing-task','競合した非同期処理の不要な待機を明示的に中断する','static async System.Threading.Tasks.Task RaceAsync() {\n    using var stop = new System.Threading.CancellationTokenSource();\n    var slow = System.Threading.Tasks.Task.Delay(1000, stop.Token);\n    await System.Threading.Tasks.Task.WhenAny(slow, System.Threading.Tasks.Task.Delay(1));\n    stop.____();\n    try { await slow; } catch (System.OperationCanceledException) { }\n}','Cancel',['Dispose','TryReset'],'WhenAnyだけでは負けた処理は中断されません。キャンセル後の例外も観測します。'],
+  ['valuetask-once','ValueTaskを一度だけ待って結果を使用する','static async System.Threading.Tasks.Task<int> ConsumeAsync(System.Threading.Tasks.ValueTask<int> pending) {\n    int value = ____;\n    return value + 1;\n}','await pending',['pending.Result','await pending.AsTask().ContinueWith(t => 0)'],'ValueTaskは常に再await可能とは限りません。この操作では一度だけ消費します。'],
+  ['thread-local-lifetime','所有しているThreadLocalの資源を終了時に解放する','var local = new System.Threading.ThreadLocal<int>(() => 0);\ntry { local.Value++; } finally { local.____(); }','Dispose',['Cancel','Join'],'ThreadLocal自体の管理資源を解放します。値がIDisposableでも自動でDisposeされるわけではありません。'],
+  ['preserve-exception','後から再送出しても元のスタックを保持する','static System.Runtime.ExceptionServices.ExceptionDispatchInfo Capture(System.Exception error) => System.Runtime.ExceptionServices.ExceptionDispatchInfo.____(error);','Capture',['Throw','Create'],'ExceptionDispatchInfoを捕捉してからそのThrowを呼ぶと元の送出情報を保持できます。']
+ ]]
+]);
+
+export const JAVA_SKILL_QUIZZES=make('Java',[
+ ['syntax',1,[
+  ['value-init','整数の初期値を明示して得点を宣言する','int score = ____;','0',['null','"0"'],'intは整数値を格納し、nullやStringは代入できません。'],
+  ['local-inference','Java10以降のローカル型推論を使う','// Java 10 or later; inside a method.\n____ playerName = "Ada";','var',['auto','dynamic'],'varは初期値からコンパイル時の型を推論します。フィールドや引数には使えません。'],
+  ['final-local','初期化後に再代入できないローカル変数を宣言する','____ int maxLives = 3;','final',['const','static'],'finalは変数への再代入を禁止します。参照先のオブジェクトの不変性とは別です。'],
+  ['short-circuit','nullの名前を参照せず短絡ANDで確認する','String name = null;\nboolean visible = name != null ____ !name.isEmpty();','&&',['&','||'],'左側がfalseなら右側を評価しないためnull参照を避けられます。'],
+  ['string-equality','文字列の内容が一致するかメソッドで比較する','String name = new String("Ada");\nboolean matches = "Ada".____(name);','equals',['compareTo','contains'],'equalsは内容の等価性です。compareToは整数を返し、containsは部分文字列を調べます。'],
+  ['array-length','配列の要素数をフィールドから得る','int[] scores = { 4, 8, 12 };\nint count = scores.____;','length',['length()','size()'],'配列の長さはlengthフィールドです。StringやListのAPIとは異なります。'],
+  ['enhanced-for','拡張for文で全要素を読む','int total = 0;\nfor (int coin ____ new int[] { 2, 4, 8 }) total += coin;',':',['in',';'],'Javaの拡張for文は要素変数と反復対象をコロンで区切ります。'],
+  ['conditional','条件演算子で一つの表示文字列を選ぶ','boolean paused = true;\nString label = paused ____ "Paused" : "Playing";','?',['??','&&'],'条件に応じて二つの式のどちらかを評価します。']
+ ]],
+ ['syntax',2,[
+  ['switch-expression','Java14以降のswitch式から値を返す','// Java 14 or later.\nint state = 1;\nString label = ____ (state) { case 0 -> "Idle"; default -> "Run"; };','switch',['if','case'],'switch式は選択されたアームの値を式全体の結果にします。'],
+  ['instanceof-pattern','Java16以降の型パターンで値を絞り込む','// Java 16 or later.\nObject payload = "Ada";\nif (payload instanceof ____ text) System.out.println(text.length());','String',['Integer','var'],'一致した分岐でtextがStringとして使用できます。'],
+  ['record-value','Java16以降のrecordで座標の値型を定義する','// Java 16 or later; type declaration.\n____ Point(int x, int y) { }','record',['struct','interface'],'recordは成分のアクセサー・等価比較・ハッシュなどを生成します。参照成分は深く不変にはなりません。'],
+  ['catch-conversion','整数変換の形式エラーだけを捕捉する','try { Integer.parseInt("not-a-number"); }\ncatch (____ error) { System.out.println("invalid"); }','NumberFormatException',['IOException','InterruptedException'],'不正な整数文字列ではNumberFormatExceptionが発生します。'],
+  ['generic-method','型を固定しない単一要素の取得メソッドを宣言する','static ____ T first(java.util.List<T> values) { return values.get(0); }','<T>',['<int>','T'],'メソッドの型パラメーターは戻り値型の前に宣言します。'],
+  ['enum-name','限定された状態の列挙型を定義する','____ State { TITLE, PLAYING, PAUSED }','enum',['class','record'],'enumはあらかじめ定義した定数だけを持つ型です。'],
+  ['method-reference','文字列を整数に変換する静的メソッドを参照する','java.util.function.Function<String, Integer> parse = Integer____parseInt;','::',['.','->'],'メソッド参照には二つのコロンを使います。'],
+  ['lambda','一つの整数を倍にするラムダ式を書く','java.util.function.IntUnaryOperator twice = value ____ value * 2;','->',['=>',':'],'Javaのラムダ矢印は引数と式本体を区切ります。']
+ ]],
+ ['syntax',3,[
+  ['extends-wildcard','読み取り側の数値リストへ上限制約ワイルドカードを使う','static double first(java.util.List<____ Number> values) { return values.get(0).doubleValue(); }','? extends',['? super','out'],'Numberの派生型のリストも読み取れますが、任意のNumberを追加はできません。'],
+  ['super-wildcard','整数を追加する受け手へ下限制約ワイルドカードを使う','static void add(java.util.List<____ Integer> values) { values.add(1); }','? super',['? extends','in'],'Integerやその上位型のListへ安全にIntegerを追加できます。'],
+  ['bounded-type','比較演算に必要な型制約をメソッドへ付ける','static <T ____ Comparable<T>> T larger(T a, T b) { return a.compareTo(b) >= 0 ? a : b; }','extends',['implements','super'],'型パラメーターの境界には、インターフェースの場合もextendsを使います。'],
+  ['text-block','Java15以降の複数行テキストブロックでシェーダー文字列を作る','// Java 15 or later.\nString shader = ____;','"""\n    void main() {}\n    """',['"void main() {}"','`void main() {}`'],'テキストブロックは三つの二重引用符で囲み、開始記号の後に改行を置きます。'],
+  ['unicode-codepoints','UTF16のchar数ではなくUnicodeコードポイント数を数える','String text = "A😀B";\nlong count = text.____().count();','codePoints',['chars','lines'],'補助文字はサロゲートペアなのでchar二つですがコードポイント一つです。'],
+  ['exact-arithmetic','整数加算のオーバーフローを例外にする','int total = Math.____(Integer.MAX_VALUE, 1);','addExact',['max','incrementExact'],'addExactは範囲超過時にArithmeticExceptionを投げます。'],
+  ['optional-transform','Optionalが持つ値だけを変換する','java.util.Optional<String> name = java.util.Optional.of("Ada");\njava.util.Optional<Integer> length = name.____(String::length);','map',['filter','orElse'],'mapは存在する値を別の値へ変換し、空なら空を保ちます。'],
+  ['explicit-type-witness','型推論に頼らずジェネリック呼び出しの型を明示する','java.util.List<String> names = java.util.Collections.____emptyList();','<String>',['<string>','String'],'型引数はメソッド名の直前へ記述します。']
+ ]],
+ ['syntax',4,[
+  ['sealed-hierarchy','Java17以降で実装可能な型を限定する','// Java 17 or later.\n____ interface Shape permits Circle { }\nfinal class Circle implements Shape { }','sealed',['final','non-sealed'],'sealedとpermitsによって直接の実装型を限定します。'],
+  ['record-pattern','Java21のrecordパターンで成分を分解する','// Java 21; class members.\nrecord Point(int x, int y) { }\nstatic int x(Object value) { return value instanceof ____ ? px : 0; }','Point(int px, int py)',['Point px','Point(int px)'],'recordパターンは成分ごとにパターンを対応させます。'],
+  ['guarded-case','Java21の型パターンへ追加条件を付ける','// Java 21; class member method.\nstatic int positive(Object value) { return switch (value) { case Integer n ____ n > 0 -> n; default -> 0; }; }','when',['if','where'],'ガードは型の一致に加えて式の条件を要求します。'],
+  ['null-switch','Java21のswitchでnullを明示的に扱う','// Java 21; class member method.\nstatic String label(String value) { return switch (value) { case ____ -> "missing"; default -> value; }; }','null',['default','"null"'],'null用のcaseを指定するとnull入力を通常の分岐として扱えます。'],
+  ['safe-varargs','安全に読むだけのジェネリック可変長引数の警告を抑える','// Class member; the array is never stored or mutated.\n@____\nstatic <T> int count(T... values) { return values.length; }','SafeVarargs',['Override','SuppressWarnings'],'SafeVarargsは安全性を作者が保証する注釈で、実際の安全性を自動で作るものではありません。'],
+  ['intersection-bound','クラスとインターフェースの両方で型を制約する','static <T extends Number ____ Comparable<T>> T same(T value) { return value; }','&',['|',','],'交差境界は一つのクラス境界を先頭に置き、追加の境界を&で結びます。'],
+  ['yield-switch','switch式のブロックから計算結果を返す','// Java 14 or later; method body.\nint state = 1;\nint result = switch (state) { case 1 -> { int bonus = 5; ____ bonus * 2; } default -> 0; };','yield',['return','break'],'yieldはswitch式の結果を返し、囲んでいるメソッドを終了しません。'],
+  ['array-constructor-reference','Streamの結果を型付き配列へ変換する生成関数を渡す','String[] names = java.util.stream.Stream.of("Ada", "Lin").toArray(____);','String[]::new',['String::new','new String[]'],'配列生成メソッド参照は要求された長さを受け取り配列を作ります。']
+ ]],
+ ['design',1,[
+  ['constructor','初期状態を受け取るコンストラクターを宣言する','class Player {\n    private int health;\n    public ____(int initialHealth) { health = initialHealth; }\n}','Player',['void Player','new'],'コンストラクターには戻り値型がなく、型名と同じ名前を使います。'],
+  ['private-state','状態を直接書き換えられないよう隠す','class Player { ____ int health = 10; public int health() { return health; } }','private',['public','protected'],'privateはその型の内部だけから直接アクセスさせます。'],
+  ['final-field','生成時にだけ代入する依存フィールドを宣言する','class Screen { private ____ Object renderer; Screen(Object renderer) { this.renderer = renderer; } }','final',['const','static'],'finalフィールドはコンストラクターで初期化した後に差し替えられません。'],
+  ['this-reference','同名の引数からインスタンスのフィールドを初期化する','class Player { private int health; Player(int health) { ____.health = health; } }','this',['super','Player'],'thisは現在生成または操作しているインスタンスです。'],
+  ['public-operation','別パッケージへ回復操作を公開する','public class Player { private int health; ____ void heal(int amount) { health += amount; } }','public',['private','protected'],'公開メソッドから状態変更を提供し、フィールドへの直接変更を防ぎます。'],
+  ['static-factory','インスタンスなしで呼べる生成窓口を作る','class Player { public ____ Player create() { return new Player(); } }','static',['abstract','default'],'staticメソッドはインスタンスではなく型に属します。'],
+  ['encapsulated-getter','フィールドを公開せず読み取りメソッドを提供する','class Player { private int health; public int health() { ____ health; } }','return',['yield','throw'],'値を戻す操作だけを公開すれば、表現を後から変えやすくなります。'],
+  ['enum-identity','同じenum定数かを参照同一性で調べる','enum State { PLAYING, PAUSED }\nboolean paused = State.PAUSED ____ State.PAUSED;','==',['=','instanceof'],'enum定数は一意のインスタンスなので==で比較できます。']
+ ]],
+ ['design',2,[
+  ['interface-contract','描画契約を実装するクラスを宣言する','interface Drawable { void draw(); }\nclass Sprite ____ Drawable { public void draw() { } }','implements',['extends',':'],'Javaではインターフェース実装をimplementsで指定します。'],
+  ['abstract-operation','具象の派生クラスに実装を要求する','abstract class Enemy { public ____ int damage(); }','abstract',['virtual','override'],'抽象メソッドは本体を持たず、派生側で実装します。'],
+  ['override-annotation','基底操作を上書きしていることをコンパイラーに確認させる','class Enemy { int damage() { return 1; } }\nclass Boss extends Enemy { @____ int damage() { return 10; } }','Override',['Overload','Inherited'],'Overrideで綴りやシグネチャの誤りによる別メソッド化を検出します。'],
+  ['super-constructor','基底クラスの初期化を最初に呼ぶ','class Enemy { Enemy(int health) { } }\nclass Boss extends Enemy { Boss() { ____(100); } }','super',['this','Enemy'],'super呼び出しは基底クラスのコンストラクターを選びます。'],
+  ['strategy-function','整数の戦略をプリミティブ専用関数として受け取る','static int reward(int coins, java.util.function.____ policy) { return policy.applyAsInt(coins); }','IntUnaryOperator',['IntConsumer','IntPredicate'],'IntUnaryOperatorはintを一つ受け取りintを返します。'],
+  ['nonnull-dependency','構築時に必須の依存がnullでないことを確認する','class Screen { private final Object renderer; Screen(Object renderer) { this.renderer = java.util.Objects.____(renderer); } }','requireNonNull',['isNull','hashCode'],'必須依存の不備を構築時に検出し、後からのnull参照を防ぎます。'],
+  ['record-accessor','recordの成分を自動生成されたアクセサーで読む','record Point(int x, int y) { }\nstatic int x(Point point) { return point.____; }','x()',['x','getX()'],'recordのアクセサー名は成分名と同じです。'],
+  ['composition','継承せず受け取った操作へ仕事を委譲する','class Screen {\n    private final Runnable draw;\n    Screen(Runnable draw) { this.draw = draw; }\n    void render() { draw.____(); }\n}','run',['start','call'],'Runnableを合成し、その契約のrunへ処理を委譲します。']
+ ]],
+ ['design',3,[
+  ['generic-repository','要素型を保つ読み取り契約を定義する','interface Repository<____> { T find(String id); }','T',['?','int'],'宣言した型パラメーターを操作の戻り値にも対応させます。'],
+  ['comparator-tie','主キーが同じ場合の副キーを比較器へ追加する','record Sprite(int id, int depth) { }\njava.util.Comparator<Sprite> order = java.util.Comparator.comparingInt(Sprite::depth).____(Sprite::id);','thenComparingInt',['comparingInt','reversed'],'比較器を合成し、同じ奥行きのときだけIDを比較します。'],
+  ['hash-contract','等価比較と同じフィールドからハッシュ値を求める','final class Cell { private final int x; Cell(int x) { this.x = x; }\n    @Override public boolean equals(Object other) { return other instanceof Cell c && x == c.x; }\n    @Override public int hashCode() { return Integer.____(x); }\n}','hashCode',['compare','parseInt'],'equalsで同じになる値は同じハッシュ値を返す必要があります。'],
+  ['builder-return','連続呼び出しできるBuilderで自分自身を返す','class OptionsBuilder {\n    private int volume;\n    OptionsBuilder volume(int value) { volume = value; return ____; }\n}','this',['new OptionsBuilder()','null'],'同じBuilderの状態を引き継いで次の設定を適用します。'],
+  ['functional-contract','抽象操作が一つの契約であることを注釈で検証する','@____\ninterface DamagePolicy { int damage(int raw); }','FunctionalInterface',['Override','SafeVarargs'],'抽象操作が増えた場合にコンパイル時に検出でき、ラムダの契約を守れます。'],
+  ['default-behavior','インターフェースに既定の実装を提供する','interface Named { ____ String label() { return "unnamed"; } }','default',['abstract','final'],'defaultメソッドはインスタンス操作の既定実装を持ちます。'],
+  ['service-loading','契約を実装する提供者をServiceLoaderで列挙する','interface Plugin { void start(); }\nIterable<Plugin> plugins = java.util.ServiceLoader.____(Plugin.class);','load',['find','newInstance'],'ServiceLoaderは設定された提供者を契約型から探索します。サービス登録が別途必要です。'],
+  ['defensive-copy','受け取ったリストを変更不可のスナップショットへする','class Menu { private final java.util.List<String> labels;\n    Menu(java.util.List<String> labels) { this.labels = java.util.List.____(labels); }\n}','copyOf',['of','sort'],'copyOfは元リストの変更を反映しない変更不可リストを作ります。null要素は拒否します。']
+ ]],
+ ['design',4,[
+  ['checked-contract','呼び出し側へI/O失敗の処理を要求する契約を宣言する','interface SaveStore { String load() ____ java.io.IOException; }','throws',['throw','catch'],'checked例外をthrowsで宣言すると呼び出し側が捕捉または宣言します。'],
+  ['covariant-return','オーバーライドで戻り値を具象型へ絞る','class Shape { Shape copy() { return new Shape(); } }\nclass Circle extends Shape { @Override ____ copy() { return new Circle(); } }','Circle',['Object','void'],'戻り値は基底メソッドの戻り値型のサブタイプへ絞れます。'],
+  ['default-conflict','二つのdefaultメソッドの競合を明示的に解決する','interface A { default String name() { return "A"; } }\ninterface B { default String name() { return "B"; } }\nclass Both implements A, B { public String name() { return ____.name(); } }','A.super',['super','A'],'選んだインターフェースの既定実装を明示して呼びます。'],
+  ['stream-decorator','既存入力へフィルターを被せるデコレーターを定義する','class LoggedInput extends java.io.____ {\n    LoggedInput(java.io.InputStream input) { super(input); }\n}','FilterInputStream',['InputStream','ByteArrayInputStream'],'FilterInputStreamは委譲先のInputStreamを包む基底です。'],
+  ['listener-lifetime','購読の解除をAutoCloseableの契約で提供する','class Subscription implements AutoCloseable {\n    private final Runnable detach;\n    Subscription(Runnable detach) { this.detach = detach; }\n    public void ____() { detach.run(); }\n}','close',['dispose','finalize'],'try-with-resourcesから呼ばれる操作名はcloseです。多重解除の安全性は解除処理側でも設計します。'],
+  ['class-token','実行時の型トークンを使って型安全にキャストする','static <T> T convert(Class<T> type, Object value) { return type.____(value); }','cast',['getClass','asSubclass'],'Class.castは型トークンに従って確認し、適合しなければClassCastExceptionを投げます。'],
+  ['self-type-builder','再帰的な型境界でBuilderの具象戻り値を保つ','abstract class Builder<T extends ____> {\n    abstract T self();\n    T configure() { return self(); }\n}','Builder<T>',['Builder<Object>','Object'],'自己型の境界により派生Builderのメソッド連鎖で型を維持します。'],
+  ['private-interface-helper','Java9以降で既定メソッド内部の補助処理を隠す','// Java 9 or later.\ninterface Named {\n    default String label() { return prefix() + "player"; }\n    ____ String prefix() { return "name:"; }\n}','private',['protected','abstract'],'privateメソッドはインターフェース内部で共通処理を実装し、公開契約へ加えません。']
+ ]],
+ ['graphics',1,[
+  ['clamp-channel','色成分へ下限と上限を両方適用する','int brightness = 280;\nint channel = Math.max(0, Math.____(255, brightness));','min',['max','abs'],'内側で上限、外側で下限を適用します。'],
+  ['float-opacity','整数のアルファ値を浮動小数点の割合に直す','int alpha = 128;\nfloat opacity = alpha / ____;','255f',['255','256'],'浮動小数点の除数で整数除算を避けます。'],
+  ['unsigned-alpha','ARGBの最上位成分を符号を拡張せずに取り出す','int color = 0x80ff0000;\nint alpha = color ____ 24;','>>>',['>>','<<'],'論理右シフトは上位へ0を補い、アルファを非負の値で取り出します。'],
+  ['byte-channel','符号付きbyteを0以上255以下の色成分へ直す','byte stored = (byte) 200;\nint channel = stored ____ 0xff;','&',['|','^'],'下位8bitだけを残して符号拡張を取り除きます。'],
+  ['grid-offset','行優先配列の画素位置を求める','int row = 2, column = 3, width = 8;\nint offset = ____;','row * width + column',['column * width + row','row + column'],'各行の幅を掛けてから列位置を加えます。'],
+  ['half-open-clip','右端と下端を含まない有効画素の判定を書く','int x = 8, y = 2, width = 8, height = 4;\nboolean visible = x >= 0 && y >= 0 && x ____ width && y < height;','<',['<=','>'],'画素の添字は幅・高さ未満です。'],
+  ['round-coordinate','小数の画面座標を最も近い整数へ丸める','float position = 3.6f;\nint pixel = Math.____(position);','round',['floor','ceil'],'float版roundは近い整数をintで返します。floorとceilはdoubleを返します。'],
+  ['point-record','Java16以降で二次元座標の成分をまとめる','// Java 16 or later; class members.\nrecord Point(float x, float y) { }\nstatic Point origin() { return ____; }','new Point(0f, 0f)',['new Point()','Point(0f, 0f)'],'recordのコンストラクターへ定義した二つの成分を渡します。']
+ ]],
+ ['graphics',2,[
+  ['argb-image','Java2Dでアルファを持つ32bit画像を作る','// Java SE desktop: java.desktop module.\nvar image = new java.awt.image.BufferedImage(16, 16, java.awt.image.BufferedImage.____);','TYPE_INT_ARGB',['TYPE_INT_RGB','TYPE_BYTE_GRAY'],'TYPE_INT_ARGBは画素ごとにアルファとRGBを持ちます。'],
+  ['dispose-graphics','Java2Dで取得した描画コンテキストを必ず解放する','// Java SE desktop; method parameter: BufferedImage image.\njava.awt.Graphics2D g = image.createGraphics();\ntry { g.fillRect(0, 0, 4, 4); } finally { g.____(); }','dispose',['close','flush'],'作成したGraphics2Dは所有側がdisposeして管理資源を返します。'],
+  ['alpha-color','ARGB整数に含まれるアルファをColorへ渡す','// Java SE desktop.\nvar color = new java.awt.Color(0x80ff0000, ____);','true',['false','null'],'二つ目の引数がtrueなら渡した整数のアルファ成分を利用します。'],
+  ['source-over','Java2Dで前景を背景に通常のアルファ合成で重ねる','// Java SE desktop; g is Graphics2D.\ng.setComposite(java.awt.AlphaComposite.____);','SrcOver',['Src','Clear'],'SrcOverは前景を背景に重ねます。Srcは背景を置き換えます。'],
+  ['antialias-hint','Java2Dで図形の輪郭のアンチエイリアスを有効にする','// Java SE desktop; g is Graphics2D.\ng.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.____);','VALUE_ANTIALIAS_ON',['VALUE_ANTIALIAS_OFF','VALUE_TEXT_ANTIALIAS_ON'],'図形用キーには図形用の値を対応させます。'],
+  ['path-close','Java2Dで三角形の最後の辺を始点へ結ぶ','// Java SE desktop.\nvar path = new java.awt.geom.Path2D.Float();\npath.moveTo(0, 0); path.lineTo(4, 0); path.lineTo(2, 4);\npath.____();','closePath',['reset','close'],'closePathは現在の部分パスを始点へ戻して閉じます。'],
+  ['baseline-text','Java2Dで文字の上端からベースライン位置を求める','// Java SE desktop; g is Graphics2D.\nint top = 10;\nint baseline = top + g.getFontMetrics().____();','getAscent',['getDescent','getLeading'],'drawStringのy座標は文字上端ではなくベースラインです。'],
+  ['affine-point','Java2Dで点へアフィン変換を適用する','// Java SE desktop.\nvar move = java.awt.geom.AffineTransform.getTranslateInstance(10, 0);\nvar point = new java.awt.geom.Point2D.Double(1, 2);\njava.awt.geom.Point2D shifted = move.____(point, null);','transform',['deltaTransform','inverseTransform'],'位置のtransformは平行移動を含みます。deltaTransformは方向の変換です。']
+ ]],
+ ['graphics',3,[
+  ['pixel-int-buffer','IntBufferへ画素を順に書き込む','java.nio.IntBuffer buffer = java.nio.IntBuffer.allocate(4);\nbuffer.____(0xff000000);','put',['get','add'],'putは現在位置へ書き、位置を次へ進めます。'],
+  ['bulk-read-pixels','Java2Dで矩形の画素を配列へまとめて取得する','// Java SE desktop; image is BufferedImage.\nint width = image.getWidth(), height = image.getHeight();\nint[] pixels = new int[width * height];\nimage.____(0, 0, width, height, pixels, 0, width);','getRGB',['setRGB','getData'],'getRGBは標準ARGB表現で配列へ画素を読み出します。'],
+  ['overlap-copy','重なる画素領域を標準APIで安全に移す','int[] pixels = { 1, 2, 3, 4 };\nSystem.____(pixels, 0, pixels, 1, 3);','arraycopy',['copyOf','copyOfRange'],'arraycopyは同じ配列内の重なりも扱います。'],
+  ['fill-row','配列の一行に対応する半開区間を塗りつぶす','int[] pixels = new int[32];\nint width = 8, row = 2;\njava.util.Arrays.fill(pixels, row * width, ____, 0xff000000);','(row + 1) * width',['row * width','(row + 1) * width - 1'],'fillの終端は含まれないため、次の行の先頭を渡します。'],
+  ['depth-id-order','描画順の同値をIDで解決する比較器を作る','// Java 16 or later; class members.\nrecord Sprite(int id, int depth) { }\nstatic java.util.Comparator<Sprite> order() { return java.util.Comparator.comparingInt(Sprite::depth).____(Sprite::id); }','thenComparingInt',['reversed','comparingInt'],'主キーで同値の場合だけ副キーを評価します。'],
+  ['clip-area','Java2Dで二つの形状の重なりをクリップ領域にする','// Java SE desktop.\nvar area = new java.awt.geom.Area(new java.awt.Rectangle(0, 0, 8, 8));\narea.____(new java.awt.geom.Area(new java.awt.Rectangle(4, 0, 8, 8)));','intersect',['add','exclusiveOr'],'intersectは両方に含まれる領域だけを残します。'],
+  ['png-read','Java2DでPNGを画像へデコードする','// Java SE desktop; method declares throws java.io.IOException.\ntry (var input = new java.io.ByteArrayInputStream(pngBytes)) {\n    java.awt.image.BufferedImage image = javax.imageio.ImageIO.____(input);\n    if (image == null) throw new java.io.IOException("Unsupported image");\n}\n// pngBytes is byte[] supplied by the caller.','read',['write','createImageOutputStream'],'認識できない形式ではnullを返すこともあるため確認が必要です。'],
+  ['buffer-flip','書き終えた画素バッファを読み取り状態へ切り替える','java.nio.IntBuffer pixels = java.nio.IntBuffer.allocate(4);\npixels.put(0xff000000); pixels.put(0xffffffff);\npixels.____();\nint first = pixels.get();','flip',['clear','compact'],'flipは書込み位置をlimitにし、positionを0へ戻します。']
+ ]],
+ ['graphics',4,[
+  ['network-pixel-order','byteバッファの画素整数を上位バイト先頭で読む','java.nio.ByteBuffer bytes = java.nio.ByteBuffer.wrap(new byte[] { 1, 2, 3, 4 });\nbytes.order(java.nio.ByteOrder.____);\nint pixel = bytes.getInt();','BIG_ENDIAN',['LITTLE_ENDIAN','nativeOrder()'],'明示的にバイト順を指定し、実行環境の標準順へ依存させません。'],
+  ['premultiplied-image','Java2Dで乗算済みアルファ表現の画像を選ぶ','// Java SE desktop; RGB values are premultiplied by alpha.\nvar image = new java.awt.image.BufferedImage(16, 16, java.awt.image.BufferedImage.____);','TYPE_INT_ARGB_PRE',['TYPE_INT_ARGB','TYPE_INT_RGB'],'PRE形式はアルファがRGBへ既に掛けられた表現です。'],
+  ['clip-intersection','既存のJava2Dクリップを保って追加領域と交差させる','// Java SE desktop; g is Graphics2D with an existing clip.\ng.____(new java.awt.Rectangle(0, 0, 8, 8));','clip',['setClip','clearRect'],'clipは既存領域と交差します。setClipはユーザークリップを置き換えます。'],
+  ['isolated-graphics','Java2Dで変換状態を親へ漏らさず描画する','// Java SE desktop; parent is Graphics2D.\njava.awt.Graphics2D child = (java.awt.Graphics2D) parent.____();\ntry { child.translate(4, 0); child.fillRect(0, 0, 2, 2); } finally { child.dispose(); }','create',['clone','getDeviceConfiguration'],'createで描画状態を分離し、子だけを変更して破棄します。'],
+  ['raster-storage','TYPE_INT_ARGB画像の整数ラスタ格納領域を直接参照する','// Java SE desktop; image is a newly allocated TYPE_INT_ARGB image, not a subimage.\nvar storage = (java.awt.image.DataBufferInt) image.getRaster().getDataBuffer();\nint[] pixels = storage.____();','getData',['getElem','getSize'],'直接の配列参照です。一般の画像形式や部分画像では型・オフセット・走査幅の確認が必要です。'],
+  ['volatile-restore','Java2Dの揮発画像で再確保が必要かを確認する','// Java SE desktop; image is VolatileImage, config is GraphicsConfiguration.\nint status = image.____(config);\nif (status == java.awt.image.VolatileImage.IMAGE_INCOMPATIBLE) image.flush();','validate',['contentsLost','getTransparency'],'validateは描画装置との互換性と復元状態を返します。復元時は再描画も必要です。'],
+  ['parallel-pixel-indices','独立した画素位置だけを並列に書き込む','int[] output = new int[64];\njava.util.stream.IntStream.range(0, output.length).parallel().____(i -> output[i] = i * i);','forEach',['map','reduce'],'各indexへ一つの処理だけが書くため位置同士の競合を避けられます。共有の追加カウンターは別途同期が必要です。'],
+  ['swing-dispatch','SwingのUI更新をイベント処理スレッドへ非同期に送る','// Java SE desktop; label is a javax.swing.JLabel.\njava.awt.EventQueue.____(() -> label.setText("Ready"));','invokeLater',['invokeAndWait','getCurrentEvent'],'invokeLaterは更新をEDTへ予約し、呼び出しスレッドを待たせません。']
+ ]],
+ ['systems',1,[
+  ['parse-integer','ラッパーを返さない整数パース専用APIを選ぶ','int count = Integer.____("42");','parseInt',['valueOf','toString'],'parseIntの戻り値はintです。valueOfはIntegerを返すため、この指定とは異なります。'],
+  ['resource-scope','try-with-resourcesでファイルを閉じる','// Method declares throws java.io.IOException.\ntry (var input = java.nio.file.Files.____(java.nio.file.Path.of("save.dat"))) {\n    int first = input.read();\n}','newInputStream',['readString','exists'],'InputStreamを資源として宣言するとスコープ終了時にcloseされます。'],
+  ['explicit-charset','設定ファイルの読み取り文字コードをUTF8へ固定する','// Method declares throws java.io.IOException.\nString text = java.nio.file.Files.readString(java.nio.file.Path.of("save.txt"), java.nio.charset.StandardCharsets.____);','UTF_8',['UTF_16','US_ASCII'],'保存と読取で同じ文字コードを明示して環境差を避けます。'],
+  ['fifo-queue','ArrayDequeをFIFOとして末尾へ追加し先頭から取る','var queue = new java.util.ArrayDeque<Integer>();\nqueue.addLast(1); queue.addLast(2);\nint first = queue.____();','removeFirst',['removeLast','getFirst'],'removeFirstは先頭を返して除きます。getFirstは除去しません。'],
+  ['unique-set','初回の登録かどうかをHashSetの戻り値で調べる','var seen = new java.util.HashSet<String>();\nboolean fresh = seen.____("job");','add',['contains','remove'],'addは集合へ新しく追加した場合にtrueを返します。'],
+  ['map-fallback','Mapの未登録キーに既定値を指定する','var counts = new java.util.HashMap<String, Integer>();\nint count = counts.____("job", 0);','getOrDefault',['get','putIfAbsent'],'getOrDefaultはキーがないときだけ既定値を返します。nullの登録とは別です。'],
+  ['elapsed-clock','期間の計測に単調な経過時間源を使う','long start = System.____();\n// Compare with a later reading from the same JVM.','nanoTime',['currentTimeMillis','identityHashCode'],'nanoTimeは差分の計測用です。UTC時刻の表示には使いません。'],
+  ['encode-utf8','文字列を指定した文字コードのbyte列へ変換する','byte[] bytes = "Ada".____(java.nio.charset.StandardCharsets.UTF_8);','getBytes',['toCharArray','chars'],'char配列ではなく符号化されたバイト列を得ます。']
+ ]],
+ ['systems',2,[
+  ['async-supply','戻り値を持つ計算をCompletableFutureへ送る','java.util.concurrent.CompletableFuture<Integer> pending = java.util.concurrent.CompletableFuture.____(() -> 42);','supplyAsync',['runAsync','completedFuture'],'supplyAsyncは値を返す計算を実行し、その完了を表します。'],
+  ['future-transform','完了したFutureの値を非同期の依存操作へつなぐ','var pending = java.util.concurrent.CompletableFuture.completedFuture(21);\nvar doubled = pending.____(value -> value * 2);','thenApply',['thenAccept','thenRun'],'thenApplyは前段の値を受け取り、新しい戻り値のFutureを作ります。'],
+  ['executor-shutdown','所有するスレッドプールの新規受付を終了する','var pool = java.util.concurrent.Executors.newSingleThreadExecutor();\ntry { pool.submit(() -> System.out.println("job")); } finally { pool.____(); }','shutdown',['shutdownNow','awaitTermination'],'shutdownは受付を止め、既に提出した処理の完了を待つ方針です。この呼び出し自体は完了待機しません。'],
+  ['synchronized-update','同じインスタンスのカウンター操作をモニターで保護する','class Counter {\n    private int value;\n    public ____ int next() { return ++value; }\n}','synchronized',['volatile','transient'],'インスタンスのモニターで操作全体を排他にします。'],
+  ['atomic-increment','AtomicIntegerで競合しない加算結果を得る','var count = new java.util.concurrent.atomic.AtomicInteger();\nint next = count.____();','incrementAndGet',['getAndIncrement','get'],'incrementAndGetは増加後の値を返します。'],
+  ['concurrent-map','並行Mapの未登録値をキーから生成する','var cache = new java.util.concurrent.ConcurrentHashMap<String, Integer>();\nint value = cache.____("jobs", String::length);','computeIfAbsent',['getOrDefault','putIfAbsent'],'未登録なら関数から値を生成します。関数は短くし、同じMapの再帰更新を避けます。'],
+  ['volatile-publication','他スレッドから観測する停止フラグを宣言する','class Worker {\n    private ____ boolean stopped;\n    void stop() { stopped = true; }\n    boolean stopped() { return stopped; }\n}','volatile',['transient','final'],'volatileは読み書きの可視性を保証します。複数変数の一括更新は別の同期が必要です。'],
+  ['restore-interrupt','割込みを処理した後に割込み状態を復元する','try { Thread.sleep(1); }\ncatch (InterruptedException error) { Thread.currentThread().____(); }','interrupt',['interrupted','isInterrupted'],'InterruptedExceptionで解除された割込み状態を再設定して上位へ伝えます。']
+ ]],
+ ['systems',3,[
+  ['explicit-lock','ReentrantLockを例外が起きても必ず解放する','var gate = new java.util.concurrent.locks.ReentrantLock();\ngate.lock();\ntry { System.out.println("protected"); } finally { gate.____(); }','unlock',['lock','notify'],'取得に成功したロックをfinallyで解放します。'],
+  ['semaphore-permit','許可の取得に成功した後だけセマフォを解放する','// Method declares throws InterruptedException.\nvar gate = new java.util.concurrent.Semaphore(1);\ngate.acquire();\ntry { System.out.println("job"); } finally { gate.____(); }','release',['acquire','drainPermits'],'取得が割り込まれた場合はtryへ入らないため余分な許可を戻しません。'],
+  ['latch-completion','作業完了を待ってから次の段階へ進む','// worker is another thread that calls done.countDown().\n// Method declares throws InterruptedException.\nvar done = new java.util.concurrent.CountDownLatch(1);\nvar worker = new Thread(done::countDown); worker.start();\ndone.____();','await',['wait','countDown'],'CountDownLatchのawaitはカウントが0になるまで待ちます。'],
+  ['blocking-queue','空なら到着まで待って仕事を取り出す','// The caller shares jobs with a producer thread.\nstatic int next(java.util.concurrent.BlockingQueue<Integer> jobs) throws InterruptedException {\n    return jobs.____();\n}','take',['poll','remove'],'takeは空の間ブロックします。pollは待たず、removeは空なら例外です。'],
+  ['fixed-delay','前回処理の終了から一定時間後に繰り返す','var scheduler = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();\nvar handle = scheduler.____(() -> System.out.println("tick"), 0, 1, java.util.concurrent.TimeUnit.SECONDS);\n// Owner later cancels handle and shuts down scheduler.','scheduleWithFixedDelay',['scheduleAtFixedRate','schedule'],'固定遅延は前回の終了を基準に待機します。'],
+  ['completion-order','提出順ではなく完了順にFutureを受け取る','// pool is an Executor; method throws InterruptedException.\nvar finished = new java.util.concurrent.ExecutorCompletionService<Integer>(pool);\nfinished.submit(() -> 42);\njava.util.concurrent.Future<Integer> next = finished.____();','take',['poll','submit'],'takeは完了した処理が届くまで待ち、そのFutureを返します。'],
+  ['binary-order','byte列からリトルエンディアンの整数を読む','var data = java.nio.ByteBuffer.wrap(new byte[] { 1, 0, 0, 0 });\ndata.order(java.nio.ByteOrder.____);\nint value = data.getInt();','LITTLE_ENDIAN',['BIG_ENDIAN','nativeOrder()'],'規定の保存順を明示し、ホストの順へ依存させません。'],
+  ['close-file-stream','Files.linesの遅延Streamが持つファイルを解放する','// Method declares throws java.io.IOException.\n____ (var lines = java.nio.file.Files.lines(java.nio.file.Path.of("log.txt"))) {\n    long count = lines.count();\n}','try',['using','synchronized'],'終端操作の実行だけでなくtry-with-resourcesでStream自体も閉じます。']
+ ]],
+ ['systems',4,[
+  ['virtual-thread-scope','Java21で所有する仮想スレッドExecutorを終了時に閉じる','// Java 21; method declares throws Exception.\ntry (var pool = java.util.concurrent.Executors.____()) {\n    int answer = pool.submit(() -> 42).get();\n}','newVirtualThreadPerTaskExecutor',['newCachedThreadPool','newSingleThreadExecutor'],'タスクごとに仮想スレッドを作ります。close時には未完了タスクの終了も待ちます。'],
+  ['future-timeout','Java9以降でFutureの完了に期限を設定する','// Java 9 or later; operation is CompletableFuture<Integer>.\nvar limited = operation.____(1, java.util.concurrent.TimeUnit.SECONDS);','orTimeout',['completeOnTimeout','cancel'],'期限後は例外完了します。元の計算自体の停止は別途必要です。'],
+  ['compare-and-set','観測した参照と一致する場合だけ状態を差し替える','var state = new java.util.concurrent.atomic.AtomicReference<String>("old");\nString seen = state.get();\nboolean changed = state.____(seen, "new");','compareAndSet',['getAndSet','set'],'CASは参照同一性で比較して更新します。値のequals比較ではありません。'],
+  ['optimistic-read','StampedLockの楽観読みが途中の書込みと競合しなかったか確かめる','class Shared {\n    private final java.util.concurrent.locks.StampedLock gate = new java.util.concurrent.locks.StampedLock();\n    private int value;\n    int read() {\n        long stamp = gate.tryOptimisticRead();\n        int snapshot = value;\n        if (!gate.____(stamp)) {\n            stamp = gate.readLock();\n            try { snapshot = value; } finally { gate.unlockRead(stamp); }\n        }\n        return snapshot;\n    }\n    void write(int next) {\n        long stamp = gate.writeLock();\n        try { value = next; } finally { gate.unlockWrite(stamp); }\n    }\n}','validate',['isWriteLocked','unlock'],'同じ共有ロックを全書込みでも使い、楽観読みの結果はvalidate成功後にだけ利用します。'],
+  ['striped-counter','全加算処理の終了後にLongAdderの合計を読む','var counter = new java.util.concurrent.atomic.LongAdder();\ncounter.add(4); counter.increment();\n// All concurrent writers have been joined before this line.\nlong total = counter.____();','sum',['increment','reset'],'sumは加算が終了した後なら確定した合計を読めます。更新中の原子的スナップショットではありません。'],
+  ['phased-workers','複数ワーカーが各段階で合流するバリアを使う','// Each of two worker threads calls this on the shared phaser once per phase.\nstatic void phase(java.util.concurrent.Phaser phaser) { phaser.____(); }\n// Owner constructs new Phaser(2) before launching the workers.','arriveAndAwaitAdvance',['arriveAndDeregister','awaitAdvance'],'現在段階への到着を知らせ、他の参加者も到着するまで次段階を待ちます。'],
+  ['thread-local-remove','再利用スレッドへ要求固有のデータを残さない','var request = new ThreadLocal<String>();\nrequest.set("job-42");\ntry { System.out.println(request.get()); } finally { request.____(); }','remove',['set','get'],'スレッドプールのスレッドへ要求データが残らないようfinallyで除去します。'],
+  ['condition-loop','モニター待機を再確認ループで守る','class Signal {\n    private boolean ready;\n    synchronized void awaitReady() throws InterruptedException { ____ (!ready) wait(); }\n    synchronized void markReady() { ready = true; notifyAll(); }\n}','while',['if','switch'],'通知後や見かけの起床でも条件を再確認し、準備ができるまで待ち続けます。']
+ ]]
+]);

@@ -17,6 +17,8 @@ export const LANGUAGES = [
 export const TYPING_REWARD = { character: 12, completion: 4, officeCompletion: 4 };
 export const TYPING_REFERENCE_RATE = 5;
 export const typingCompletionMultiplier = mode => mode === 'work' ? TYPING_REWARD.officeCompletion : TYPING_REWARD.completion;
+// Match the editor's four-space Tab: indentation is one physical keystroke.
+export const typingKeystrokes = source => String(source).replace(/ +/g, spaces => '\t'.repeat(Math.ceil(spaces.length / 4))).length;
 const VARIANTS = 16;
 const DATA = {
   cpp: {
@@ -246,7 +248,15 @@ export function promptAt(language, subject, index, version = CURRICULUM_VERSION)
   return pool[number % pool.length].replace(/\$(\w+)\$/g, (_, key) => data[key]);
 }
 export function createTypingState() {
-  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, courseCompleted: [], curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, correction: null, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+  return { language: 'cpp', source: 'standard', courseUnit: '', courseCursors: {}, courseCompleted: [], completedLessons: {}, curriculumVersion: CURRICULUM_VERSION, lastCompleted: null, officeVersion: OFFICE_DATA_VERSION, correction: null, index: 0, offset: 0, context: '', errors: 0, correct: 0, completed: 0, roundErrors: 0, bonusBase: 0 };
+}
+export function completedLesson(state, baseId) {
+  const record = state.typing.completedLessons?.[baseId];
+  if (record?.version !== CURRICULUM_VERSION || !Number.isSafeInteger(record.index) || record.index < 0 || record.index >= 256) return null;
+  const [language, subject] = String(baseId).split('/');
+  if (!LANGUAGES.some(l=>l.id===language) || !SUBJECT_IDS.includes(subject)) return null;
+  const lesson = lessonAt(language, subject, record.index);
+  return lesson.baseId === baseId ? lesson : null;
 }
 export function normalizeTypingState(value) {
   const s = createTypingState();
@@ -263,6 +273,17 @@ export function normalizeTypingState(value) {
   if (validCourseId(last?.courseUnit)) s.lastCompleted = {version:CURRICULUM_VERSION,courseUnit:last.courseUnit};
   if (last?.version === CURRICULUM_VERSION && LANGUAGES.some(l => l.id === last.language) && SUBJECT_IDS.includes(last.subject) && Number.isSafeInteger(last.index) && last.index >= 0 && last.index < 256) {
     s.lastCompleted = { version: CURRICULUM_VERSION, language: last.language, subject: last.subject, index: last.index };
+  }
+  if (value.completedLessons && typeof value.completedLessons === 'object' && !Array.isArray(value.completedLessons)) {
+    for (const [id] of Object.entries(value.completedLessons).slice(-BASE_LESSON_COUNT)) {
+      const lesson = completedLesson({ typing: value }, id);
+      if (lesson) s.completedLessons[id] = { version: CURRICULUM_VERSION, index: lesson.index };
+    }
+  } else if (!Object.hasOwn(value, 'completedLessons') && s.lastCompleted && !s.lastCompleted.courseUnit) {
+    // Earlier saves only prove the last completed example, never a whole topic
+    // range inferred from the cursor, current skill level or total inputs.
+    const lesson = lessonAt(s.lastCompleted.language, s.lastCompleted.subject, s.lastCompleted.index);
+    s.completedLessons[lesson.baseId] = { version: CURRICULUM_VERSION, index: lesson.index };
   }
   s.officeVersion = value.officeVersion === OFFICE_DATA_VERSION ? OFFICE_DATA_VERSION : 1;
   if (LANGUAGES.some(l => l.id === value.language)) s.language = value.language;
@@ -382,6 +403,8 @@ export function acceptCharacter(state, character, basePower = 1) {
   } else if (state.mode !== 'work' && t.curriculumVersion === CURRICULUM_VERSION) {
     const lesson = lessonAt(t.language, typingSubject(state), t.index);
     t.lastCompleted = { version: CURRICULUM_VERSION, language: lesson.language, subject: lesson.subject, index: lesson.index };
+    t.completedLessons ||= {};
+    t.completedLessons[lesson.baseId] = { version: CURRICULUM_VERSION, index: lesson.index };
   }
   t.completed++;
   t.index++;

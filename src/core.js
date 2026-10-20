@@ -1,7 +1,11 @@
 // Pure game rules. All time is in seconds; progress is measured in characters.
 import { lessonAt, questionFor, TOPICS_PER_SUBJECT } from './curriculum.js';
-import { quizAt, QUIZ_TOPICS_PER_SUBJECT } from './quizcatalog.js';
-import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier } from './typing.js';
+import { isReadingChoice } from './readingchoices.js';
+import { challengeAt, challengeById, challengeTopics, challengeCatalog } from './challengecatalog.js';
+import { skillQuizAt, skillQuizById, skillQuizTopics, gradeSkillQuiz, SKILL_QUIZ_ANSWER_LIMIT } from './skillquiz.js';
+import { QUIZ_LANGUAGES } from './quizcatalog.js';
+import { FIRST_PROJECT_PARTS, firstProjectQuizAt, firstProjectQuizById, firstProjectQuizCatalog } from './firstproject.js';
+import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier, typingKeystrokes } from './typing.js';
 import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceEfficiency, incurredDebt, changeDefectRate, addDebt, repayDebt, debtBreakdown } from './maintenance.js';
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
 import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMISSION_FEE, OCR_ERROR_INTERVAL } from './officequality.js';
@@ -12,7 +16,7 @@ import { estimatePlan, amendPlan } from './planning.js';
 import { PLANNING_CATALOG, PLANNING_EXAMPLES } from './planningcatalog.js';
 import { createPlannerState, activePlanningProject, planningRuntime, projectFromPlanning, verifiedFoundations, learnPlanning, normalizePlannerState, ASSET_WORK_CHARACTERS } from './plannerstate.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 17;
+export const BALANCE_VERSION = 21;
 export const MAX_SAVE_BYTES = 8 * 1024 * 1024;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
@@ -83,13 +87,19 @@ export const ACHIEVEMENTS = [
   { id: 'universe', name: 'スコープは無限', hint: '多元宇宙エンジンを公開する', test: s => s.runBest >= 8 || s.catalog.some(p=>p.index>=7) }
 ];
 export function createState(now = Date.now()) {
-  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', reading: { cursors: {}, answers: {} }, quiz: { cursors: {}, completed: [], drafts: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, planner:createPlannerState(), mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
+  return { version: VERSION, balanceVersion: BALANCE_VERSION, cash: INITIAL_CASH, skills: Object.fromEntries(SKILLS.map(s => [s.id, 0])), studyGaps: Object.fromEntries(SKILLS.map(s => [s.id, 0])), items: {}, onlineMaterials: [], mode: 'work', subject: 'syntax', inputStyle: 'click', typing: createTypingState(), studyStyle: 'practice', devStyle: 'typing', quizWork: [], reading: { cursors: {}, answers: {} }, quiz: { cursors: {}, firstParts: {}, completed: [], rewarded: [], implemented: [], verifiedAt: {}, drafts: {} }, skillQuiz: { cursors: {}, completed: [], drafts: {}, verifiedAt: {} }, office: { remaining: OFFICE_CONTRACT_WORK }, job: { progress: 0, rate: 1 }, workTask: 'entry', ocrJob: { progress: 0, rate: 1 }, ocr: createOCRLedger(), refactor: false, autoEnabled: true, projectIndex: 0, projectCarryover: false, progress: 0, debt: 0, debtSources: emptyDebtSources(), defects: 0, developmentPolicy: 'steady', reviewedAt: 0, build: createBuildState(), production: {}, planner:createPlannerState(), mistakes: 0, crashed: false, catalog: [], assets: 0, experience: emptyExperience(), runExperience: emptyExperience(), experiencedProjects: [], completedProjects: [], legacyPermit: -1, nextTitleId: 1, resets: 0, runReleased: 0, runBest: 0, achievements: [], stats: { autoStudyKnowledge: Object.fromEntries(SKILLS.map(skill=>[skill.id,0])), chars: 0, manual: 0, valid: 0, releases: 0, earned: 0, study: 0, debtRemoved: 0, defectsFixed: 0, outsourcing: 0, jobs: 0, time: 0, storeFees: 0, serverFees: 0 }, day: 1, dayElapsed: 0, dailyAccrued: 0, savedAt: now, settings: { sound: false, reducedMotion: false, commentLocale: 'ja' }, log: [{ text: '自室のPCで制作を開始。学習用の教材を探そう。', kind: 'info', day: 1 }] };
 }
-export const currentProject=s=>{const project=activePlanningProject(s);return project?projectFromPlanning(project):projectAt(s.projectIndex);};
+export const currentProject=s=>{
+  const project=activePlanningProject(s);
+  if(project)return projectFromPlanning(project);
+  const fixed=projectAt(s.projectIndex);
+  return firstProjectQuizMode(s)?{...fixed,req:{syntax:(firstProjectPart(s).index+1)*4}}:fixed;
+};
 const cloneWork=value=>JSON.parse(JSON.stringify(value));
-const WORK_FIELDS=['progress','debt','debtSources','defects','developmentPolicy','reviewedAt','build','production','mistakes','crashed','refactor','projectCarryover','autoEnabled','mode','subject'];
+const WORK_FIELDS=['progress','debt','debtSources','defects','developmentPolicy','reviewedAt','build','production','mistakes','crashed','refactor','projectCarryover','autoEnabled','mode','subject','quizWork'];
 const captureProjectWork=s=>Object.fromEntries(WORK_FIELDS.map(key=>[key,cloneWork(s[key])]));
 function restoreProjectWork(s,raw={}){
+  s.quizWork=normalizeQuizClaims(raw.quizWork);
   s.progress=Math.max(0,Math.min(currentProject(s).target,Number.isFinite(raw.progress)?raw.progress:0));
   s.debt=Math.max(0,Math.min(LIMIT,Number.isFinite(raw.debt)?raw.debt:0));
   s.defects=Math.max(0,Math.min(defectLimit(s),Number.isFinite(raw.defects)?raw.defects:0));
@@ -270,7 +280,8 @@ export function selectProject(s,index){
   if(!Number.isSafeInteger(index) || index<0 || index>1e6 || index===s.projectIndex || !projectAccess(s,index).allowed)return false;
   const carryOnly=s.projectCarryover && !s.progress && !s.defects && Object.entries(s.debtSources).every(([id,n])=>id==='reuse' || !n);
   if(s.progress || s.debt && !carryOnly || s.defects || s.crashed || Object.keys(s.production).length || needsBuild(s) && !carryOnly)return false;
-  s.projectIndex=index;s.refactor=false;s.build=createBuildState();markBuildChanges(s,s.debt);s.autoEnabled=false;
+  s.projectIndex=index;s.quizWork=[];s.refactor=false;s.build=createBuildState();markBuildChanges(s,s.debt);s.autoEnabled=false;
+  if(index===0)s.quiz.firstParts={};
   log(s,`${projectAt(index).name} の新作制作を始めます。`,'success');
   return true;
 }
@@ -318,37 +329,184 @@ export function nextReading(s) {
   const key = `${s.typing.language}/${s.subject}`;
   s.reading.cursors[key] = ((s.reading.cursors[key] || 0) + 1) % TOPICS_PER_SUBJECT;
 }
-export const QUIZ_UNITS = 1200;
+export const QUIZ_STUDY_MULTIPLIER = 4;
+export const QUIZ_IMPLEMENTATION_MULTIPLIER = 2;
+export const QUIZ_VERIFICATION_MULTIPLIER = 3;
 export const QUIZ_DRAFT_LIMIT = 24000;
+export const SKILL_QUIZ_REWARD_MULTIPLIER = 1.5;
+export const CHALLENGE_REUSE_MULTIPLIER = .25;
+export const CHALLENGE_TRANSFER_MULTIPLIER = .6;
+const normalizeQuizClaims = value => Array.isArray(value) ? [...new Set(value.filter(id=>typeof id==='string' && (challengeById(id) || firstProjectQuizById(id))))] : [];
+const automaticStudy = (s,subject) => s.stats.autoStudyKnowledge?.[subject] || 0;
+const exerciseSeconds = lesson => Math.max(1,Number(lesson.estimatedMinutes ?? lesson.minutes ?? 2)*60);
+const exerciseBase = lesson => bounded(exerciseSeconds(lesson)*TYPING_REFERENCE_RATE*(TYPING_REWARD.character+TYPING_REWARD.completion));
+const transferShare=(claims,lesson)=>lesson.familyId && claims.some(id=>{
+  const previous=challengeById(id);return previous?.familyId===lesson.familyId && previous.language!==lesson.language;
+})?CHALLENGE_TRANSFER_MULTIPLIER:1;
+function rememberVerification(s,records,id,subject){
+  records[id]={nominal:s.skills[subject],automatic:automaticStudy(s,subject)};
+}
+function verifyKnownExercise(s,records,id,subject,units){
+  const gap=s.studyGaps[subject] || 0,record=records[id];
+  // studyGaps is the shared consumable pool: subtract only the part actually
+  // confirmed, leaving the rest for other topics. A per-topic watermark keeps
+  // the same success from repeatedly confirming slices without new research.
+  const previous=record?.automatic || 0;
+  const fresh=record?Math.max(0,automaticStudy(s,subject)-previous)*AUTO_STUDY_UNVERIFIED:gap;
+  const verified=Math.min(gap,fresh,studyGain(s,units,subject)*QUIZ_VERIFICATION_MULTIPLIER);
+  if(verified>0){s.studyGaps[subject]=Math.max(0,gap-verified);rememberVerification(s,records,id,subject);}
+  return verified;
+}
+export function skillQuizEligible(s){return s.mode==='study' && s.studyStyle==='skill-quiz' || s.mode==='dev' && s.devStyle==='skill-quiz';}
+export function skillQuizLesson(s){return skillQuizAt(s.typing.language,s.subject,s.skillQuiz.cursors[`${s.typing.language}/${s.subject}`] || 0);}
+export function skillQuizContextKey(s){
+  const project=activePlanningProject(s);
+  return JSON.stringify([s.mode,skillQuizLesson(s).id,s.mode==='study'?s.studyStyle:s.devStyle,s.refactor,s.developmentPolicy,s.resets,s.projectIndex,s.nextTitleId,project?.id,project?.codeTarget,project?.snapshot.plan,s.planner.allocation]);
+}
+export function nextSkillQuiz(s){
+  const key=`${s.typing.language}/${s.subject}`;
+  s.skillQuiz.cursors[key]=((s.skillQuiz.cursors[key] || 0)+1)%skillQuizTopics(s.typing.language,s.subject).length;
+}
+export function setSkillQuizDraft(s,answer){
+  return storeExerciseDraft(s,'skillQuiz',skillQuizLesson(s).id,answer);
+}
+function storeExerciseDraft(s,key,id,source){
+  if(typeof source!=='string' || source.length>(key==='skillQuiz'?SKILL_QUIZ_ANSWER_LIMIT:QUIZ_DRAFT_LIMIT))return false;
+  const drafts={...s[key].drafts};delete drafts[id];drafts[id]=source;
+  while(Object.keys(drafts).length>12)delete drafts[Object.keys(drafts)[0]];
+  const candidate={...s,[key]:{...s[key],drafts}};
+  if(new TextEncoder().encode(JSON.stringify(candidate)).byteLength>MAX_SAVE_BYTES)return false;
+  s[key].drafts=drafts;return true;
+}
+function applySkillQuizReward(s,lesson){
+  const result={kind:'answered',amount:0,learned:0,verified:0,studyUnits:0,implementationUnits:0,studyShare:0,implementationShare:0,progress:0,fixed:0,debtRemoved:0,reason:''};
+  if(!hasStudyMaterial(s,lesson.subject))return {...result,kind:'none',reason:'この分野の無料教材を開いてください。'};
+  const units=bounded(exerciseBase(lesson)*SKILL_QUIZ_REWARD_MULTIPLIER*typingPower(s,'study',lesson.subject));
+  if(s.skillQuiz.completed.includes(lesson.id)){
+    result.verified=verifyKnownExercise(s,s.skillQuiz.verifiedAt,lesson.id,lesson.subject,units);
+    result.amount=result.verified;if(result.verified)result.kind='correct';return result;
+  }
+  const before=skillKnowledge(s,lesson.subject),gap=s.studyGaps[lesson.subject] || 0,gain=studyGain(s,units,lesson.subject);
+  input(s,{mode:'study',subject:lesson.subject,chars:units,manual:true,countManual:false});
+  result.verified=Math.min(gap,bounded(gain*QUIZ_VERIFICATION_MULTIPLIER));s.studyGaps[lesson.subject]=Math.max(0,gap-result.verified);
+  result.kind='correct';result.studyUnits=units;result.studyShare=1;result.amount=skillKnowledge(s,lesson.subject)-before;result.learned=Math.max(0,result.amount-result.verified);
+  s.skillQuiz.completed.push(lesson.id);rememberVerification(s,s.skillQuiz.verifiedAt,lesson.id,lesson.subject);
+  return result;
+}
+export function skillQuizRewardPreview(s,lesson=skillQuizLesson(s)){return applySkillQuizReward(structuredClone(s),lesson);}
+export function completeSkillQuiz(s,id,answer){
+  const lesson=skillQuizLesson(s);
+  if(id!==lesson.id || !skillQuizEligible(s) || !hasStudyMaterial(s,lesson.subject))return {kind:'none',passed:false,amount:0};
+  const graded=gradeSkillQuiz(lesson,answer);
+  if(!graded.passed)return {...graded,kind:'incorrect',amount:0,learned:0,verified:0,studyUnits:0,implementationUnits:0,progress:0};
+  return {...graded,...applySkillQuizReward(s,lesson)};
+}
+const FIRST_PROJECT_EPSILON = 1e-7;
+export function firstProjectQuizMode(s) {
+  return s.mode==='dev' && s.devStyle==='quiz' && s.projectIndex===0 && !activePlanningProject(s) && !s.refactor;
+}
+export function firstProjectPart(s) {
+  const index=Math.min(FIRST_PROJECT_PARTS.length-1,Math.floor((Math.max(0,s.progress)+FIRST_PROJECT_EPSILON)/1000));
+  return FIRST_PROJECT_PARTS[index];
+}
+function selectedFirstProjectPart(s) {
+  const selected=s.quiz.firstParts?.[s.typing.language];
+  return Number.isSafeInteger(selected) && selected>=0 && selected<FIRST_PROJECT_PARTS.length ? selected : firstProjectPart(s).index;
+}
+export function quizContextKey(s) {
+  const project=activePlanningProject(s);
+  return JSON.stringify([s.mode,quizLesson(s).id,s.mode==='study'?s.studyStyle:s.devStyle,s.refactor,s.developmentPolicy,s.resets,s.projectIndex,s.nextTitleId,project?.id,project?.codeTarget,project?.snapshot.plan,s.planner.allocation]);
+}
+export function quizEligible(s) {
+  return s.mode==='study' && s.studyStyle==='quiz' || s.mode==='dev' && s.devStyle==='quiz' && !(activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor);
+}
 export function quizLesson(s) {
-  return quizAt(s.typing.language, s.subject, s.quiz.cursors[`${s.typing.language}/${s.subject}`] || 0);
+  if(firstProjectQuizMode(s))return firstProjectQuizAt(s.typing.language,selectedFirstProjectPart(s));
+  return challengeAt(s.typing.language, s.subject, s.quiz.cursors[`${s.typing.language}/${s.subject}`] || 0);
 }
 export function nextQuiz(s) {
+  if(firstProjectQuizMode(s)){
+    s.quiz.firstParts ||= {};
+    s.quiz.firstParts[s.typing.language]=Math.min(FIRST_PROJECT_PARTS.length-1,selectedFirstProjectPart(s)+1);
+    return;
+  }
   const key = `${s.typing.language}/${s.subject}`;
-  s.quiz.cursors[key] = ((s.quiz.cursors[key] || 0) + 1) % QUIZ_TOPICS_PER_SUBJECT;
+  s.quiz.cursors[key] = ((s.quiz.cursors[key] || 0) + 1) % challengeTopics(s.typing.language,s.subject).length;
 }
 export function setQuizDraft(s, source) {
-  if (typeof source !== 'string' || source.length > QUIZ_DRAFT_LIMIT) return false;
-  const id = quizLesson(s).id;
-  delete s.quiz.drafts[id];
-  s.quiz.drafts[id] = source;
-  // Keep unfinished work without letting an optional code editor fill the save.
-  while (Object.keys(s.quiz.drafts).length > 12) delete s.quiz.drafts[Object.keys(s.quiz.drafts)[0]];
-  return true;
+  return storeExerciseDraft(s,'quiz',quizLesson(s).id,source);
+}
+function applyQuizReward(s,lesson) {
+  const result={kind:'answered',amount:0,learned:0,verified:0,progress:0,fixed:0,debtRemoved:0,studyUnits:0,implementationUnits:0,studyShare:0,implementationShare:0,reason:''};
+  if(!hasStudyMaterial(s,lesson.subject))return {...result,kind:'none',reason:'この分野の無料教材を開いてください。'};
+  const part=Number.isSafeInteger(lesson.firstProjectPart) ? FIRST_PROJECT_PARTS[lesson.firstProjectPart] : null;
+  const base=part?typingKeystrokes(lesson.rewardSource)*(TYPING_REWARD.character+typingCompletionMultiplier('study')):exerciseBase(lesson);
+  if(!s.quiz.rewarded.includes(lesson.id)){
+    const before=skillKnowledge(s,lesson.subject),gap=s.studyGaps[lesson.subject] || 0;
+    result.studyShare=transferShare(s.quiz.rewarded,lesson);
+    result.studyUnits=bounded(base*QUIZ_STUDY_MULTIPLIER*result.studyShare*typingPower(s,'study',lesson.subject));
+    const gain=studyGain(s,result.studyUnits,lesson.subject);
+    input(s,{mode:'study',subject:lesson.subject,chars:result.studyUnits,manual:true,countManual:false});
+    // input already verifies up to one gain. Total verification is three gains.
+    const confirmed=Math.min(gap,bounded(gain*QUIZ_VERIFICATION_MULTIPLIER));
+    s.studyGaps[lesson.subject]=Math.max(0,gap-confirmed);
+    result.verified=gap-s.studyGaps[lesson.subject];
+    result.amount=skillKnowledge(s,lesson.subject)-before;
+    result.learned=Math.max(0,result.amount-result.verified);
+    s.quiz.rewarded.push(lesson.id);rememberVerification(s,s.quiz.verifiedAt,lesson.id,lesson.subject);result.kind='correct';
+  }else{
+    const units=bounded(base*QUIZ_STUDY_MULTIPLIER*typingPower(s,'study',lesson.subject));
+    result.verified=verifyKnownExercise(s,s.quiz.verifiedAt,lesson.id,lesson.subject,units);result.amount=result.verified;
+    if(result.verified)result.kind='correct';
+  }
+  if(s.mode==='dev' && !s.quizWork.includes(lesson.id)){
+    result.implementationShare=s.quiz.implemented.includes(lesson.id)?CHALLENGE_REUSE_MULTIPLIER:transferShare(s.quiz.implemented,lesson);
+    const custom=activePlanningProject(s);
+    if(part && !firstProjectQuizMode(s))result.reason='この部品は最初の数当てゲームで実装します。';
+    else if(part && s.progress<(part.end-1000)-FIRST_PROJECT_EPSILON)result.reason='先に現在の部品を完成させると、この部品を実装できます。';
+    else if(part && s.progress>=part.end-FIRST_PROJECT_EPSILON)result.reason='この部品の実装は完了しています。現在の部品へ進んでください。';
+    else if(custom && s.planner.allocation==='assets' && !s.refactor)result.reason='素材制作ではコードの実装を適用できません。';
+    else if(!Object.hasOwn(currentProject(s).req,lesson.subject))result.reason='この分野は現在の企画の実装対象に含まれません。';
+    else if(!projectAccess(s).allowed)result.reason=projectAccess(s).reason;
+    else if(knowledgeRatio(s)<1)result.reason='企画に必要な理解度を揃えると、同じ課題を実装へ適用できます。';
+    else if(s.crashed && !s.refactor)result.reason='レビュー・整理に切り替えると不具合を修正できます。';
+    else if(!s.refactor && s.progress>=currentProject(s).target)result.reason='制作は完了しています。公開するか、レビュー・整理へ進めます。';
+    else if(s.refactor && !s.defects && !s.debt)result.reason='修正・整理するコードはありません。';
+    else {
+      // Learning may change the IDE/understanding factor, so price application
+      // only after the newly verified knowledge has been applied.
+      const units=bounded(base*QUIZ_IMPLEMENTATION_MULTIPLIER*result.implementationShare*typingPower(s,'dev',lesson.subject));
+      const beforeProgress=s.progress,beforeDefects=s.defects,beforeDebt=s.debt;
+      input(s,{mode:'dev',chars:units,manual:true,countManual:false,progressLimit:part?.end ?? Infinity});
+      result.progress=Math.max(0,s.progress-beforeProgress);
+      result.fixed=Math.max(0,beforeDefects-s.defects);
+      result.debtRemoved=Math.max(0,beforeDebt-s.debt);
+      if(result.progress>0 || result.fixed>0 || result.debtRemoved>0){
+        result.implementationUnits=units;s.quizWork.push(lesson.id);if(!s.quiz.implemented.includes(lesson.id))s.quiz.implemented.push(lesson.id);result.kind='correct';
+        if(part && s.progress>=part.end-FIRST_PROJECT_EPSILON){
+          const next=Math.min(FIRST_PROJECT_PARTS.length-1,part.index+1);
+          s.quiz.firstParts=Object.fromEntries(QUIZ_LANGUAGES.map(language=>[language,next]));
+        }
+      }
+    }
+  }
+  return result;
+}
+export function quizRewardPreview(s,lesson=quizLesson(s)) {
+  return applyQuizReward(structuredClone(s),lesson);
 }
 export function completeQuiz(s, id) {
-  const lesson = quizLesson(s);
-  if (id !== lesson.id || !hasStudyMaterial(s)) return { kind: 'none', amount: 0 };
-  if (s.quiz.completed.includes(id)) return { kind: 'answered', amount: 0 };
-  s.quiz.completed.push(id);
-  const reward = input(s, { mode: 'study', subject: s.subject, chars: QUIZ_UNITS, manual: false });
-  return { kind: 'correct', amount: reward.amount };
+  const lesson=quizLesson(s);
+  if(id!==lesson.id || !hasStudyMaterial(s,lesson.subject) || !['study','dev'].includes(s.mode))return {kind:'none',amount:0};
+  const result=applyQuizReward(s,lesson);
+  if(!s.quiz.completed.includes(id))s.quiz.completed.push(id);
+  return result;
 }
 export function answerReading(s, choice) {
   if (!hasStudyMaterial(s)) return { kind: 'textbook', amount: 0 };
   const lesson = readingLesson(s);
   if (Object.hasOwn(s.reading.answers, lesson.baseId)) return { kind: 'answered', amount: 0 };
-  if (!Number.isSafeInteger(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
+  if (!isReadingChoice(choice) || !questionFor(lesson).choices.includes(choice)) return { kind: 'none', amount: 0 };
   s.reading.answers[lesson.baseId] = choice;
   const correct = choice === lesson.answer;
   const reward = correct ? input(s, { mode: 'study', subject: s.subject, chars: READING_UNITS, manual: false }) : { amount: 0 };
@@ -572,7 +730,7 @@ function automateOffice(s,chars){
   s.office.remaining=Math.max(0,availableOfficeWork(s)-chars);s.stats.chars=add(s.stats.chars,chars);
   settleOfficeWork(s,chars,true);
 }
-export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false } = {}) {
+export function input(s, { mode = s.mode, chars = handPower(s), manual = true, countManual = true, subject = s.subject, automation = false, progressLimit = Infinity } = {}) {
   if (!(chars > 0) || !Number.isFinite(chars)) return { kind: 'none', amount: 0 };
   if (mode === 'study' && !hasStudyMaterial(s, subject)) return { kind: 'textbook', amount: 0 };
   if(mode==='dev' && activePlanningProject(s) && s.planner.allocation==='assets' && !s.refactor)return automation?produceCustomAssets(s,{effort:Math.min(LIMIT,chars),manual:false,automation:true}):{kind:'assets',amount:0};
@@ -595,6 +753,7 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
   if (mode === 'study') {
     const before = skillKnowledge(s,subject),gain=studyGain(s,chars,subject);
     s.skills[subject] = add(s.skills[subject],gain);
+    if(automation){s.stats.autoStudyKnowledge ||= Object.fromEntries(SKILLS.map(skill=>[skill.id,0]));s.stats.autoStudyKnowledge[subject]=add(s.stats.autoStudyKnowledge[subject] || 0,gain);}
     s.studyGaps ||= Object.fromEntries(SKILLS.map(k=>[k.id,0]));
     const gap=s.studyGaps[subject] || 0,verified=automation?0:Math.min(gap,gain);
     s.studyGaps[subject]=Math.min(s.skills[subject],automation?add(gap,gain*AUTO_STUDY_UNVERIFIED):Math.max(0,gap-verified));
@@ -632,7 +791,8 @@ export function input(s, { mode = s.mode, chars = handPower(s), manual = true, c
       return { kind: 'crash', amount: 0 };
     }
   }
-  const accepted=developmentGain(s,chars,manual);
+  const implementationLimit=firstProjectQuizMode(s)?Math.min(progressLimit,firstProjectPart(s).end):progressLimit;
+  const accepted=Math.min(developmentGain(s,chars,manual),Math.max(0,implementationLimit-s.progress));
   if(!s.progress && !s.debt)s.reviewedAt=s.stats.time;
   const risk=planningRisk(s);
   const introducedDefects=accepted*changeDefectRate(s,debtLimit(s))*(automation?AUTO_DEVELOPMENT_DEFECTS:1)*(1+risk.integration);
@@ -753,7 +913,7 @@ export function release(s) {
   const carriedDebt=level(s,'library')?s.debt*.25:0,reviewedAt=s.reviewedAt;
   const next=index+1;
   s.projectIndex=projectAccess(s,next).allowed?next:index;
-  s.progress=0;s.debt=carriedDebt;s.debtSources=emptyDebtSources();s.debtSources.reuse=carriedDebt;
+  s.quizWork=[];s.progress=0;s.debt=carriedDebt;s.debtSources=emptyDebtSources();s.debtSources.reuse=carriedDebt;
   s.defects=0;s.reviewedAt=carriedDebt?reviewedAt:s.stats.time;s.build=createBuildState();markBuildChanges(s,carriedDebt);
   s.production={};s.mistakes=0;s.crashed=false;s.refactor=false;s.projectCarryover=carriedDebt>0;
   if(carriedDebt)log(s,'次作でも使う共通ライブラリへ、未整理部分の25%を引き継ぎました。');
@@ -773,12 +933,14 @@ export function prestige(s,now=Date.now()){
   fresh.achievements=[...s.achievements];fresh.stats={...s.stats};fresh.settings={...s.settings};fresh.inputStyle=s.inputStyle;
   fresh.skills=Object.fromEntries(SKILLS.map(skill=>[skill.id,skillKnowledge(s,skill.id)]));
   fresh.onlineMaterials=[...s.onlineMaterials];fresh.reading=JSON.parse(JSON.stringify(s.reading));
-  fresh.quiz=JSON.parse(JSON.stringify(s.quiz));fresh.studyStyle=s.studyStyle;
+  fresh.quiz=JSON.parse(JSON.stringify(s.quiz));fresh.skillQuiz=JSON.parse(JSON.stringify(s.skillQuiz));fresh.studyStyle=s.studyStyle;fresh.devStyle=s.devStyle;
+  fresh.stats.autoStudyKnowledge={...s.stats.autoStudyKnowledge};
   fresh.planner.knowledge=JSON.parse(JSON.stringify(s.planner.knowledge));fresh.planner.auto=s.planner.auto;
   fresh.typing=normalizeTypingState(s.typing);
   // A new project must not consume an old partially entered exercise.
   fresh.typing.offset=0;fresh.typing.roundErrors=0;fresh.typing.bonusBase=0;fresh.typing.correction=null;fresh.typing.context='';
   for(let index=1;index<=Math.max(4,s.runBest);index++)if(projectAccess(fresh,index).allowed)fresh.projectIndex=index;
+  if(fresh.projectIndex===0)fresh.quiz.firstParts={};
   fresh.subject=Object.keys(projectAt(fresh.projectIndex).req).find(id=>skillKnowledge(fresh,id)<projectAt(fresh.projectIndex).req[id]) || 'syntax';
   fresh.mode=knowledgeRatio(fresh)>=1?'dev':'study';
   log(fresh,`覚えた遊びと制作の経験を持ち、${fresh.resets+1}回目の開発人生へ。確かめた知識も覚えています。`,'success');
@@ -835,7 +997,8 @@ export function deserialize(raw) {
   if(!(x.balanceVersion>=15))s.office.remaining=Math.max(0,OFFICE_CONTRACT_WORK-s.job.progress-s.ocrJob.progress);
   s.ocr=normalizeOCRLedger(x.ocr);
   if(x.workTask==='correction')s.workTask='correction';
-  for (const k of Object.keys(s.stats)) s.stats[k] = num(x.stats?.[k]);
+  for (const k of Object.keys(s.stats)) if(k!=='autoStudyKnowledge')s.stats[k] = num(x.stats?.[k]);
+  for(const skill of SKILLS)s.stats.autoStudyKnowledge[skill.id]=num(x.stats?.autoStudyKnowledge?.[skill.id]);
   for (const k of Object.keys(s.skills)) {s.skills[k] = num(x.skills?.[k]);s.studyGaps[k]=num(x.studyGaps?.[k],0,0,s.skills[k]);}
   s.onlineMaterials=SKILLS.filter(skill=>Array.isArray(x.onlineMaterials) && x.onlineMaterials.includes(skill.id)).map(skill=>skill.id);
   for (const item of SHOP) s.items[item.id] = Math.floor(num(x.items?.[item.id], 0, 0, item.max || 800));
@@ -848,26 +1011,60 @@ export function deserialize(raw) {
   if (['work', 'study', 'dev'].includes(x.mode)) s.mode = x.mode;
   if (SKILLS.some(k => k.id === x.subject)) s.subject = x.subject;
   if (['click', 'typing'].includes(x.inputStyle)) s.inputStyle = x.inputStyle;
+  if(['quiz','skill-quiz'].includes(x.devStyle))s.devStyle=x.devStyle;
+  s.quizWork=normalizeQuizClaims(x.quizWork);
   s.typing = normalizeTypingState(x.typing);
-  if (['reading','course','quiz'].includes(x.studyStyle)) s.studyStyle = x.studyStyle;
+  if (['reading','course','quiz','skill-quiz'].includes(x.studyStyle)) s.studyStyle = x.studyStyle;
   if (x.settings?.commentLocale === 'en') s.settings.commentLocale = 'en';
   // Rebuild known IDs instead of trusting arbitrary imported object keys.
-  const quizIds = new Set();
+  const quizIds = new Set(),savedCompleted=new Set(Array.isArray(x.quiz?.completed)?x.quiz.completed:[]),savedRewarded=new Set(Array.isArray(x.quiz?.rewarded)?x.quiz.rewarded:[]);
+  for(const language of QUIZ_LANGUAGES){
+    const selected=x.quiz?.firstParts?.[language];
+    if(Number.isSafeInteger(selected) && selected>=0 && selected<FIRST_PROJECT_PARTS.length)s.quiz.firstParts[language]=selected;
+  }
   for (const language of ['cpp', 'csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua']) for (const subject of SKILLS.map(k => k.id)) {
     const key = `${language}/${subject}`, cursor = x.reading?.cursors?.[key];
     const quizCursor = x.quiz?.cursors?.[key];
-    if (Number.isSafeInteger(quizCursor) && quizCursor >= 0 && quizCursor < QUIZ_TOPICS_PER_SUBJECT) s.quiz.cursors[key] = quizCursor;
+    if (Number.isSafeInteger(quizCursor) && quizCursor >= 0 && quizCursor < challengeTopics(language,subject).length) s.quiz.cursors[key] = quizCursor;
+    const skillCursor=x.skillQuiz?.cursors?.[key];
+    if(Number.isSafeInteger(skillCursor) && skillCursor>=0 && skillCursor<skillQuizTopics(language,subject).length)s.skillQuiz.cursors[key]=skillCursor;
     if (Number.isSafeInteger(cursor) && cursor >= 0 && cursor < TOPICS_PER_SUBJECT) s.reading.cursors[key] = cursor;
     for (let index = 0; index < TOPICS_PER_SUBJECT; index++) {
       const id = lessonAt(language, subject, index).baseId, answer = x.reading?.answers?.[id];
-      if (Number.isSafeInteger(answer)) s.reading.answers[id] = answer;
-      const quizId = quizAt(language, subject, index).id; quizIds.add(quizId);
-      if (Array.isArray(x.quiz?.completed) && x.quiz.completed.includes(quizId)) s.quiz.completed.push(quizId);
+      if (isReadingChoice(answer)) s.reading.answers[id] = answer;
+    }
+  }
+  for(const quiz of [...challengeCatalog(),...firstProjectQuizCatalog()]){
+    quizIds.add(quiz.id);
+    if(savedCompleted.has(quiz.id)){
+      s.quiz.completed.push(quiz.id);
+      if(savedRewarded.has(quiz.id))s.quiz.rewarded.push(quiz.id);
     }
   }
   for (const [id,source] of Object.entries(x.quiz?.drafts && typeof x.quiz.drafts==='object' ? x.quiz.drafts : {}).slice(-12)) {
     if (quizIds.has(id) && typeof source==='string' && source.length<=QUIZ_DRAFT_LIMIT) s.quiz.drafts[id]=source;
   }
+  s.quiz.implemented=normalizeQuizClaims([...(Array.isArray(x.quiz?.implemented)?x.quiz.implemented:[]),...s.quizWork,
+    ...(Array.isArray(s.planner.tutorial?.work?.quizWork)?s.planner.tutorial.work.quizWork:[]),...s.planner.projects.flatMap(project=>Array.isArray(project.work?.quizWork)?project.work.quizWork:[])]);
+  const restoreVerification=(records,ids,lookup,target)=>{
+    if(!records || typeof records!=='object' || Array.isArray(records))return;
+    for(const id of ids){
+      const record=records[id],lesson=lookup(id);
+      if(!record || typeof record!=='object' || Array.isArray(record) || !lesson)continue;
+      if(!Number.isFinite(record.nominal) || record.nominal<0 || !Number.isFinite(record.automatic) || record.automatic<0)continue;
+      target[id]={nominal:num(record.nominal,0,0,LIMIT),automatic:Math.min(record.automatic,s.stats.autoStudyKnowledge[lesson.subject])};
+    }
+  };
+  restoreVerification(x.quiz?.verifiedAt,s.quiz.rewarded,id=>challengeById(id) || firstProjectQuizById(id),s.quiz.verifiedAt);
+  const skillIds=new Set(),savedSkillCompleted=new Set(Array.isArray(x.skillQuiz?.completed)?x.skillQuiz.completed:[]);
+  for(const language of QUIZ_LANGUAGES)for(const skill of SKILLS)for(let index=0;index<skillQuizTopics(language,skill.id).length;index++){
+    const id=skillQuizAt(language,skill.id,index).id;skillIds.add(id);
+    if(savedSkillCompleted.has(id))s.skillQuiz.completed.push(id);
+  }
+  for(const [id,answer] of Object.entries(x.skillQuiz?.drafts && typeof x.skillQuiz.drafts==='object'?x.skillQuiz.drafts:{}).slice(-12)){
+    if(skillIds.has(id) && typeof answer==='string' && answer.length<=SKILL_QUIZ_ANSWER_LIMIT)s.skillQuiz.drafts[id]=answer;
+  }
+  restoreVerification(x.skillQuiz?.verifiedAt,s.skillQuiz.completed,skillQuizById,s.skillQuiz.verifiedAt);
   for (const k of ['refactor', 'autoEnabled', 'crashed']) if (typeof x[k] === 'boolean') s[k] = x[k];
   if(!(x.balanceVersion>=12) && s.refactor && s.typing.context.startsWith('dev/') && !s.typing.context.endsWith('/review'))s.typing.context+='/review';
   for (const k of ['sound','reducedMotion']) if (typeof x.settings?.[k] === 'boolean') s.settings[k] = x.settings[k];
