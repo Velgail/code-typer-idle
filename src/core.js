@@ -64,7 +64,7 @@ export function projectAt(index) {
   return { name: `多元宇宙エンジン / 第${n}世代`, genre: 'ENDLESS / ANOTHER SPECIFICATION', online: true, serverDaily: Math.min(LIMIT, 5e11 * pow(50, n - 1)), target: Math.min(LIMIT, 1e15 * pow(40, scope)), req: { syntax: Math.min(LIMIT, 1e6 * pow(3, understanding)), design: Math.min(LIMIT, 2e6 * pow(3, understanding)), graphics: Math.min(LIMIT, 1.5e6 * pow(3, understanding)), systems: Math.min(LIMIT, 3e6 * pow(3, understanding)) }, payout: Math.min(LIMIT, 1e16 * pow(50, n - 1)), royalty: Math.min(LIMIT, 1e13 * pow(50, n - 1)), desc: '配信中の宇宙を増やすたび、次の宇宙の要件定義が届く。', icon: String(index + 1).padStart(2, '0') };
 }
 export const SHOP = [
-  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習量 +100% / Lv（加算）。ChallengeはLv1で応用、Lv2で発展、Lv3で競技、Lv4で難関を解禁`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
+  ...SKILLS.map((s, i) => ({ id: `book-${s.id}`, tab: 'books', name: ['プログラミング基礎教本', '設計パターンの教科書', 'ゲーム描画のしくみ', '最適化と分散システム'][i], desc: `${s.name}の学習量 +100% / Lv（加算）。この分野のChallengeを必要な教本Lvに応じて解禁`, base: [1500, 6000, 8000, 30000][i], growth: 3, type: 'book', skill: s.id, glyph: 'book', gate: 0 })),
   { id: 'keyboard', tab: 'gear', name: 'メカニカルキーボード', desc: '手動入力の文字数 +25% / Lv（加算）', base: 1800, growth: 2.5, type: 'gear', glyph: 'keyboard', gate: 0 },
   { id: 'monitor', tab: 'gear', name: 'デュアルモニター', desc: 'すべての学習量 +25% / Lv（加算）', base: 3000, growth: 2.5, type: 'gear', glyph: 'monitor', gate: 0 },
   { id: 'ide', tab: 'gear', name: 'IDE・コード補完', desc: '手動開発 +35% / Lv（完全理解時・加算）', base: 10000, growth: 3, type: 'gear', glyph: 'code', gate: 1 },

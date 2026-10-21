@@ -76,6 +76,26 @@ test('contract and geometry families have explicit requirements and independent 
  }
 });
 
+test('direct state contracts and standard geometry have authored difficulty reasons without advanced-label inflation',()=>{
+ const profiles={
+  'atomic-transfer-batch':[2,6],'idempotent-stock-requests':[2,7],
+  'optimistic-versioned-save':[2,5],'retry-deadline-policy':[3,8],
+  'largest-histogram-rectangle':[3,10],'rectangle-union-area':[3,12]
+ };
+ for(const [slug,[difficulty,minutes]] of Object.entries(profiles)){
+  const def=get(slug),rationale=def.difficultyRationale;
+  assert.equal(def.difficulty,difficulty,slug);
+  assert.equal(def.minutes,minutes,slug);
+  assert.ok(rationale.requiredSkills.length>=2,slug);
+  assert.ok(rationale.reasoning.length>=2,slug);
+  assert.equal(typeof rationale.constraintRole,'string',slug);
+  assert.ok(rationale.constraintRole.length>20,slug);
+  assert.match(rationale.timeBasis,/暫定の報酬基準/,slug);
+  assert.match(rationale.timeBasis,/実測.*換算ではない/,slug);
+  assert.ok(!def.description.includes(rationale.constraintRole),'developer rationale is separate from the public statement');
+ }
+});
+
 for(const def of definitions)test(`${def.slug}: reference model meets all boundary and scale cases`,()=>{
  for(const args of def.cases)assert.deepEqual(model(def,args),def.oracle(args),`${def.slug}: ${JSON.stringify(args).slice(0,180)}`);
 });

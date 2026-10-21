@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {challengeCatalog,challengeById} from '../src/challengecatalog.js';
+import {registerContestChallenges} from '../src/contestchallenges.js';
 const subjects={
  'binary-search-minimum-capacity':'syntax','weighted-interval-planning':'syntax',
  'traveling-courier':'systems','key-door-shortest-path':'systems',
@@ -27,11 +28,40 @@ test('contest algorithms share authored contracts and cases across seven languag
    }
   }
  }
- assert.equal(question('traveling-courier').difficulty,6);
- assert.equal(question('key-door-shortest-path').difficulty,6);
- assert.equal(question('dynamic-range-sums').difficulty,4,'small range-query fixtures are not advertised as contest-scale complexity enforcement');
- assert.equal(question('dynamic-range-sums').estimatedMinutes,15);
+ assert.equal(question('traveling-courier').difficulty,3,'a standard subset-state tour does not acquire a hard label from its algorithm name');
+ assert.equal(question('key-door-shortest-path').difficulty,3,'permanent-key BFS remains a standard state-expansion problem');
+ assert.equal(question('dynamic-range-sums').difficulty,2,'small range-query fixtures permit direct array updates and scans');
+ assert.equal(question('dynamic-range-sums').estimatedMinutes,6);
  assert.match(question('dynamic-range-sums').concept,/参考実装/);
+});
+
+test('standard families have reviewed difficulty and reward pacing without an advanced-label premium',()=>{
+ const profiles={
+  'binary-search-minimum-capacity':[3,10],'weighted-interval-planning':[3,12],
+  'traveling-courier':[3,12],'key-door-shortest-path':[3,12],
+  'interval-merge-cost':[3,12],'dynamic-range-sums':[2,6]
+ };
+ for(const [slug,[difficulty,minutes]] of Object.entries(profiles))for(const language of ['cpp','csharp','rust','go','python','java','lua']){
+  const q=question(slug,language);
+  assert.equal(q.difficulty,difficulty,q.id);
+  assert.equal(q.estimatedMinutes,minutes,q.id);
+ }
+});
+
+test('each standard algorithm records the required reasoning and actual role of its constraints',()=>{
+ const authored=[];
+ const ir=new Proxy({B:['break']},{get:(target,name)=>name in target?target[name]:(...args)=>[name,...args]});
+ registerContestChallenges((...args)=>authored.push({slug:args[1],description:args[10],rationale:args[12].difficultyRationale}),ir);
+ assert.equal(authored.length,6);
+ for(const {slug,description,rationale} of authored){
+  assert.equal(rationale.classification,slug==='dynamic-range-sums'?'direct-implementation':'standard-pattern',slug);
+  assert.ok(rationale.requiredSkills.length>=2,slug);
+  assert.ok(rationale.reasoning.length>=2,slug);
+  assert.ok(rationale.constraintRole.length>20,slug);
+  assert.match(rationale.timeBasis,/暫定の報酬基準/,slug);
+  assert.match(rationale.timeBasis,/実測.*換算ではない/,slug);
+  assert.ok(!description.includes(rationale.constraintRole),'developer rationale is separate from the public statement');
+ }
 });
 
 test('capacity planning cases reject average-only, heaviest-only and reordering shortcuts',()=>{

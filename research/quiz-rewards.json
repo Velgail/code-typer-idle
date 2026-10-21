@@ -65,45 +65,45 @@
       ]
     },
     "challenge": {
-      "count": 1108,
+      "count": 1122,
       "estimatedMinutes": {
         "min": 2,
-        "mean": 7.540613718411552,
-        "median": 4,
-        "max": 55
+        "mean": 6.161319073083779,
+        "median": 5,
+        "max": 25
       },
       "difficultyCounts": {
         "1": 285,
-        "2": 516,
-        "3": 151,
-        "4": 107,
-        "5": 28,
-        "6": 21
+        "2": 544,
+        "3": 207,
+        "4": 72,
+        "5": 14,
+        "6": 0
       },
       "languages": [
         {
           "language": "cpp",
-          "count": 140
+          "count": 142
         },
         {
           "language": "csharp",
-          "count": 140
+          "count": 142
         },
         {
           "language": "rust",
-          "count": 140
+          "count": 142
         },
         {
           "language": "go",
-          "count": 140
+          "count": 142
         },
         {
           "language": "python",
-          "count": 140
+          "count": 142
         },
         {
           "language": "java",
-          "count": 140
+          "count": 142
         },
         {
           "language": "sql",
@@ -111,7 +111,7 @@
         },
         {
           "language": "lua",
-          "count": 140
+          "count": 142
         }
       ]
     }

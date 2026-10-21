@@ -12,14 +12,14 @@
   },
   "totals": {
     "quizzes": 1024,
-    "challenges": 1108,
+    "challenges": 1122,
     "firstProjectChallenges": 24,
-    "newChallenges": 596,
-    "challengeFamilies": 316,
-    "executableTestCases": 16966
+    "newChallenges": 610,
+    "challengeFamilies": 318,
+    "executableTestCases": 17232
   },
   "coverage": {
-    "arrayInput": 392,
+    "arrayInput": 406,
     "stringInput": 135,
     "arrayOutput": 330,
     "stringOutput": 42
@@ -40,16 +40,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -67,17 +67,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -96,17 +96,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -119,22 +119,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -152,16 +152,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -179,17 +179,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -208,17 +208,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -231,22 +231,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -264,16 +264,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -291,17 +291,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -320,17 +320,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -343,22 +343,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -376,16 +376,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -403,17 +403,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -432,17 +432,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -455,22 +455,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -488,16 +488,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -515,17 +515,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -544,17 +544,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -567,22 +567,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -600,16 +600,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -627,17 +627,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -656,17 +656,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -679,22 +679,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     },
     {
@@ -824,16 +824,16 @@
       "challengeByDifficulty": [
         11,
         19,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
         30,
-        2,
+        4,
         0,
-        2,
+        0,
         0
       ]
     },
@@ -851,17 +851,17 @@
       "newChallengeCount": 22,
       "challengeByDifficulty": [
         10,
-        18,
-        4,
-        5,
-        1,
+        22,
+        6,
+        0,
+        0,
         0
       ],
       "challengeByRequiredBookLevel": [
-        28,
-        4,
-        5,
-        1,
+        32,
+        6,
+        0,
+        0,
         0
       ]
     },
@@ -880,17 +880,17 @@
       "challengeByDifficulty": [
         7,
         21,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ],
       "challengeByRequiredBookLevel": [
         28,
-        3,
+        5,
         1,
-        1,
-        1
+        0,
+        0
       ]
     },
     {
@@ -903,22 +903,22 @@
         8,
         8
       ],
-      "challengeCount": 34,
-      "newChallengeCount": 18,
+      "challengeCount": 36,
+      "newChallengeCount": 20,
       "challengeByDifficulty": [
         7,
         10,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ],
       "challengeByRequiredBookLevel": [
         17,
-        8,
+        10,
         7,
-        0,
-        2
+        2,
+        0
       ]
     }
   ]

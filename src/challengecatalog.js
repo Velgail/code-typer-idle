@@ -4,6 +4,8 @@ import { quizAt, quizById, quizCatalog, QUIZ_LANGUAGES, QUIZ_SUBJECTS } from './
 import { SQL_CHALLENGES } from './challengesql.js';
 import { registerContestChallenges } from './contestchallenges.js';
 import { registerContractChallenges } from './contractchallenges.js';
+import { registerCompoundDeliveryChallenges } from './compounddelivery.js';
+import { registerCompoundRouteChallenges } from './compoundroute.js';
 
 export const CHALLENGE_LANGUAGES = QUIZ_LANGUAGES;
 export const CHALLENGE_SUBJECTS = QUIZ_SUBJECTS;
@@ -106,6 +108,8 @@ D('systems','postfix-evaluation','後置式を安全に評価','スタックに�
 const authoringIR={V,S,A,P,O,C,F,W,R,B,T,N,add,sub,mul,div,mod,eq,ne,lt,le,gt,ge,and,or,band,bor,shl,at,len,ch,filled,copy,text,min,max,abs};
 registerContestChallenges(D,authoringIR);
 registerContractChallenges(D,authoringIR);
+registerCompoundDeliveryChallenges(D,authoringIR);
+registerCompoundRouteChallenges(D,authoringIR);
 
 // Authoring-only oracle. Submitted code is never interpreted here: the runner
 // compiles it with the real language runtime and compares JSON values.
@@ -300,6 +304,7 @@ function buildIO(language,def,index){
  if(def.examples)q.examples=structuredClone(def.examples);
  if(def.assessment)q.assessment=structuredClone(def.assessment);
  if(def.scaleNotes)q.scaleNotes=[...def.scaleNotes];
+ if(def.difficultyRationale)q.difficultyRationale=structuredClone(def.difficultyRationale);
  q.createHarness=source=>ioHarness(q,source);cache.set(id,q);return q;
 }
 function sqlQuestions(subject){return SQL_CHALLENGES.filter(q=>q.subject===subject);}

@@ -20,11 +20,11 @@ test('legacy exercises preserve their exact identifiers and numeric harnesses as
   assert.match(q.description,/実装方法は自由/);
  }
 });
-test('published IO tasks retain their positions and twelve appended families share seven language implementations',()=>{
+test('published IO tasks retain their positions and fourteen appended families share seven language implementations',()=>{
  assert.equal(CHALLENGE_LANGUAGES.length,8);assert.equal(CHALLENGE_SUBJECTS.length,4);
- assert.equal(catalog.length,1108);assert.equal(additions.length,596);assert.equal(new Set(catalog.map(q=>q.id)).size,catalog.length);
+ assert.equal(catalog.length,1122);assert.equal(additions.length,610);assert.equal(new Set(catalog.map(q=>q.id)).size,catalog.length);
  for(const language of CHALLENGE_LANGUAGES)for(const subject of CHALLENGE_SUBJECTS){
-  const count=language==='sql'?32:subject==='design'?38:34;
+  const count=language==='sql'?32:subject==='design'?38:subject==='systems'?36:34;
   const topics=challengeTopics(language,subject);assert.equal(topics.length,count,`${language}/${subject}`);
   assert.equal(topics.filter(q=>!q.legacy).length,count-16);assert.equal(new Set(topics.map(q=>q.familyId)).size,count);
   topics.forEach((q,index)=>{assert.equal(q.index,index);assert.equal(challengeAt(language,subject,index),q);assert.equal(challengeById(q.id),q);});
@@ -39,7 +39,7 @@ test('challenge metadata distinguishes complexity, concepts, estimated thought t
  }
  for(const language of CHALLENGE_LANGUAGES.filter(l=>l!=='sql')){
   const qs=additions.filter(q=>q.language===language);
-  assert.equal(new Set(qs.map(q=>q.familyId)).size,76);assert.ok(qs.some(q=>q.difficulty===4));
+  assert.equal(new Set(qs.map(q=>q.familyId)).size,78);assert.ok(qs.some(q=>q.difficulty===4));
   assert.ok(qs.some(q=>q.parameters.some(p=>p.type==='array')));assert.ok(qs.some(q=>q.parameters.some(p=>p.type==='string')));
   assert.ok(qs.some(q=>q.resultType==='array'));assert.ok(qs.some(q=>q.resultType==='string'));
  }

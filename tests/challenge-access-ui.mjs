@@ -49,7 +49,9 @@ export async function verifyChallengeAccessUI(browser,url,errors){
     assert.equal(await page.locator('.quiz-source').getAttribute('readonly'),null);
     const input=await page.locator('.quiz-source').elementHandle();
     const before=await saved(page);
-    for(const difficulty of [3,4,5,6]){
+    const publishedDifficulties=[...new Set(SKILLS.flatMap(skill=>challengeTopics('cpp',skill.id).map(quiz=>quiz.difficulty)))].filter(level=>level>=3).sort((a,b)=>a-b);
+    assert.ok(publishedDifficulties.includes(5),'compound tasks are present in the tiered catalog');
+    for(const difficulty of publishedDifficulties){
       const subject=SKILLS.find(skill=>challengeTopics('cpp',skill.id).some(quiz=>quiz.difficulty===difficulty))?.id;
       assert.ok(subject,`C++ contains real difficulty ${difficulty} tasks`);
       const pool=challengeTopics('cpp',subject);
@@ -117,6 +119,7 @@ export async function verifyChallengeAccessUI(browser,url,errors){
     const before=await saved(review.page);await run(review.page);const after=await saved(review.page);
     assert.deepEqual(after.skills,before.skills,'review does not grant a second first-clear learning reward');
     assert.equal(after.quiz.completed.filter(id=>id===applied.id).length,1);
+    await review.page.locator('[data-subject=systems]').click();
     await review.page.locator('.quiz-difficulty-select').selectOption('5');
     assert.equal(await review.page.locator('#quiz-panel').getAttribute('data-challenge-access'),'locked','an uncompleted harder task still needs its book tier');
   }finally{await review.context.close();}
