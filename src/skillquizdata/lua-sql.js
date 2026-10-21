@@ -1,11 +1,36 @@
 // Original, bounded syntax exercises. Difficulty is grouped in blocks of eight.
 // These are syntax/technique questions; free implementations live in Challenges.
+// Accept the usual spellings of the same construct, without accepting arbitrary
+// code that happens to produce the example output.
+const acceptedSpellings = {
+  lua: {
+    'syntax/parenthesized-return': ['((lookup()))'],
+    'syntax/hexadecimal-float': ['0X1.8p2', '0x1.8P2', '0X1.8P2', '0x1.8p+2'],
+    'design/constructor-fresh-table': ['{["health"] = 100}', "{['health'] = 100}", '{health = 100,}', '{health = 100;}'],
+    'design/return-error-pair': ["nil, 'not found'"]
+  },
+  sql: {
+    'syntax/left-join': ['LEFT OUTER JOIN'],
+    'design/junction-table': ['INNER JOIN', 'CROSS JOIN'],
+    'design/generated-column': ['AS'],
+    'systems/transaction-commit': ['COMMIT TRANSACTION', 'END', 'END TRANSACTION'],
+    'systems/transaction-rollback': ['ROLLBACK TRANSACTION'],
+    'systems/savepoint-release': ['RELEASE SAVEPOINT'],
+    'systems/foreign-keys-on': ['1', 'TRUE', 'YES'],
+    'systems/immediate-write-transaction': ['IMMEDIATE TRANSACTION'],
+    'systems/rollback-to-savepoint': ['ROLLBACK TO SAVEPOINT', 'ROLLBACK TRANSACTION TO', 'ROLLBACK TRANSACTION TO SAVEPOINT'],
+    'systems/rename-column': ['RENAME'],
+    'systems/attach-database': ['ATTACH']
+  }
+};
 function questions(language, subject, rows) {
   if (rows.length !== 32) throw new Error(`${language}/${subject}: expected 32 authored questions`);
   return rows.map(([slug, title, prompt, code, answer, incorrect, explanation, extra = {}], index) => ({
     id: `${subject}/${slug}`, subject, concept: slug, title,
     difficulty: 1 + Math.floor(index / 8), minutes: [0.5, 1, 2, 3.5][Math.floor(index / 8)],
-    prompt, code, answer, incorrect, explanation, ...extra
+    prompt, code, answer, incorrect, explanation,
+    ...(acceptedSpellings[language]?.[`${subject}/${slug}`] ? {alternatives: acceptedSpellings[language][`${subject}/${slug}`]} : {}),
+    ...extra
   }));
 }
 const luaSyntax = questions('lua', 'syntax', [
@@ -175,7 +200,7 @@ print(wallet()(5))`, 'local', ['public','global'], '外側のlocal変数は内�
 local M = {}
 function M.double(value) return value * 2 end
 ____ M`, 'return', ['export','yield'], 'Luaのモジュールは通常、チャンク末尾でAPIテーブルをreturnする。'],
-  ['constructor-fresh-table','別々の状態を作る','コンストラクターごとに新しいテーブルを作り、複数プレイヤーの状態を共有させない。',`-- Allocate independent state for each player.
+  ['constructor-fresh-table','別々の状態を作る','healthを100で初期化した新しいテーブルを返し、複数プレイヤーの状態を共有させない。',`-- Allocate independent state for each player.
 local function create_player()
     return ____
 end
@@ -254,7 +279,7 @@ local function buffer(capacity)
     return {capacity = capacity}
 end
 print(buffer(8).capacity)`, 'assert', ['pcall','type'], 'assertは条件が偽またはnilならエラーにする。条件を調べるだけのtypeでは拒否できない。'],
-  ['return-error-pair','予想できる失敗を返す','未登録キーの場合はnilと理由を返し、通常の失敗を戻り値で伝える。',`-- Represent a missing entry without raising an exception.
+  ['return-error-pair','予想できる失敗を返す','未登録キーの場合はnilと理由の文字列not foundを返し、通常の失敗を戻り値で伝える。',`-- Represent a missing entry without raising an exception.
 local function lookup(stock, key)
     if stock[key] == nil then return ____ end
     return stock[key]
@@ -765,7 +790,7 @@ CREATE TABLE players(id INTEGER PRIMARY KEY,name TEXT);
 CREATE TABLE teams(id INTEGER PRIMARY KEY,name TEXT);
 CREATE TABLE memberships(player_id INTEGER,team_id INTEGER,PRIMARY KEY(player_id,team_id));
 SELECT p.name,t.name FROM players p JOIN memberships m ON m.player_id=p.id
-____ teams t ON t.id=m.team_id;`, 'JOIN', ['UNION','GROUP BY'], '多対多の組を別の表へ置くと、各参照に制約を付けたり、結合で一覧を求めたりできる。'],
+____ teams t ON t.id=m.team_id;`, 'JOIN', ['UNION','GROUP BY'], '多対多の組を別の表へ置くと、各参照に制約を付けたり、結合で一覧を求めたりできる。SQLiteではCROSS JOINにもON条件を書けるため、この問い合わせでは同じ所属を取り出せる。'],
   ['distinct-related-count','結合後の人数を数える','COUNT(DISTINCT ...)で、複数スコアがあるプレイヤーを重複して数えない。',`-- Count unique players after joining one-to-many rows.
 CREATE TABLE players(id INTEGER PRIMARY KEY);
 CREATE TABLE scores(player_id INTEGER,score INTEGER);
@@ -794,11 +819,11 @@ WITH RECURSIVE tree(id,path) AS (
 SELECT id,name FROM nodes WHERE parent_id IS NULL
 UNION ALL SELECT n.id,t.path ____ '/' || n.name FROM nodes n JOIN tree t ON n.parent_id=t.id)
 SELECT path FROM tree;`, '||', ['+','OR'], 'SQLiteの文字列連結は||。+は数値演算として扱われる。'],
-  ['generated-column','派生値を一か所で定義する','GENERATED ALWAYS ASで合計価格の式を定義し、元の列から計算する。',`-- Derive the total instead of asking every writer to maintain it.
+  ['generated-column','派生値を一か所で定義する','生成列として合計価格の式を定義し、元の列から計算する。',`-- Derive the total instead of asking every writer to maintain it.
 CREATE TABLE lines(quantity INTEGER,price INTEGER,
 total INTEGER ____ (quantity * price) VIRTUAL);
 INSERT INTO lines(quantity,price) VALUES (2,30);
-SELECT total FROM lines;`, 'GENERATED ALWAYS AS', ['DEFAULT','CHECK'], '生成列は元の列の式から値を求める。書き込み側が合計を別に更新する必要を減らせる。'],
+SELECT total FROM lines;`, 'GENERATED ALWAYS AS', ['DEFAULT','CHECK'], '生成列は元の列の式から値を求める。SQLiteではGENERATED ALWAYSを省いてASと書くこともできる。書き込み側が合計を別に更新する必要を減らせる。'],
   ['json-array-normalization','配列要素を行にする','json_eachでJSON配列を行へ展開し、各要素を問い合わせる。',`-- Turn array elements into relational rows for this import.
 SELECT value FROM ____('[' || '"key","map"' || ']');`, 'json_each', ['json_extract','json_array'], 'json_eachは表値関数。永続的な関係の格納には、外部キーを持つ通常の子表も検討する。'],
   ['relational-division','すべての条件を満たす','二重のNOT EXISTSで、必須品目を1つも欠かさず持つプレイヤーを選ぶ。',`-- Reject a player when any required item is missing.
@@ -910,13 +935,13 @@ INSERT INTO states VALUES (0,'idle'),(1,'idle'),(2,'run');
 SELECT tick,label ____ lag(label) OVER (ORDER BY tick) AS starts_segment FROM states;`, 'IS NOT', ['!=','IS'], 'IS NOTはNULLを含む比較でも真偽を返す。通常の!=では先頭のNULL比較がNULLになる。']
 ]);
 const sqlSystems = questions('sql', 'systems', [
-  ['transaction-commit','変更をまとめて確定する','COMMITでトランザクションの変更を確定する。',`-- Commit both balance updates as one unit.
+  ['transaction-commit','変更をまとめて確定する','トランザクションの変更を確定する文を入力する。',`-- Commit both balance updates as one unit.
 CREATE TABLE balances(id INTEGER PRIMARY KEY,coins INTEGER);
 INSERT INTO balances VALUES (1,10),(2,0);
 BEGIN;
 UPDATE balances SET coins=coins-3 WHERE id=1;
 UPDATE balances SET coins=coins+3 WHERE id=2;
-____;`, 'COMMIT', ['ROLLBACK','SAVEPOINT'], 'BEGINからの変更をCOMMITで確定する。途中の更新だけを外へ見せる設計を避けられる。'],
+____;`, 'COMMIT', ['ROLLBACK','SAVEPOINT'], 'BEGINからの変更をCOMMITで確定する。SQLiteのENDも同じ意味で、どちらも末尾のTRANSACTIONは省略できる。途中の更新だけを外へ見せる設計を避けられる。'],
   ['transaction-rollback','変更を取り消す','ROLLBACKで、まだ確定していない更新を取り消す。',`-- Discard the tentative balance change.
 CREATE TABLE balances(coins INTEGER);
 INSERT INTO balances VALUES (10);
@@ -940,8 +965,8 @@ CREATE ____ saves_player ON saves(player_id);`, 'INDEX', ['VIEW','TRIGGER'], '�
 CREATE TABLE saves(player_id INTEGER);
 CREATE INDEX old_lookup ON saves(player_id);
 DROP ____ old_lookup;`, 'INDEX', ['TABLE','COLUMN'], 'DROP INDEXは索引を削除する。テーブル本体や保存行は削除しない。'],
-  ['foreign-keys-on','参照制約を有効にする','SQLiteのforeign_keysをONにし、この接続で外部キーを検査する。',`-- Enforce foreign keys for this database connection.
-PRAGMA foreign_keys = ____;`, 'ON', ['OFF','NULL'], 'SQLiteでは接続ごとの設定を確認する。トランザクション中の切り替えは有効にならない。'],
+  ['foreign-keys-on','参照制約を有効にする','SQLiteのforeign_keysを有効にし、この接続で外部キーを検査する。',`-- Enforce foreign keys for this database connection.
+PRAGMA foreign_keys = ____;`, 'ON', ['OFF','NULL'], '有効化にはON、1、TRUE、YESを使える。SQLiteでは接続ごとの設定を確認する。トランザクション中の切り替えは有効にならない。'],
   ['integrity-check','DBの整合性を調べる','PRAGMA integrity_checkで、DBファイル内部の整合性を診断する。',`-- Check the database structure for corruption.
 PRAGMA ____;`, 'integrity_check', ['foreign_keys','user_version'], 'integrity_checkは内部構造や索引などを検査する。外部キー違反の調査にはforeign_key_checkを使う。'],
   ['unique-index','索引で一意性を守る','UNIQUE INDEXを使い、重複しない外部IDを保証する。',`-- Prevent duplicate external account identifiers.
@@ -995,10 +1020,10 @@ CREATE TABLE settings(name TEXT PRIMARY KEY,value INTEGER) ____;`, 'STRICT', ['T
   ['without-rowid','複合主キーで格納する','WITHOUT ROWIDで、複合主キーを中心とした表にする。',`-- Use the composite key as the table's storage identity.
 CREATE TABLE chunks(world_id INTEGER,x INTEGER,y INTEGER,
 PRIMARY KEY(world_id,x,y)) ____;`, 'WITHOUT ROWID', ['WITHOUT INDEX','NO ROWID'], 'WITHOUT ROWID表には主キーが必要。通常表のrowidとは異なる格納方式になる。'],
-  ['rename-column','列名を移行する','ALTER TABLEのRENAME COLUMNで、既存列の名前を変更する。',`-- Rename the stored field without rebuilding it by hand.
+  ['rename-column','列名を移行する','ALTER TABLEで、既存列の名前を変更する節を入力する。',`-- Rename the stored field without rebuilding it by hand.
 CREATE TABLE saves(id INTEGER PRIMARY KEY,old_title TEXT);
-ALTER TABLE saves ____ old_title TO title;`, 'RENAME COLUMN', ['UPDATE COLUMN','AS'], '対応するSQLiteではRENAME COLUMNを使える。依存する問い合わせやビューへの影響も確認する。'],
-  ['attach-database','別DBを同じ接続で読む','ATTACH DATABASEで一時的な別DBを接続し、cacheスキーマとして参照する。',`-- Attach an independent in-memory database under a schema name.
+ALTER TABLE saves ____ old_title TO title;`, 'RENAME COLUMN', ['UPDATE COLUMN','AS'], '対応するSQLiteではRENAME COLUMNを使える。COLUMNは省略できる。依存する問い合わせやビューへの影響も確認する。'],
+  ['attach-database','別DBを同じ接続で読む','ATTACHで一時的な別DBを接続し、cacheスキーマとして参照する。',`-- Attach an independent in-memory database under a schema name.
 ____ ':memory:' AS cache;
 CREATE TABLE cache.entries(key TEXT PRIMARY KEY,value TEXT);`, 'ATTACH DATABASE', ['OPEN DATABASE','CREATE DATABASE'], 'ATTACHしたDBはschema.tableで参照する。同じ接続から扱えるが、主DBの表になるわけではない。'],
   ['schema-version','移行番号を記録する','user_versionへアプリ側のスキーマ移行番号を保存する。',`-- Record the application-managed schema migration version.

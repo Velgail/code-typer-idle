@@ -6,6 +6,7 @@ import {skillQuizCatalog,skillQuizById,gradeSkillQuiz,SKILL_QUIZ_LANGUAGES,SKILL
 import {challengeCatalog} from '../src/challengecatalog.js';
 import {firstProjectQuizCatalog} from '../src/firstproject.js';
 import {BALANCE_VERSION} from '../src/core.js';
+import {requiredChallengeBookLevel} from '../src/challengeaccess.js';
 const quizzes=skillQuizCatalog(),challenges=challengeCatalog(),first=firstProjectQuizCatalog();
 for(const quiz of quizzes){
  assert.equal(quiz.code.split('____').length,2,quiz.id);
@@ -16,11 +17,11 @@ for(const quiz of quizzes){
 const rows=SKILL_QUIZ_LANGUAGES.flatMap(language=>SKILL_QUIZ_SUBJECTS.map(subject=>{
  const syntax=quizzes.filter(q=>q.language===language&&q.subject===subject),io=challenges.filter(q=>q.language===language&&q.subject===subject);
  return {language,subject,quizCount:syntax.length,quizByDifficulty:[1,2,3,4].map(difficulty=>syntax.filter(q=>q.difficulty===difficulty).length),challengeCount:io.length,newChallengeCount:io.filter(q=>q.id.startsWith('challenge/')).length,
-  challengeByDifficulty:[1,2,3,4].map(difficulty=>io.filter(q=>q.difficulty===difficulty).length)};
+  challengeByDifficulty:[1,2,3,4,5,6].map(difficulty=>io.filter(q=>q.difficulty===difficulty).length),challengeByRequiredBookLevel:[0,1,2,3,4].map(level=>io.filter(q=>requiredChallengeBookLevel(q)===level).length)};
 }));
-const report={schemaVersion:1,balanceVersion:BALANCE_VERSION,reproduce:'node scripts/analyze-learning-catalog.mjs --write',
+const report={schemaVersion:2,balanceVersion:BALANCE_VERSION,reproduce:'node scripts/analyze-learning-catalog.mjs --write',
  interpretation:{quiz:'Constrained blanks with an explicit required technique and full lexical-token answer validation. Not an arbitrary-program compiler.',challenge:'Open implementations tested by real browser language runtimes. Correct alternative algorithms are accepted.',
-  counts:'Language-specific questions are counted individually. A shared Challenge family translated into another language is not counted as a new algorithm.',times:'Per-question estimatedMinutes are authored pacing targets. Reading, thinking and retry time have not been measured in a human study.',typing:'The existing 8192 built-in copying prompts are 512 templates with 16 input-data variants; they are not 8192 distinct concepts. Exercism copying courses remain separate.'},
+  counts:'Language-specific questions are counted individually. A shared Challenge family translated into another language is not counted as a new algorithm.',access:'Challenge difficulty 1-2 uses free materials; levels 3-6 require subject textbook levels 1-4. Completed problems remain available for review with subject materials. First-project components remain free.',times:'Per-question estimatedMinutes are authored pacing targets. Reading, thinking and retry time have not been measured in a human study. Competition-style tasks are not calibrated to an AtCoder rating.',typing:'The existing 8192 built-in copying prompts are 512 templates with 16 input-data variants; they are not 8192 distinct concepts. Exercism copying courses remain separate.'},
  totals:{quizzes:quizzes.length,challenges:challenges.length,firstProjectChallenges:first.length,newChallenges:challenges.filter(q=>q.id.startsWith('challenge/')).length,
   challengeFamilies:new Set(challenges.map(q=>q.familyId||q.id)).size,executableTestCases:[...challenges,...first].reduce((sum,q)=>sum+q.cases.length,0)},
  coverage:{arrayInput:challenges.filter(q=>q.parameters?.some(p=>p.type==='array')).length,stringInput:challenges.filter(q=>q.parameters?.some(p=>p.type==='string')).length,

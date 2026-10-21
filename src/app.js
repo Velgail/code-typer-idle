@@ -6,7 +6,7 @@ import {
   buy, input, tick, release, prestige, prestigePreview, applyOffline,
   projectAccess, projectExperience, selectProject, salesForecast, titleSalesRate, remainingSales, availableOfficeWork, shopUnlocked,
   developmentReadiness, learningGoal, readingLesson, nextReading, answerReading, READING_UNITS,
-  quizLesson, nextQuiz, setQuizDraft, completeQuiz, quizRewardPreview, quizEligible, quizContextKey, firstProjectQuizMode,
+  quizLesson, nextQuiz, setQuizDraft, completeQuiz, quizRewardPreview, quizEligible, quizContextKey, firstProjectQuizMode, challengeAccess,
   skillQuizEligible, skillQuizLesson, skillQuizContextKey, setSkillQuizDraft, nextSkillQuiz, completeSkillQuiz, skillQuizRewardPreview,
   defectLimit, developmentEfficiency, developmentGain, maintenanceGain, libraryDebtImport, setDevelopmentPolicy,
   buildStep, needsBuild, runBuild,
@@ -127,6 +127,7 @@ function syncQuizContext() {
 async function submitQuiz(source) {
   if (!activeQuiz() || blocked || paused || quizRunning) return;
   const owner = state, quiz = quizLesson(state), context = quizContextKey(state);
+  if (!challengeAccess(state,quiz).available) { renderQuiz(); return; }
   if (!setQuizDraft(state, source)) return;
   const run = ++quizRun; quizRunning = true; quizResult = null; dirty = true; save(); render();
   let result;
@@ -134,7 +135,7 @@ async function submitQuiz(source) {
   catch (error) { result = { status: 'error', passed: false, cases: [], error: String(error.message || error) }; }
   if (run !== quizRun || owner !== state || !activeQuiz() || quizContextKey(state) !== context || state.quiz.drafts[quiz.id] !== source) return;
   quizRunning = false; quizProgress = ''; quizResult = { ...result, source };
-  if (result.passed && !blocked && !paused) {
+  if (result.passed && !blocked && !paused && challengeAccess(state,quiz).available) {
     const reward = completeQuiz(state, quiz.id);
     quizResult.reward = reward;
     if (reward.kind === 'correct') {
@@ -151,6 +152,7 @@ function renderQuiz() {
   $('quiz-panel').classList.toggle('hidden', !activeQuiz());
   if (!activeQuiz()) return;
   const quiz = quizLesson(state);
+  const access = challengeAccess(state,quiz);
   const completed = completedLesson(state, quiz.lessonBaseId);
   let reviewLesson = null;
   if (completed) {
@@ -164,9 +166,9 @@ function renderQuiz() {
   }
   const firstBuild = firstProjectQuizMode(state);
   const claims = state.mode==='dev' ? state.quizWork : state.quiz.completed;
-  const topics = firstBuild ? FIRST_PROJECT_PARTS.map(part=>({index:part.index,title:part.title,completed:state.progress>=part.end-1e-7})) : challengeTopics(state.typing.language, state.subject).map(q=>({index:q.index,title:`${q.difficultyLabel || '基礎'} · ${q.title}`,completed:claims.includes(q.id)}));
+  const topics = firstBuild ? FIRST_PROJECT_PARTS.map(part=>({index:part.index,title:part.title,completed:state.progress>=part.end-1e-7})) : challengeTopics(state.typing.language, state.subject).map(q=>({index:q.index,title:`${q.difficultyLabel || '基礎'} · ${q.title}`,difficulty:q.difficulty,difficultyLabel:q.difficultyLabel,completed:claims.includes(q.id),...challengeAccess(state,q)}));
   const draft = state.quiz.drafts[quiz.id] ?? quiz.starterSource;
-  const preview = quizRewardPreview(state, quiz);
+  const preview = access.available ? quizRewardPreview(state, quiz) : {};
   const previous = quizResult?.passed && quizResult.source === draft ? quizResult.reward : null;
   const newlyApplicable = previous?.reason && preview.implementationUnits>0;
   const awarded = newlyApplicable ? null : previous;
@@ -183,12 +185,20 @@ function renderQuiz() {
     kind: awarded ? 'awarded' : items.length ? 'preview' : 'claimed',items,
     note: reward.reason || (firstBuild && items.length ? 'この部品の動作をテストし、数当てゲームへ組み込みます。' : items.length ? '初めて解いた課題で学び、作品へ実装します。同じ題材を別言語で解くと60%、同じコードを別作品へ流用すると実装報酬の25%。' : 'この課題の報酬は獲得済みです。何度でも解き直せます。')
   };
-  renderQuizUI({ root: $('quiz-panel'), quiz, reviewLesson, rewardSummary, referenceAvailable: state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: firstBuild ? quiz.firstProjectPart : state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
+  renderQuizUI({ root: $('quiz-panel'), quiz, access, reviewLesson, rewardSummary: access.available ? rewardSummary : null, referenceAvailable: access.available && state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: firstBuild ? quiz.firstProjectPart : state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
     position: firstBuild ? `Challenge · 組込済み ${topics.filter(q=>q.completed).length} / 3部品` : `Challenge · ${quiz.difficultyLabel || '基礎'} · 目安 ${quiz.estimatedMinutes || 2}分 · ${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${topics.length}題`,
-    onDraft: source => { if (blocked || paused || !activeQuiz()) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
+    onDraft: source => { if (blocked || paused || !activeQuiz() || !challengeAccess(state).available) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
     onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },
     onNext: firstBuild ? undefined : () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },
-    onSelect: index => { if (blocked || paused || !Number.isSafeInteger(index) || index<0 || index>=topics.length) return; cancelQuiz(); if(firstBuild)state.quiz.firstParts[state.typing.language]=index;else state.quiz.cursors[`${state.typing.language}/${state.subject}`]=index; dirty=true;render();save(); }
+    onSelect: index => { if (blocked || paused || !Number.isSafeInteger(index) || index<0 || index>=topics.length) return; cancelQuiz(); if(firstBuild)state.quiz.firstParts[state.typing.language]=index;else state.quiz.cursors[`${state.typing.language}/${state.subject}`]=index; dirty=true;render();save(); },
+    onOpenBook: () => {
+      if(blocked || paused)return;
+      document.querySelector('[data-shop=books]').click();
+      const button=document.querySelector(`[data-buy="${access.bookId}"]`),item=button?.closest('.shop-item');
+      item?.scrollIntoView({block:'center',behavior:'instant'});
+      const heading=item?.querySelector('h3');
+      if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});}
+    }
   });
 }
 function renderSkillQuiz() {
@@ -256,7 +266,7 @@ try {
 }
 
 if (state.typing.source === 'course' || state.typing.lastCompleted?.courseUnit) {
-  try { await loadCourses(); } catch { loadingNotice = '言語別講座を読み込めません。ページを再読み込みしてください。'; }
+  try { await loadCourses(); } catch { loadingNotice = '参考実装を読み込めません。ページを再読み込みしてください。'; }
 }
 // Hold the lock for the lifetime of this tab, so a second tab cannot overwrite it.
 if (navigator.locks) {
@@ -322,7 +332,7 @@ function showModal(title, html) {
   if (!$('modal').open) $('modal').showModal();
 }
 function help() {
-  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li>画面上部の<b>無料教材を開く</b>から、基礎文法のオンライン教材を開きます。資金は必要ありません。</li><li><b>写経・学習 → 文法を学ぶ</b>で、写経やQuizから基礎を学べます。自力で書ける場合はゲーム開発のChallengeへ直接進み、必要な3部品を順に実装できます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームとブロック崩しは無料公開。完成経験と遊んだ人の反応を持ち帰ります。</li></ol><p>次の設計・描画も無料教材で学べます。無料教材だけで習作を完成させ、経験を持ち越して次の人生へ進めます。教本やOCRの購入は必須ではありません。日銭ワークは、この人生で受託した分だけの短期契約です。納品を終えても補充されません。プログラミング基礎教本などの有料教本は、写経・学習の効率を上げる投資になります。</p></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。コード表示をクリックすると、その位置でタイピングを始められます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、講座のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>正解はコード側へすぐ確定し、誤入力だけがカーソルのそばに残ります。BackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。半角で入力してください。伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。学習画面か上部の目標から無料のオンライン教材を開き、学ぶ分野を選んでください。有料教本を買うと無料教材と併用でき、最初の1冊で学習量が2倍になります。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p><b>Quiz</b>は指定された構文の穴埋めです。空欄に入るコードだけを書き、回答後の解説で使い方を確かめます。<b>Challenge</b>は入出力仕様を満たす自由実装です。難度と目安時間から課題を選び、テストを全件通します。学習画面でも開発画面でも選べます。Quizは理解度を、開発中のChallengeは理解度と制作進捗を得られます。合格済みのコードを次作品へ流用する場合は実装報酬が小さくなります。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>数当てとブロック崩しは無料の習作です。その先の有料作品は、引き継いだ経験と制作体制が必要です。開発ロードマップで不足している条件を確認してください。有料企画も必要理解度や品質が不足すると無料公開になります。</p><p><b>自由企画</b>ではジャンル、テーマ、表現、操作、通信、制作基盤、対応環境、配信先、販売方式を組み合わせます。必要な機能と作業・費用は、その場で確認できます。知識や資金が足りない案にも着手でき、保留・再開できます。制作中の<b>機能・内容を追加</b>では今の実装を残して企画を広げます。量を増やすだけで品質や売れ行きが上がるわけではありません。</p><p>自由企画の素材は<b>コードを書く／素材を作る</b>で作業を切り替えます。購入・委託した素材や配布契約には支払いが必要です。支払いと素材制作を終え、最後の変更を検証してから公開します。制作して確かめた相性と自作基盤は、次の企画で確認できます。</p></details><details class="help-section"><summary>素材の購入・外注</summary><p>有料の小作品では、ゲーム開発の<b>素材の購入・外注</b>で既製の画像や音楽・効果音の利用ライセンスを購入できます。大きな作品では制作者へ素材制作を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売時と、その後に購入された本数に応じて売上が入ります。作品ごとに届く遊び手には限りがあり、発売後の売れ行きは徐々に落ち着きます。販売本数・今後の販売見込は<b>公開したゲーム</b>で確認できます。同じ規模で別の新作も作れます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると残っている需要の範囲で販売を再開します。販売見込の本数は増えません。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は公開を停止し、売上を待つか、費用のかからない新作で資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p>伝票OCRは任意の設備です。導入しなくても無料教材で学び、ゲームを発売して資金を得られます。OCRの誤納品は報酬を取り消し、依頼元へ再提出手数料を支払います。日銭ワークの<b>OCR再納品</b>で原票とOCR結果を照合し、誤った項目だけ入力すると未受取報酬を回収できます。入力途中の間違いは送信前なので、消して直せます。</p><p>自動学習には未確認分が残ります。表示される理解度と制作条件は確認済みの知識です。自分で教材を入力したり、参考コードの問いへ正しく答えたりすると、未確認分も確かめられます。</p><p>自動生成コードは手動より未整理部分と不具合が増えます。レビュー・整理とビルド・テストで確かめてください。正確なタイピングは設備の規模に応じて広い範囲へ反映され、設備を増やした後も制作・学習・修正を進められます。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。通常の制作では購入と作品公開を自分で行います。自由企画の<b>自動企画</b>をONにすると、作れる案を選び、素材制作・修正・検証を進めて完成した作品を公開します。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>経験を引き継いで再出発</summary><p>無料の習作2本を完成させると、<b>開発ロードマップ → 経験を引き継いで再出発</b>を選べます。何を持ち越し、何を手放すかは実行前に確認できます。制作経験・設計の勘・遊びの発見を持ち越すと、次の人生で制作が速くなり、新しい規模の企画へ挑めます。同じ人生で同じ規模の作品を繰り返しても、持ち越せる経験は増えません。AAAには複数の人生で得た経験と、チーム・制作基盤が必要です。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
+  showModal('遊び方', `<details class="help-section" open><summary>最初の1本を公開する</summary><ol><li>画面上部の<b>無料教材を開く</b>から、基礎文法のオンライン教材を開きます。資金は必要ありません。</li><li><b>写経・学習 → 文法を学ぶ</b>で、写経やQuizから基礎を学べます。自力で書ける場合はゲーム開発のChallengeへ直接進み、必要な3部品を順に実装できます。技術理解度の「現在値 / 必要値」を確認してください。</li><li><b>ゲーム開発</b>へ移り、小さな変更ごとにビルド・テストしながら、3,000文字まで制作します。「作品を公開」が押せるようになったら公開します。修正したら再検証し、作品を公開します。最初の数当てゲームとブロック崩しは無料公開。完成経験と遊んだ人の反応を持ち帰ります。</li></ol><p>次の設計・描画も無料教材で学べます。無料教材だけで習作を完成させ、経験を持ち越して次の人生へ進めます。教本やOCRの購入は必須ではありません。日銭ワークは、この人生で受託した分だけの短期契約です。納品を終えても補充されません。プログラミング基礎教本などの有料教本は、写経・学習の効率を上げる投資になります。</p></details><details class="help-section"><summary>クリックとタイピング</summary><p>入力方式は作業パネル上部で選べます。コード表示をクリックすると、その位置でタイピングを始められます。</p><p>日銭ワークは原票を見て、<b>伝票番号,日付,品名,数量,単価</b>の順に入力します。日付はYYYY-MM-DD。数量と単価は数字だけにし、円記号・桁区切りを除きます。品名の空白は残してください。</p><p>学習・開発では英語コメントを含むコードを入力します。コメントを入力し終えると、出題コード内のその箇所が日本語に置き換わります。設定で英語表示にも切り替えられます。改行はEnter、字下げはTabで字下げ（空白は最大4文字、参考実装のタブ文字にも対応）。Tabの報酬は1打鍵分です。Shift+TabまたはEscで入力欄から出られます。</p><p>正解はコード側へすぐ確定し、誤入力だけがカーソルのそばに残ります。BackspaceやDeleteで直せます。正しい部分から進捗が入り、完入力で追加ボーナス。誤入力があるとボーナスが減ります。半角で入力してください。伝票の英字は大文字へ揃います。コードの大文字・小文字は区別します。貼り付け・ドロップ・キー長押しでは進みません。</p></details><details class="help-section"><summary>学習・開発が進まないとき</summary><p>学習には分野ごとの教材が必要です。学習画面か上部の目標から無料のオンライン教材を開き、学ぶ分野を選んでください。有料教本を買うと無料教材と併用でき、最初の1冊で学習量が2倍になります。</p><p>開発には企画ごとの理解度が必要です。要求の半分以下では進捗が出ず、要求に届かない分野があると不具合が混入します。不具合が上限に達するとビルドが止まります。</p><p>「参考コードを読む」ではコードの実行結果を選んで答えます。初回正解は理解度に加算され、不正解は報酬なしで解説が出ます。回答した題材は再回答できません。読むだけ・開き直しでは報酬は出ません。教材は写経と共通です。</p><p><b>Quiz</b>は指定された構文の穴埋めです。空欄に入るコードだけを書き、回答後の解説で使い方を確かめます。<b>Challenge</b>は入出力仕様を満たす自由実装です。難度と目安時間から課題を選び、テストを全件通します。学習画面でも開発画面でも選べます。Quizは理解度を、開発中のChallengeは理解度と制作進捗を得られます。合格済みのコードを次作品へ流用する場合は実装報酬が小さくなります。</p><p>制作途中は小さな変更ごとに自動でビルド・テストします。<b>今の変更を検証</b>では区切りの前にも確認できます。未検証の変更から何件問題が出るかは、検証するまで分かりません。小さな修正点があっても制作は続けられます。</p><p>必要な全分野を要求値まで学んでから、<b>レビュー・整理に切替</b>を選ぶと、まず不具合を修正し、その後に構造を整理します。必要な作業が済んだら通常の開発へ戻します。公開には進捗の完了と、不具合・仕様との食い違いが表示した基準以下であることが必要です。</p><p><b>技術的負債</b>は、仮実装や重複処理、継ぎ足した構造など、今は動いても後で変更しづらい部分です。理解度を満たしていても発生し、負債が多いほど追加・変更に時間がかかり、新しい不具合も混ざりやすくなります。開発・設計経験が浅いほど無意識に積み上がり、設計を学んで作品を完成させると発生を抑えられます。経験が増えても、既存の負債は自動では消えません。古い未整理コードは読み直しにも手間がかかります。放置や完成後の時間経過だけで負債や不具合は増えません。</p><p><b>開発方針</b>で実装速度と後の整理作業を選べます。負債を残して公開することも可能です。自作ライブラリを使う場合は、公開作品の未整理部分の25%を次作にも引き継ぎます。最初の購入時に前作のコードを流用する場合も、購入前に出所と作業量を表示します。</p><p>数当てとブロック崩しは無料の習作です。その先の有料作品は、引き継いだ経験と制作体制が必要です。開発ロードマップで不足している条件を確認してください。有料企画も必要理解度や品質が不足すると無料公開になります。</p><p><b>自由企画</b>ではジャンル、テーマ、表現、操作、通信、制作基盤、対応環境、配信先、販売方式を組み合わせます。必要な機能と作業・費用は、その場で確認できます。知識や資金が足りない案にも着手でき、保留・再開できます。制作中の<b>機能・内容を追加</b>では今の実装を残して企画を広げます。量を増やすだけで品質や売れ行きが上がるわけではありません。</p><p>自由企画の素材は<b>コードを書く／素材を作る</b>で作業を切り替えます。購入・委託した素材や配布契約には支払いが必要です。支払いと素材制作を終え、最後の変更を検証してから公開します。制作して確かめた相性と自作基盤は、次の企画で確認できます。</p></details><details class="help-section"><summary>素材の購入・外注</summary><p>有料の小作品では、ゲーム開発の<b>素材の購入・外注</b>で既製の画像や音楽・効果音の利用ライセンスを購入できます。大きな作品では制作者へ素材制作を依頼できます。発注前に支払先、金額、納品後の品質見込を確認できます。費用はその作品で一度だけ支払い、納品素材を組み込みます。自作素材のまま公開することもできます。</p><p>外注でコード量や理解度は増えず、不具合も修正されません。素材を組み込んだらビルド・テストで統合を確認します。発注と支払額は作品の公開後も記録され、次作へ自動で再発注しません。</p></details><details class="help-section"><summary>売上と支払い</summary><p>発売時と、その後に購入された本数に応じて売上が入ります。作品ごとに届く遊び手には限りがあり、発売後の売れ行きは徐々に落ち着きます。販売本数・今後の販売見込は<b>公開したゲーム</b>で確認できます。同じ規模で別の新作も作れます。ゲーム配信ストアへ販売・決済手数料として<b>売上の25%</b>を支払い、残りが所持金に入ります。</p><p>常時オンライン作品は、公開前に表示するサーバー稼働料をホスティング会社へ支払います。公開中の時間分だけ発生し、日の終わりに精算されます。<b>公開したゲーム → 公開停止</b>で、その後のサーバー代と売上が止まります。既に発生した料金は精算されます。再開すると残っている需要の範囲で販売を再開します。販売見込の本数は増えません。</p><p>現在の支払先・用途・金額は上部の<b>支払い内訳</b>で確認できます。支払後に赤字になった場合は公開を停止し、売上を待つか、費用のかからない新作で資金を戻してください。赤字中は手動効率が半分になります。</p></details><details class="help-section"><summary>自動化と離席</summary><p>道具箱の<b>自動化</b>から設備を購入します。伝票OCRは日銭ワーク、研究ラボは教材がある不足分野、自作ライブラリなどは開発を進めます。作業タブを移っても稼働します。</p><p>伝票OCRは任意の設備です。導入しなくても無料教材で学び、ゲームを発売して資金を得られます。OCRの誤納品は報酬を取り消し、依頼元へ再提出手数料を支払います。日銭ワークの<b>OCR再納品</b>で原票とOCR結果を照合し、誤った項目だけ入力すると未受取報酬を回収できます。入力途中の間違いは送信前なので、消して直せます。</p><p>自動学習には未確認分が残ります。表示される理解度と制作条件は確認済みの知識です。自分で教材を入力したり、参考コードの問いへ正しく答えたりすると、未確認分も確かめられます。</p><p>自動生成コードは手動より未整理部分と不具合が増えます。レビュー・整理とビルド・テストで確かめてください。正確なタイピングは設備の規模に応じて広い範囲へ反映され、設備を増やした後も制作・学習・修正を進められます。</p><p><b>自動開発 ON/OFF</b>で止まるのは開発だけです。理解不足の自動開発には不具合が混入するため、新作公開後は停止します。自動開発にも開発方針とレビュー・整理モードを適用します。必要理解度を確認してから再開してください。</p><p>離席中は最大8時間分の自動処理・売上・サーバー代が進みます。通常の制作では購入と作品公開を自分で行います。自由企画の<b>自動企画</b>をONにすると、作れる案を選び、素材制作・修正・検証を進めて完成した作品を公開します。日付は実時間1時間で1日進みます。設定の「プレイ時間を一時停止」で、開いているタブの処理を止められます。</p></details><details class="help-section"><summary>保存・更新・端末の移動</summary><p>5秒ごとに自動保存します。下部の<b>今すぐ保存</b>でも保存できます。更新のお知らせが出たら<b>保存して更新</b>を押してください。</p><p>端末を移るときは、設定 → <b>セーブを書き出す</b>でファイルを保管し、移動先で<b>セーブを読み込む</b>を使います。読み込みは現在の進行を置き換えます。ブラウザのデータを消すと保存も失われるため、ファイルを保管してください。</p></details><details class="help-section"><summary>経験を引き継いで再出発</summary><p>無料の習作2本を完成させると、<b>開発ロードマップ → 経験を引き継いで再出発</b>を選べます。何を持ち越し、何を手放すかは実行前に確認できます。制作経験・設計の勘・遊びの発見を持ち越すと、次の人生で制作が速くなり、新しい規模の企画へ挑めます。同じ人生で同じ規模の作品を繰り返しても、持ち越せる経験は増えません。AAAには複数の人生で得た経験と、チーム・制作基盤が必要です。</p></details><div class="modal-actions"><button class="primary-button" data-action="close">閉じる</button></div>`);
 }
 function showCatalog() {
   showModal('公開したゲーム', state.catalog.length ? state.catalog.slice().reverse().map(p => `<div class="catalog-entry"><b>${esc(p.name)}</b><p>${esc(titleSummary(p))} · 品質 ${format(p.quality)} / 100</p>${p.archived?`<p>今後の受取見込 ${yen(titleNetRemaining(p))}（手数料控除後）</p>`:''}${p.archived?'':p.custom?customTitleSalesHTML(p):commerciallyPublished(p) ? `<p>販売価格 ${yen(p.unitPrice)} · 販売本数 約${format(p.soldCopies || 0, 0)} / 見込 ${format(p.totalCopies || 0, 0)}本<br>今後の販売見込 ${yen(remainingSales(p) * (1 - STORE_FEE_RATE))}（手数料控除後）</p>` : ''}${p.reaction ? `<p>${esc(p.reaction)}</p>` : ''}${p.productionCosts ? `<p>素材制作の外注費 ${yen(p.productionCosts)} · 支払済み</p>` : ''}${p.online ? `<p>ホスティング会社 · サーバー代 ${yen(serverCost(state, p))} / 日</p><button class="secondary-button" data-publication="${esc(p.id)}" data-active="${p.active === false}">${p.active === false ? `公開を再開（${yen((p.serverDaily || 0) * (level(state, 'kitchen') ? .75 : 1))}/日）` : '公開停止'}</button><small class="contract-note">再開しても、${p.custom || p.archived?'販売・利用の見込':'販売見込の本数'}は増えません。</small>` : ''}</div>`).join('') : '<p>まだ公開した作品はありません。最初の一本を完成させよう。</p>');
@@ -597,6 +607,9 @@ function renderTask() {
   $('quick-actions').classList.toggle('hidden', reading);
   $('typing-actions').classList.toggle('hidden', reading);
   $('study-style-picker').classList.toggle('hidden', mode !== 'study');
+  const studyStyleDescription={practice:'ゲームの短い処理例を順に写します。完入力後に結果と処理の流れを確認できます。',course:'Exercismの演習と入力区間を選び、参考実装を写します。元の課題文や周辺コードも確認できます。'}[state.studyStyle] || '';
+  $('study-style-description').textContent=studyStyleDescription;
+  $('study-style-description').classList.toggle('hidden',mode!=='study' || !studyStyleDescription);
   document.querySelector('.input-note').classList.toggle('hidden', quiz);
   document.querySelectorAll('[data-study-style]').forEach(b => { b.classList.toggle('active', b.dataset.studyStyle === state.studyStyle); b.setAttribute('aria-pressed', b.dataset.studyStyle === state.studyStyle); });
   document.querySelector('.language-label').classList.toggle('hidden', mode === 'work');
@@ -617,7 +630,7 @@ function renderTask() {
   $('study-lock-message').textContent = `${lesson.name}のオンライン教材は無料です。公開チュートリアルを開いて学び始めよう。`;
   $('study-material').classList.toggle('hidden',mode!=='study' && !quiz || studyLocked);
   const materialName=hasTextbook(state)?`${textbook.name} Lv.${level(state,textbook.id)}`:`オンライン教材：${lesson.name}（無料）`;
-  const materialSource=skillQuizEligible(state)?'Quiz / 指定した構文を練習する':quiz?'Challenge / 入出力仕様を実装する':state.studyStyle==='course'?'Exercism / 言語別の講座':state.studyStyle==='reading'?'参考コード読解':'コード演習';
+  const materialSource=skillQuizEligible(state)?'Quiz / 指定した構文を練習する':quiz?'Challenge / 入出力仕様を実装する':state.studyStyle==='course'?'Exercismの参考実装':state.studyStyle==='reading'?'参考コード読解':'短い処理例';
   $('study-material-label').textContent=`${materialName} · ${materialSource} · 学習 ×${format(studyMultiplier(state),2)}`;
   const upgrade=$('study-material-upgrade'),bookPrice=itemCost(state,textbook);
   upgrade.textContent=`${hasTextbook(state)?'教本を充実させる':'教本で学習効率を上げる'} ${yen(bookPrice)}`;
@@ -753,13 +766,13 @@ function renderCourse() {
   $('course-panel').classList.toggle('hidden',!active);
   if(!active)return;
   const track=courseTrack(state.typing.language);
-  if(!track){$('course-panel').textContent='講座を読み込めません。ページを再読み込みしてください。';return;}
+  if(!track){$('course-panel').textContent='参考実装を読み込めません。ページを再読み込みしてください。';return;}
   const unit=currentCourseUnit(state), lesson=unit?courseLesson(unit.id):null;
   const key=JSON.stringify([state.typing.language,state.subject,unit?.id,state.typing.courseCompleted.length,hasStudyMaterial(state),blocked]);
   if(lastCourseKey===key)return;lastCourseKey=key;
   const total=Object.values(['cpp','csharp','rust','go','python','java','sql','lua'].map(id=>courseTrack(id))).reduce((n,t)=>n+t.exercises.length,0);
   const exercise=lesson?.exerciseInfo;
-  $('course-panel').innerHTML=`<h3>言語別の講座</h3><p>${track.exercises.length}演習 · 全言語 ${total.toLocaleString()}演習</p><label>演習 <select id="course-exercise" aria-label="講座の演習">${track.exercises.map((e,i)=>`<option value="${i}" ${unit?.exercise===i?'selected':''}>${e.kind==='concept'?'基礎・概念':'応用'} · ${esc(e.title)}${e.kind==='practice'?` / 難度${e.difficulty}`:''} (${e.units.filter(i=>state.typing.courseCompleted.includes(track.units[i].key)).length}/${e.units.length})</option>`).join('')}</select></label>${lesson && hasStudyMaterial(state)?`<label>入力区間 <select id="course-unit" aria-label="講座の入力区間">${unit.legacy?`<option value="${unit.id}" selected>入力中の区間 · ${esc(unit.label)}</option>`:''}${exercise.units.map(i=>{const u=track.units[i];return `<option value="${u.id}" ${u.id===unit.id?'selected':''}>${state.typing.courseCompleted.includes(u.key)?'✓ ':''}${esc(u.label)} (${u.part}/${u.parts})</option>`;}).join('')}</select></label><p class="panel-note">${esc(exercise.concepts.join(' / ') || exercise.description)}${exercise.prerequisites.length?`<br>前提：${esc(exercise.prerequisites.join(' / '))}`:''}</p><details><summary>課題と周辺コードを見る</summary><p>${esc(exercise.description)}</p><pre class="course-instructions">${esc(exercise.instructions)}</pre>${exercise.files.map(i=>`<h4>${esc(track.files[i].path)}</h4><pre class="reference-code" tabindex="0">${esc(track.files[i].code)}</pre>`).join('')}</details><p class="course-credit"><a href="${esc(lesson.fileInfo.url)}" target="_blank" rel="noopener">Exercism / ${esc(exercise.title)}</a> · ${esc(exercise.authors.join(', '))} · <a href="./licenses/exercism-MIT.txt" target="_blank" rel="noopener">MIT</a></p>`:hasStudyMaterial(state)?'<p>この講座には、この分野の入力区間がありません。</p><button class="secondary-button" data-action="study-practice">この分野はコードを写して学ぶ</button>':'<p>この分野の無料教材を開くと、課題と参考実装を利用できます。</p>'}`;
+  $('course-panel').innerHTML=`<h3>Exercismの参考実装</h3><p>${track.exercises.length}演習 · 全言語 ${total.toLocaleString()}演習</p><label>演習 <select id="course-exercise" aria-label="参考実装の演習">${track.exercises.map((e,i)=>`<option value="${i}" ${unit?.exercise===i?'selected':''}>${e.kind==='concept'?'基礎・概念':'応用'} · ${esc(e.title)}${e.kind==='practice'?` / 難度${e.difficulty}`:''} (${e.units.filter(i=>state.typing.courseCompleted.includes(track.units[i].key)).length}/${e.units.length})</option>`).join('')}</select></label>${lesson && hasStudyMaterial(state)?`<label>入力区間 <select id="course-unit" aria-label="参考実装の入力区間">${unit.legacy?`<option value="${unit.id}" selected>入力中の区間 · ${esc(unit.label)}</option>`:''}${exercise.units.map(i=>{const u=track.units[i];return `<option value="${u.id}" ${u.id===unit.id?'selected':''}>${state.typing.courseCompleted.includes(u.key)?'✓ ':''}${esc(u.label)} (${u.part}/${u.parts})</option>`;}).join('')}</select></label><p class="panel-note">${esc(exercise.concepts.join(' / ') || exercise.description)}${exercise.prerequisites.length?`<br>前提：${esc(exercise.prerequisites.join(' / '))}`:''}</p><details><summary>元の課題と参考実装を見る</summary><p>${esc(exercise.description)}</p><pre class="course-instructions">${esc(exercise.instructions)}</pre>${exercise.files.map(i=>`<h4>${esc(track.files[i].path)}</h4><pre class="reference-code" tabindex="0">${esc(track.files[i].code)}</pre>`).join('')}</details><p class="course-credit"><a href="${esc(lesson.fileInfo.url)}" target="_blank" rel="noopener">Exercism / ${esc(exercise.title)}</a> · ${esc(exercise.authors.join(', '))} · <a href="./licenses/exercism-MIT.txt" target="_blank" rel="noopener">MIT</a></p>`:hasStudyMaterial(state)?'<p>Exercismの参考実装には、この分野の入力区間がありません。</p><button class="secondary-button" data-action="study-practice">この分野の短いコードを写す</button>':'<p>この分野の無料教材を開くと、課題と参考実装を利用できます。</p>'}`;
 }
 function renderAssetsAndGoal() {
   const snippets = level(state, 'library'), preview=prestigePreview(state);
@@ -1109,7 +1122,7 @@ document.addEventListener('click', async event => {
     rememberCourseCursor(state);
     if(next==='course'){
       b.disabled=true;
-      try{await loadCourses();}catch{toast('講座の読み込みに失敗しました。もう一度開いてください。','error');b.disabled=false;return;}
+      try{await loadCourses();}catch{toast('参考実装の読み込みに失敗しました。もう一度開いてください。','error');b.disabled=false;return;}
       b.disabled=false;
     }
     if(!['reading','quiz','skill-quiz'].includes(next)){
@@ -1329,7 +1342,7 @@ function handleAction(action) {
   if (action === 'prestige' && !blocked && !paused) {
     const preview=prestigePreview(state);
     if(!preview.available)return;
-    showModal('経験を引き継いで再出発', `<p>作る手順、後から困った構造、面白がられた遊びを覚えたまま、次の人生を始めます。</p>${experiencePreviewHTML(preview)}<div class="modal-callout"><p><b>持ち越すもの</b><br>制作経験・設計の勘・遊びの発見、学んだ理解度、開いた無料教材、講座の履修記録、実績と累計記録。</p><p><b>手放すもの</b><br>所持金、購入した教本と設備、公開作品とその売上、制作途中の進捗。</p></div><div class="modal-actions"><button class="secondary-button" data-action="close">この人生を続ける</button><button class="primary-button" data-action="confirm-prestige">経験を引き継いで再出発する ↗</button></div>`);
+    showModal('経験を引き継いで再出発', `<p>作る手順、後から困った構造、面白がられた遊びを覚えたまま、次の人生を始めます。</p>${experiencePreviewHTML(preview)}<div class="modal-callout"><p><b>持ち越すもの</b><br>制作経験・設計の勘・遊びの発見、学んだ理解度、開いた無料教材、参考実装の入力記録、実績と累計記録。</p><p><b>手放すもの</b><br>所持金、購入した教本と設備、公開作品とその売上、制作途中の進捗。</p></div><div class="modal-actions"><button class="secondary-button" data-action="close">この人生を続ける</button><button class="primary-button" data-action="confirm-prestige">経験を引き継いで再出発する ↗</button></div>`);
   }
   if (action === 'confirm-prestige' && !blocked && !paused) {
     const fresh = prestige(state);

@@ -74,7 +74,8 @@ function measureBank(snapshot, language, newLearning) {
   const state = quizState(snapshot, newLearning);
   const target = game.currentProject(state).target;
   const required = Object.keys(game.currentProject(state).req);
-  const bank = quizzes.filter(quiz => required.includes(quiz.subject) && (language === 'all' || quiz.language === language));
+  const relevant = quizzes.filter(quiz => required.includes(quiz.subject) && (language === 'all' || quiz.language === language));
+  const bank = relevant.filter(quiz => game.challengeAccess(state, quiz).available);
   let implementationQuestions = 0, reviewQuestions = 0, attempted = 0;
   let implementationUnits = 0, learned = 0, verified = 0, fixed = 0, debtRemoved = 0;
   let atCodeCompletion = null;
@@ -99,7 +100,7 @@ function measureBank(snapshot, language, newLearning) {
   const completeAndClean = state.progress >= target && !state.debt && !state.defects;
   const released = completeAndClean ? game.release(clone(state)) : null;
   return {
-    language, newLearning, availableQuestions: bank.length, attemptedQuestions: attempted,
+    language, newLearning, availableQuestions: bank.length, lockedQuestions: relevant.length-bank.length, attemptedQuestions: attempted,
     implementationQuestions, reviewQuestions, implementationUnits,
     progress: state.progress - snapshot.progress, progressPercent: (state.progress - snapshot.progress) / target * 100,
     remainingProgress: Math.max(0, target - state.progress),
@@ -162,7 +163,7 @@ const report = {
     snapshots: 'First knowledge-ready implementation state of the first project, first commercial project, funding indie after five prestiges, first 3D, and first AAA. This benchmark follows fixed tutorial projects, not custom plans.',
     quizExperiment: 'Each experiment uses a deep clone. It changes only UI mode/language/subject/cursor/review choices and calls completeQuiz. All Challenge tests are assumed to pass; this script does not run compilers or solve tasks. No time passes while solving: no extra purchases, sales, automatic implementation, or automatic study are credited.',
     learningCounterfactual: 'newLearning=false marks general quiz rewarded IDs as already claimed without changing knowledge or equipment. This suppresses new nominal XP but ordinary known-answer gap verification remains available. It is not a separately simulated earlier quiz route.',
-    finiteBank: 'The current challengeCatalog determines the bank sizes reported below. Only subjects required by the project are eligible. One implementation per ID per project; same-family language transfer pays 60%, previously implemented same ID pays 25%. The first project has its separate staged parts. Syntax Quiz adds study/verification and never implementation.',
+    finiteBank: 'The current challengeCatalog determines the bank sizes reported below. Only subjects required by the project and unlocked by the snapshot textbook levels or actual completed-review history are eligible. Locked questions are counted separately. One implementation per ID per project; same-family language transfer pays 60%, previously implemented same ID pays 25%. The first project has its separate staged parts. Syntax Quiz adds study/verification and never implementation.',
     maintenance: 'Use remaining, unclaimed problems for actual review when defect/efficiency thresholds require it, or after implementation completes. A problem cannot be spent on both implementation and review on the same project.',
     rewardBasis: 'Challenge work is based on authored estimatedMinutes and current equipment, never source length. The former source-length 32*sum(keys) upper bound and old 512-bank counts do not apply to this schema. Initial study/implementation shares and transfer/reuse are applied by actual core APIs.',
     interpretation: 'Snapshot question counts are not a full quiz-driven career time. Reading, thinking, editing, compilation, failures, and retries are unmeasured. Quiz reward work is abstract implementation effort, not literal submitted source length.'

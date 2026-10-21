@@ -2,6 +2,7 @@
 // deterministic protocol fixture. Real runtime checks are a separate suite.
 import assert from 'node:assert/strict';
 import { quizAt } from '../src/quizcatalog.js';
+import { challengeTopics } from '../src/challengecatalog.js';
 import { skillKnowledge, quizRewardPreview } from '../src/core.js';
 import { CURRICULUM_VERSION, lessonAt } from '../src/curriculum.js';
 
@@ -73,7 +74,7 @@ export async function verifyQuizUI(browser, url, errors, capture) {
     assert.equal(await counter.locator('dd').innerText(), String(quizAt('sql', 'systems', 3).cases[0].counterLimit));
     await page.locator('[data-subject=syntax]').click();
     await page.locator('#language-select').selectOption('lua');
-    assert.equal(await page.locator('.quiz-topic-picker option').count(), 32, 'all topics are directly accessible');
+    assert.equal(await page.locator('.quiz-topic-picker option').count(), challengeTopics('lua','syntax').length, 'all topics can be previewed, with book requirements shown for locked tasks');
     assert.equal(await page.locator('#typing-input').isVisible(), false, 'Quiz uses its own free editor');
     assert.equal(await page.locator('#typing-summary').isVisible(), false);
     assert.equal(await page.locator('.quiz-reference').isVisible(), false, 'reference starts closed');

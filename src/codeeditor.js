@@ -103,6 +103,7 @@ export function attachCodeEditor(editor, options = {}) {
   function refresh() {
     if (destroyed || rendering) return;
     rendering = true;
+    if(editor.disabled || editor.readOnly)closePopup();
     renderHighlightedCode(code, editor.value, language);
     // An empty final line has real height in a textarea. Keep it in the mirror.
     let end = code.querySelector('.code-editor-end');
@@ -118,6 +119,7 @@ export function attachCodeEditor(editor, options = {}) {
     editor.dispatchEvent(new view.InputEvent('input', { bubbles: true, inputType: 'insertReplacementText' }));
   }
   function replaceWord(word, text) {
+    if(editor.disabled || editor.readOnly)return false;
     if (editor.maxLength >= 0 && editor.value.length - (word.end - word.start) + text.length > editor.maxLength) return false;
     editor.setRangeText(text, word.start, word.end, 'end');
     refresh(); sendInput();

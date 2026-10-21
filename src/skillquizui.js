@@ -50,7 +50,7 @@ export function renderSkillQuizUI(options){
   ui.next.disabled=!!options.disabled;ui.next.hidden=!options.completed && !options.result?.passed;
   ui.result.hidden=!options.result;
   ui.root.dataset.quizStatus=options.result?.status||'idle';
-  write(ui.status,options.result?.passed?'正解。指定した構文を使えています。':options.result?.message||'');
+  write(ui.status,options.result?.passed?'正解。空欄の条件を満たしています。':options.result?.message||'');
   write(ui.explanation,options.result?.explanation||'');ui.result.classList.toggle('correct',!!options.result?.passed);
   const summary=options.rewardSummary||{};write(ui.rewardTitle,summary.title||'');write(ui.rewardNote,summary.note||'');
   ui.rewardItems.replaceChildren(...(summary.items||[]).flatMap(item=>[node('dt','',item.label),node('dd','',item.value)]));

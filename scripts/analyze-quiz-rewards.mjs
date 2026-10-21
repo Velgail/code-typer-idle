@@ -11,7 +11,7 @@ if(flags.some(flag=>flag!=='--write'))throw new Error('Usage: node scripts/analy
 const clone=value=>structuredClone(value), challenges=challengeCatalog(),syntax=skillQuizCatalog();
 function fixture(lab=0,knowledge=0){const s=game.createState(0);s.mode='study';s.studyStyle='skill-quiz';s.subject='syntax';s.typing.language='cpp';s.items.lab=lab;s.skills.syntax=knowledge;game.openOnlineMaterial(s);return s;}
 function distribution(values){const sorted=[...values].sort((a,b)=>a-b);return {min:sorted[0],mean:sorted.reduce((a,b)=>a+b,0)/sorted.length,median:sorted[Math.floor(sorted.length/2)],max:sorted.at(-1)};}
-function metadata(catalog){return {count:catalog.length,estimatedMinutes:distribution(catalog.map(q=>q.estimatedMinutes)),difficultyCounts:Object.fromEntries([1,2,3,4].map(n=>[n,catalog.filter(q=>q.difficulty===n).length])),languages:[...new Set(catalog.map(q=>q.language))].map(language=>({language,count:catalog.filter(q=>q.language===language).length}))};}
+function metadata(catalog){return {count:catalog.length,estimatedMinutes:distribution(catalog.map(q=>q.estimatedMinutes)),difficultyCounts:Object.fromEntries([1,2,3,4,5,6].map(n=>[n,catalog.filter(q=>q.difficulty===n).length])),languages:[...new Set(catalog.map(q=>q.language))].map(language=>({language,count:catalog.filter(q=>q.language===language).length}))};}
 function measure(state,role){
  const s=clone(state);s.studyStyle=role==='skill-quiz'?'skill-quiz':'quiz';
  const q=role==='skill-quiz'?game.skillQuizLesson(s):game.quizLesson(s),before=JSON.stringify(s);

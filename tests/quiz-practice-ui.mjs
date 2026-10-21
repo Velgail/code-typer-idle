@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { createState, SKILLS, currentProject, skillKnowledge, quizRewardPreview, startCustomProject, resumeCustomProject, setCustomAllocation } from '../src/core.js';
 import { quizAt } from '../src/quizcatalog.js';
+import { challengeTopics } from '../src/challengecatalog.js';
 
 const SAVE = 'code-typer-idle:save:v1';
 const QUIZ_BUTTON = '[data-dev-style=quiz]';
@@ -97,13 +98,14 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
   try {
     await page.locator('.quiz-source').waitFor({state:'visible'});
     const beforeStudy=await saved(page),studyPreview=quizRewardPreview(beforeStudy);
+    const topicCount=challengeTopics(beforeStudy.typing.language,beforeStudy.subject).length;
     const quiz=await answer(page),afterStudy=await saved(page);
     close(skillKnowledge(afterStudy,'syntax')-skillKnowledge(beforeStudy,'syntax'),studyPreview.amount,'study uses its advertised reward');
     assert.ok(afterStudy.quiz.rewarded.includes(quiz.id));
     assert.deepEqual(afterStudy.quizWork,[],'studying leaves this project implementation available');
     await enterQuiz(page);await selectTopic(page);
     assert.ok(!(await page.locator('.quiz-topic-picker option:checked').innerText()).startsWith('✓'),'the development checkmark tracks this project, not an earlier study pass');
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*32/);
+    assert.match(await page.locator('.quiz-position').innerText(),new RegExp(`この作品へ適用済み\\s+0\\s*/\\s*${topicCount}題`));
     const beforeWork=await saved(page),preview=quizRewardPreview(beforeWork);
     assert.equal(preview.amount,0,'the same topic does not award understanding twice');
     assert.equal(preview.progress,currentProject(beforeWork).target-beforeWork.progress,'the preview caps work at the project target');
@@ -114,7 +116,7 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
     assert.deepEqual(applied.skills,afterStudy.skills,'study then implementation shares the lifelong knowledge claim');
     assert.ok(applied.quizWork.includes(quiz.id));
     assert.match(await page.locator('.quiz-topic-picker option:checked').innerText(),/^✓/);
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+1\s*\/\s*32/);
+    assert.match(await page.locator('.quiz-position').innerText(),new RegExp(`この作品へ適用済み\\s+1\\s*/\\s*${topicCount}題`));
     assert.equal(await page.locator('.quiz-rewards').getAttribute('data-kind'),'awarded');
     await answer(page);
     const repeated=await saved(page);
@@ -133,7 +135,7 @@ async function verifyStudyAndImplementation(browser,url,errors,capture) {
     const secondBefore=await saved(page),secondPreview=quizRewardPreview(secondBefore);
     assert.equal(secondBefore.planner.active,second);
     assert.ok(!(await page.locator('.quiz-topic-picker option:checked').innerText()).startsWith('✓'),'a new project starts with the topic application available');
-    assert.match(await page.locator('.quiz-position').innerText(),/この作品へ適用済み\s+0\s*\/\s*32/);
+    assert.match(await page.locator('.quiz-position').innerText(),new RegExp(`この作品へ適用済み\\s+0\\s*/\\s*${topicCount}題`));
     assert.equal(secondPreview.amount,0);
     assert.ok(secondPreview.progress>0,'a different project has its own implementation claim');
     await answer(page);const secondAfter=await saved(page);

@@ -20,25 +20,26 @@ test('legacy exercises preserve their exact identifiers and numeric harnesses as
   assert.match(q.description,/実装方法は自由/);
  }
 });
-test('every language has 64 new independently specified IO tasks across the four subjects',()=>{
+test('published IO tasks retain their positions and fourteen appended families share seven language implementations',()=>{
  assert.equal(CHALLENGE_LANGUAGES.length,8);assert.equal(CHALLENGE_SUBJECTS.length,4);
- assert.equal(catalog.length,1024);assert.equal(additions.length,512);assert.equal(new Set(catalog.map(q=>q.id)).size,catalog.length);
+ assert.equal(catalog.length,1122);assert.equal(additions.length,610);assert.equal(new Set(catalog.map(q=>q.id)).size,catalog.length);
  for(const language of CHALLENGE_LANGUAGES)for(const subject of CHALLENGE_SUBJECTS){
-  const topics=challengeTopics(language,subject);assert.equal(topics.length,32,`${language}/${subject}`);
-  assert.equal(topics.filter(q=>!q.legacy).length,16);assert.equal(new Set(topics.map(q=>q.familyId)).size,32);
+  const count=language==='sql'?32:subject==='design'?38:subject==='systems'?36:34;
+  const topics=challengeTopics(language,subject);assert.equal(topics.length,count,`${language}/${subject}`);
+  assert.equal(topics.filter(q=>!q.legacy).length,count-16);assert.equal(new Set(topics.map(q=>q.familyId)).size,count);
   topics.forEach((q,index)=>{assert.equal(q.index,index);assert.equal(challengeAt(language,subject,index),q);assert.equal(challengeById(q.id),q);});
  }
 });
 test('challenge metadata distinguishes complexity, concepts, estimated thought time and actual input contracts',()=>{
  for(const q of catalog){
-  assert.ok(Number.isInteger(q.difficulty)&&q.difficulty>=1&&q.difficulty<=4,q.id);
-  assert.equal(q.difficultyLabel,['入門','基礎','応用','発展'][q.difficulty-1],q.id);
-  assert.ok(q.estimatedMinutes>=2&&q.estimatedMinutes<=20,q.id);assert.ok(q.concept);assert.ok(q.familyId);assert.ok(Array.isArray(q.prerequisites));
+  assert.ok(Number.isInteger(q.difficulty)&&q.difficulty>=1&&q.difficulty<=6,q.id);
+  assert.equal(q.difficultyLabel,['入門','基礎','応用','発展','競技','難関'][q.difficulty-1],q.id);
+  assert.ok(q.estimatedMinutes>=2&&q.estimatedMinutes<=60,q.id);assert.ok(q.concept);assert.ok(q.familyId);assert.ok(Array.isArray(q.prerequisites));
   assert.ok(q.parameters.every(p=>p.name&&p.type&&p.description),q.id);assert.ok(q.description&&q.title&&q.referenceSource&&q.starterSource);
  }
  for(const language of CHALLENGE_LANGUAGES.filter(l=>l!=='sql')){
   const qs=additions.filter(q=>q.language===language);
-  assert.equal(new Set(qs.map(q=>q.familyId)).size,64);assert.ok(qs.some(q=>q.difficulty===4));
+  assert.equal(new Set(qs.map(q=>q.familyId)).size,78);assert.ok(qs.some(q=>q.difficulty===4));
   assert.ok(qs.some(q=>q.parameters.some(p=>p.type==='array')));assert.ok(qs.some(q=>q.parameters.some(p=>p.type==='string')));
   assert.ok(qs.some(q=>q.resultType==='array'));assert.ok(qs.some(q=>q.resultType==='string'));
  }
@@ -121,5 +122,6 @@ test('old method-specific descriptions now specify outputs and permit alternativ
 test('invalid challenge identifiers and language/subject selections cannot escape their catalogs',()=>{
  for(const id of [null,'','challenge/v2/cpp/syntax/sum-sequence','challenge/v1/cpp/syntax/unknown','challenge/v1/invalid/syntax/sum-sequence','challenge/v1/cpp/syntax/sum-sequence/extra'])assert.equal(challengeById(id),null);
  assert.throws(()=>challengeTopics('javascript','syntax'),RangeError);assert.throws(()=>challengeTopics('cpp','unknown'),RangeError);
- assert.equal(challengeAt('cpp','syntax',NaN),challengeAt('cpp','syntax',0));assert.equal(challengeAt('cpp','syntax',32),challengeAt('cpp','syntax',0));
+ assert.equal(challengeAt('cpp','syntax',NaN),challengeAt('cpp','syntax',0));assert.equal(challengeAt('cpp','syntax',34),challengeAt('cpp','syntax',0));
+ assert.equal(challengeAt('cpp','syntax',32).topicId,'binary-search-minimum-capacity');
 });

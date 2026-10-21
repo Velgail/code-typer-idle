@@ -1,0 +1,107 @@
+{
+  "version": "2.5.0",
+  "build": "a407e89065531ecd",
+  "browser": "154.0.8037.57",
+  "selection": "topics: binary-search-minimum-capacity, weighted-interval-planning, traveling-courier, key-door-shortest-path, interval-merge-cost, dynamic-range-sums, atomic-transfer-batch, idempotent-stock-requests, optimistic-versioned-save, retry-deadline-policy, largest-histogram-rectangle, rectangle-union-area",
+  "expectedCounts": {
+    "cpp": 12,
+    "csharp": 12,
+    "rust": 12,
+    "go": 12,
+    "python": 12,
+    "java": 12,
+    "lua": 12
+  },
+  "expectedFingerprints": {
+    "cpp": "e76c5f58260f875a5f513cac6789efb78fb51ff575cfd62c22318a8f88ac863e",
+    "csharp": "6b2af71460e99c41c049a9f225db61956039c8797ab1ee155b1f7df85e9b94f3",
+    "rust": "18ba5267489b174a4334c649b9c2ea824fbe615f42ec917c0733b7bb2b30434c",
+    "go": "3c37aee47aac1b360ef8a57696f4b4db49f580f4530b4dd1b07d6f7390fb2a17",
+    "python": "68fe7eec75c3701851d13049c82be42d47256a2a387bcf2a1394ffe3325cf0c4",
+    "java": "65ea4ad2d30dffc2403c8caa7c095ae3089bd057f5cffca450dc63b0194d9444",
+    "lua": "7dfd7bf89c259b6a26dde54893a9f628fa7d735d497365aa1be826ea9455f7c0"
+  },
+  "transport": "ordinary static HTTP, no content encoding or cross-origin isolation; repository subpath; reused worker",
+  "scope": "Only the twelve newly added algorithm and state-contract families; SQL has no new families in this expansion. Full existing-catalog execution is also required by CI.",
+  "referenceCount": 84,
+  "caseCount": 952,
+  "results": [
+    {
+      "language": "cpp",
+      "catalogFingerprint": "e76c5f58260f875a5f513cac6789efb78fb51ff575cfd62c22318a8f88ac863e",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "csharp",
+      "catalogFingerprint": "6b2af71460e99c41c049a9f225db61956039c8797ab1ee155b1f7df85e9b94f3",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "rust",
+      "catalogFingerprint": "18ba5267489b174a4334c649b9c2ea824fbe615f42ec917c0733b7bb2b30434c",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "go",
+      "catalogFingerprint": "3c37aee47aac1b360ef8a57696f4b4db49f580f4530b4dd1b07d6f7390fb2a17",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "python",
+      "catalogFingerprint": "68fe7eec75c3701851d13049c82be42d47256a2a387bcf2a1394ffe3325cf0c4",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "java",
+      "catalogFingerprint": "65ea4ad2d30dffc2403c8caa7c095ae3089bd057f5cffca450dc63b0194d9444",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    },
+    {
+      "language": "lua",
+      "catalogFingerprint": "7dfd7bf89c259b6a26dde54893a9f628fa7d735d497365aa1be826ea9455f7c0",
+      "referenceCount": 12,
+      "caseCount": 136,
+      "passed": 12,
+      "wrongRejected": true,
+      "syntaxRejected": true,
+      "reusableWorkerClean": true,
+      "pageErrors": []
+    }
+  ]
+}

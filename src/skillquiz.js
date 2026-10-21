@@ -74,6 +74,6 @@ export function gradeSkillQuiz(quiz,answer) {
     const expected=skillQuizTokens(value,quiz.language);
     return expected?.length===actual.length && expected.every((token,index)=>token===actual[index]);
   });
-  return {passed,status:passed?'passed':'failed',message:passed?'指定された構文で空欄を埋めました。':'空欄の役割と指定された書き方を確認してください。',
+  return {passed,status:passed?'passed':'failed',message:passed?'空欄の条件を満たしています。':'空欄の条件と前後の処理を確認してください。',
     explanation:quiz?.explanation || '',completedSource:passed?quiz.code.replace('____',answer):null};
 }

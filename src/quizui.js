@@ -103,6 +103,13 @@ function mount(root) {
   const title = create('h3', 'quiz-title');
   const position = create('span', 'quiz-position');
   heading.append(title, position);
+  const difficultyPicker = create('div', 'quiz-difficulty-picker');
+  const difficultyLabel = create('label', '', '難度から探す');
+  const difficultySelect = create('select', 'quiz-difficulty-select');
+  difficultySelect.id = `${editorId}-difficulty`;
+  difficultyLabel.htmlFor = difficultySelect.id;
+  difficultyPicker.append(difficultyLabel, difficultySelect);
+  difficultyPicker.hidden = true;
   const topicPicker = create('div', 'quiz-topic-picker');
   const topicLabel = create('label', '', '課題');
   const topicSelect = create('select');
@@ -110,7 +117,16 @@ function mount(root) {
   topicLabel.htmlFor = topicSelect.id;
   topicPicker.append(topicLabel, topicSelect);
   topicPicker.hidden = true;
+  const accessPanel = create('section', 'quiz-access');
+  accessPanel.setAttribute('aria-label', '挑戦に必要な教本');
+  const accessReason = create('p', 'quiz-access-reason');
+  const openBook = create('button', 'secondary-button quiz-open-book', '必要な教本を見る');
+  openBook.type = 'button';
+  accessPanel.append(accessReason, openBook);
+  accessPanel.hidden = true;
   const description = create('p', 'quiz-description');
+  const assessment = create('p', 'quiz-assessment panel-note');
+  assessment.hidden = true;
   const parameters = create('dl', 'quiz-parameters');
   parameters.setAttribute('aria-label', '引数の意味');
   const constraints = create('section', 'quiz-constraints');
@@ -202,22 +218,22 @@ function mount(root) {
   const referenceCode = create('pre', 'reference-code');
   referenceCode.tabIndex = 0;
   reference.append(referenceHeading, referenceCode);
-  root.replaceChildren(heading, topicPicker, description, parameters, constraints, examples, editorLabel, editor, editorFooter, reward, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
+  root.replaceChildren(heading, difficultyPicker, topicPicker, accessPanel, description, assessment, parameters, constraints, examples, editorLabel, editor, editorFooter, reward, actions, status, progress, diagnostics, reviewTools, caseHeading, cases, moreCases, reference);
   const enhancedEditor = attachCodeEditor(editor, {});
-  const ui = { root, title, position, topicPicker, topicSelect, description, parameters, constraints, constraintList, examples, exampleList, editor, enhancedEditor, cursor, reward, rewardTitle, rewardItems, rewardNote, rewardKey: null, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
+  const ui = { root, title, position, difficultyPicker, difficultySelect, difficultyKey: '', topicPicker, topicSelect, accessPanel, accessReason, openBook, description, assessment, parameters, constraints, constraintList, examples, exampleList, editor, enhancedEditor, cursor, reward, rewardTitle, rewardItems, rewardNote, rewardKey: null, run, cancel, next, referenceToggle, status, progress, diagnostics, reviewTools, reviewToggle, review, reviewTitle, reviewExplanation, reviewCode, reviewOpen: false, reviewKey: null, cases, moreCases, moreCasesLabel, moreCasesList, reference, referenceCode, referenceOpen: false, key: null, model: {}, caseKey: '', topicKey: '' };
   mounted.set(root, ui);
   const updateCursor = () => {
     const before = editor.value.slice(0, editor.selectionStart).split('\n');
     write(cursor, `Ln ${before.length}, Col ${before.at(-1).length + 1}`);
   };
-  const sendDraft = () => { updateCursor(); ui.model.onDraft?.(editor.value); };
+  const sendDraft = () => { updateCursor(); if(ui.model.access?.available!==false)ui.model.onDraft?.(editor.value); };
   editor.addEventListener('input', sendDraft);
   for (const type of ['keyup', 'click', 'select']) editor.addEventListener(type, updateCursor);
   const runCode = () => {
-    if (!ui.model.running && !ui.model.disabled && ui.model.quiz) ui.model.onRun?.(editor.value);
+    if (!ui.model.running && !ui.model.disabled && ui.model.access?.available!==false && ui.model.quiz) ui.model.onRun?.(editor.value);
   };
   editor.addEventListener('keydown', event => {
-    if (event.isComposing) return;
+    if (event.isComposing || editor.readOnly) return;
     if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.altKey) {
       event.preventDefault(); event.stopPropagation();
       if (!event.repeat) runCode();
@@ -233,8 +249,15 @@ function mount(root) {
   topicSelect.addEventListener('change', () => {
     if (!topicSelect.disabled) ui.model.onSelect?.(Number(topicSelect.value));
   });
+  difficultySelect.addEventListener('change', () => {
+    if(difficultySelect.disabled)return;
+    const topics=(ui.model.topics || []).filter(topic=>topic.difficulty===Number(difficultySelect.value));
+    const topic=topics.find(topic=>topic.available!==false) || topics[0];
+    if(topic)ui.model.onSelect?.(topic.index);
+  });
+  openBook.addEventListener('click', () => { if(!openBook.disabled)ui.model.onOpenBook?.(); });
   referenceToggle.addEventListener('click', () => {
-    if (ui.model.referenceAvailable === false || ui.model.disabled || referenceToggle.disabled || referenceToggle.hidden || !ui.model.quiz?.referenceSource) return;
+    if (ui.model.access?.available===false || ui.model.referenceAvailable === false || ui.model.disabled || referenceToggle.disabled || referenceToggle.hidden || !ui.model.quiz?.referenceSource) return;
     ui.referenceOpen = !ui.referenceOpen;
     reference.hidden = !ui.referenceOpen;
     referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
@@ -399,8 +422,9 @@ function renderCases(ui, quiz, result, stale, running) {
 /**
  * Render a controlled Quiz panel without replacing its editor during game ticks.
  * Callbacks: onDraft(source), onRun(source), onCancel(), onNext(),
- * onSelect(index), onReference(isOpen).
- * topics: [{index, title, completed}], selectedIndex: number.
+ * onSelect(index), onReference(isOpen), onOpenBook().
+ * topics: [{index, title, completed, difficulty?, difficultyLabel?, available?, requiredLevel?, review?}], selectedIndex: number.
+ * access: {available, requiredLevel, ownedLevel, bookName, reason, review}.
  * result: {status, cases:[{id, passed, actual, message}], message, diagnostics}.
  * A result.source differing from draft is displayed as stale, never as a pass.
  * progress: {phase:'download'|'prepare'|'compile'|'execute', loaded?, total?}.
@@ -418,6 +442,7 @@ export function renderQuizUI(options) {
   if (!root) throw new TypeError('Quiz panel root is required.');
   const ui = mounted.get(root) || mount(root);
   ui.model = options;
+  const locked = options.access?.available === false;
   const key = quiz?.id ?? null;
   const changedQuestion = key !== ui.key;
   if (changedQuestion) {
@@ -442,13 +467,14 @@ export function renderQuizUI(options) {
   const beforeCursor = ui.editor.value.slice(0, ui.editor.selectionStart).split('\n');
   write(ui.cursor, `Ln ${beforeCursor.length}, Col ${beforeCursor.at(-1).length + 1}`);
   const stale = !!result && typeof result.source === 'string' && result.source !== draft;
-  const resultStatus = stale ? 'stale' : result?.status || 'idle';
+  const resultStatus = locked ? 'locked' : stale ? 'stale' : result?.status || 'idle';
   const passed = !running && successStates.has(resultStatus);
   const results = result?.cases || result?.results || [];
   const successCount = results.filter(row => successStates.has(caseStatus(row))).length;
   const total = quiz?.cases?.length || results.length;
   const summary = successStates.has(resultStatus) || ['wrong-answer', 'fail', 'failed'].includes(resultStatus) ? `${labels[resultStatus]}${results.length ? ` · ${successCount} / ${total}件` : ''}` : labels[resultStatus] || '評価器のエラー';
   root.dataset.quizStatus = running ? 'running' : resultStatus;
+  root.dataset.challengeAccess = locked ? 'locked' : options.access?.review ? 'review' : 'available';
   root.setAttribute('aria-busy', String(!!running));
   write(ui.title, quiz?.title || 'コードを実装して解く');
   write(ui.position, options.position ?? '');
@@ -458,7 +484,7 @@ export function renderQuizUI(options) {
   if (topicKey !== ui.topicKey) {
     ui.topicKey = topicKey;
     ui.topicSelect.replaceChildren(...topics.map(topic => {
-      const option = create('option', '', `${topic.completed ? '✓ ' : ''}${topic.title}`);
+      const option = create('option', '', `${topic.completed ? '✓ ' : ''}${topic.available===false ? '未解禁 · ' : ''}${topic.title}${topic.requiredLevel>0 ? ` · 教本 Lv.${topic.requiredLevel}` : ''}${topic.review ? ' · 復習可' : ''}`);
       option.value = String(topic.index);
       return option;
     }));
@@ -466,7 +492,31 @@ export function renderQuizUI(options) {
   ui.topicPicker.hidden = !topics.length || typeof options.onSelect !== 'function';
   ui.topicSelect.disabled = !!disabled || !!running;
   if (options.selectedIndex !== undefined) ui.topicSelect.value = String(options.selectedIndex);
+  const difficulties=[...new Set(topics.map(topic=>topic.difficulty).filter(Number.isInteger))].sort((a,b)=>a-b);
+  const difficultyOptions=difficulties.map(level=>{
+    const group=topics.filter(topic=>topic.difficulty===level),sample=group[0],available=group.filter(topic=>topic.available!==false).length;
+    return {level,label:`${sample.difficultyLabel || `難度${level}`} · ${available}/${group.length}題に挑戦可${sample.requiredLevel>0 ? ` · 教本 Lv.${sample.requiredLevel}` : ''}`};
+  });
+  const difficultyKey=JSON.stringify(difficultyOptions);
+  if(ui.difficultyKey!==difficultyKey){
+    ui.difficultyKey=difficultyKey;
+    ui.difficultySelect.replaceChildren(...difficultyOptions.map(({level,label})=>{
+      const option=create('option','',label);option.value=String(level);return option;
+    }));
+  }
+  ui.difficultyPicker.hidden=difficulties.length<2 || typeof options.onSelect!=='function';
+  ui.difficultySelect.disabled=!!disabled || !!running;
+  if(Number.isInteger(quiz?.difficulty))ui.difficultySelect.value=String(quiz.difficulty);
+  ui.accessPanel.hidden=!locked;
+  write(ui.accessReason,options.access?.reason || '必要な教本を確認してください。');
+  ui.openBook.hidden=typeof options.onOpenBook!=='function';
+  ui.openBook.disabled=!!disabled || !!running;
   write(ui.description, quiz?.description || '課題を選んでください。');
+  const assessmentData=quiz?.assessment;
+  const designAssessment='この課題では入出力の動作をテストします。クラスの分け方や設計全体の良し悪しは採点しません。';
+  const contractAssessment=['state-contract','behavioral-contract'].includes(assessmentData?.kind);
+  const assessment=typeof assessmentData==='string' ? assessmentData : contractAssessment ? [...(assessmentData.criteria || []).slice(0,2),...(assessmentData.limitations || []).slice(0,1)].filter(text=>typeof text==='string').join(' ') : quiz?.subject==='design' ? assessmentData?.limitations?.find(text=>typeof text==='string') || designAssessment : '';
+  write(ui.assessment,assessment);ui.assessment.hidden=!assessment;
   const parameters = quiz?.parameters || [];
   const parametersKey = JSON.stringify(parameters);
   if (ui.parametersKey !== parametersKey) {
@@ -481,20 +531,21 @@ export function renderQuizUI(options) {
   ui.parameters.hidden = !parameters.length;
   renderProblemDetails(ui, quiz);
   ui.editor.disabled = !!disabled || !quiz;
-  ui.run.disabled = !!disabled || !!running || !quiz;
+  ui.editor.readOnly=locked;
+  ui.run.disabled = !!disabled || !!running || locked || !quiz;
   write(ui.run, running ? '実行中…' : 'テストを実行');
   ui.cancel.hidden = !running || typeof options.onCancel !== 'function';
   ui.next.hidden = typeof options.onNext !== 'function' || !passed;
   ui.next.disabled = !!disabled || !!running;
-  const referenceAvailable = options.referenceAvailable !== false && !!quiz?.referenceSource;
+  const referenceAvailable = !locked && options.referenceAvailable !== false && !!quiz?.referenceSource;
   ui.referenceToggle.hidden = !quiz?.referenceSource;
   ui.referenceToggle.disabled = !!disabled || !referenceAvailable;
   if (!referenceAvailable) ui.referenceOpen = false;
   ui.reference.hidden = !referenceAvailable || !ui.referenceOpen;
   ui.referenceToggle.setAttribute('aria-expanded', String(ui.referenceOpen));
-  write(ui.referenceToggle, referenceAvailable ? ui.referenceOpen ? '解答例を閉じる' : '解答例を見る' : '解答例は合格後に公開');
+  write(ui.referenceToggle, locked ? '解答例は課題の解禁・合格後に公開' : referenceAvailable ? ui.referenceOpen ? '解答例を閉じる' : '解答例を見る' : '解答例は合格後に公開');
   renderHighlightedCode(ui.referenceCode, referenceAvailable ? quiz.referenceSource : '', quiz?.language);
-  const status = running ? progressLabel(progress) : summary;
+  const status = locked ? options.access?.reason || '教本で課題を解禁してください。' : running ? progressLabel(progress) : summary;
   write(ui.status, status);
   ui.status.dataset.kind = running ? 'running' : passed ? 'success' : errorStates.has(resultStatus) || ['fail', 'failed', 'wrong-answer'].includes(resultStatus) ? 'error' : 'neutral';
   ui.progress.hidden = !running;
@@ -511,8 +562,8 @@ export function renderQuizUI(options) {
   })].filter(Boolean).join('\n').slice(0, 16000) : '';
   write(ui.diagnostics, diagnosticText);
   ui.diagnostics.hidden = !diagnosticText;
-  renderRewards(ui, options.rewardSummary);
-  renderReview(ui, quiz, options.reviewLesson, result, running, disabled);
+  renderRewards(ui, locked ? null : options.rewardSummary);
+  renderReview(ui, quiz, locked ? null : options.reviewLesson, result, running, disabled);
   renderCases(ui, quiz, result, stale, running);
   ui.enhancedEditor.update({language: quiz?.language, context: (quiz?.parameters || []).map(parameter => parameter.name).join(' ')});
 }

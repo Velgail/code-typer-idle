@@ -21,6 +21,7 @@ import { verifyQuizUI } from './quiz-ui.mjs';
 import { verifyQuizPracticeUI } from './quiz-practice-ui.mjs';
 import { verifyFirstProjectUI } from './firstproject-ui.mjs';
 import { verifySkillQuizUI } from './skillquiz-ui.mjs';
+import { verifyChallengeAccessUI } from './challenge-access-ui.mjs';
 import { verifyChallengeStatements } from './challenge-statement-ui.mjs';
 import { runCodeEditorChecks } from './codeeditor-ui.mjs';
 import { verifyReadingChoices } from './reading-choice-ui.mjs';
@@ -55,6 +56,7 @@ try {
   await verifyQuizPracticeUI(browser, url, errors);
   await verifyFirstProjectUI(browser, url, errors);
   await verifySkillQuizUI(browser, url, errors);
+  await verifyChallengeAccessUI(browser, url, errors);
   await verifyChallengeStatements(browser, url, errors);
   await runCodeEditorChecks(browser, url, errors);
   await verifyReadingChoices(browser, url, errors);

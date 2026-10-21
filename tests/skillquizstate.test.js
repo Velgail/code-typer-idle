@@ -119,7 +119,7 @@ test('Challenge claims normalize the whole variable catalog and code reuse pays 
   const expected=q.estimatedMinutes*60*80*game.QUIZ_IMPLEMENTATION_MULTIPLIER*game.CHALLENGE_REUSE_MULTIPLIER*game.typingPower(s,'dev',q.subject);
   const reused=game.completeQuiz(s,q.id);near(reused.implementationUnits,expected);assert.equal(reused.studyUnits,0);
   const saved=game.deserialize(game.serialize(s,0));assert.ok(saved.quiz.implemented.includes(q.id));
-  assert.equal(challengeTopics('cpp','syntax').length,32);
+  assert.ok(challengeTopics('cpp','syntax').length>=32,'the original Challenge catalog remains available as advanced topics are appended');
 });
 
 test('new Challenge families pay full, another language pays sixty percent, and same-code reuse takes priority',()=>{

@@ -48,24 +48,43 @@ const dependencies={
 };
 const alternatives={
  'C#':{
-  'syntax/value-init':['default','default(int)'],
-  'syntax/nullable-value':['System.Nullable<int>'],
-  'graphics/grid-offset':['column + row * columns'],
+  'syntax/value-init':['default','default(int)','default(System.Int32)','0x0','0b0'],
+  'syntax/interpolation':['$@"Score: {score}"','@$"Score: {score}"'],
+  'syntax/nullable-value':['System.Nullable<int>','System.Int32?','System.Nullable<System.Int32>'],
+  'syntax/type-pattern':['System.Int32'],
+  'syntax/range-slice':['1..(values.Length - 1)'],
+  'syntax/discard-output':['var _','int _','System.Int32 _'],
+  'graphics/blend-weight':['255F','255.0f','255.0F','2.55e2f','2.55e2F'],
+  'graphics/grid-offset':['column + row * columns','columns * row + column','column + columns * row'],
   'graphics/flip-x':['width - (x + 1)'],
   'graphics/row-slice':['width * row'],
   'graphics/premultiply-color':['alpha * rgb']
  },
  Java:{
   'syntax/value-init':['0x0','0b0'],
-  'graphics/grid-offset':['column + row * width'],
-  'graphics/fill-row':['width * (row + 1)']
+  'syntax/instanceof-pattern':['java.lang.String'],
+  'syntax/catch-conversion':['java.lang.NumberFormatException'],
+  'syntax/explicit-type-witness':['<java.lang.String>'],
+  'syntax/record-pattern':['Point(var px, var py)','Point(int px, var py)','Point(var px, int py)'],
+  'syntax/safe-varargs':['java.lang.SafeVarargs'],
+  'syntax/array-constructor-reference':['java.lang.String[]::new'],
+  'design/override-annotation':['java.lang.Override'],
+  'design/comparator-tie':['thenComparing'],
+  'design/functional-contract':['java.lang.FunctionalInterface'],
+  'design/default-conflict':['B.super'],
+  'graphics/float-opacity':['255F','255.0f','255.0F','2.55e2f','2.55e2F'],
+  'graphics/grid-offset':['column + row * width','width * row + column','column + width * row'],
+  'graphics/point-record':['new Point(0, 0)','new Point(0.0f, 0.0f)'],
+  'graphics/fill-row':['width * (row + 1)'],
+  'graphics/depth-id-order':['thenComparing'],
+  'systems/fifo-queue':['remove','poll','pollFirst']
  }
 };
 const make=(language,groups)=>groups.flatMap(([subject,difficulty,rows])=>rows.map(([slug,title,body,answer,incorrect,reason,prerequisites],index)=>({
  id:`${subject}/${slug}`,subject,concept:`${language}: ${slug.replaceAll('-',' ')}`,title,difficulty,
  minutes:[0,.5,1,2,3.5][difficulty],prompt:`${title}。コメントと前後の処理を読み、指定された技法を使う記述で空欄を埋めてください。`,
  code:`// ${language} fragment: file-scope imports, type-member declarations, method-body statements.\n// ${slug.replaceAll('-',' ')}: complete the code in this context.\n${body}`,answer,incorrect,
- explanation:`${reason} この空欄では ${answer} を使います。`,
+ explanation:`${reason} 解答例: ${answer}。`,
  ...(alternatives[language]?.[`${subject}/${slug}`]?{alternatives:alternatives[language][`${subject}/${slug}`]}:{}),
  ...(difficulty>1?{prerequisites:prerequisites||(dependencies[language][subject][difficulty][index].split(' ').map(id=>id.includes('/')?id:`${subject}/${id}`))}:{})
 })));
@@ -88,7 +107,7 @@ export const CSHARP_SKILL_QUIZZES=make('C#',[
   ['tryparse-out','失敗しても例外を投げない整数変換を使う','if (int.TryParse("42", ____ int value)) System.Console.WriteLine(value);','out',['ref','in'],'TryParseは成功フラグを返し、変換結果をout引数に書き込みます。'],
   ['named-argument','名前付き引数で引数順に依存しない呼び出しをする','static int Area(int width, int height) => width * height;\nint area = Area(height: 4, ____: 3);','width',['height','int'],'引数名はメソッド宣言のパラメーター名と一致させます。'],
   ['optional-parameter','省略可能な引数に既定値を指定する','static int AddBonus(int score, int bonus ____ 5) => score + bonus;\nint total = AddBonus(10);','=',['==',':'],'既定値は引数を省略した呼び出しで使われます。'],
-  ['tuple-deconstruction','タプルを二つのローカル変数へ分解する','var position = (X: 4, Y: 7);\nvar ____ = position;','(x, y)',['[x, y]','x, y'],'タプルの各要素を左辺の順に対応させます。'],
+  ['tuple-deconstruction','タプルを座標xとyへ分解する','var position = (X: 4, Y: 7);\nvar ____ = position;\nSystem.Console.WriteLine(x + y);','(x, y)',['[x, y]','x, y'],'タプルの各要素を左辺の順に対応させます。'],
   ['expression-body','一つの式だけのメソッドを式本体で書く','static int Square(int value) ____ value * value;','=>',['->','==>'],'式本体は結果をそのまま戻り値にできます。']
  ]],
  ['syntax',3,[
@@ -307,7 +326,7 @@ export const JAVA_SKILL_QUIZZES=make('Java',[
  ['design',4,[
   ['checked-contract','呼び出し側へI/O失敗の処理を要求する契約を宣言する','interface SaveStore { String load() ____ java.io.IOException; }','throws',['throw','catch'],'checked例外をthrowsで宣言すると呼び出し側が捕捉または宣言します。'],
   ['covariant-return','オーバーライドで戻り値を具象型へ絞る','class Shape { Shape copy() { return new Shape(); } }\nclass Circle extends Shape { @Override ____ copy() { return new Circle(); } }','Circle',['Object','void'],'戻り値は基底メソッドの戻り値型のサブタイプへ絞れます。'],
-  ['default-conflict','二つのdefaultメソッドの競合を明示的に解決する','interface A { default String name() { return "A"; } }\ninterface B { default String name() { return "B"; } }\nclass Both implements A, B { public String name() { return ____.name(); } }','A.super',['super','A'],'選んだインターフェースの既定実装を明示して呼びます。'],
+  ['default-conflict','二つのdefaultメソッドのどちらかを選び競合を解決する','interface A { default String name() { return "A"; } }\ninterface B { default String name() { return "B"; } }\nclass Both implements A, B { public String name() { return ____.name(); } }','A.super',['super','A'],'A.superまたはB.superで、選んだインターフェースの既定実装を明示して呼びます。'],
   ['stream-decorator','既存入力へフィルターを被せるデコレーターを定義する','class LoggedInput extends java.io.____ {\n    LoggedInput(java.io.InputStream input) { super(input); }\n}','FilterInputStream',['InputStream','ByteArrayInputStream'],'FilterInputStreamは委譲先のInputStreamを包む基底です。'],
   ['listener-lifetime','購読の解除をAutoCloseableの契約で提供する','class Subscription implements AutoCloseable {\n    private final Runnable detach;\n    Subscription(Runnable detach) { this.detach = detach; }\n    public void ____() { detach.run(); }\n}','close',['dispose','finalize'],'try-with-resourcesから呼ばれる操作名はcloseです。多重解除の安全性は解除処理側でも設計します。'],
   ['class-token','実行時の型トークンを使って型安全にキャストする','static <T> T convert(Class<T> type, Object value) { return type.____(value); }','cast',['getClass','asSubclass'],'Class.castは型トークンに従って確認し、適合しなければClassCastExceptionを投げます。'],
@@ -358,7 +377,7 @@ export const JAVA_SKILL_QUIZZES=make('Java',[
   ['parse-integer','ラッパーを返さない整数パース専用APIを選ぶ','int count = Integer.____("42");','parseInt',['valueOf','toString'],'parseIntの戻り値はintです。valueOfはIntegerを返すため、この指定とは異なります。'],
   ['resource-scope','try-with-resourcesでファイルを閉じる','// Method declares throws java.io.IOException.\ntry (var input = java.nio.file.Files.____(java.nio.file.Path.of("save.dat"))) {\n    int first = input.read();\n}','newInputStream',['readString','exists'],'InputStreamを資源として宣言するとスコープ終了時にcloseされます。'],
   ['explicit-charset','設定ファイルの読み取り文字コードをUTF8へ固定する','// Method declares throws java.io.IOException.\nString text = java.nio.file.Files.readString(java.nio.file.Path.of("save.txt"), java.nio.charset.StandardCharsets.____);','UTF_8',['UTF_16','US_ASCII'],'保存と読取で同じ文字コードを明示して環境差を避けます。'],
-  ['fifo-queue','ArrayDequeをFIFOとして末尾へ追加し先頭から取る','var queue = new java.util.ArrayDeque<Integer>();\nqueue.addLast(1); queue.addLast(2);\nint first = queue.____();','removeFirst',['removeLast','getFirst'],'removeFirstは先頭を返して除きます。getFirstは除去しません。'],
+  ['fifo-queue','ArrayDequeをFIFOとして末尾へ追加し先頭から取る','var queue = new java.util.ArrayDeque<Integer>();\nqueue.addLast(1); queue.addLast(2);\nint first = queue.____();','removeFirst',['removeLast','getFirst'],'removeFirstとremoveは先頭を返して除きます。pollFirstとpollも、このように要素がある場合は同じ結果です。空の場合は前者が例外、後者がnullを返す点が異なります。getFirstとpeekは除去しません。'],
   ['unique-set','初回の登録かどうかをHashSetの戻り値で調べる','var seen = new java.util.HashSet<String>();\nboolean fresh = seen.____("job");','add',['contains','remove'],'addは集合へ新しく追加した場合にtrueを返します。'],
   ['map-fallback','Mapの未登録キーに既定値を指定する','var counts = new java.util.HashMap<String, Integer>();\nint count = counts.____("job", 0);','getOrDefault',['get','putIfAbsent'],'getOrDefaultはキーがないときだけ既定値を返します。nullの登録とは別です。'],
   ['elapsed-clock','期間の計測に単調な経過時間源を使う','long start = System.____();\n// Compare with a later reading from the same JVM.','nanoTime',['currentTimeMillis','identityHashCode'],'nanoTimeは差分の計測用です。UTC時刻の表示には使いません。'],

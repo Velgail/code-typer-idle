@@ -381,7 +381,7 @@ test('quiz completion requires the current exercise and material, and pays once 
 });
 
 test('drafts and cursors are independent by language and subject; only recent bounded drafts are saved',()=>{
-  const s=createState(0);setQuizDraft(s,'first');const first=quizLesson(s).id;
+  const s=createState(0);openOnlineMaterial(s,'syntax');setQuizDraft(s,'first');const first=quizLesson(s).id;
   nextQuiz(s);setQuizDraft(s,'second');assert.notEqual(quizLesson(s).id,first);
   s.typing.language='rust';assert.equal(s.quiz.cursors['rust/syntax']||0,0);setQuizDraft(s,'rust source');
   s.subject='design';setQuizDraft(s,'design source');
@@ -393,7 +393,7 @@ test('drafts and cursors are independent by language and subject; only recent bo
 
 test('legacy saves default to practice; malformed and unknown quiz data do not enter the save',()=>{
   const legacy=createState(0);delete legacy.quiz;delete legacy.quizWork;const loaded=deserialize(JSON.stringify(legacy));assert.deepEqual(loaded.quiz,{cursors:{},firstParts:{},completed:[],rewarded:[],implemented:[],verifiedAt:{},drafts:{}});assert.deepEqual(loaded.quizWork,[]);
-  const s=createState(0),id=quizLesson(s).id;
+  const s=createState(0);openOnlineMaterial(s,'syntax');const id=quizLesson(s).id;
   nextQuiz(s);const uncompleted=quizLesson(s).id;
   s.quiz={cursors:{'cpp/syntax':100,'rust/design':3,'unknown/syntax':2},completed:[id,id,'unknown'],rewarded:[id,id,uncompleted,'unknown'],drafts:{[id]:'x'.repeat(24001),unknown:'code'}};
   s.quizWork=[id,id,'unknown',null];
