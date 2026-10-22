@@ -1,18 +1,18 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "reproduce": "node scripts/analyze-challenge-difficulty.mjs --write",
   "scope": {
-    "catalogImplementations": 1122,
-    "reviewedFamilies": 14,
-    "reviewedImplementations": 98,
+    "catalogImplementations": 1143,
+    "reviewedFamilies": 17,
+    "reviewedImplementations": 119,
     "implementationsOutsideThisReview": 1024
   },
   "interpretation": {
     "basis": "Required knowledge, valid simpler solutions under the actual constraints, state design, and interactions between conditions.",
     "upperTiers": "The name of a standard algorithm, statement length, or large input alone does not establish an upper-tier difficulty.",
-    "modelEvidence": "research/model-difficulty-evaluation.json records exploratory gpt-6-luna/low trials; instant is not selectable in this environment.",
-    "rewardBudget": "estimatedMinutes is a provisional game pacing budget. It is not a conversion from model seconds or an observed human solve time.",
-    "coverage": "This review covers the twelve reclassified families and two new compound families. Other catalog entries are not newly calibrated by this report.",
+    "modelEvidence": "Historical exploratory measurements and paired-model trials are withdrawn as current numerical evidence. The original declarations, submissions and decisions remain in the pinned external audit Release referenced by research/audit-evidence.json. Current rewards use research/challenge-calibration.json and are checked against the original corpus by npm run audit:verify. low is the available substitute for instant, not an identical setting.",
+    "rewardBudget": "Catalog Challenge rewards use frozen family baseWorkUnits, not estimatedMinutes. The new raw-explanation protocol requires a direct observation for every family in its canonical language. It excludes rewritten summaries, summary-length regression, unmeasured-family predictions and implementation-size calibration. Other language implementations share the family work without claiming separate timing. Difficulty controls book access independently.",
+    "coverage": "This difficulty-label review covers the reclassified and subsequently added families carrying difficultyRationale. It does not establish a new model success rate or human difficulty estimate. The separate raw-explanation protocol covers every catalog family; accepted observations and their reward mapping are recorded in research/challenge-calibration.json.",
     "emptyTiers": "A difficulty tier can be empty. Book access rules for a tier do not prove that the tier currently contains tasks."
   },
   "families": [
@@ -57,16 +57,16 @@
           "index": 32
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 5,
-        "rewardBudgetMinutes": 25
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 10
+        "rewardCalibration": {
+          "baseWorkUnits": 7354,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/syntax/binary-search-minimum-capacity",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -79,7 +79,7 @@
           "可否が単調になることを確かめ、最小の容量を探す"
         ],
         "constraintRole": "荷物の順序と分割禁止は一つの標準的な容量判定にまとまる。別の資源制約や時間窓はなく、入力が多いことだけでは上位難度にしない。",
-        "timeBasis": "10分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 8
     },
@@ -124,16 +124,16 @@
           "index": 33
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 5,
-        "rewardBudgetMinutes": 35
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 12
+        "rewardCalibration": {
+          "baseWorkUnits": 6819,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/syntax/weighted-interval-planning",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -146,7 +146,7 @@
           "両立する案件までの最適値を用いて選択の利得を比較する"
         ],
         "constraintRole": "最大192案件なので二次時間の比較も使える。標準の重み付き区間選択に収まり、複数資源・先行条件・動的な報酬はない。",
-        "timeBasis": "12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 8
     },
@@ -191,16 +191,16 @@
           "index": 32
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 5,
-        "rewardBudgetMinutes": 35
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 12
+        "rewardCalibration": {
+          "baseWorkUnits": 6245,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/interval-merge-cost",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -213,7 +213,7 @@
           "分割位置ごとの部分費用と区間全体の費用を比較する"
         ],
         "constraintRole": "60素材で全分割位置を試せる。順序固定・隣接結合だけの標準問題で、工程ごとの資源制約や締切はない。",
-        "timeBasis": "12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 9
     },
@@ -258,16 +258,16 @@
           "index": 33
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 4,
-        "rewardBudgetMinutes": 15
-      },
       "current": {
         "difficulty": 2,
         "label": "基礎",
         "requiredBookLevel": 0,
-        "rewardBudgetMinutes": 6
+        "rewardCalibration": {
+          "baseWorkUnits": 5193,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/dynamic-range-sums",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "direct-implementation",
@@ -280,7 +280,7 @@
           "指定された区間を集計して結果だけを並べる"
         ],
         "constraintRole": "最大128要素・512操作は、更新と区間の単純走査で処理できる。参考実装のFenwick木を使う必要はなく、その名前を難度の根拠にしない。",
-        "timeBasis": "6分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 7
     },
@@ -325,16 +325,16 @@
           "index": 34
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 4,
-        "rewardBudgetMinutes": 18
-      },
       "current": {
         "difficulty": 2,
         "label": "基礎",
         "requiredBookLevel": 0,
-        "rewardBudgetMinutes": 6
+        "rewardCalibration": {
+          "baseWorkUnits": 5442,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/atomic-transfer-batch",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "direct-state-contract",
@@ -347,7 +347,7 @@
           "失敗時は途中の更新を捨て、成功時だけ結果を確定する"
         ],
         "constraintRole": "最大100送金を順に処理できる。並行実行・永続化・複数トランザクションの衝突は出題せず、短い状態契約の直接実装として扱う。",
-        "timeBasis": "6分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 13
     },
@@ -392,16 +392,16 @@
           "index": 35
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 4,
-        "rewardBudgetMinutes": 20
-      },
       "current": {
         "difficulty": 2,
         "label": "基礎",
         "requiredBookLevel": 0,
-        "rewardBudgetMinutes": 7
+        "rewardCalibration": {
+          "baseWorkUnits": 5601,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/idempotent-stock-requests",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "direct-state-contract",
@@ -414,7 +414,7 @@
           "同じIDには保存済みの結果を返し、在庫を再更新しない"
         ],
         "constraintRole": "要求は入力順で最大100件。再送だけを扱い、同時到着や部分失敗の調停はない。小さい配列による検索でも処理できる。",
-        "timeBasis": "7分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 13
     },
@@ -459,16 +459,16 @@
           "index": 36
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 4,
-        "rewardBudgetMinutes": 18
-      },
       "current": {
         "difficulty": 2,
         "label": "基礎",
         "requiredBookLevel": 0,
-        "rewardBudgetMinutes": 5
+        "rewardCalibration": {
+          "baseWorkUnits": 4452,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/optimistic-versioned-save",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "direct-state-contract",
@@ -481,7 +481,7 @@
           "一致した場合だけ保存値と版番号を更新する"
         ],
         "constraintRole": "一つの保存領域に最大100命令を順に適用する。実際の並行処理や競合解消は扱わず、明示された比較と更新を実装する。",
-        "timeBasis": "5分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 13
     },
@@ -526,16 +526,16 @@
           "index": 37
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 4,
-        "rewardBudgetMinutes": 22
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 8
+        "rewardCalibration": {
+          "baseWorkUnits": 6285,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/retry-deadline-policy",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "bounded-simulation",
@@ -548,7 +548,73 @@
           "成功時は終了し、失敗時だけ上限付きの待ち時間を更新する"
         ],
         "constraintRole": "最大100試行の仕様をそのままシミュレーションできる。実時間の待機、乱数、非同期競合を扱う設計問題ではない。",
-        "timeBasis": "8分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
+      },
+      "caseCount": 14
+    },
+    {
+      "id": "io/coordinate-skill-sequence",
+      "title": "座標系を切り替える双方向スキル列",
+      "subject": "design",
+      "implementations": [
+        {
+          "language": "cpp",
+          "id": "challenge/v1/cpp/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "csharp",
+          "id": "challenge/v1/csharp/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "rust",
+          "id": "challenge/v1/rust/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "go",
+          "id": "challenge/v1/go/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "python",
+          "id": "challenge/v1/python/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "java",
+          "id": "challenge/v1/java/design/coordinate-skill-sequence",
+          "index": 38
+        },
+        {
+          "language": "lua",
+          "id": "challenge/v1/lua/design/coordinate-skill-sequence",
+          "index": 38
+        }
+      ],
+      "current": {
+        "difficulty": 4,
+        "label": "発展",
+        "requiredBookLevel": 2,
+        "rewardCalibration": {
+          "baseWorkUnits": 7221,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/design/coordinate-skill-sequence",
+          "evidence": "research/challenge-calibration.json"
+        }
+      },
+      "rationale": {
+        "classification": "composed-invariants",
+        "requiredSkills": [
+          "非可換な関数合成",
+          "区間集約",
+          "遅延作用と作用合成",
+          "双方向の不変量"
+        ],
+        "reasoning": "区間内の各変換への共役作用を区間積へ持ち上げ、更新タグの合成順を保つ。正順・逆順の集約と、座標変更後に点置換するケースの遅延作用を整合させる。",
+        "constraintRole": "最大8192スキル・8192操作、非2冪長、全域更新後の部分区間評価と点置換、a=0と負の剰余を含む。問題文の式だけを順に処理する正しい単純解も禁止しない。",
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 14
     },
@@ -593,16 +659,16 @@
           "index": 32
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 5,
-        "rewardBudgetMinutes": 30
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 10
+        "rewardCalibration": {
+          "baseWorkUnits": 5364,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/graphics/largest-histogram-rectangle",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -615,7 +681,7 @@
           "候補区間を取りこぼさず最大値を求める"
         ],
         "constraintRole": "単調スタックは参考実装の一つで、区間を順に比較する別解も許容する。柱の高さと幅だけの標準問題で、描画順や複数資源の制約はない。",
-        "timeBasis": "10分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 15
     },
@@ -660,16 +726,16 @@
           "index": 33
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 6,
-        "rewardBudgetMinutes": 45
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 12
+        "rewardCalibration": {
+          "baseWorkUnits": 5501,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/graphics/rectangle-union-area",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -682,7 +748,7 @@
           "重複を一度だけ数え、幅や高さが0の領域を除く"
         ],
         "constraintRole": "最大24枚の固定された矩形だけを扱い、境界で分割した領域を調べられる。動的更新・回転・不確かな座標を合成する問題ではない。",
-        "timeBasis": "12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 15
     },
@@ -727,16 +793,16 @@
           "index": 32
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 6,
-        "rewardBudgetMinutes": 55
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 12
+        "rewardCalibration": {
+          "baseWorkUnits": 7121,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/traveling-courier",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -749,7 +815,7 @@
           "未訪問拠点への移動と拠点への帰還を比較する"
         ],
         "constraintRole": "13拠点は全順列の列挙を避ける規模だが、受付時間・荷物・積載量・訪問の先行関係はない。訪問集合を用いる定番の巡回問題として扱う。",
-        "timeBasis": "12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 10
     },
@@ -794,16 +860,16 @@
           "index": 33
         }
       ],
-      "previous": {
-        "revision": "159da4a593b5fb2922d7dc4ca0365efc427f12cc",
-        "difficulty": 6,
-        "rewardBudgetMinutes": 50
-      },
       "current": {
         "difficulty": 3,
         "label": "応用",
         "requiredBookLevel": 1,
-        "rewardBudgetMinutes": 12
+        "rewardCalibration": {
+          "baseWorkUnits": 6558,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/key-door-shortest-path",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "standard-pattern",
@@ -816,7 +882,7 @@
           "取得済みの鍵を保ちながら通行可否を判定する"
         ],
         "constraintRole": "移動は一律1歩、鍵は4種類で消費されない。時間に依存する通行条件や補給履歴はなく、標準的な状態を拡張した経路探索に収まる。",
-        "timeBasis": "12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 11
     },
@@ -861,12 +927,16 @@
           "index": 34
         }
       ],
-      "previous": null,
       "current": {
         "difficulty": 5,
         "label": "競技",
         "requiredBookLevel": 3,
-        "rewardBudgetMinutes": 25
+        "rewardCalibration": {
+          "baseWorkUnits": 8497,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/windowed-pickup-delivery",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "compound-constraints",
@@ -878,7 +948,7 @@
         ],
         "reasoning": "同じ訪問済み地点数でも積載・未配達の荷物・現在地点が異なると続けられる訪問が変わる。時刻窓を満たす順序と、保持すべき状態の設計が必要。",
         "constraintRole": "6荷物・12作業地点を扱い、先行関係・容量・時刻窓のどれかを省略した解法を反例で検証する。特定の実装方法は要求しない。",
-        "timeBasis": "provisional-pacing-budget"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 20
     },
@@ -923,12 +993,16 @@
           "index": 35
         }
       ],
-      "previous": null,
       "current": {
         "difficulty": 5,
         "label": "競技",
         "requiredBookLevel": 3,
-        "rewardBudgetMinutes": 25
+        "rewardCalibration": {
+          "baseWorkUnits": 10544,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/consumable-gate-route",
+          "evidence": "research/challenge-calibration.json"
+        }
       },
       "rationale": {
         "classification": "compound-constraints",
@@ -940,9 +1014,142 @@
         ],
         "reasoning": "一度限りの補給、鍵を消費する恒久解錠、時刻ゲートを同じ経路状態として整合させる。単に地点への最短距離を求めるだけでは解けない。",
         "constraintRole": "最大6144の地点・履歴状態を持つ。補給の取り直しや解錠のし直しが必要な解法を反例で検査する。",
-        "timeBasis": "provisional-pacing-budget"
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
       },
       "caseCount": 18
+    },
+    {
+      "id": "io/dynamic-parity-component-cost",
+      "title": "接続を戻しながら二色の最小費用を求める",
+      "subject": "systems",
+      "implementations": [
+        {
+          "language": "cpp",
+          "id": "challenge/v1/cpp/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "csharp",
+          "id": "challenge/v1/csharp/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "rust",
+          "id": "challenge/v1/rust/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "go",
+          "id": "challenge/v1/go/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "python",
+          "id": "challenge/v1/python/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "java",
+          "id": "challenge/v1/java/systems/dynamic-parity-component-cost",
+          "index": 36
+        },
+        {
+          "language": "lua",
+          "id": "challenge/v1/lua/systems/dynamic-parity-component-cost",
+          "index": 36
+        }
+      ],
+      "current": {
+        "difficulty": 4,
+        "label": "発展",
+        "requiredBookLevel": 2,
+        "rewardCalibration": {
+          "baseWorkUnits": 10458,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/dynamic-parity-component-cost",
+          "evidence": "research/challenge-calibration.json"
+        }
+      },
+      "rationale": {
+        "classification": "reversible-invariant-composition",
+        "requiredSkills": [
+          "追加と削除を伴う連結性",
+          "頂点間の相対色",
+          "矛盾の局所化",
+          "色反転による費用集計",
+          "状態変更の取り消し"
+        ],
+        "reasoning": "削除による成分分離、相対色の反転、局所矛盾、二色の費用を同時に管理する。参照解答では時間区間への分解と可逆な成分集計を組み合わせて扱う。各問い合わせで成分を再構成するなどの正しい別解も許容する。",
+        "constraintRole": "最大4096頂点・16384命令。長い連結成分を繰り返し切断・再接続するケースと、重複・自己辺・矛盾の発生と解消を含む。特定のアルゴリズム名は採点しない。",
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
+      },
+      "caseCount": 17
+    },
+    {
+      "id": "io/hamiltonian-floor-cycles",
+      "title": "全床を一度だけ巡る閉路の数",
+      "subject": "systems",
+      "implementations": [
+        {
+          "language": "cpp",
+          "id": "challenge/v1/cpp/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "csharp",
+          "id": "challenge/v1/csharp/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "rust",
+          "id": "challenge/v1/rust/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "go",
+          "id": "challenge/v1/go/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "python",
+          "id": "challenge/v1/python/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "java",
+          "id": "challenge/v1/java/systems/hamiltonian-floor-cycles",
+          "index": 37
+        },
+        {
+          "language": "lua",
+          "id": "challenge/v1/lua/systems/hamiltonian-floor-cycles",
+          "index": 37
+        }
+      ],
+      "current": {
+        "difficulty": 7,
+        "label": "超難関",
+        "requiredBookLevel": 5,
+        "rewardCalibration": {
+          "baseWorkUnits": 11484,
+          "basis": "direct-raw-explanation-observation",
+          "canonicalId": "challenge/v1/cpp/systems/hamiltonian-floor-cycles",
+          "evidence": "research/challenge-calibration.json"
+        }
+      },
+      "rationale": {
+        "classification": "frontier-connectivity-invariant",
+        "requiredSkills": [
+          "幅に依存する状態圧縮",
+          "経路端点の連結成分",
+          "同型状態の正規化",
+          "部分閉路の排除"
+        ],
+        "reasoning": "境界の各セルの次数だけでは部分経路がどことつながるかを識別できず、複数閉路を誤って数える。端点対の連結を正規化して継承し、唯一の閉路を完成させてよい時点を判定する必要がある。",
+        "constraintRole": "幅は6に限る一方で最大120空きセルを持つ。全経路や全辺集合の単純列挙は大きい床で膨張し、正規化した境界状態の転送なら高さに比例して処理できる。",
+        "timeBasis": "報酬は題材ごとの新規解説原文を受領するまでの観測経過時間に基づく。同題材の別言語実装は共通の基準を使う。要約字数による推定、実装文字数と旧分数は使用しない。"
+      },
+      "caseCount": 22
     }
   ]
 }

@@ -1,6 +1,15 @@
 // A compiler runs only after an explicit submission, outside the UI thread.
 export const QUIZ_LANGUAGES = ['cpp','csharp','rust','go','python','java','sql','lua'];
 export const QUIZ_SOURCE_LIMIT = 24000;
+export const QUIZ_DEFAULT_EXECUTION_BUDGET_MS = 30000;
+export const QUIZ_MAX_EXECUTION_BUDGET_MS = 300000;
+
+// The deadline includes compilation and all fixtures. Only authored task
+// metadata or an explicit runner override can change it, within a fixed cap.
+export function quizExecutionBudgetMs(quiz, override) {
+  const value=override===undefined ? quiz?.executionBudgetMs ?? QUIZ_DEFAULT_EXECUTION_BUDGET_MS : override;
+  return Number.isInteger(value) && value>0 ? Math.min(QUIZ_MAX_EXECUTION_BUDGET_MS,value) : QUIZ_DEFAULT_EXECUTION_BUDGET_MS;
+}
 
 function sameJSON(actual,expected) {
   if(typeof actual==='number' && typeof expected==='number')return Number.isFinite(actual) && Number.isFinite(expected) && actual===expected;
@@ -25,10 +34,11 @@ export function compareQuizOutput(stdout, expected, caseIds = [], outputFormat =
 }
 
 export class QuizRunner {
-  constructor({ workerFactory = () => new Worker(new URL('./quizworker.js', import.meta.url), { type: 'module' }), loadTimeout = 300000, executionTimeout = 30000 } = {}) {
+  constructor({ workerFactory = () => new Worker(new URL('./quizworker.js', import.meta.url), { type: 'module' }), loadTimeout = 300000, executionTimeout } = {}) {
     this.workerFactory = workerFactory;
     this.loadTimeout = loadTimeout;
-    this.executionTimeout = executionTimeout;
+    this.executionTimeout = quizExecutionBudgetMs(null,executionTimeout);
+    this.executionTimeoutOverride = executionTimeout;
     this.worker = null;
     this.sequence = 0;
     this.pending = null;
@@ -70,9 +80,9 @@ export class QuizRunner {
         if (message.type === 'progress') { onProgress(String(message.text).slice(0, 200)); return; }
         if (message.type === 'ready') {
           clearTimeout(this.pending.timer);
-          this.pending.timer = timeout(this.executionTimeout, '実行が時間切れになりました。ループの終了条件を確認してください。');
+          this.pending.timer = timeout(quizExecutionBudgetMs(quiz,this.executionTimeoutOverride), 'コンパイル・テストが時間切れになりました。処理量やループの終了条件を確認してください。');
           onProgress('コンパイル・テスト中…');
-          worker.postMessage({ type: 'execute', id, source: harness.source, sqlChecks: harness.sqlChecks });
+          worker.postMessage({ type: 'execute', id, source: harness.source, sqlChecks: harness.sqlChecks, sqlProgram: harness.sqlProgram });
           return;
         }
         if (message.type !== 'result') return;

@@ -31,35 +31,39 @@ test('contest algorithms share authored contracts and cases across seven languag
  assert.equal(question('traveling-courier').difficulty,3,'a standard subset-state tour does not acquire a hard label from its algorithm name');
  assert.equal(question('key-door-shortest-path').difficulty,3,'permanent-key BFS remains a standard state-expansion problem');
  assert.equal(question('dynamic-range-sums').difficulty,2,'small range-query fixtures permit direct array updates and scans');
- assert.equal(question('dynamic-range-sums').estimatedMinutes,6);
+ assert.equal(Object.hasOwn(question('dynamic-range-sums'),'estimatedMinutes'),false);
  assert.match(question('dynamic-range-sums').concept,/参考実装/);
 });
 
-test('standard families have reviewed difficulty and reward pacing without an advanced-label premium',()=>{
+test('standard families retain reviewed difficulty while frozen work replaces historical minute budgets',()=>{
  const profiles={
-  'binary-search-minimum-capacity':[3,10],'weighted-interval-planning':[3,12],
-  'traveling-courier':[3,12],'key-door-shortest-path':[3,12],
-  'interval-merge-cost':[3,12],'dynamic-range-sums':[2,6]
+  'binary-search-minimum-capacity':3,'weighted-interval-planning':3,
+  'traveling-courier':3,'key-door-shortest-path':3,
+  'interval-merge-cost':3,'dynamic-range-sums':2
  };
- for(const [slug,[difficulty,minutes]] of Object.entries(profiles))for(const language of ['cpp','csharp','rust','go','python','java','lua']){
+ for(const [slug,difficulty] of Object.entries(profiles))for(const language of ['cpp','csharp','rust','go','python','java','lua']){
   const q=question(slug,language);
   assert.equal(q.difficulty,difficulty,q.id);
-  assert.equal(q.estimatedMinutes,minutes,q.id);
+  assert.equal(Object.hasOwn(q,'estimatedMinutes'),false,`${q.id}: the rejected minute estimate is absent`);
+  assert.ok(q.rewardCalibration?.baseWorkUnits>0,q.id);
+  assert.equal(q.rewardCalibration.baseWorkUnits,question(slug).rewardCalibration.baseWorkUnits,`${q.id}: same family shares frozen work`);
  }
 });
 
 test('each standard algorithm records the required reasoning and actual role of its constraints',()=>{
  const authored=[];
  const ir=new Proxy({B:['break']},{get:(target,name)=>name in target?target[name]:(...args)=>[name,...args]});
- registerContestChallenges((...args)=>authored.push({slug:args[1],description:args[10],rationale:args[12].difficultyRationale}),ir);
+ registerContestChallenges((...args)=>authored.push({slug:args[1],description:args[9],rationale:args[11].difficultyRationale}),ir);
  assert.equal(authored.length,6);
  for(const {slug,description,rationale} of authored){
   assert.equal(rationale.classification,slug==='dynamic-range-sums'?'direct-implementation':'standard-pattern',slug);
   assert.ok(rationale.requiredSkills.length>=2,slug);
   assert.ok(rationale.reasoning.length>=2,slug);
   assert.ok(rationale.constraintRole.length>20,slug);
-  assert.match(rationale.timeBasis,/暫定の報酬基準/,slug);
-  assert.match(rationale.timeBasis,/実測.*換算ではない/,slug);
+  assert.equal(typeof rationale.timeBasis,'string',`${slug}: preserve authored history`);
+  const current=question(slug).difficultyRationale;
+  assert.match(current.timeBasis,/報酬|作業量/,slug);
+  assert.ok(question(slug).rewardCalibration?.baseWorkUnits>0,slug);
   assert.ok(!description.includes(rationale.constraintRole),'developer rationale is separate from the public statement');
  }
 });

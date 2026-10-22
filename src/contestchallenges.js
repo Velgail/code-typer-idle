@@ -13,37 +13,37 @@ const difficultyRationales={
   classification:'standard-pattern',requiredSkills:['単調性の判断','順序を保つ区間分割'],
   reasoning:['容量を固定したときの運搬可否を判定する','可否が単調になることを確かめ、最小の容量を探す'],
   constraintRole:'荷物の順序と分割禁止は一つの標準的な容量判定にまとまる。別の資源制約や時間窓はなく、入力が多いことだけでは上位難度にしない。',
-  timeBasis:'10分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'weighted-interval-planning':{
   classification:'standard-pattern',requiredSkills:['区間の重なり判定','選ぶ場合と選ばない場合の比較'],
   reasoning:['入力順とは独立に案件を整理する','両立する案件までの最適値を用いて選択の利得を比較する'],
   constraintRole:'最大192案件なので二次時間の比較も使える。標準の重み付き区間選択に収まり、複数資源・先行条件・動的な報酬はない。',
-  timeBasis:'12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'traveling-courier':{
   classification:'standard-pattern',requiredSkills:['訪問済み集合の表現','経路の部分問題'],
   reasoning:['訪問済み集合と現在地で、以後に必要な情報を表す','未訪問拠点への移動と拠点への帰還を比較する'],
   constraintRole:'13拠点は全順列の列挙を避ける規模だが、受付時間・荷物・積載量・訪問の先行関係はない。訪問集合を用いる定番の巡回問題として扱う。',
-  timeBasis:'12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'key-door-shortest-path':{
   classification:'standard-pattern',requiredSkills:['最短歩数の探索','所持品を含む状態表現'],
   reasoning:['同じ位置でも鍵の所持状態が違えば別の状態として扱う','取得済みの鍵を保ちながら通行可否を判定する'],
   constraintRole:'移動は一律1歩、鍵は4種類で消費されない。時間に依存する通行条件や補給履歴はなく、標準的な状態を拡張した経路探索に収まる。',
-  timeBasis:'12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'interval-merge-cost':{
   classification:'standard-pattern',requiredSkills:['連続区間の部分問題','最後の操作からの分解'],
   reasoning:['最後に結合する左右の区間を考える','分割位置ごとの部分費用と区間全体の費用を比較する'],
   constraintRole:'60素材で全分割位置を試せる。順序固定・隣接結合だけの標準問題で、工程ごとの資源制約や締切はない。',
-  timeBasis:'12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'dynamic-range-sums':{
   classification:'direct-implementation',requiredSkills:['配列の更新','半開区間の走査'],
   reasoning:['操作種別に従って一つの要素を置換する','指定された区間を集計して結果だけを並べる'],
   constraintRole:'最大128要素・512操作は、更新と区間の単純走査で処理できる。参考実装のFenwick木を使う必要はなく、その名前を難度の根拠にしない。',
-  timeBasis:'6分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  }
 };
 
@@ -119,7 +119,7 @@ export function registerContestChallenges(D,ir){
  const {V,S,A,P,C,F,W,R,B,N,add,sub,mul,div,mod,eq,ne,lt,le,gt,ge,and,band,bor,shl,at,len,filled,copy,min,max}=ir;
  const meta=(slug,constraints,parameterDescriptions,oracle,examples,scaleNotes)=>({constraints,parameterDescriptions,oracle,examples,scaleNotes,skipGenericContract:true,assessment:algorithmAssessment,difficultyRationale:difficultyRationales[slug]});
  const largeWeights=Array.from({length:1536},(_,i)=>(i*7919)%99991+1);
- D('syntax','binary-search-minimum-capacity','指定日数で運びきる最小容量','答えの二分探索',3,10,
+ D('syntax','binary-search-minimum-capacity','指定日数で運びきる最小容量','答えの二分探索',3,
   [['weights','array'],['days','int']],'int',[
    N('Bound the answer between the heaviest item and the total load.'),
    V('low','int',0),V('high','int',0),F('i',0,len('weights'),[S('low',max('low',at('weights','i'))),S('high',add('high',at('weights','i')))]),
@@ -136,7 +136,7 @@ export function registerContestChallenges(D,ir){
    ['1536個の荷物と、大きな容量の探索範囲を持つケースを含みます。']));
 
  const scheduled=[];for(let i=0;i<128;i++){const start=(i*197)%1024;scheduled.push(start,start+1+(i*13)%61,1+(i*3571)%7000);}
- D('syntax','weighted-interval-planning','重ならない案件の最大報酬','重み付き区間スケジューリング',3,12,
+ D('syntax','weighted-interval-planning','重ならない案件の最大報酬','重み付き区間スケジューリング',3,
   [['jobs','array']],'int',[
    V('count','int',div(len('jobs'),3)),V('order','array',filled(0)),F('i',0,'count',[P('order','i')]),
    N('Sort job indexes by finish time without changing the supplied jobs.'),
@@ -157,7 +157,7 @@ export function registerContestChallenges(D,ir){
    ['未整列の128案件、終了時刻の一致、区間端点での接続を含みます。']));
 
  const courierCosts=n=>Array.from({length:n*n},(_,i)=>Math.floor(i/n)===i%n?0:1+(Math.floor(i/n)*37+(i%n)*71+Math.floor(i/n)*(i%n)*13)%97);
- D('systems','traveling-courier','全拠点を巡回する最小配送費','訪問集合を持つ動的計画法',3,12,
+ D('systems','traveling-courier','全拠点を巡回する最小配送費','訪問集合を持つ動的計画法',3,
   [['cities','int'],['costs','array']],'int',[
    C(lt('cities',2),[R(0)]),V('states','int',shl(1,'cities')),V('dp','array',filled(mul('states','cities'),1000000000)),A('dp','cities',0),
    N('A state records the visited cities and the final city of the route.'),
@@ -183,7 +183,7 @@ export function registerContestChallenges(D,ir){
  for(let row=0;row<20;row++)for(const column of [10,15,18])largeMaze[row*20+column]=1;
  largeMaze[17*20+10]=20;largeMaze[5*20+15]=21;largeMaze[19*20+18]=22;
  largeMaze[19*20+2]=10;largeMaze[19*20+12]=11;largeMaze[12*20+17]=12;
- D('systems','key-door-shortest-path','鍵を持って扉を抜ける最短経路','位置と所持品を持つ幅優先探索',3,12,
+ D('systems','key-door-shortest-path','鍵を持って扉を抜ける最短経路','位置と所持品を持つ幅優先探索',3,
   [['grid','array'],['width','int'],['height','int'],['start','int'],['goal','int']],'int',[
    V('cells','int',len('grid')),V('firstKeys','int',0),V('firstCode','int',at('grid','start')),C(and(ge('firstCode',10),le('firstCode',13)),[S('firstKeys',shl(1,sub('firstCode',10)))]),
    V('firstState','int',add(mul('firstKeys','cells'),'start')),V('distance','array',filled(mul('cells',16),-1)),A('distance','firstState',0),V('queue','array',filled(0)),P('queue','firstState'),V('head','int',0),
@@ -208,7 +208,7 @@ export function registerContestChallenges(D,ir){
    ['鍵を取って同じ通路へ戻るケースと、20×20のマップを含みます。']));
 
  const manyChunks=Array.from({length:60},(_,i)=>1+(i*37)%100);
- D('design','interval-merge-cost','隣り合う素材をまとめる最小費用','区間の動的計画法',3,12,
+ D('design','interval-merge-cost','隣り合う素材をまとめる最小費用','区間の動的計画法',3,
   [['chunks','array']],'int',[
    V('count','int',len('chunks')),C(lt('count',2),[R(0)]),V('prefix','array',filled(add('count',1))),F('i',0,'count',[A('prefix',add('i',1),add(at('prefix','i'),at('chunks','i')))]),V('dp','array',filled(mul('count','count'))),
    N('Try each final split; merging this interval costs its complete size.'),
@@ -226,7 +226,7 @@ export function registerContestChallenges(D,ir){
 
  const initial=Array.from({length:128},(_,i)=>(i*43)%201-100),operations=[];
  for(let i=0;i<256;i++){const left=(i*17)%129,right=left+(i*29)%(129-left);operations.push(0,(i*31)%128,(i*79)%2001-1000,1,left,right);}
- D('design','dynamic-range-sums','更新される配列の区間合計','動的な区間集計（参考実装はFenwick木）',2,6,
+ D('design','dynamic-range-sums','更新される配列の区間合計','動的な区間集計（参考実装はFenwick木）',2,
   [['values','array'],['operations','array']],'array',[
    V('count','int',len('values')),V('current','array',copy('values')),V('tree','array',filled(add('count',1))),V('out','array',filled(0)),
    N('Each tree entry stores a range ending at its one-based position.'),

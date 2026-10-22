@@ -6,8 +6,8 @@ const ir={};
 for(const [name,op] of Object.entries({V:'let',S:'set',A:'put',P:'push',O:'pop',F:'for',W:'while',R:'return',add:'+',sub:'-',mul:'*',div:'/',eq:'==',ne:'!=',lt:'<',le:'<=',gt:'>',ge:'>=',and:'and',or:'or',at:'at',len:'len',filled:'filled',copy:'copy',min:'min',max:'max'}))ir[name]=(...args)=>[op,...args];
 ir.C=(condition,yes,no=[])=>['if',condition,yes,no];ir.B=['break'];ir.filled=(n,value=0)=>['filled',n,value];
 const definitions=[];
-registerContractChallenges((subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,options)=>{
- definitions.push({subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,...options});
+registerContractChallenges((subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,options)=>{
+ definitions.push({subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,...options});
 },ir);
 const get=slug=>definitions.find(def=>def.slug===slug);
 
@@ -78,20 +78,20 @@ test('contract and geometry families have explicit requirements and independent 
 
 test('direct state contracts and standard geometry have authored difficulty reasons without advanced-label inflation',()=>{
  const profiles={
-  'atomic-transfer-batch':[2,6],'idempotent-stock-requests':[2,7],
-  'optimistic-versioned-save':[2,5],'retry-deadline-policy':[3,8],
-  'largest-histogram-rectangle':[3,10],'rectangle-union-area':[3,12]
+  'atomic-transfer-batch':2,'idempotent-stock-requests':2,
+  'optimistic-versioned-save':2,'retry-deadline-policy':3,
+  'largest-histogram-rectangle':3,'rectangle-union-area':3
  };
- for(const [slug,[difficulty,minutes]] of Object.entries(profiles)){
+ for(const [slug,difficulty] of Object.entries(profiles)){
   const def=get(slug),rationale=def.difficultyRationale;
   assert.equal(def.difficulty,difficulty,slug);
-  assert.equal(def.minutes,minutes,slug);
+  assert.equal(Object.hasOwn(def,'minutes'),false,slug);
   assert.ok(rationale.requiredSkills.length>=2,slug);
   assert.ok(rationale.reasoning.length>=2,slug);
   assert.equal(typeof rationale.constraintRole,'string',slug);
   assert.ok(rationale.constraintRole.length>20,slug);
-  assert.match(rationale.timeBasis,/暫定の報酬基準/,slug);
-  assert.match(rationale.timeBasis,/実測.*換算ではない/,slug);
+  assert.match(rationale.timeBasis,/直接観測/,slug);
+  assert.match(rationale.timeBasis,/旧分数は撤回/,slug);
   assert.ok(!def.description.includes(rationale.constraintRole),'developer rationale is separate from the public statement');
  }
 });

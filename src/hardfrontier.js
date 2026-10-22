@@ -1,0 +1,169 @@
+// Original frontier-connectivity problem. Expected values use a balanced-plug
+// transfer; the reference renames paired path-component labels explicitly.
+const MODULUS=1009;
+
+export function hamiltonianFloorCycleOracle([width,height,blocked]){
+ const last=blocked.lastIndexOf(0);if(last<0)return 0;
+ const powers=Array.from({length:width+1},(_,i)=>3**i);
+ let states=new Map([[0,1]]),answer=0;
+ const add=(target,state,count)=>target.set(state,((target.get(state)||0)+count)%MODULUS);
+ for(let cell=0;cell<=last;cell++){
+  const column=cell%width,next=new Map();
+  for(const [state,ways] of states){
+   const a=Math.floor(state/powers[column])%3,b=Math.floor(state/powers[column+1])%3;
+   const cleared=state-a*powers[column]-b*powers[column+1];
+   if(blocked[cell]){if(!a&&!b)add(next,state,ways);continue;}
+   const down=cell+width<blocked.length&&!blocked[cell+width],right=column+1<width&&!blocked[cell+1];
+   if(!a&&!b){if(down&&right)add(next,cleared+powers[column]+2*powers[column+1],ways);}
+   else if(!a||!b){
+    const plug=a||b;
+    if(down)add(next,cleared+plug*powers[column],ways);
+    if(right)add(next,cleared+plug*powers[column+1],ways);
+   }else if(a===1&&b===2){if(cell===last&&cleared===0)answer=(answer+ways)%MODULUS;}
+   else if(a===2&&b===1)add(next,cleared,ways);
+   else if(a===1){
+    let depth=1;
+    for(let position=column+2;position<=width;position++){
+     const digit=Math.floor(state/powers[position])%3;
+     if(digit===1)depth++;else if(digit===2)depth--;
+     if(depth===0){add(next,cleared-powers[position],ways);break;}
+    }
+   }else{
+    let depth=1;
+    for(let position=column-1;position>=0;position--){
+     const digit=Math.floor(state/powers[position])%3;
+     if(digit===2)depth++;else if(digit===1)depth--;
+     if(depth===0){add(next,cleared+powers[position],ways);break;}
+    }
+   }
+  }
+  states=next;
+  if(column===width-1){const shifted=new Map();for(const [state,ways] of states)add(shifted,state*3,ways);states=shifted;}
+ }
+ return answer;
+}
+
+// Generate every noncrossing partial pairing on seven frontier slots. Labels
+// are assigned by first occurrence, so equivalent component names share a code.
+function pairedFrontierStates(){
+ const enumerate=(start,end)=>{
+  if(start===end)return [[]];
+  const result=enumerate(start+1,end).map(rest=>[[start,-1],...rest]);
+  for(let partner=start+1;partner<end;partner++)for(const inner of enumerate(start+1,partner))for(const outer of enumerate(partner+1,end))result.push([[start,partner],...inner,...outer]);
+  return result;
+ };
+ const codes=new Set();
+ for(const pairing of enumerate(0,7)){
+  const labels=Array(7).fill(0);let nextLabel=0;
+  for(const [left,right] of pairing)if(right>=0){labels[left]=++nextLabel;labels[right]=nextLabel;}
+  codes.add(labels.reduce((sum,label,i)=>sum+label*4**i,0));
+ }
+ return [...codes].sort((a,b)=>a-b);
+}
+const FRONTIER_STATES=pairedFrontierStates();
+const rectangle=(width,height)=>[width,height,Array(width*height).fill(0)];
+const floor=(width,rows)=>[width,rows.length,rows.flatMap(row=>[...row].map(c=>c==='#'?1:0))];
+export const HARD_FRONTIER_CASES=[
+ [1,1,[1]],rectangle(1,1),rectangle(2,1),rectangle(1,4),rectangle(2,2),rectangle(3,2),rectangle(3,3),rectangle(4,3),rectangle(4,4),
+ floor(5,['..#..','..#..']),
+ floor(3,['...','.#.','...']),
+ floor(4,['....','.##.','.##.','....']),
+ floor(2,['##','..','..','##']),
+ floor(4,['####','....','....','....','....','####']),
+ floor(3,['...','...','###','...','...']),
+ floor(4,['....','.#..','....']),
+ floor(5,['.....','..#..','.....','.....']),
+ rectangle(6,6),rectangle(5,20),rectangle(6,20),
+ floor(6,Array.from({length:20},(_,row)=>row===0||row===19?'......':'.####.')),
+ floor(6,['######','......','......','..##..','......','......','......','.##...','......','......','......','......','...##.','......','......','......','......','......','......','######'])
+];
+
+export function registerHardFrontierChallenges(D,ir){
+ const {V,S,A,P,C,F,W,R,N,add,sub,mul,div,mod,eq,ne,lt,le,gt,ge,and,or,at,len,filled,max}=ir;
+ const plusWays=(array,index)=>A(array,index,mod(add(at(array,index),'ways'),MODULUS));
+ const body=[
+  V('lastFree','int',-1),F('cell',0,len('blocked'),[C(eq(at('blocked','cell'),0),[S('lastFree','cell')])]),C(lt('lastFree',0),[R(0)]),
+  V('powers','array',filled(7)),A('powers',0,1),F('slot',1,7,[A('powers','slot',mul(at('powers',sub('slot',1)),4))]),
+  V('stateCodes','array',filled(0)),...FRONTIER_STATES.map(code=>P('stateCodes',code)),
+  V('codeIndex','array',filled(16384,-1)),F('i',0,len('stateCodes'),[A('codeIndex',at('stateCodes','i'),'i')]),
+  V('current','array',filled(len('stateCodes'))),A('current',at('codeIndex',0),1),V('answer','int',0),
+  N('Each nonzero component label occurs at exactly two unfinished path ends.'),
+  F('row',0,'height',[
+   F('column',0,'width',[
+    V('cell','int',add(mul('row','width'),'column')),V('next','array',filled(len('stateCodes'))),
+    F('stateIndex',0,len('stateCodes'),[
+     V('ways','int',at('current','stateIndex')),
+     C(ne('ways',0),[
+      V('code','int',at('stateCodes','stateIndex')),V('leftPower','int',at('powers','column')),V('upPower','int',at('powers',add('column',1))),
+      V('leftLabel','int',mod(div('code','leftPower'),4)),V('upLabel','int',mod(div('code','upPower'),4)),
+      V('cleared','int',sub(sub('code',mul('leftLabel','leftPower')),mul('upLabel','upPower'))),
+      C(eq(at('blocked','cell'),1),[
+       C(and(eq('leftLabel',0),eq('upLabel',0)),[plusWays('next','stateIndex')])
+      ],[
+       V('downOpen','int',0),V('rightOpen','int',0),
+       C(lt(add('row',1),'height'),[C(eq(at('blocked',add('cell','width')),0),[S('downOpen',1)])]),
+       C(lt(add('column',1),'width'),[C(eq(at('blocked',add('cell',1)),0),[S('rightOpen',1)])]),
+       V('candidates','array',filled(0)),
+       C(and(eq('leftLabel',0),eq('upLabel',0)),[
+        C(and(eq('downOpen',1),eq('rightOpen',1)),[
+         V('newLabel','int',1),F('slot',0,7,[S('newLabel',max('newLabel',add(mod(div('cleared',at('powers','slot')),4),1)))]),
+         P('candidates',add(add('cleared',mul('newLabel','leftPower')),mul('newLabel','upPower')))
+        ])
+       ],[
+        C(or(eq('leftLabel',0),eq('upLabel',0)),[
+         V('label','int',add('leftLabel','upLabel')),
+         C(eq('downOpen',1),[P('candidates',add('cleared',mul('label','leftPower')))]),
+         C(eq('rightOpen',1),[P('candidates',add('cleared',mul('label','upPower')))])
+        ],[
+         C(eq('leftLabel','upLabel'),[
+          N('A closed loop is valid only at the last free cell, with no other path.'),
+          C(and(eq('cell','lastFree'),eq('cleared',0)),[S('answer',mod(add('answer','ways'),MODULUS))])
+         ],[
+          V('joined','int',0),F('slot',0,7,[
+           V('label','int',mod(div('cleared',at('powers','slot')),4)),C(eq('label','upLabel'),[S('label','leftLabel')]),
+           S('joined',add('joined',mul('label',at('powers','slot'))))
+          ]),P('candidates','joined')
+         ])
+        ])
+       ]),
+       F('candidate',0,len('candidates'),[
+        V('raw','int',at('candidates','candidate')),V('renaming','array',filled(4)),V('nextLabel','int',1),V('normalized','int',0),
+        N('Canonical names let equivalent path connectivities share one state.'),
+        F('slot',0,7,[
+         V('label','int',mod(div('raw',at('powers','slot')),4)),
+         C(ne('label',0),[
+          C(eq(at('renaming','label'),0),[A('renaming','label','nextLabel'),S('nextLabel',add('nextLabel',1))]),
+          S('normalized',add('normalized',mul(at('renaming','label'),at('powers','slot'))))
+         ])
+        ]),V('destination','int',at('codeIndex','normalized')),plusWays('next','destination')
+       ])
+      ])
+     ])
+    ]),S('current','next'),C(eq('cell','lastFree'),[R('answer')])
+   ]),
+   V('shifted','array',filled(len('stateCodes'))),F('stateIndex',0,len('stateCodes'),[
+    V('ways','int',at('current','stateIndex')),C(ne('ways',0),[
+     V('destination','int',at('codeIndex',mul(at('stateCodes','stateIndex'),4))),plusWays('shifted','destination')
+    ])
+   ]),S('current','shifted')
+  ]),R('answer')
+ ];
+ D('systems','hamiltonian-floor-cycles','全床を一度だけ巡る閉路の数','境界に残る経路成分と閉路完成の判定',7,
+  [['width','int'],['height','int'],['blocked','array']],'int',body,HARD_FRONTIER_CASES,
+  '長方形の床で、空きセルすべてをちょうど一度ずつ訪れ、開始セルへ戻る単純な閉路の個数を1009で割った余りを返す。blockedは行を上から、各行を左から並べた配列で、0が空き、1が壁。上下左右で辺を共有する空きセルの間だけを移動できる。'
+  +' 閉路は少なくとも4セルを含み、各空きセルで使う辺はちょうど2本。2セル間の同じ辺を往復するものは数えない。全空きセルを含む一つの閉路だけを数え、互いに分離した複数の閉路は不可。'
+  +' 同じ無向辺集合を使う閉路は、開始セルや進行方向が違っても同じ一つとして数える。壁セルを含んではいけない。空きセルが0個の場合も答えは0。',
+  ['io/consumable-gate-route'],{
+   oracle:hamiltonianFloorCycleOracle,skipGenericContract:true,executionBudgetMsByLanguage:{rust:90000},
+   constraints:['widthは1〜6、heightは1〜20。blockedの長さはwidth*height。','blockedの各値は0か1。壁の数や配置に追加条件はなく、空きセルが複数の連結成分に分かれる場合もある。','答えは0〜1008の整数。閉路の向きや開始地点による重複を含めない。'],
+   parameterDescriptions:{width:'各行のセル数。1〜6。',height:'行数。1〜20。',blocked:'各セルの壁フラグを行優先で並べた列。0が空き、1が壁。'},
+   examples:[
+    {args:rectangle(2,2),expected:1,explanation:'4セルを囲む四角形の辺集合だけ。4通りの開始セルや2方向の進行は重複して数えない。'},
+    {args:floor(5,['..#..','..#..']),expected:0,explanation:'左右それぞれに四角形を作れるが、全空きセルを含む一つの閉路にはならない。'},
+    {args:rectangle(4,3),expected:2,explanation:'横4・縦3の全空き床には、全12セルを含む閉路の辺集合が2種類ある。'}
+   ],
+   assessment:{kind:'algorithm',criteria:['全頂点次数2と一つの連結閉路の両立','境界をまたぐ未完成経路の連結関係','早すぎる閉路完成の排除と無向辺集合による重複除去'],limitations:['正しい閉路数の入出力を採点する。特定のデータ構造名や状態表現を指定しない。']},
+   difficultyRationale:{classification:'frontier-connectivity-invariant',requiredSkills:['幅に依存する状態圧縮','経路端点の連結成分','同型状態の正規化','部分閉路の排除'],reasoning:'境界の各セルの次数だけでは部分経路がどことつながるかを識別できず、複数閉路を誤って数える。端点対の連結を正規化して継承し、唯一の閉路を完成させてよい時点を判定する必要がある。',constraintRole:'幅は6に限る一方で最大120空きセルを持つ。全経路や全辺集合の単純列挙は大きい床で膨張し、正規化した境界状態の転送なら高さに比例して処理できる。',timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'},
+   scaleNotes:['6×20の全空き床、穴のある床、先頭と末尾が壁の床を含む。','各空きセルの次数が2という条件だけでは、分離した複数閉路を除外できない。','同じ未完成の経路接続は、内部ラベルの名前が違っても同一の状態として扱える。']
+  });
+}

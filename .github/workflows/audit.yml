@@ -1,0 +1,30 @@
+name: Reproduce calibration audit
+on:
+  workflow_dispatch:
+    inputs:
+      replay:
+        description: 'Also recompile and grade all original implementations'
+        type: boolean
+        required: false
+        default: false
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - if: ${{ !inputs.replay }}
+        run: npm run audit:verify
+      - if: inputs.replay
+        run: npm install --no-save --package-lock=false playwright@1.62.1
+      - if: inputs.replay
+        run: npx playwright install --with-deps chromium
+      - if: inputs.replay
+        run: npm run build
+      - if: inputs.replay
+        run: npm run audit:replay

@@ -26,7 +26,7 @@ function assertNoReward(result) {
 }
 
 test('Challenge difficulty maps to subject textbook levels while first-game parts stay free', () => {
-  for (const [difficulty, required] of [[1,0],[2,0],[3,1],[4,2],[5,3],[6,4]]) {
+  for (const [difficulty, required] of [[1,0],[2,0],[3,1],[4,2],[5,3],[6,4],[7,5]]) {
     assert.equal(requiredChallengeBookLevel({difficulty}), required);
     assert.equal(requiredChallengeBookLevel({difficulty, firstProjectPart:0}), 0);
     const state = student(), question = {id:`test/level-${difficulty}`, subject:'syntax', difficulty};
@@ -48,6 +48,65 @@ test('Challenge difficulty maps to subject textbook levels while first-game part
     s.items[`book-${subject}`] = 2;
     assert.equal(game.challengeAccess(s, question).available, true);
   }
+});
+
+test('Challenge access bounds unknown tiers and keeps invalid metadata at the default tier', () => {
+  for (const difficulty of [8, 100, Number.MAX_SAFE_INTEGER]) {
+    assert.equal(requiredChallengeBookLevel({difficulty}), 5);
+  }
+  for (const difficulty of [undefined, null, NaN, Infinity, -Infinity, 6.5, '7', -10]) {
+    assert.equal(requiredChallengeBookLevel({difficulty}), 0);
+  }
+});
+
+test('the fifth textbook level can be purchased and survives an existing save round trip', () => {
+  const s = student('systems');
+  s.cash = 1e9;
+  for (let i = 0; i < 5; i++) assert.equal(game.buy(s, 'book-systems'), true);
+  const restored = game.deserialize(game.serialize(s, 0));
+  assert.equal(game.level(restored, 'book-systems'), 5);
+  const question = {id:'test/ultra-hard', subject:'systems', difficulty:7};
+  assert.equal(game.challengeAccess(restored, question).available, true);
+  restored.items['book-systems'] = 4;
+  const locked = game.challengeAccess(restored, question);
+  assert.equal(locked.available, false);
+  assert.match(locked.reason, /Lv\.5/);
+});
+
+test('higher frozen Challenge work awards more learning and implementation only after its book is unlocked', () => {
+  const s = student();
+  s.mode = 'dev'; s.devStyle = 'quiz'; s.projectIndex = 3; s.legacyPermit = 3;
+  for (const skill of game.SKILLS) s.skills[skill.id] = 1e6;
+  s.items['book-syntax'] = 5;
+  const template = {...choose(s, 2), firstProjectPart:undefined};
+  const hard = {...template, id:'test/hard', difficulty:6, estimatedMinutes:60, rewardCalibration:{baseWorkUnits:12000}};
+  const ultra = {...template, id:'test/ultra-hard', difficulty:7, estimatedMinutes:90, rewardCalibration:{baseWorkUnits:18000}};
+  const before = structuredClone(s);
+  const hardReward = game.quizRewardPreview(s, hard), ultraReward = game.quizRewardPreview(s, ultra);
+  assert.ok(hardReward.studyUnits > 0);
+  assert.ok(hardReward.implementationUnits > 0);
+  assert.equal(ultraReward.studyUnits / hardReward.studyUnits, 1.5);
+  assert.equal(ultraReward.implementationUnits / hardReward.implementationUnits, 1.5);
+  assert.deepEqual(s, before);
+  s.items['book-syntax'] = 4;
+  assertNoReward(game.quizRewardPreview(s, ultra));
+  assert.ok(game.quizRewardPreview(s, hard).studyUnits > 0);
+});
+
+test('missing calibration cannot resurrect authored-time Challenge rewards', () => {
+  const s = student(), template = choose(s, 2);
+  const preview = minutes => game.quizRewardPreview(s, {...template, rewardCalibration:undefined, estimatedMinutes:minutes});
+  const standard = preview(2).studyUnits;
+  for (const value of [NaN, Infinity, -Infinity, 'invalid', '90', {}]) {
+    const result = preview(value);
+    assert.equal(result.studyUnits, standard);
+    assert.ok(Number.isFinite(result.amount));
+  }
+  const maximum = preview(120).studyUnits;
+  assert.equal(preview(Number.MAX_VALUE).studyUnits, maximum);
+  assert.equal(preview(0).studyUnits, preview(-1).studyUnits);
+  assert.equal(preview(0).studyUnits,0);
+  assert.equal(maximum,0);assert.equal(preview(90).implementationUnits,0);
 });
 
 test('free material opens basic Challenges; purchasing the required book opens an applied task', () => {

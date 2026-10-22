@@ -6,8 +6,8 @@ const ir={};
 for(const [name,op] of Object.entries({V:'let',S:'set',A:'put',P:'push',O:'pop',F:'for',W:'while',R:'return',N:'comment',add:'+',sub:'-',mul:'*',div:'/',mod:'%',eq:'==',ne:'!=',lt:'<',le:'<=',gt:'>',ge:'>=',and:'and',at:'at',len:'len',filled:'filled',band:'&',bor:'|',shl:'<<'}))ir[name]=(...args)=>[op,...args];
 ir.C=(condition,yes,no=[])=>['if',condition,yes,no];ir.B=['break'];ir.filled=(n,value=0)=>['filled',n,value];
 let definition;
-registerCompoundRouteChallenges((subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,options)=>{
- definition={subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,...options};
+registerCompoundRouteChallenges((subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,options)=>{
+ definition={subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,...options};
 },ir);
 
 function reference(args){

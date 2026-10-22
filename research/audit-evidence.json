@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "raw-public-explanations-v2-20261022",
+  "sourceCommit": "d7b75a1e1d8ce118bf949cd44ea14e3929b3422d",
+  "releaseUrl": "https://github.com/Velgail/code-typer-idle/releases/tag/audit-calibration-v2-20261022",
+  "archive": {
+    "format": "tar.gz",
+    "url": "https://github.com/Velgail/code-typer-idle/releases/download/audit-calibration-v2-20261022/code-typer-idle-research-d7b75a1.tar.gz",
+    "sha256": "1134be575bdc37ae5fda70272f0a894679d953d72148fef79c19c9df9ec74574",
+    "sizeBytes": 5556529,
+    "uncompressedSizeBytes": 48640000,
+    "payloadSizeBytes": 47848024,
+    "fileCount": 991
+  },
+  "fileManifest": {
+    "url": "https://github.com/Velgail/code-typer-idle/releases/download/audit-calibration-v2-20261022/research-files.json",
+    "sha256": "738ca2728e602283574384d285fadba4e31c48152b0afdb95f2febeb009182ec",
+    "sizeBytes": 198031
+  }
+}

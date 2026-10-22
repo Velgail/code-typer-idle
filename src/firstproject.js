@@ -1,6 +1,10 @@
 // The first game is assembled from three independently tested components.
 // These exercises are project work, with no claim of completing a typing lesson.
 export const FIRST_PROJECT_VERSION = 1;
+// A curriculum budget, independent of a reference answer's spelling or size.
+// The freeze script verifies this is ceil(study work needed for free K0→K12).
+export const FIRST_PROJECT_FOUNDATION_WORK = 10058;
+export const FIRST_PROJECT_STUDY_BASE = FIRST_PROJECT_FOUNDATION_WORK / 12;
 export const FIRST_PROJECT_LANGUAGES = Object.freeze(['cpp', 'csharp', 'rust', 'go', 'python', 'java', 'sql', 'lua']);
 export const FIRST_PROJECT_PARTS = Object.freeze([
  Object.freeze({id:'accept-guess',title:'入力を受け付ける',description:'入力された数が、数当てゲームで受け付ける範囲に入っているかを判定する。',index:0,end:1000}),

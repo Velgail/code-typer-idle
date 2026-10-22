@@ -72,7 +72,7 @@ export function registerCompoundRouteChallenges(D,ir){
   [24,largeEdges,[0,1],largeSupplies,largeDoors,0,22],
   [24,largeEdges,[0,1],largeSupplies,largeDoors,0,23]
  ];
- D('systems','consumable-gate-route','消耗鍵と時刻ゲートの最短経路','回収・解錠の履歴と時刻による経路選択',5,25,
+ D('systems','consumable-gate-route','消耗鍵と時刻ゲートの最短経路','回収・解錠の履歴と時刻による経路選択',5,
   [['nodes','int'],['edges','array'],['initialKeys','array'],['supplies','array'],['doors','array'],['start','int'],['goal','int']],'int',[
    V('supplyCount','int',div(len('supplies'),3)),V('doorCount','int',div(len('doors'),2)),
    V('doorStates','int',shl(1,'doorCount')),V('stateCount','int',mul(mul('nodes',shl(1,'supplyCount')),'doorStates')),
@@ -148,7 +148,7 @@ export function registerCompoundRouteChallenges(D,ir){
   +' その後、時刻を周期で割った余りが開く位相になるまで待ってから移動する。扉なし・解錠済みの辺も同じ時刻条件に従う。鍵消費→解錠作業→時刻待ち→移動→到着地点で補給、の順序。start=goalなら0。実装方法は自由。',
   ['io/key-door-shortest-path','io/weighted-paths'],{
    oracle:consumableGateRouteOracle,skipGenericContract:true,
-   difficultyRationale:{classification:'compound-constraints',requiredSkills:['経路探索','消耗資源の管理','履歴を持つ状態','周期的な待機'],reasoning:'一度限りの補給、鍵を消費する恒久解錠、時刻ゲートを同じ経路状態として整合させる。単に地点への最短距離を求めるだけでは解けない。',constraintRole:'最大6144の地点・履歴状態を持つ。補給の取り直しや解錠のし直しが必要な解法を反例で検査する。',timeBasis:'provisional-pacing-budget'},
+   difficultyRationale:{classification:'compound-constraints',requiredSkills:['経路探索','消耗資源の管理','履歴を持つ状態','周期的な待機'],reasoning:'一度限りの補給、鍵を消費する恒久解錠、時刻ゲートを同じ経路状態として整合させる。単に地点への最短距離を求めるだけでは解けない。',constraintRole:'最大6144の地点・履歴状態を持つ。補給の取り直しや解錠のし直しが必要な解法を反例で検査する。',timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'},
    constraints:[
     'nodesは1〜24。startとgoal、辺の両端、補給の地点は0以上nodes未満。',
     'edgesは最大144辺、長さは6の倍数。移動時間は0〜20、周期は1〜7、開く位相は0以上周期未満。平行辺と自己ループも許す。',

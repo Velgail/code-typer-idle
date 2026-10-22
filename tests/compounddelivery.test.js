@@ -6,8 +6,8 @@ const ir={};
 for(const [name,op] of Object.entries({V:'let',S:'set',A:'put',F:'for',R:'return',N:'comment',add:'+',sub:'-',mul:'*',div:'/',mod:'%',eq:'==',lt:'<',le:'<=',ge:'>=',and:'and',or:'or',at:'at',len:'len',filled:'filled',min:'min',max:'max'}))ir[name]=(...args)=>[op,...args];
 ir.C=(condition,yes,no=[])=>['if',condition,yes,no];ir.filled=(n,value=0)=>['filled',n,value];
 const definitions=[];
-registerCompoundDeliveryChallenges((subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,options)=>{
- definitions.push({subject,slug,title,concept,difficulty,minutes,parameters,result,body,cases,description,prerequisites,...options});
+registerCompoundDeliveryChallenges((subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,options)=>{
+ definitions.push({subject,slug,title,concept,difficulty,parameters,result,body,cases,description,prerequisites,...options});
 },ir);
 const def=definitions[0];
 
@@ -83,7 +83,7 @@ test('compound delivery exposes the combined contract without prescribing its so
  assert.ok(def.parameters.every(([name])=>def.parameterDescriptions[name]));
  assert.equal(def.assessment.kind,'algorithm');assert.ok(def.assessment.criteria.length>=3);
  assert.equal(def.difficultyRationale.requiredSkills.length,4);
- assert.equal(def.difficultyRationale.timeBasis,'provisional-pacing-budget');
+ assert.match(def.difficultyRationale.timeBasis,/直接観測/);
  assert.doesNotMatch(def.description,/三進|DP|動的計画|ビットマスク/);
  for(const example of def.examples)assert.equal(def.oracle(example.args),example.expected);
 });

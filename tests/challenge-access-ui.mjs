@@ -60,7 +60,7 @@ export async function verifyChallengeAccessUI(browser,url,errors){
       const selected=Number(await page.locator('.quiz-topic-picker select').inputValue());
       assert.equal(pool[selected].difficulty,difficulty,'difficulty navigation reaches advanced tasks without advancing through the basic bank');
       assert.equal(await page.locator('#quiz-panel').getAttribute('data-challenge-access'),'locked');
-      assert.match(await page.locator('.quiz-access-reason').innerText(),new RegExp(`Lv\\.${difficulty-2}.*現在 Lv\\.0`));
+      assert.match(await page.locator('.quiz-access-reason').innerText(),new RegExp(`Lv[.]${difficulty-2}.*現在 Lv[.]0`));
       assert.equal(await page.locator('.quiz-source').getAttribute('readonly'),'');
       assert.equal(await page.locator('.quiz-run').isDisabled(),true);
       assert.equal(await page.locator('.quiz-reference-toggle').isDisabled(),true);
@@ -123,5 +123,28 @@ export async function verifyChallengeAccessUI(browser,url,errors){
     await review.page.locator('.quiz-difficulty-select').selectOption('5');
     assert.equal(await review.page.locator('#quiz-panel').getAttribute('data-challenge-access'),'locked','an uncompleted harder task still needs its book tier');
   }finally{await review.context.close();}
+  const hard=challengeTopics('cpp','systems').find(quiz=>quiz.topicId==='hamiltonian-floor-cycles');
+  assert.ok(hard && hard.difficulty>=6,'the published hard candidate is reachable');
+  const required=hard.difficulty-2,high=createState();
+  high.autoEnabled=false;high.mode='study';high.studyStyle='quiz';high.subject='systems';high.typing.language='cpp';
+  high.onlineMaterials=['systems'];high.items['book-systems']=required-1;high.cash=1e9;
+  high.quiz.cursors['cpp/systems']=hard.index;high.quiz.drafts[hard.id]=hard.starterSource+'\n// preserved hard draft';
+  const top=await open(browser,url,errors,high);
+  try{
+    assert.equal(await top.page.locator('.quiz-difficulty-select').inputValue(),String(hard.difficulty));
+    assert.match(await top.page.locator('.quiz-difficulty-select option:checked').innerText(),new RegExp(hard.difficultyLabel));
+    assert.equal(await top.page.locator('#quiz-panel').getAttribute('data-challenge-access'),'locked');
+    assert.match(await top.page.locator('.quiz-access-reason').innerText(),new RegExp(`Lv[.]${required}.*現在 Lv[.]${required-1}`));
+    await top.page.locator('.quiz-open-book').click();await top.page.locator('[data-buy=book-systems]').click();
+    assert.equal((await saved(top.page)).items['book-systems'],required);
+    assert.equal(await top.page.locator('#quiz-panel').getAttribute('data-challenge-access'),'available');
+    assert.equal(await top.page.locator('.quiz-run').isEnabled(),true);
+    assert.equal(await top.page.locator('#quiz-panel > .quiz-rewards').isVisible(),true);
+    assert.equal(await top.page.locator('.quiz-source').inputValue(),high.quiz.drafts[hard.id]);
+    await top.page.reload();await top.page.waitForSelector('.quiz-source');
+    assert.equal(await top.page.locator('#quiz-panel').getAttribute('data-challenge-access'),'available');
+    assert.equal(await top.page.locator('.quiz-topic-picker select').inputValue(),String(hard.index));
+    assert.equal(top.workers(),0,'unlocking a hard task does not execute a submission');
+  }finally{await top.context.close();}
   console.log('Challenge access UI checks passed: free basics, visible locked tiers, difficulty jump, book navigation and unlock, guarded worker/reward, saved draft/focus, and completed review without books.');
 }

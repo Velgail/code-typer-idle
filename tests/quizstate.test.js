@@ -4,6 +4,7 @@ import { createState, openOnlineMaterial, quizLesson, nextQuiz, setQuizDraft, co
 import * as game from '../src/core.js';
 import { lessonAt } from '../src/curriculum.js';
 import { TYPING_REWARD, typingCompletionMultiplier, typingKeystrokes } from '../src/typing.js';
+import {FIRST_PROJECT_STUDY_BASE} from '../src/challengerewards.js';
 import { FIRST_PROJECT_PARTS, FIRST_PROJECT_LANGUAGES, firstProjectQuizAt, firstProjectQuizCatalog } from '../src/firstproject.js';
 
 const copy=value=>structuredClone(value);
@@ -18,7 +19,7 @@ function development(s=study()){
   expert(s);s.mode='dev';s.devStyle='quiz';s.projectIndex=2;s.legacyPermit=2;return s;
 }
 function baseUnits(quiz){
-  return quiz.estimatedMinutes*60*80;
+  return quiz.rewardCalibration?.baseWorkUnits ?? quiz.estimatedMinutes*60*80;
 }
 function rewarded(s){const q=quizLesson(s);completeQuiz(s,q.id);return q;}
 function begin(s,extra={}){
@@ -43,12 +44,12 @@ test('first-project part boundaries tolerate floating point residue without chan
 });
 
 test('a generic learning exercise unlocks three separate components instead of finishing the first game',()=>{
-  const s=study(),generic=rewarded(s);assert.ok(game.skillKnowledge(s,'syntax')>=12);assert.equal(s.progress,0);
+  const s=study(),generic=rewarded(s);assert.ok(game.skillKnowledge(s,'syntax')>0);assert.equal(s.progress,0);
   s.mode='dev';s.devStyle='quiz';assert.notEqual(quizLesson(s).id,generic.id);assert.equal(quizLesson(s).firstProjectPart,0);
   assert.equal(completeQuiz(s,generic.id).kind,'none','the old study answer cannot complete an unrelated project component');
   for(const part of FIRST_PROJECT_PARTS){
     const q=quizLesson(s);assert.equal(q.firstProjectPart,part.index);
-    const before=s.progress,units=typingKeystrokes(q.rewardSource)*16*4*game.typingPower(s,'study','syntax');
+    const before=s.progress,units=FIRST_PROJECT_STUDY_BASE*4*game.typingPower(s,'study','syntax');
     const preview=game.quizRewardPreview(s),r=completeQuiz(s,q.id);
     assert.deepEqual(r,preview);near(r.studyUnits,units);assert.equal(s.progress,part.end);near(r.progress,part.end-before);
     for(const language of FIRST_PROJECT_LANGUAGES)assert.equal(s.quiz.firstParts[language],Math.min(2,part.index+1));
@@ -68,13 +69,13 @@ test('all eight first-project language routes apply exactly one thousand impleme
   }
 });
 
-test('all eight fresh direct implementation routes assemble the first game with staged knowledge and unchanged four-copy learning rewards',()=>{
+test('all eight fresh direct implementation routes assemble the first game with staged knowledge and three equal curricular knowledge grants',()=>{
   for(const language of FIRST_PROJECT_LANGUAGES){
     const s=study(language);s.mode='dev';s.devStyle='quiz';
     assert.equal(s.skills.syntax,0);assert.equal(s.cash,100);assert.deepEqual(s.items,{});
     for(const part of FIRST_PROJECT_PARTS){
       assert.equal(game.currentProject(s).req.syntax,(part.index+1)*4,`${language}/${part.index} requirement`);
-      const q=quizLesson(s),units=typingKeystrokes(q.rewardSource)*16*4*game.typingPower(s,'study','syntax');
+      const q=quizLesson(s),units=FIRST_PROJECT_STUDY_BASE*4*game.typingPower(s,'study','syntax');
       const gain=game.studyGain(s,units,'syntax'),preview=game.quizRewardPreview(s),r=completeQuiz(s,q.id);
       assert.deepEqual(r,preview);near(r.studyUnits,units,language);near(r.learned,gain,language);
       assert.equal(r.progress,1000,`${language}/${part.index} progress`);assert.equal(s.progress,part.end,language);
@@ -202,7 +203,7 @@ test('first-game component claims stay with their paused work and a newly select
   assert.equal(game.selectProject(fresh,0),true);assert.deepEqual(fresh.quiz.firstParts,{});assert.equal(quizLesson(fresh).firstProjectPart,0);
 });
 
-test('Challenge first learning gives four authored-time budgets with study equipment power in either mode',()=>{
+test('Challenge first learning gives four frozen base-work units with study equipment power in either mode',()=>{
   assert.equal(game.QUIZ_STUDY_MULTIPLIER,4);assert.equal(game.QUIZ_IMPLEMENTATION_MULTIPLIER,2);assert.equal(game.QUIZ_VERIFICATION_MULTIPLIER,3);
   for(const language of ['cpp','csharp','rust','go','python','java','sql','lua']){
     const s=study(language);s.items={keyboard:2,monitor:2,lab:2,'book-syntax':1,library:4,assistant:3};

@@ -19,7 +19,7 @@ self.addEventListener('message', async event => {
       await adapter.initialize(new URL('../runtime-assets/v1/', import.meta.url).href);
       self.postMessage({ id: requestId, type: 'ready' });
     } else if (message?.type === 'execute' && adapter && message.id === requestId) {
-      const result = await adapter.execute(message.source, { sqlChecks: message.sqlChecks });
+      const result = await adapter.execute(message.source, { sqlChecks: message.sqlChecks, sqlProgram: message.sqlProgram });
       self.postMessage({ id: requestId, type: 'result', result });
     }
   } catch (error) {
