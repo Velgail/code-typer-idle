@@ -1,6 +1,6 @@
 {
   "name": "code-typer-idle",
-  "version": "2.6.0",
+  "version": "2.10.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,6 +15,9 @@
     "test:runtimes": "node scripts/check-runtime-assets.mjs",
     "learning:audit": "node scripts/analyze-learning-catalog.mjs",
     "difficulty:audit": "node scripts/analyze-challenge-difficulty.mjs",
-    "reading:audit": "node scripts/analyze-reading-choices.mjs"
+    "reading:audit": "node scripts/analyze-reading-choices.mjs",
+    "rewards:check": "node scripts/challenge-calibration.mjs --check",
+    "audit:verify": "node scripts/audit-evidence.mjs --verify",
+    "audit:replay": "node scripts/audit-evidence.mjs --replay"
   }
 }

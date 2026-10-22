@@ -13,7 +13,7 @@ export async function initialize(baseUrl) {
   await loading;
 }
 
-export async function execute(source, {sqlChecks=[]} = {}) {
+export async function execute(source, {sqlChecks=[],sqlProgram} = {}) {
   if (!sqlite) throw new Error('SQL runtime has not been initialized.');
   const db = new sqlite.oo1.DB(':memory:', 'c');
   const { wasm, capi } = sqlite;
@@ -23,6 +23,10 @@ export async function execute(source, {sqlChecks=[]} = {}) {
     if (code !== capi.SQLITE_OK) throw new Error(`SQLite error ${code}: ${capi.sqlite3_errmsg(db.pointer)}`);
   };
   try {
+    const program = sqlProgram === undefined ? [{ source: String(source), captureOutput: true }] : sqlProgram;
+    if (!Array.isArray(program) || !program.length || program.some(segment => !segment || typeof segment.source !== 'string' || typeof segment.captureOutput !== 'boolean')) {
+      throw new Error('Invalid SQL execution program.');
+    }
     // Check a submitted SELECT before JSON aggregation hides its original
     // column shape. The final harness still compares every returned value.
     for(const query of sqlChecks){
@@ -38,9 +42,10 @@ export async function execute(source, {sqlChecks=[]} = {}) {
     // db.exec() deliberately returns only its first result set. Use SQLite's
     // own parser/tail pointer so every fixture SELECT is graded, including
     // statements containing semicolons inside comments and string literals.
-    let cursor = wasm.scopedAllocCString(String(source));
     const [statementPointer, tailPointer] = wasm.scopedAllocPtr(2);
-    while (cursor && wasm.peek8(cursor)) {
+    for (const segment of program) {
+     let cursor = wasm.scopedAllocCString(segment.source);
+     while (cursor && wasm.peek8(cursor)) {
       phase = 'compile';
       wasm.pokePtr(statementPointer, 0);
       check(capi.sqlite3_prepare_v3(db.pointer, cursor, -1, 0, statementPointer, tailPointer));
@@ -52,6 +57,9 @@ export async function execute(source, {sqlChecks=[]} = {}) {
       phase = 'runtime';
       let code;
       while ((code = capi.sqlite3_step(statement)) === capi.SQLITE_ROW) {
+        // Do not skip stepping statements whose rows are not graded: an
+        // UPDATE/INSERT/DELETE RETURNING still has to complete its changes.
+        if (!segment.captureOutput) continue;
         if(capi.sqlite3_column_count(statement)!==1)throw new Error('Return exactly one output column. Structured Challenge results use a JSON value in that column.');
         const value = capi.sqlite3_column_js(statement, 0);
         const text = (value === null ? 'null' : String(value)) + '\n';
@@ -65,6 +73,7 @@ export async function execute(source, {sqlChecks=[]} = {}) {
       if (code !== capi.SQLITE_DONE) check(code);
       capi.sqlite3_finalize(statement);
       statement = 0;
+     }
     }
     return { stdout, stderr: '', diagnostics: [] };
   } catch (failure) {

@@ -83,7 +83,7 @@ export function registerCompoundDeliveryChallenges(D,ir){
   {args:[[1],1,uniformTravel(1),[5,5,2,8,8,3]],expected:12,explanation:'集荷点へ時刻1に着いて5まで待機し、作業は5〜7。配達点は8〜11に作業します。受付終了は作業開始の期限なので、拠点に戻る時刻12まで実行できます。'},
   {args:[[2,1],2,uniformTravel(2),capacityWindows],expected:-1,explanation:'両方を集荷してから配達すると積載上限を超えます。片方を配達してから残りを集荷すると、もう一方の受付期限2に間に合いません。'}
  ];
- D('systems','windowed-pickup-delivery','受付時刻と積載を守る集荷・配達','先行関係・積載・受付時刻を組み合わせた経路計画',5,25,
+ D('systems','windowed-pickup-delivery','受付時刻と積載を守る集荷・配達','先行関係・積載・受付時刻を組み合わせた経路計画',5,
   [['weights','array'],['capacity','int'],['travel','array'],['appointments','array']],'int',[
    V('count','int',len('weights')),C(eq('count',0),[R(0)]),
    V('points','int',add(mul('count',2),1)),V('powers','array',filled(add('count',1))),A('powers',0,1),
@@ -129,6 +129,6 @@ export function registerCompoundDeliveryChallenges(D,ir){
    oracle:compoundDeliveryOracle,examples,skipGenericContract:true,
    scaleNotes:['6荷物・12作業地点のケースと、先行関係・容量・待機・受付期限の組み合わせによって最適順序が変わるケースを含みます。'],
    assessment:{kind:'algorithm',criteria:['集荷と配達の先行関係','全訪問での積載上限と作業開始期限','待機と作業時間、最後の帰還を含めた最小終了時刻'],limitations:['経路の最小終了時刻を採点し、特定のデータ構造・実装方法は要求しません。']},
-   difficultyRationale:{classification:'compound-constraints',requiredSkills:['集荷と配達の先行関係','荷物の状態に依存する積載量','待機できる受付時間窓','非対称な移動時間'],reasoning:'同じ訪問済み地点数でも積載・未配達の荷物・現在地点が異なると続けられる訪問が変わる。時刻窓を満たす順序と、保持すべき状態の設計が必要。',constraintRole:'6荷物・12作業地点を扱い、先行関係・容量・時刻窓のどれかを省略した解法を反例で検証する。特定の実装方法は要求しない。',timeBasis:'provisional-pacing-budget'}
+   difficultyRationale:{classification:'compound-constraints',requiredSkills:['集荷と配達の先行関係','荷物の状態に依存する積載量','待機できる受付時間窓','非対称な移動時間'],reasoning:'同じ訪問済み地点数でも積載・未配達の荷物・現在地点が異なると続けられる訪問が変わる。時刻窓を満たす順序と、保持すべき状態の設計が必要。',constraintRole:'6荷物・12作業地点を扱い、先行関係・容量・時刻窓のどれかを省略した解法を反例で検証する。特定の実装方法は要求しない。',timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'}
   });
 }

@@ -54,3 +54,14 @@ test('structured Challenge output checks full arrays, strings, object fields and
  assert.equal(compareQuizOutput('"1"',[1],[],'json-lines').passed,false);
  assert.equal(compareQuizOutput('[]',[[]],[],'json-lines').passed,true);
 });
+
+test('SQL mutation execution metadata reaches the worker without editing the answer',async()=>{
+ const {runner,workers}=fixture();
+ const source='UPDATE rows SET value=value+1 RETURNING id,value; SELECT id,value FROM rows;';
+ const sqlProgram=[{source,captureOutput:false},{source:'SELECT json_array(1,2);',captureOutput:true}];
+ const mutation={language:'sql',createHarness:answer=>({source:answer,sqlChecks:[],sqlProgram,expected:[[1,2]],caseIds:['state'],outputFormat:'json-lines'})};
+ const pending=runner.run(mutation,source);ready(workers[0]);
+ assert.equal(workers[0].messages[1].source,source);
+ assert.deepEqual(workers[0].messages[1].sqlProgram,sqlProgram);
+ result(workers[0],{stdout:'[1,2]\n'});assert.equal((await pending).passed,true);
+});

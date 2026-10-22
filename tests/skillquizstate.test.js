@@ -5,6 +5,7 @@ import { skillQuizCatalog, skillQuizTopics, skillQuizById } from '../src/skillqu
 import { challengeCatalog, challengeTopics } from '../src/challengecatalog.js';
 
 const clone=value=>structuredClone(value);
+const challengeBase=q=>q.rewardCalibration?.baseWorkUnits ?? q.estimatedMinutes*60*80;
 const near=(actual,expected)=>assert.ok(Math.abs(actual-expected)<=Math.max(1,Math.abs(actual),Math.abs(expected))*1e-9,`${actual} != ${expected}`);
 function student(){const s=game.createState(0);s.mode='study';s.studyStyle='skill-quiz';s.subject='syntax';s.typing.language='cpp';game.openOnlineMaterial(s);return s;}
 function solve(s){const q=game.skillQuizLesson(s);return game.completeSkillQuiz(s,q.id,q.answer);}
@@ -116,7 +117,7 @@ test('Challenge claims normalize the whole variable catalog and code reuse pays 
   s.mode='dev';s.devStyle='quiz';s.projectIndex=3;s.legacyPermit=3;for(const skill of game.SKILLS)s.skills[skill.id]=1e6;
   const q=game.quizLesson(s),first=game.completeQuiz(s,q.id);assert.ok(first.implementationUnits>0);assert.deepEqual(s.quiz.implemented,[q.id]);
   s.progress=game.currentProject(s).target;s.debt=0;s.defects=0;s.crashed=false;assert.ok(game.release(s));
-  const expected=q.estimatedMinutes*60*80*game.QUIZ_IMPLEMENTATION_MULTIPLIER*game.CHALLENGE_REUSE_MULTIPLIER*game.typingPower(s,'dev',q.subject);
+  const expected=challengeBase(q)*game.QUIZ_IMPLEMENTATION_MULTIPLIER*game.CHALLENGE_REUSE_MULTIPLIER*game.typingPower(s,'dev',q.subject);
   const reused=game.completeQuiz(s,q.id);near(reused.implementationUnits,expected);assert.equal(reused.studyUnits,0);
   const saved=game.deserialize(game.serialize(s,0));assert.ok(saved.quiz.implemented.includes(q.id));
   assert.ok(challengeTopics('cpp','syntax').length>=32,'the original Challenge catalog remains available as advanced topics are appended');
@@ -129,7 +130,7 @@ test('new Challenge families pay full, another language pays sixty percent, and 
   const choose=q=>{s.typing.language=q.language;s.subject=q.subject;s.quiz.cursors[`${q.language}/${q.subject}`]=q.index;};
   choose(first);const original=game.completeQuiz(s,first.id);assert.equal(original.studyShare,1);
   choose(port);const translated=game.completeQuiz(s,port.id);assert.equal(translated.studyShare,.6);
-  near(translated.studyUnits,port.estimatedMinutes*60*80*4*.6*game.typingPower(s,'study',port.subject));
+  near(translated.studyUnits,challengeBase(port)*4*.6*game.typingPower(s,'study',port.subject));
   assert.equal(game.completeQuiz(s,port.id).studyUnits,0);
   s.mode='dev';s.devStyle='quiz';s.projectIndex=3;s.legacyPermit=3;for(const skill of game.SKILLS)s.skills[skill.id]=1e6;
   choose(first);const initialImplementation=game.completeQuiz(s,first.id);assert.equal(initialImplementation.implementationShare,1,'prior study is not prior implementation');

@@ -7,14 +7,39 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    outputs:
+      audit_required: ${{ steps.audit-inputs.outputs.required }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Detect changes requiring full evidence verification
+        id: audit-inputs
+        env:
+          AUDIT_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python3 - <<'PYCODE'
+          import os,re,subprocess
+          base=os.environ.get('AUDIT_BASE_SHA','')
+          available=re.fullmatch(r'[0-9a-f]{40}',base) and subprocess.run(['git','cat-file','-e',base+'^{commit}'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0
+          if available:
+              paths=subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
+              required=any(p.startswith(('src/','scripts/','tests/audit/')) or p in {'research/audit-evidence.json','research/challenge-calibration.json','tests/auditevidence.test.js','tests/explanationeffort.test.js','.github/workflows/test.yml','.github/workflows/audit.yml'} for p in paths)
+          else:
+              required=True
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output: output.write('required='+str(required).lower()+'\n')
+          PYCODE
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: npm run build
       - run: git diff --exit-code -- docs
       - run: npm test
+      - run: python3 scripts/raw-explanation-worker.py --self-test
+      - run: npm run rewards:check
+      - run: node scripts/check-calibration-grader.mjs
+      - run: node scripts/analyze-explanation-game-balance.mjs --write
+      - run: git diff --exit-code -- research/explanation-game-balance.json
       - run: npm run learning:audit -- --write
       - run: git diff --exit-code -- research/learning-catalog.json
       - run: npm run difficulty:audit -- --write
@@ -22,6 +47,17 @@ jobs:
       - run: npm run reading:audit -- --write
       - run: git diff --exit-code -- research/reading-choices.json
       - run: npm run test:runtimes
+  audit-evidence:
+    needs: test
+    if: needs.test.outputs.audit_required == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run audit:verify
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +68,15 @@ jobs:
       - run: npm install --no-save --package-lock=false playwright@1.62.1
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+  challenge-runtimes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --package-lock=false playwright@1.62.1
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:quiz
   curriculum:
     runs-on: ubuntu-latest

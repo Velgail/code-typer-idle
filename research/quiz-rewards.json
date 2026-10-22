@@ -1,25 +1,34 @@
 {
-  "schemaVersion": 2,
-  "balanceVersion": 21,
+  "schemaVersion": 3,
+  "balanceVersion": 24,
   "reproduce": "node scripts/analyze-quiz-rewards.mjs --write",
   "assumptions": {
     "roles": "Quiz is constrained syntax completion graded in core. Challenge is open implementation with executable test cases. Learning and implementation are separate outputs; they cannot be added as one utility unit.",
     "fixtures": "Actual createState with only the stated lab level directly assigned to isolate equipment effects. Free syntax material opened; no books/monitor/keyboard/experience/assets. Equipment scenarios begin at K500; initial scenarios begin at K0. This is not an equipment affordability route.",
-    "effort": "80 work units/second is perfect typing at 300 physical keys/min with 12 character + 4 completion units. Reward time comes from authored estimatedMinutes; difficulty is represented by that estimate, not multiplied again.",
-    "policy": "New Quiz initial study = authored seconds * 80 * 1.5 * study typingPower. Challenge initial study = authored seconds * 80 * 4 * study typingPower; initial implementation = authored seconds * 80 * 2 * dev typingPower. Same-family transfer into another language pays 60%; previously implemented same ID pays 25% on another project.",
-    "firstProject": "The first fixed project retains its separate three staged implementation components and their canonical-source rewards. Generic Challenge estimated-time policy does not replace those components.",
+    "effort": "Challenge uses frozen baseWorkUnits from new directly observed, accepted raw public explanations for every family. Original text and mechanical character counts are retained, but neither explanation length nor implementation/source size is a reward input. The observation includes tool and model waiting time; it is not internal reasoning time or human solving time. Authored estimatedMinutes is historical metadata and does not set a catalog Challenge reward. At 300 physical keys/min, perfect copying produces 80 base work units/second, before mode multipliers.",
+    "policy": "Syntax Quiz retains authored seconds * 80 * 1.5 * study typingPower. Challenge initial study = frozen base work * 4 * study typingPower; initial implementation = frozen base work * 2 * dev typingPower. Same-family transfer into another language pays 60%; previously implemented same ID pays 25% on another project. Difficulty still controls textbook access; it is not an extra reward multiplier.",
+    "firstProject": "The first fixed project retains its separate three staged implementation components and three equal shares of the free-material study work required for K0 to K12. The generic Challenge calibration does not replace those components.",
     "verification": "First success also confirms at most three new nominal gains of the existing unverified pool, including the one gain confirmed by input. Known correct answers confirm only available auto-derived gaps and grant no new nominal XP. Topic watermarks prevent repeating the same success without further research.",
-    "time": "Eight hours is 28800 simulation seconds. No time passes between answers. Reading, thinking, editing, compilation, mistakes and retries are unmeasured. Four times effort is not four times knowledge or hourly earnings.",
-    "historical": "This schema supersedes earlier 1200-unit/typing-source-length comparisons and old finite 512-Challenge totals. Those figures are not current reward formulas."
+    "time": "Eight hours is 28800 simulation seconds. No time passes between answers in this replay. The separate calibration report measures tool-inclusive read-to-public-explanation model wall time, excluding the subsequent code phase; compiler/runtime costs are excluded. This rule replay does not infer human solve time, thinking time or retry time. Four times base work is not four times knowledge or hourly earnings.",
+    "historical": "This schema supersedes the Challenge authored-minute budgets, including the unsupported 90-minute ultra-tier budget, and earlier 1200-unit/finite-512-Challenge comparisons. Syntax Quiz time budgets remain a separate policy."
   },
   "catalogs": {
     "skillQuiz": {
       "count": 1024,
-      "estimatedMinutes": {
-        "min": 0.5,
-        "mean": 1.9281249999999952,
-        "median": 2,
-        "max": 4
+      "baseWorkUnits": {
+        "min": 2400,
+        "mean": 9255,
+        "median": 8400,
+        "max": 19200
+      },
+      "initialStudyWorkUnits": {
+        "min": 3600,
+        "mean": 13882.5,
+        "median": 12600,
+        "max": 28800
+      },
+      "rewardBasisCounts": {
+        "syntax-quiz-authored-budget": 1024
       },
       "difficultyCounts": {
         "1": 256,
@@ -27,7 +36,8 @@
         "3": 256,
         "4": 256,
         "5": 0,
-        "6": 0
+        "6": 0,
+        "7": 0
       },
       "languages": [
         {
@@ -65,45 +75,55 @@
       ]
     },
     "challenge": {
-      "count": 1122,
-      "estimatedMinutes": {
-        "min": 2,
-        "mean": 6.161319073083779,
-        "median": 5,
-        "max": 25
+      "count": 1143,
+      "baseWorkUnits": {
+        "min": 1935,
+        "mean": 4352.692913385827,
+        "median": 4012,
+        "max": 13564
+      },
+      "initialStudyWorkUnits": {
+        "min": 7740,
+        "mean": 17410.771653543306,
+        "median": 16048,
+        "max": 54256
+      },
+      "rewardBasisCounts": {
+        "direct-raw-explanation-observation": 1143
       },
       "difficultyCounts": {
         "1": 285,
         "2": 544,
         "3": 207,
-        "4": 72,
+        "4": 86,
         "5": 14,
-        "6": 0
+        "6": 0,
+        "7": 7
       },
       "languages": [
         {
           "language": "cpp",
-          "count": 142
+          "count": 145
         },
         {
           "language": "csharp",
-          "count": 142
+          "count": 145
         },
         {
           "language": "rust",
-          "count": 142
+          "count": 145
         },
         {
           "language": "go",
-          "count": 142
+          "count": 145
         },
         {
           "language": "python",
-          "count": 142
+          "count": 145
         },
         {
           "language": "java",
-          "count": 142
+          "count": 145
         },
         {
           "language": "sql",
@@ -111,20 +131,708 @@
         },
         {
           "language": "lua",
-          "count": 142
+          "count": 145
         }
       ]
     }
   },
+  "rewardComparisons": {
+    "byDifficulty": [
+      {
+        "difficulty": 1,
+        "count": 285,
+        "baseWorkUnits": {
+          "min": 1935,
+          "mean": 3269.101754385965,
+          "median": 3163,
+          "max": 10067
+        }
+      },
+      {
+        "difficulty": 2,
+        "count": 544,
+        "baseWorkUnits": {
+          "min": 2250,
+          "mean": 3921.3088235294117,
+          "median": 3781,
+          "max": 7552
+        }
+      },
+      {
+        "difficulty": 3,
+        "count": 207,
+        "baseWorkUnits": {
+          "min": 2534,
+          "mean": 5491.961352657005,
+          "median": 5419,
+          "max": 13564
+        }
+      },
+      {
+        "difficulty": 4,
+        "count": 86,
+        "baseWorkUnits": {
+          "min": 3017,
+          "mean": 6508.5,
+          "median": 6384,
+          "max": 10458
+        }
+      },
+      {
+        "difficulty": 5,
+        "count": 14,
+        "baseWorkUnits": {
+          "min": 8497,
+          "mean": 9520.5,
+          "median": 9520.5,
+          "max": 10544
+        }
+      },
+      {
+        "difficulty": 6,
+        "count": 0,
+        "baseWorkUnits": null
+      },
+      {
+        "difficulty": 7,
+        "count": 7,
+        "baseWorkUnits": {
+          "min": 11484,
+          "mean": 11484,
+          "median": 11484,
+          "max": 11484
+        }
+      }
+    ],
+    "measurementCoverage": {
+      "directRawObservedImplementations": 1143
+    },
+    "canonicalCppIntroductoryExamples": [
+      {
+        "id": "quiz/v1/cpp/syntax/clamp_health",
+        "difficulty": 1,
+        "baseWorkUnits": 2939,
+        "initialStudyWorkUnits": 11756,
+        "initialImplementationWorkUnits": 5878,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/syntax/apply_armor",
+        "difficulty": 1,
+        "baseWorkUnits": 3176,
+        "initialStudyWorkUnits": 12704,
+        "initialImplementationWorkUnits": 6352,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/syntax/sum_coins",
+        "difficulty": 1,
+        "baseWorkUnits": 2619,
+        "initialStudyWorkUnits": 10476,
+        "initialImplementationWorkUnits": 5238,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/syntax/countdown",
+        "difficulty": 1,
+        "baseWorkUnits": 2454,
+        "initialStudyWorkUnits": 9816,
+        "initialImplementationWorkUnits": 4908,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/syntax/combo_reward",
+        "difficulty": 1,
+        "baseWorkUnits": 2448,
+        "initialStudyWorkUnits": 9792,
+        "initialImplementationWorkUnits": 4896,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/design/inventory_capacity",
+        "difficulty": 1,
+        "baseWorkUnits": 4924,
+        "initialStudyWorkUnits": 19696,
+        "initialImplementationWorkUnits": 9848,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/design/state_transition",
+        "difficulty": 1,
+        "baseWorkUnits": 3201,
+        "initialStudyWorkUnits": 12804,
+        "initialImplementationWorkUnits": 6402,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/design/command_budget",
+        "difficulty": 1,
+        "baseWorkUnits": 3564,
+        "initialStudyWorkUnits": 14256,
+        "initialImplementationWorkUnits": 7128,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/design/config_override",
+        "difficulty": 1,
+        "baseWorkUnits": 2645,
+        "initialStudyWorkUnits": 10580,
+        "initialImplementationWorkUnits": 5290,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/design/reward_policy",
+        "difficulty": 1,
+        "baseWorkUnits": 3163,
+        "initialStudyWorkUnits": 12652,
+        "initialImplementationWorkUnits": 6326,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/graphics/viewport_clip",
+        "difficulty": 1,
+        "baseWorkUnits": 3510,
+        "initialStudyWorkUnits": 14040,
+        "initialImplementationWorkUnits": 7020,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/graphics/tile_column",
+        "difficulty": 1,
+        "baseWorkUnits": 3139,
+        "initialStudyWorkUnits": 12556,
+        "initialImplementationWorkUnits": 6278,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/graphics/frame_index",
+        "difficulty": 1,
+        "baseWorkUnits": 3494,
+        "initialStudyWorkUnits": 13976,
+        "initialImplementationWorkUnits": 6988,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/graphics/alpha_blend",
+        "difficulty": 1,
+        "baseWorkUnits": 2156,
+        "initialStudyWorkUnits": 8624,
+        "initialImplementationWorkUnits": 4312,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/graphics/camera_offset",
+        "difficulty": 1,
+        "baseWorkUnits": 2951,
+        "initialStudyWorkUnits": 11804,
+        "initialImplementationWorkUnits": 5902,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/systems/align_bytes",
+        "difficulty": 1,
+        "baseWorkUnits": 3143,
+        "initialStudyWorkUnits": 12572,
+        "initialImplementationWorkUnits": 6286,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/systems/ring_write",
+        "difficulty": 1,
+        "baseWorkUnits": 3277,
+        "initialStudyWorkUnits": 13108,
+        "initialImplementationWorkUnits": 6554,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/systems/cache_expiry",
+        "difficulty": 1,
+        "baseWorkUnits": 2564,
+        "initialStudyWorkUnits": 10256,
+        "initialImplementationWorkUnits": 5128,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/systems/retry_backoff",
+        "difficulty": 1,
+        "baseWorkUnits": 3387,
+        "initialStudyWorkUnits": 13548,
+        "initialImplementationWorkUnits": 6774,
+        "basis": "direct-raw-explanation-observation"
+      },
+      {
+        "id": "quiz/v1/cpp/systems/queue_budget",
+        "difficulty": 1,
+        "baseWorkUnits": 3314,
+        "initialStudyWorkUnits": 13256,
+        "initialImplementationWorkUnits": 6628,
+        "basis": "direct-raw-explanation-observation"
+      }
+    ],
+    "interpretation": "These distributions reveal potential reward-selection incentives. Each family has a directly observed canonical-language submission; its other language implementations share the family work. No unmeasured-family interpolation, regression or summary-length estimate is included."
+  },
+  "tierRewards": [
+    {
+      "id": "quiz/v1/cpp/syntax/clamp_health",
+      "difficulty": 1,
+      "label": "入門",
+      "requiredBookLevel": 0,
+      "rewardCalibration": {
+        "baseWorkUnits": 2939,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 2939,
+      "baseStudyWorkUnits": 11756,
+      "baseImplementationWorkUnits": 5878,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 12.993294337909019,
+        "learned": 12.993294337909019,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 11756,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/syntax/sum-sequence",
+      "difficulty": 1,
+      "label": "入門",
+      "requiredBookLevel": 0,
+      "rewardCalibration": {
+        "baseWorkUnits": 3130,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/syntax/sum-sequence",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 3130,
+      "baseStudyWorkUnits": 12520,
+      "baseImplementationWorkUnits": 6260,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 13.427713519826625,
+        "learned": 13.427713519826625,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 12520,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/syntax/merge-sorted",
+      "difficulty": 2,
+      "label": "基礎",
+      "requiredBookLevel": 0,
+      "rewardCalibration": {
+        "baseWorkUnits": 5573,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/syntax/merge-sorted",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 5573,
+      "baseStudyWorkUnits": 22292,
+      "baseImplementationWorkUnits": 11146,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 18.488527853706895,
+        "learned": 18.488527853706895,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 22292,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/syntax/max-subarray",
+      "difficulty": 3,
+      "label": "応用",
+      "requiredBookLevel": 1,
+      "rewardCalibration": {
+        "baseWorkUnits": 4732,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/syntax/max-subarray",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 4732,
+      "baseStudyWorkUnits": 18928,
+      "baseImplementationWorkUnits": 9464,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 25.364793124536682,
+        "learned": 25.364793124536682,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 18928,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/syntax/binary-search-minimum-capacity",
+      "difficulty": 3,
+      "label": "応用",
+      "requiredBookLevel": 1,
+      "rewardCalibration": {
+        "baseWorkUnits": 7354,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/syntax/binary-search-minimum-capacity",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 7354,
+      "baseStudyWorkUnits": 29416,
+      "baseImplementationWorkUnits": 14708,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 33.370436830922,
+        "learned": 33.370436830922,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 29416,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/design/atomic-transfer-batch",
+      "difficulty": 2,
+      "label": "基礎",
+      "requiredBookLevel": 0,
+      "rewardCalibration": {
+        "baseWorkUnits": 5442,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/design/atomic-transfer-batch",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 5442,
+      "baseStudyWorkUnits": 21768,
+      "baseImplementationWorkUnits": 10884,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 16.57499788794906,
+        "learned": 16.57499788794906,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 21768,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/design/coordinate-skill-sequence",
+      "difficulty": 4,
+      "label": "発展",
+      "requiredBookLevel": 2,
+      "rewardCalibration": {
+        "baseWorkUnits": 7221,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/design/coordinate-skill-sequence",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 7221,
+      "baseStudyWorkUnits": 28884,
+      "baseImplementationWorkUnits": 14442,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 41.63195990154799,
+        "learned": 41.63195990154799,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 28884,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/graphics/rectangle-union-area",
+      "difficulty": 3,
+      "label": "応用",
+      "requiredBookLevel": 1,
+      "rewardCalibration": {
+        "baseWorkUnits": 5501,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/graphics/rectangle-union-area",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 5501,
+      "baseStudyWorkUnits": 22004,
+      "baseImplementationWorkUnits": 11002,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 26.500997259273372,
+        "learned": 26.500997259273372,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 22004,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/lru-cache",
+      "difficulty": 4,
+      "label": "発展",
+      "requiredBookLevel": 2,
+      "rewardCalibration": {
+        "baseWorkUnits": 6096,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/lru-cache",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 6096,
+      "baseStudyWorkUnits": 24384,
+      "baseImplementationWorkUnits": 12192,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 37.18706750456836,
+        "learned": 37.18706750456836,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 24384,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/traveling-courier",
+      "difficulty": 3,
+      "label": "応用",
+      "requiredBookLevel": 1,
+      "rewardCalibration": {
+        "baseWorkUnits": 7121,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/traveling-courier",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 7121,
+      "baseStudyWorkUnits": 28484,
+      "baseImplementationWorkUnits": 14242,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 31.477128794963583,
+        "learned": 31.477128794963583,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 28484,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/windowed-pickup-delivery",
+      "difficulty": 5,
+      "label": "競技",
+      "requiredBookLevel": 3,
+      "rewardCalibration": {
+        "baseWorkUnits": 8497,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/windowed-pickup-delivery",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 8497,
+      "baseStudyWorkUnits": 33988,
+      "baseImplementationWorkUnits": 16994,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 56.21232257890408,
+        "learned": 56.21232257890408,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 33988,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/consumable-gate-route",
+      "difficulty": 5,
+      "label": "競技",
+      "requiredBookLevel": 3,
+      "rewardCalibration": {
+        "baseWorkUnits": 10544,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/consumable-gate-route",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 10544,
+      "baseStudyWorkUnits": 42176,
+      "baseImplementationWorkUnits": 21088,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 64.91195896675315,
+        "learned": 64.91195896675315,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 42176,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/dynamic-parity-component-cost",
+      "difficulty": 4,
+      "label": "発展",
+      "requiredBookLevel": 2,
+      "rewardCalibration": {
+        "baseWorkUnits": 10458,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/dynamic-parity-component-cost",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 10458,
+      "baseStudyWorkUnits": 41832,
+      "baseImplementationWorkUnits": 20916,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 53.29188126193566,
+        "learned": 53.29188126193566,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 41832,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "challenge/v1/cpp/systems/hamiltonian-floor-cycles",
+      "difficulty": 7,
+      "label": "超難関",
+      "requiredBookLevel": 5,
+      "rewardCalibration": {
+        "baseWorkUnits": 11484,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "challenge/v1/cpp/systems/hamiltonian-floor-cycles",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 11484,
+      "baseStudyWorkUnits": 45936,
+      "baseImplementationWorkUnits": 22968,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 90.04178161149774,
+        "learned": 90.04178161149774,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 45936,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    },
+    {
+      "id": "quiz/v1/sql/syntax/select_amount",
+      "difficulty": 1,
+      "label": "入門",
+      "requiredBookLevel": 0,
+      "rewardCalibration": {
+        "baseWorkUnits": 2674,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "quiz/v1/sql/syntax/select_amount",
+        "evidence": "research/challenge-calibration.json"
+      },
+      "baseWorkUnits": 2674,
+      "baseStudyWorkUnits": 10696,
+      "baseImplementationWorkUnits": 5348,
+      "interpretation": "Frozen family work before equipment, transfer/reuse, project capacity, development efficiency and knowledge conversion. Every family uses a new direct raw-explanation observation in its canonical language. Other language implementations share that family work; they are not individually timed. No summary-length predictions or human completion-time estimates are used.",
+      "studyPreviewWithRequiredBook": {
+        "kind": "correct",
+        "amount": 12.378218377655928,
+        "learned": 12.378218377655928,
+        "verified": 0,
+        "progress": 0,
+        "fixed": 0,
+        "debtRemoved": 0,
+        "studyUnits": 10696,
+        "implementationUnits": 0,
+        "studyShare": 1,
+        "implementationShare": 0,
+        "reason": ""
+      }
+    }
+  ],
   "initial": {
     "skillQuiz": {
       "role": "skill-quiz",
       "id": "skill-quiz/v1/cpp/syntax/value-init",
       "concept": "List-initialize an integer to zero",
       "difficulty": 1,
-      "estimatedMinutes": 0.7,
+      "baseWorkUnits": 3360,
+      "rewardCalibration": null,
       "typingPower": 1,
-      "typingAtEstimatedTime": {
+      "typingAtSameBaseWork": {
         "workUnits": 3360,
         "nominalKnowledge": 4.009120269252762,
         "confirmedKnowledge": 4.009120269252762
@@ -175,29 +883,35 @@
       "id": "quiz/v1/cpp/syntax/clamp_health",
       "concept": "基礎の入出力",
       "difficulty": 1,
-      "estimatedMinutes": 2,
+      "baseWorkUnits": 2939,
+      "rewardCalibration": {
+        "baseWorkUnits": 2939,
+        "basis": "direct-raw-explanation-observation",
+        "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+        "evidence": "research/challenge-calibration.json"
+      },
       "typingPower": 1,
-      "typingAtEstimatedTime": {
-        "workUnits": 9600,
-        "nominalKnowledge": 11.454629340722175,
-        "confirmedKnowledge": 11.454629340722175
+      "typingAtSameBaseWork": {
+        "workUnits": 2939,
+        "nominalKnowledge": 3.5067870450398404,
+        "confirmedKnowledge": 3.5067870450398404
       },
       "reward": {
         "kind": "correct",
-        "amount": 25.587535404160707,
-        "learned": 25.587535404160707,
+        "amount": 12.993294337909019,
+        "learned": 12.993294337909019,
         "verified": 0,
         "progress": 0,
         "fixed": 0,
         "debtRemoved": 0,
-        "studyUnits": 38400,
+        "studyUnits": 11756,
         "implementationUnits": 0,
         "studyShare": 1,
         "implementationShare": 0,
         "reason": ""
       },
       "studyWorkRatio": 4,
-      "nominalKnowledgeRatio": 2.2338160967980745,
+      "nominalKnowledgeRatio": 3.7051848803557452,
       "repeatWithoutResearch": {
         "kind": "answered",
         "amount": 0,
@@ -225,9 +939,10 @@
           "id": "skill-quiz/v1/cpp/syntax/value-init",
           "concept": "List-initialize an integer to zero",
           "difficulty": 1,
-          "estimatedMinutes": 0.7,
+          "baseWorkUnits": 3360,
+          "rewardCalibration": null,
           "typingPower": 1,
-          "typingAtEstimatedTime": {
+          "typingAtSameBaseWork": {
             "workUnits": 3360,
             "nominalKnowledge": 0.3104969215339503,
             "confirmedKnowledge": 0.3104969215339679
@@ -278,29 +993,35 @@
           "id": "quiz/v1/cpp/syntax/clamp_health",
           "concept": "基礎の入出力",
           "difficulty": 1,
-          "estimatedMinutes": 2,
+          "baseWorkUnits": 2939,
+          "rewardCalibration": {
+            "baseWorkUnits": 2939,
+            "basis": "direct-raw-explanation-observation",
+            "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+            "evidence": "research/challenge-calibration.json"
+          },
           "typingPower": 1,
-          "typingAtEstimatedTime": {
-            "workUnits": 9600,
-            "nominalKnowledge": 0.8868786128206508,
-            "confirmedKnowledge": 0.8868786128206239
+          "typingAtSameBaseWork": {
+            "workUnits": 2939,
+            "nominalKnowledge": 0.27159767717198247,
+            "confirmedKnowledge": 0.27159767717199657
           },
           "reward": {
             "kind": "correct",
-            "amount": 3.5428187034013376,
-            "learned": 3.5428187034013376,
+            "amount": 1.0859487968029953,
+            "learned": 1.0859487968029953,
             "verified": 0,
             "progress": 0,
             "fixed": 0,
             "debtRemoved": 0,
-            "studyUnits": 38400,
+            "studyUnits": 11756,
             "implementationUnits": 0,
             "studyShare": 1,
             "implementationShare": 0,
             "reason": ""
           },
           "studyWorkRatio": 4,
-          "nominalKnowledgeRatio": 3.994705309369981,
+          "nominalKnowledgeRatio": 3.998372917288778,
           "repeatWithoutResearch": {
             "kind": "answered",
             "amount": 0,
@@ -328,9 +1049,10 @@
           "id": "skill-quiz/v1/cpp/syntax/value-init",
           "concept": "List-initialize an integer to zero",
           "difficulty": 1,
-          "estimatedMinutes": 0.7,
+          "baseWorkUnits": 3360,
+          "rewardCalibration": null,
           "typingPower": 1.05,
-          "typingAtEstimatedTime": {
+          "typingAtSameBaseWork": {
             "workUnits": 3528,
             "nominalKnowledge": 0.32601923825301377,
             "confirmedKnowledge": 0.3260192382530249
@@ -381,29 +1103,35 @@
           "id": "quiz/v1/cpp/syntax/clamp_health",
           "concept": "基礎の入出力",
           "difficulty": 1,
-          "estimatedMinutes": 2,
+          "baseWorkUnits": 2939,
+          "rewardCalibration": {
+            "baseWorkUnits": 2939,
+            "basis": "direct-raw-explanation-observation",
+            "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+            "evidence": "research/challenge-calibration.json"
+          },
           "typingPower": 1.05,
-          "typingAtEstimatedTime": {
-            "workUnits": 10080,
-            "nominalKnowledge": 0.9312019281160913,
-            "confirmedKnowledge": 0.9312019281160815
+          "typingAtSameBaseWork": {
+            "workUnits": 3085.9500000000003,
+            "nominalKnowledge": 0.2851756256026187,
+            "confirmedKnowledge": 0.2851756256026192
           },
           "reward": {
             "kind": "correct",
-            "amount": 3.7196321702646173,
-            "learned": 3.7196321702646173,
+            "amount": 1.1402153385711244,
+            "learned": 1.1402153385711244,
             "verified": 0,
             "progress": 0,
             "fixed": 0,
             "debtRemoved": 0,
-            "studyUnits": 40320,
+            "studyUnits": 12343.800000000001,
             "implementationUnits": 0,
             "studyShare": 1,
             "implementationShare": 0,
             "reason": ""
           },
           "studyWorkRatio": 4,
-          "nominalKnowledgeRatio": 3.994442083888058,
+          "nominalKnowledgeRatio": 3.998291705897652,
           "repeatWithoutResearch": {
             "kind": "answered",
             "amount": 0,
@@ -431,9 +1159,10 @@
           "id": "skill-quiz/v1/cpp/syntax/value-init",
           "concept": "List-initialize an integer to zero",
           "difficulty": 1,
-          "estimatedMinutes": 0.7,
+          "baseWorkUnits": 3360,
+          "rewardCalibration": null,
           "typingPower": 1.52488,
-          "typingAtEstimatedTime": {
+          "typingAtSameBaseWork": {
             "workUnits": 5123.5968,
             "nominalKnowledge": 0.4734319924298164,
             "confirmedKnowledge": 0.47343199242982337
@@ -484,29 +1213,35 @@
           "id": "quiz/v1/cpp/syntax/clamp_health",
           "concept": "基礎の入出力",
           "difficulty": 1,
-          "estimatedMinutes": 2,
+          "baseWorkUnits": 2939,
+          "rewardCalibration": {
+            "baseWorkUnits": 2939,
+            "basis": "direct-raw-explanation-observation",
+            "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+            "evidence": "research/challenge-calibration.json"
+          },
           "typingPower": 1.52488,
-          "typingAtEstimatedTime": {
-            "workUnits": 14638.848,
-            "nominalKnowledge": 1.3520693477052632,
-            "confirmedKnowledge": 1.3520693477052532
+          "typingAtSameBaseWork": {
+            "workUnits": 4481.62232,
+            "nominalKnowledge": 0.41412436482788434,
+            "confirmedKnowledge": 0.4141243648278987
           },
           "reward": {
             "kind": "correct",
-            "amount": 5.397392107428004,
-            "learned": 5.397392107428004,
+            "amount": 1.6554708732734298,
+            "learned": 1.6554708732734298,
             "verified": 0,
             "progress": 0,
             "fixed": 0,
             "debtRemoved": 0,
-            "studyUnits": 58555.392,
+            "studyUnits": 17926.48928,
             "implementationUnits": 0,
             "studyShare": 1,
             "implementationShare": 0,
             "reason": ""
           },
           "studyWorkRatio": 4,
-          "nominalKnowledgeRatio": 3.9919491678355676,
+          "nominalKnowledgeRatio": 3.997521068245926,
           "repeatWithoutResearch": {
             "kind": "answered",
             "amount": 0,
@@ -534,9 +1269,10 @@
           "id": "skill-quiz/v1/cpp/syntax/value-init",
           "concept": "List-initialize an integer to zero",
           "difficulty": 1,
-          "estimatedMinutes": 0.7,
+          "baseWorkUnits": 3360,
+          "rewardCalibration": null,
           "typingPower": 3542.1767267766904,
-          "typingAtEstimatedTime": {
+          "typingAtSameBaseWork": {
             "workUnits": 11901713.80196968,
             "nominalKnowledge": 822.1583109593062,
             "confirmedKnowledge": 822.1583109593062
@@ -587,29 +1323,35 @@
           "id": "quiz/v1/cpp/syntax/clamp_health",
           "concept": "基礎の入出力",
           "difficulty": 1,
-          "estimatedMinutes": 2,
+          "baseWorkUnits": 2939,
+          "rewardCalibration": {
+            "baseWorkUnits": 2939,
+            "basis": "direct-raw-explanation-observation",
+            "canonicalId": "quiz/v1/cpp/syntax/clamp_health",
+            "evidence": "research/challenge-calibration.json"
+          },
           "typingPower": 3542.1767267766904,
-          "typingAtEstimatedTime": {
-            "workUnits": 34004896.57705623,
-            "nominalKnowledge": 1886.6454525859915,
-            "confirmedKnowledge": 1886.6454525859917
+          "typingAtSameBaseWork": {
+            "workUnits": 10410457.399996692,
+            "nominalKnowledge": 735.9803419400786,
+            "confirmedKnowledge": 735.9803419400787
           },
           "reward": {
             "kind": "correct",
-            "amount": 5222.058579472783,
-            "learned": 5222.058579472783,
+            "amount": 2199.6650781443573,
+            "learned": 2199.6650781443573,
             "verified": 0,
             "progress": 0,
             "fixed": 0,
             "debtRemoved": 0,
-            "studyUnits": 136019586.30822492,
+            "studyUnits": 41641829.59998677,
             "implementationUnits": 0,
             "studyShare": 1,
             "implementationShare": 0,
             "reason": ""
           },
           "studyWorkRatio": 4,
-          "nominalKnowledgeRatio": 2.767906695089424,
+          "nominalKnowledgeRatio": 2.9887552055343454,
           "repeatWithoutResearch": {
             "kind": "answered",
             "amount": 0,
@@ -681,13 +1423,13 @@
       "role": "challenge",
       "elapsedSeconds": 28800,
       "elapsedGameDays": 8,
-      "nominalKnowledge": 524.7180446506782,
-      "unverifiedBefore": 5.2496031201036155,
+      "nominalKnowledge": 522.1909599732851,
+      "unverifiedBefore": 5.262686158678213,
       "reconfirmation": {
         "kind": "correct",
-        "amount": 5.2496031201036155,
+        "amount": 3.347295445803277,
         "learned": 0,
-        "verified": 5.2496031201036155,
+        "verified": 3.347295445803277,
         "progress": 0,
         "fixed": 0,
         "debtRemoved": 0,
@@ -711,7 +1453,7 @@
         "implementationShare": 0,
         "reason": ""
       },
-      "remainingGap": 0
+      "remainingGap": 1.9153907128749363
     },
     {
       "lab": 5,
@@ -765,13 +1507,13 @@
       "role": "challenge",
       "elapsedSeconds": 28800,
       "elapsedGameDays": 8,
-      "nominalKnowledge": 708.5263725351077,
-      "unverifiedBefore": 50.78224510692047,
+      "nominalKnowledge": 705.368372896482,
+      "unverifiedBefore": 50.928225505802104,
       "reconfirmation": {
         "kind": "correct",
-        "amount": 13.617152784639266,
+        "amount": 4.182774546979426,
         "learned": 0,
-        "verified": 13.617152784639266,
+        "verified": 4.182774546979426,
         "progress": 0,
         "fixed": 0,
         "debtRemoved": 0,
@@ -795,7 +1537,7 @@
         "implementationShare": 0,
         "reason": ""
       },
-      "remainingGap": 37.165092322281204
+      "remainingGap": 46.74545095882268
     },
     {
       "lab": 20,
@@ -849,13 +1591,13 @@
       "role": "challenge",
       "elapsedSeconds": 28800,
       "elapsedGameDays": 8,
-      "nominalKnowledge": 137556.5869918878,
-      "unverifiedBefore": 32958.63210310365,
+      "nominalKnowledge": 137030.18764534724,
+      "unverifiedBefore": 33582.63064180066,
       "reconfirmation": {
         "kind": "correct",
-        "amount": 2270.6802507624643,
+        "amount": 697.154974397363,
         "learned": 0,
-        "verified": 2270.6802507624643,
+        "verified": 697.154974397363,
         "progress": 0,
         "fixed": 0,
         "debtRemoved": 0,
@@ -879,7 +1621,7 @@
         "implementationShare": 0,
         "reason": ""
       },
-      "remainingGap": 30687.951852341186
+      "remainingGap": 32885.47566740329
     }
   ]
 }

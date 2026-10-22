@@ -8,17 +8,13 @@ import {requiredChallengeBookLevel} from '../src/challengeaccess.js';
 const flags=process.argv.slice(2);
 if(flags.some(flag=>flag!=='--write'))throw Error('Usage: node scripts/analyze-challenge-difficulty.mjs [--write]');
 const catalog=challengeCatalog();
-const previous={
- 'binary-search-minimum-capacity':[5,25], 'weighted-interval-planning':[5,35],
- 'traveling-courier':[6,55], 'key-door-shortest-path':[6,50],
- 'interval-merge-cost':[5,35], 'dynamic-range-sums':[4,15],
- 'largest-histogram-rectangle':[5,30], 'rectangle-union-area':[6,45],
- 'atomic-transfer-batch':[4,18], 'idempotent-stock-requests':[4,20],
- 'optimistic-versioned-save':[4,18], 'retry-deadline-policy':[4,22]
-};
+const standardFamilies=['binary-search-minimum-capacity','weighted-interval-planning',
+ 'traveling-courier','key-door-shortest-path','interval-merge-cost','dynamic-range-sums',
+ 'largest-histogram-rectangle','rectangle-union-area','atomic-transfer-batch',
+ 'idempotent-stock-requests','optimistic-versioned-save','retry-deadline-policy'];
 const reviewed=catalog.filter(q=>q.difficultyRationale);
 const representatives=reviewed.filter(q=>q.language==='cpp');
-for(const slug of Object.keys(previous)){
+for(const slug of standardFamilies){
  const q=representatives.find(q=>q.topicId===slug);
  assert.ok(q,`Missing reviewed published family: ${slug}`);
  assert.ok(q.difficulty<=3,`A standard reference alone does not warrant an upper-tier label: ${slug}`);
@@ -27,19 +23,17 @@ for(const slug of ['windowed-pickup-delivery','consumable-gate-route'])assert.ok
 const families=representatives.map(q=>{
  const implementations=reviewed.filter(other=>other.familyId===q.familyId);
  for(const other of implementations)assert.deepEqual(other.difficultyRationale,q.difficultyRationale);
- const old=previous[q.topicId];
  return {id:q.familyId,title:q.title,subject:q.subject,implementations:implementations.map(other=>({language:other.language,id:other.id,index:other.index})),
-  previous:old?{revision:'159da4a593b5fb2922d7dc4ca0365efc427f12cc',difficulty:old[0],rewardBudgetMinutes:old[1]}:null,
-  current:{difficulty:q.difficulty,label:q.difficultyLabel,requiredBookLevel:requiredChallengeBookLevel(q),rewardBudgetMinutes:q.estimatedMinutes},
+  current:{difficulty:q.difficulty,label:q.difficultyLabel,requiredBookLevel:requiredChallengeBookLevel(q),rewardCalibration:q.rewardCalibration},
   rationale:q.difficultyRationale,caseCount:q.cases.length};
 });
-const report={schemaVersion:1,reproduce:'node scripts/analyze-challenge-difficulty.mjs --write',
+const report={schemaVersion:2,reproduce:'node scripts/analyze-challenge-difficulty.mjs --write',
  scope:{catalogImplementations:catalog.length,reviewedFamilies:families.length,reviewedImplementations:reviewed.length,implementationsOutsideThisReview:catalog.length-reviewed.length},
  interpretation:{basis:'Required knowledge, valid simpler solutions under the actual constraints, state design, and interactions between conditions.',
   upperTiers:'The name of a standard algorithm, statement length, or large input alone does not establish an upper-tier difficulty.',
-  modelEvidence:'research/model-difficulty-evaluation.json records exploratory gpt-6-luna/low trials; instant is not selectable in this environment.',
-  rewardBudget:'estimatedMinutes is a provisional game pacing budget. It is not a conversion from model seconds or an observed human solve time.',
-  coverage:'This review covers the twelve reclassified families and two new compound families. Other catalog entries are not newly calibrated by this report.',
+  modelEvidence:'Historical exploratory measurements and paired-model trials are withdrawn as current numerical evidence. The original declarations, submissions and decisions remain in the pinned external audit Release referenced by research/audit-evidence.json. Current rewards use research/challenge-calibration.json and are checked against the original corpus by npm run audit:verify. low is the available substitute for instant, not an identical setting.',
+  rewardBudget:'Catalog Challenge rewards use frozen family baseWorkUnits, not estimatedMinutes. The new raw-explanation protocol requires a direct observation for every family in its canonical language. It excludes rewritten summaries, summary-length regression, unmeasured-family predictions and implementation-size calibration. Other language implementations share the family work without claiming separate timing. Difficulty controls book access independently.',
+  coverage:'This difficulty-label review covers the reclassified and subsequently added families carrying difficultyRationale. It does not establish a new model success rate or human difficulty estimate. The separate raw-explanation protocol covers every catalog family; accepted observations and their reward mapping are recorded in research/challenge-calibration.json.',
   emptyTiers:'A difficulty tier can be empty. Book access rules for a tier do not prove that the tier currently contains tasks.'},
  families};
 const output=JSON.stringify(report,null,2)+'\n';

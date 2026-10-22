@@ -14,37 +14,37 @@ const difficultyRationales={
   classification:'direct-state-contract',requiredSkills:['入力順の状態更新','変更前の状態の保持'],
   reasoning:['各送金の残高を検査する','失敗時は途中の更新を捨て、成功時だけ結果を確定する'],
   constraintRole:'最大100送金を順に処理できる。並行実行・永続化・複数トランザクションの衝突は出題せず、短い状態契約の直接実装として扱う。',
-  timeBasis:'6分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'idempotent-stock-requests':{
   classification:'direct-state-contract',requiredSkills:['IDによる検索','結果の記録と再利用'],
   reasoning:['初回の成功・失敗をどちらも記録する','同じIDには保存済みの結果を返し、在庫を再更新しない'],
   constraintRole:'要求は入力順で最大100件。再送だけを扱い、同時到着や部分失敗の調停はない。小さい配列による検索でも処理できる。',
-  timeBasis:'7分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'optimistic-versioned-save':{
   classification:'direct-state-contract',requiredSkills:['条件分岐','値と版番号の状態更新'],
   reasoning:['要求された版と現在の版を比較する','一致した場合だけ保存値と版番号を更新する'],
   constraintRole:'一つの保存領域に最大100命令を順に適用する。実際の並行処理や競合解消は扱わず、明示された比較と更新を実装する。',
-  timeBasis:'5分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'retry-deadline-policy':{
   classification:'bounded-simulation',requiredSkills:['整数時刻によるシミュレーション','複数の停止条件'],
   reasoning:['試行回数・結果列・期限の各条件を一緒に管理する','成功時は終了し、失敗時だけ上限付きの待ち時間を更新する'],
   constraintRole:'最大100試行の仕様をそのままシミュレーションできる。実時間の待機、乱数、非同期競合を扱う設計問題ではない。',
-  timeBasis:'8分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'largest-histogram-rectangle':{
   classification:'standard-pattern',requiredSkills:['連続区間の範囲','区間最小値と面積の関係'],
   reasoning:['連続区間の幅と最小の高さで候補面積を表す','候補区間を取りこぼさず最大値を求める'],
   constraintRole:'単調スタックは参考実装の一つで、区間を順に比較する別解も許容する。柱の高さと幅だけの標準問題で、描画順や複数資源の制約はない。',
-  timeBasis:'10分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  },
  'rectangle-union-area':{
   classification:'standard-pattern',requiredSkills:['境界座標による領域の分割','重複した領域の集計'],
   reasoning:['矩形の辺を境界として覆われ方の一定な領域を考える','重複を一度だけ数え、幅や高さが0の領域を除く'],
   constraintRole:'最大24枚の固定された矩形だけを扱い、境界で分割した領域を調べられる。動的更新・回転・不確かな座標を合成する問題ではない。',
-  timeBasis:'12分は暫定の報酬基準。人間の実測やモデル秒数からの換算ではない。'
+  timeBasis:'報酬は新規の解説原文を受領するまでの直接観測に基づく。旧分数は撤回し、人間の所要分数へ換算しない。'
  }
 };
 
@@ -137,7 +137,7 @@ export function registerContractChallenges(D,ir) {
   [[7,2],[0,1,3,1,0,4]],[[0,0],[0,1,0,1,0,0]],[[5,1],[0,1,2,0,1,4]],
   [Array.from({length:32},(_,i)=>i===0?1000000:0),Array.from({length:31},(_,i)=>[i,i+1,1000000]).flat()]
  ];
- D('design','atomic-transfer-batch','送金バッチを全部まとめて確定','トランザクションの原子性',2,6,
+ D('design','atomic-transfer-batch','送金バッチを全部まとめて確定','トランザクションの原子性',2,
   [['balances','array'],['transfers','array']],'array',[
    V('working','array',copy('balances')),
    F('operation',0,div(len('transfers'),3),[
@@ -157,7 +157,7 @@ export function registerContractChallenges(D,ir) {
   [0,[0,0,0,1]],[10,[0,0,1,10,2,0,3,1]],[1000000,[10000,10000,10000,0,9999,10000]],
   [1000,Array.from({length:100},(_,i)=>[i%23,7+(i%11)]).flat()]
  ];
- D('design','idempotent-stock-requests','再送された注文を二重処理しない','要求IDと処理結果の再利用',2,7,
+ D('design','idempotent-stock-requests','再送された注文を二重処理しない','要求IDと処理結果の再利用',2,
   [['stock','int'],['requests','array']],'array',[
    V('seenIds','array',filled(0)),V('decisions','array',filled(0)),V('receipt','array',filled(1)),
    F('operation',0,div(len('requests'),2),[
@@ -180,7 +180,7 @@ export function registerContractChallenges(D,ir) {
   [5,10,Array.from({length:100},(_,i)=>[10+i,100-i]).flat()],
   [5,10,Array.from({length:100},(_,i)=>[10,100-i]).flat()]
  ];
- D('design','optimistic-versioned-save','古い版の保存で上書きしない','楽観的排他と失敗時の状態維持',2,5,
+ D('design','optimistic-versioned-save','古い版の保存で上書きしない','楽観的排他と失敗時の状態維持',2,
   [['initial_value','int'],['initial_version','int'],['commands','array']],'array',[
    V('currentValue','int','initial_value'),V('currentVersion','int','initial_version'),V('receipt','array',filled(2)),
    F('operation',0,div(len('commands'),2),[
@@ -199,7 +199,7 @@ export function registerContractChallenges(D,ir) {
   [[0,0,1,1],3,3,30,2],[[1,0,0],4,8,100,3],[[0,0,0],1,10000,1000000,100],
   [Array(100).fill(0),10000,10000,1000000,100],[[0,0,0,0,1],1,4,11,5]
  ];
- D('design','retry-deadline-policy','期限と上限を守って再試行する','時計を入力にした再試行契約',3,8,
+ D('design','retry-deadline-policy','期限と上限を守って再試行する','時計を入力にした再試行契約',3,
   [['outcomes','array'],['initial_delay','int'],['max_delay','int'],['deadline','int'],['max_attempts','int']],'array',[
    V('attempts','int',0),V('lastTime','int',-1),V('currentTime','int',0),V('delay','int','initial_delay'),V('succeeded','int',0),
    W(and(lt('attempts',len('outcomes')),lt('attempts','max_attempts')),[
@@ -219,7 +219,7 @@ export function registerContractChallenges(D,ir) {
   [Array.from({length:256},(_,i)=>(i*7919+i*i*13)%10001)],
   [[...Array(128).fill(9999),0,...Array(128).fill(9999)]]
  ];
- D('graphics','largest-histogram-rectangle','連続した柱に収まる最大面積','単調スタックと区間の確定',3,10,
+ D('graphics','largest-histogram-rectangle','連続した柱に収まる最大面積','単調スタックと区間の確定',3,
   [['heights','array']],'int',[
    V('stack','array',filled(0)),V('best','int',0),
    F('position',0,add(len('heights'),1),[
@@ -252,7 +252,7 @@ export function registerContractChallenges(D,ir) {
    W(and(gt('cursor',0),gt(at(array,sub('cursor',1)),'coordinate')),[A(array,'cursor',at(array,sub('cursor',1))),S('cursor',sub('cursor',1))]),A(array,'cursor','coordinate')
   ])
  ];
- D('graphics','rectangle-union-area','重なった描画領域の総面積','座標圧縮と領域の和集合',3,12,
+ D('graphics','rectangle-union-area','重なった描画領域の総面積','座標圧縮と領域の和集合',3,
   [['rectangles','array']],'int',[
    V('xs','array',filled(0)),V('ys','array',filled(0)),
    F('rectangleIndex',0,div(len('rectangles'),4),[

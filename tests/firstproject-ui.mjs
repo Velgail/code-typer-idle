@@ -100,7 +100,7 @@ async function verifyFreshAssembly(browser,url,errors,capture) {
     const studyQuiz=quizAt('lua','syntax',0);
     await answer(page,studyQuiz);
     const learned=await saved(page);
-    assert.ok(skillKnowledge(learned,'syntax')>=12,'one genuine study-Quiz reward unlocks the first game');
+    assert.ok(skillKnowledge(learned,'syntax')>0,'a study Challenge teaches knowledge while project components retain their staged requirements');
     assert.equal(learned.progress,0);
     assert.ok(learned.quiz.rewarded.includes(studyQuiz.id));
 

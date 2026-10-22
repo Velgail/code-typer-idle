@@ -3,7 +3,7 @@
 export function requiredChallengeBookLevel(lesson) {
   if (Number.isInteger(lesson?.firstProjectPart)) return 0;
   const difficulty = Number.isInteger(lesson?.difficulty) ? lesson.difficulty : 1;
-  return Math.min(4, Math.max(0, difficulty - 2));
+  return Math.min(5, Math.max(0, difficulty - 2));
 }
 
 export function describeChallengeAccess(lesson, { ownedLevel = 0, hasMaterial = false, review = false, bookName = 'この分野の教本' } = {}) {

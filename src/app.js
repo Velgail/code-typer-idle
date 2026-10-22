@@ -186,7 +186,7 @@ function renderQuiz() {
     note: reward.reason || (firstBuild && items.length ? 'この部品の動作をテストし、数当てゲームへ組み込みます。' : items.length ? '初めて解いた課題で学び、作品へ実装します。同じ題材を別言語で解くと60%、同じコードを別作品へ流用すると実装報酬の25%。' : 'この課題の報酬は獲得済みです。何度でも解き直せます。')
   };
   renderQuizUI({ root: $('quiz-panel'), quiz, access, reviewLesson, rewardSummary: access.available ? rewardSummary : null, referenceAvailable: access.available && state.quiz.completed.includes(quiz.id), draft, result: quizResult, running: quizRunning, progress: quizProgress, disabled: blocked || paused, topics, selectedIndex: firstBuild ? quiz.firstProjectPart : state.quiz.cursors[`${state.typing.language}/${state.subject}`] || 0,
-    position: firstBuild ? `Challenge · 組込済み ${topics.filter(q=>q.completed).length} / 3部品` : `Challenge · ${quiz.difficultyLabel || '基礎'} · 目安 ${quiz.estimatedMinutes || 2}分 · ${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${topics.length}題`,
+    position: firstBuild ? `Challenge · 組込済み ${topics.filter(q=>q.completed).length} / 3部品` : `Challenge · ${quiz.difficultyLabel || '基礎'} · ${state.mode==='dev'?'この作品へ適用済み':'この分野をクリア'} ${topics.filter(q=>q.completed).length} / ${topics.length}題`,
     onDraft: source => { if (blocked || paused || !activeQuiz() || !challengeAccess(state).available) return; cancelQuiz(); if(!setQuizDraft(state, source)) toast('コードは24,000文字以内で入力してください。','error'); dirty = true; renderQuiz(); },
     onRun: submitQuiz, onCancel: () => { cancelQuiz(); renderQuiz(); },
     onNext: firstBuild ? undefined : () => { if (blocked || paused) return; cancelQuiz(); nextQuiz(state); dirty = true; render(); save(); },

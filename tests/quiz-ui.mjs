@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { quizAt } from '../src/quizcatalog.js';
 import { challengeTopics } from '../src/challengecatalog.js';
-import { skillKnowledge, quizRewardPreview } from '../src/core.js';
+import { skillKnowledge, quizLesson, quizRewardPreview } from '../src/core.js';
 import { CURRICULUM_VERSION, lessonAt } from '../src/curriculum.js';
 
 const SAVE = 'code-typer-idle:save:v1';
@@ -107,7 +107,8 @@ export async function verifyQuizUI(browser, url, errors, capture) {
     assert.ok(firstKnowledge > 0, 'first complete pass awards understanding');
     assert.ok(first.quiz.completed.includes(quiz.id));
     assert.equal(first.stats.manual, before.stats.manual, 'editing and execution are not typing reward');
-    assert.equal(first.stats.chars - before.stats.chars, quizRewardPreview(before,quiz).studyUnits, 'only the one-time successful learning work is counted');
+    assert.equal(quizLesson(before).id, quiz.id, 'reward expectation uses the selected catalog Challenge');
+    assert.equal(first.stats.chars - before.stats.chars, quizRewardPreview(before).studyUnits, 'only the one-time successful learning work is counted');
     assert.equal(await page.locator('.quiz-reference-toggle').isDisabled(), false);
     await page.locator('.quiz-reference-toggle').click();
     assert.equal(await page.locator('.quiz-reference').isVisible(), true);

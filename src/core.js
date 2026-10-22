@@ -5,8 +5,8 @@ import { challengeAt, challengeById, challengeTopics, challengeCatalog } from '.
 import { describeChallengeAccess } from './challengeaccess.js';
 import { skillQuizAt, skillQuizById, skillQuizTopics, gradeSkillQuiz, SKILL_QUIZ_ANSWER_LIMIT } from './skillquiz.js';
 import { QUIZ_LANGUAGES } from './quizcatalog.js';
-import { FIRST_PROJECT_PARTS, firstProjectQuizAt, firstProjectQuizById, firstProjectQuizCatalog } from './firstproject.js';
-import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier, typingKeystrokes } from './typing.js';
+import { FIRST_PROJECT_PARTS, FIRST_PROJECT_STUDY_BASE, firstProjectQuizAt, firstProjectQuizById, firstProjectQuizCatalog } from './firstproject.js';
+import { createTypingState, normalizeTypingState, TYPING_REWARD, TYPING_REFERENCE_RATE, typingCompletionMultiplier } from './typing.js';
 import { DEVELOPMENT_POLICIES, emptyDebtSources, developmentPolicy, maintenanceEfficiency, incurredDebt, changeDefectRate, addDebt, repayDebt, debtBreakdown } from './maintenance.js';
 import { createBuildState, buildStepFor, needsBuild, markBuildChanges, normalizeBuildState } from './builds.js';
 import { createOCRLedger, normalizeOCRLedger, recordOCR, correctOCR, OCR_RESUBMISSION_FEE, OCR_ERROR_INTERVAL } from './officequality.js';
@@ -17,7 +17,7 @@ import { estimatePlan, amendPlan } from './planning.js';
 import { PLANNING_CATALOG, PLANNING_EXAMPLES } from './planningcatalog.js';
 import { createPlannerState, activePlanningProject, planningRuntime, projectFromPlanning, verifiedFoundations, learnPlanning, normalizePlannerState, ASSET_WORK_CHARACTERS } from './plannerstate.js';
 export const VERSION = 1;
-export const BALANCE_VERSION = 21;
+export const BALANCE_VERSION = 24;
 export const MAX_SAVE_BYTES = 8 * 1024 * 1024;
 export const AUTO_STUDY_UNVERIFIED = .25;
 export const AUTO_DEVELOPMENT_DEFECTS = 2;
@@ -339,8 +339,20 @@ export const CHALLENGE_REUSE_MULTIPLIER = .25;
 export const CHALLENGE_TRANSFER_MULTIPLIER = .6;
 const normalizeQuizClaims = value => Array.isArray(value) ? [...new Set(value.filter(id=>typeof id==='string' && (challengeById(id) || firstProjectQuizById(id))))] : [];
 const automaticStudy = (s,subject) => s.stats.autoStudyKnowledge?.[subject] || 0;
-const exerciseSeconds = lesson => Math.max(1,Number(lesson.estimatedMinutes ?? lesson.minutes ?? 2)*60);
-const exerciseBase = lesson => bounded(exerciseSeconds(lesson)*TYPING_REFERENCE_RATE*(TYPING_REWARD.character+TYPING_REWARD.completion));
+const exerciseSeconds = lesson => {
+  const minutes=lesson.estimatedMinutes ?? lesson.minutes ?? 2;
+  // Budgets are authored metadata, never an unbounded or non-finite reward.
+  return Math.max(1,Math.min(120*60,(typeof minutes==='number' && Number.isFinite(minutes)?minutes:2)*60));
+};
+const exerciseBase = lesson => {
+  if(lesson.kind==='challenge'){
+    const calibrated=lesson.rewardCalibration?.baseWorkUnits;
+    // Only reviewed, frozen explanation evidence can price a Challenge.
+    // Missing evidence must never resurrect the rejected authored-time budget.
+    return typeof calibrated==='number' && Number.isFinite(calibrated) && calibrated>0 ? bounded(calibrated) : 0;
+  }
+  return bounded(exerciseSeconds(lesson)*TYPING_REFERENCE_RATE*(TYPING_REWARD.character+TYPING_REWARD.completion));
+};
 const transferShare=(claims,lesson)=>lesson.familyId && claims.some(id=>{
   const previous=challengeById(id);return previous?.familyId===lesson.familyId && previous.language!==lesson.language;
 })?CHALLENGE_TRANSFER_MULTIPLIER:1;
@@ -455,7 +467,7 @@ function applyQuizReward(s,lesson) {
   const access = challengeAccess(s, lesson);
   if(!access.available)return {...result,kind:'none',reason:access.reason};
   const part=Number.isSafeInteger(lesson.firstProjectPart) ? FIRST_PROJECT_PARTS[lesson.firstProjectPart] : null;
-  const base=part?typingKeystrokes(lesson.rewardSource)*(TYPING_REWARD.character+typingCompletionMultiplier('study')):exerciseBase(lesson);
+  const base=part?FIRST_PROJECT_STUDY_BASE:exerciseBase(lesson);
   if(!s.quiz.rewarded.includes(lesson.id)){
     const before=skillKnowledge(s,lesson.subject),gap=s.studyGaps[lesson.subject] || 0;
     result.studyShare=transferShare(s.quiz.rewarded,lesson);

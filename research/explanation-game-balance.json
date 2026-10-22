@@ -1,0 +1,759 @@
+{
+  "schemaVersion": 2,
+  "balanceVersion": 24,
+  "experimentId": "raw-public-explanations-6618d6613357",
+  "reproduce": "node scripts/analyze-explanation-game-balance.mjs --write",
+  "rewardTableSource": "research/challenge-calibration.json",
+  "rewardTableSha256": "bd5ce116f425c1966e86c193353d658dcd5f91a471ae60c61d3516640df5a7a6",
+  "policy": {
+    "relativeEffort": "New accepted original-answer exposition time only; no previous times, summaries, code-size proxy or missing-family prediction.",
+    "absoluteScale": {
+      "kind": "separately-replayed-game-design-policy",
+      "statement": "At the new median application task, full implementation study work equals the greater of current free K0-to-K12 work and the unequipped syntax-Quiz study ceiling. This is an explicit progression choice, not human time.",
+      "freeStudyWorkFromZeroToRequirement": 10058,
+      "syntaxQuizCount": 1024,
+      "maximumUnassistedSyntaxQuizStudyWork": 28800,
+      "syntaxCeilingIds": [
+        "skill-quiz/v1/go/syntax/slice-copy-isolation",
+        "skill-quiz/v1/go/syntax/unicode-count",
+        "skill-quiz/v1/go/syntax/nan-check",
+        "skill-quiz/v1/go/syntax/bit-flag-test",
+        "skill-quiz/v1/go/syntax/compare-without-overflow",
+        "skill-quiz/v1/go/syntax/read-only-channel",
+        "skill-quiz/v1/go/syntax/type-alias",
+        "skill-quiz/v1/go/syntax/full-slice-capacity",
+        "skill-quiz/v1/go/design/propagate-context",
+        "skill-quiz/v1/go/design/bounded-retry",
+        "skill-quiz/v1/go/design/owned-slice",
+        "skill-quiz/v1/go/design/functional-option",
+        "skill-quiz/v1/go/design/typed-error",
+        "skill-quiz/v1/go/design/compile-time-contract",
+        "skill-quiz/v1/go/design/join-errors",
+        "skill-quiz/v1/go/design/compare-and-swap",
+        "skill-quiz/v1/go/graphics/inverse-affine",
+        "skill-quiz/v1/go/graphics/letterbox-offset",
+        "skill-quiz/v1/go/graphics/shortest-angle",
+        "skill-quiz/v1/go/graphics/quadratic-bezier",
+        "skill-quiz/v1/go/graphics/barycentric-value",
+        "skill-quiz/v1/go/graphics/perspective-divide",
+        "skill-quiz/v1/go/graphics/srgb-linear-segment",
+        "skill-quiz/v1/go/graphics/normalized-direction",
+        "skill-quiz/v1/go/systems/context-timeout-cleanup",
+        "skill-quiz/v1/go/systems/cancellable-send",
+        "skill-quiz/v1/go/systems/semaphore-release",
+        "skill-quiz/v1/go/systems/producer-closes",
+        "skill-quiz/v1/go/systems/bounded-read",
+        "skill-quiz/v1/go/systems/worker-output-order",
+        "skill-quiz/v1/go/systems/flush-buffered-writer",
+        "skill-quiz/v1/go/systems/atomic-load-state",
+        "skill-quiz/v1/python/syntax/yield-from",
+        "skill-quiz/v1/python/syntax/nonlocal-state",
+        "skill-quiz/v1/python/syntax/chained-comparison",
+        "skill-quiz/v1/python/syntax/extended-unpacking",
+        "skill-quiz/v1/python/syntax/decimal-string",
+        "skill-quiz/v1/python/syntax/raw-regex",
+        "skill-quiz/v1/python/syntax/keyword-collection",
+        "skill-quiz/v1/python/syntax/literal-type",
+        "skill-quiz/v1/python/design/generic-container",
+        "skill-quiz/v1/python/design/abstract-contract",
+        "skill-quiz/v1/python/design/exception-chaining",
+        "skill-quiz/v1/python/design/named-tuple",
+        "skill-quiz/v1/python/design/keyword-only-dataclass",
+        "skill-quiz/v1/python/design/class-pattern",
+        "skill-quiz/v1/python/design/context-manager-protocol",
+        "skill-quiz/v1/python/design/overload-contract",
+        "skill-quiz/v1/python/graphics/affine-determinant",
+        "skill-quiz/v1/python/graphics/letterbox-center",
+        "skill-quiz/v1/python/graphics/short-turn",
+        "skill-quiz/v1/python/graphics/bezier-control",
+        "skill-quiz/v1/python/graphics/barycentric-attribute",
+        "skill-quiz/v1/python/graphics/perspective-divide",
+        "skill-quiz/v1/python/graphics/srgb-low-segment",
+        "skill-quiz/v1/python/graphics/normalization-zero",
+        "skill-quiz/v1/python/systems/task-group",
+        "skill-quiz/v1/python/systems/async-timeout",
+        "skill-quiz/v1/python/systems/async-cancel-cleanup",
+        "skill-quiz/v1/python/systems/async-semaphore",
+        "skill-quiz/v1/python/systems/async-generator",
+        "skill-quiz/v1/python/systems/resource-closing",
+        "skill-quiz/v1/python/systems/sqlite-parameters",
+        "skill-quiz/v1/python/systems/incremental-hash"
+      ],
+      "challengeStudyMultiplier": 4,
+      "baseWorkAtApplicationMedian": 7200,
+      "historicalCalibrationInputs": [],
+      "humanMinutesClaimed": false
+    },
+    "humanTime": "Observed exposition time includes model service and tools; it is not human solving time."
+  },
+  "syntaxQuiz": {
+    "count": 1024,
+    "initialStudyWorkUnits": {
+      "count": 1024,
+      "min": 3600,
+      "median": 12600,
+      "max": 28800
+    },
+    "default": {
+      "id": "skill-quiz/v1/cpp/syntax/value-init",
+      "studyWorkUnits": 5040,
+      "knowledgeGainAtFreshSubject": 6.01368040388
+    }
+  },
+  "finalScale": {
+    "commonWorkAnchor": 7200,
+    "initialStudyWorkUnits": {
+      "count": 1143,
+      "min": 7740,
+      "median": 16048,
+      "max": 54256
+    },
+    "examples": [
+      {
+        "id": "quiz/v1/cpp/syntax/clamp_health",
+        "familyId": "legacy/syntax/clamp_health",
+        "difficulty": 1,
+        "basis": "direct-raw-explanation-observation",
+        "measuredCanonicalLanguage": "cpp",
+        "baseWorkUnits": 2939,
+        "studyWorkUnits": 11756,
+        "knowledgeGainAtFreshSubject": 12.9932943379,
+        "baseImplementationWorkUnits": 5878
+      },
+      {
+        "id": "challenge/v1/cpp/syntax/sum-sequence",
+        "familyId": "io/sum-sequence",
+        "difficulty": 1,
+        "basis": "direct-raw-explanation-observation",
+        "measuredCanonicalLanguage": "cpp",
+        "baseWorkUnits": 3130,
+        "studyWorkUnits": 12520,
+        "knowledgeGainAtFreshSubject": 13.4277135198,
+        "baseImplementationWorkUnits": 6260
+      },
+      {
+        "id": "challenge/v1/cpp/systems/traveling-courier",
+        "familyId": "io/traveling-courier",
+        "difficulty": 3,
+        "basis": "direct-raw-explanation-observation",
+        "measuredCanonicalLanguage": "cpp",
+        "baseWorkUnits": 7121,
+        "studyWorkUnits": 28484,
+        "knowledgeGainAtFreshSubject": 31.477128795,
+        "baseImplementationWorkUnits": 14242
+      },
+      {
+        "id": "challenge/v1/cpp/systems/dynamic-parity-component-cost",
+        "familyId": "io/dynamic-parity-component-cost",
+        "difficulty": 4,
+        "basis": "direct-raw-explanation-observation",
+        "measuredCanonicalLanguage": "cpp",
+        "baseWorkUnits": 10458,
+        "studyWorkUnits": 41832,
+        "knowledgeGainAtFreshSubject": 53.2918812619,
+        "baseImplementationWorkUnits": 20916
+      },
+      {
+        "id": "challenge/v1/cpp/systems/hamiltonian-floor-cycles",
+        "familyId": "io/hamiltonian-floor-cycles",
+        "difficulty": 7,
+        "basis": "direct-raw-explanation-observation",
+        "measuredCanonicalLanguage": "cpp",
+        "baseWorkUnits": 11484,
+        "studyWorkUnits": 45936,
+        "knowledgeGainAtFreshSubject": 90.0417816115,
+        "baseImplementationWorkUnits": 22968
+      }
+    ],
+    "defaultChallengeToDefaultSyntaxStudyRatio": 2.33253968254,
+    "maximumChallengeToMaximumSyntaxStudyRatio": 1.88388888889
+  },
+  "tutorial": {
+    "policy": "Actual separate three-component tutorial replay; no generic Challenge can finish every implementation component at once.",
+    "routes": [
+      {
+        "language": "cpp",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/cpp/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/cpp/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/cpp/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "csharp",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/csharp/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/csharp/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/csharp/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "rust",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/rust/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/rust/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/rust/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "go",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/go/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/go/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/go/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "python",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/python/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/python/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/python/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "java",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/java/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/java/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/java/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "sql",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/sql/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/sql/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/sql/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      },
+      {
+        "language": "lua",
+        "initialCash": 100,
+        "finalCash": 100,
+        "steps": [
+          {
+            "partId": "first-build/v1/lua/accept-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 4.00037020517,
+            "progress": 1000
+          },
+          {
+            "partId": "first-build/v1/lua/compare-guess",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 8.00074041035,
+            "progress": 2000
+          },
+          {
+            "partId": "first-build/v1/lua/round-status",
+            "studyWorkUnits": 3352.66666667,
+            "knowledge": 12.0005553013,
+            "progress": 3000
+          }
+        ]
+      }
+    ]
+  },
+  "finiteBankExperiment": {
+    "source": "research/quiz-career.json",
+    "meaning": "Counterfactual work capacity at actual career snapshots, assuming all answers instantly correct. No claim of human Challenge career completion time.",
+    "results": [
+      {
+        "scenario": "click",
+        "snapshots": [
+          {
+            "stage": "first-commercial",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 90,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 90,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 690,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 690,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "funding-indie",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 90,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 90,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 690,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 690,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "first-3d",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 123,
+                "implementationQuestions": 38,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 123,
+                "implementationQuestions": 38,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 973,
+                "implementationQuestions": 38,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 973,
+                "implementationQuestions": 38,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "first-aaa",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 144,
+                "implementationQuestions": 144,
+                "reviewQuestions": 0,
+                "progressPercent": 33.9070425153,
+                "completeAndClean": false,
+                "releaseAcceptedByCore": false
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 144,
+                "implementationQuestions": 144,
+                "reviewQuestions": 0,
+                "progressPercent": 35.6824855073,
+                "completeAndClean": false,
+                "releaseAcceptedByCore": false
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 1136,
+                "implementationQuestions": 606,
+                "reviewQuestions": 21,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 1136,
+                "implementationQuestions": 461,
+                "reviewQuestions": 9,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "scenario": "typing",
+        "snapshots": [
+          {
+            "stage": "first-commercial",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 90,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 90,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 690,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 690,
+                "implementationQuestions": 6,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "funding-indie",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 90,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 90,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 690,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 690,
+                "implementationQuestions": 3,
+                "reviewQuestions": 1,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "first-3d",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 124,
+                "implementationQuestions": 37,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 124,
+                "implementationQuestions": 37,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 984,
+                "implementationQuestions": 37,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 984,
+                "implementationQuestions": 37,
+                "reviewQuestions": 3,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          },
+          {
+            "stage": "first-aaa",
+            "banks": [
+              {
+                "language": "cpp",
+                "newLearning": false,
+                "availableQuestions": 144,
+                "implementationQuestions": 144,
+                "reviewQuestions": 0,
+                "progressPercent": 33.8048272589,
+                "completeAndClean": false,
+                "releaseAcceptedByCore": false
+              },
+              {
+                "language": "cpp",
+                "newLearning": true,
+                "availableQuestions": 144,
+                "implementationQuestions": 144,
+                "reviewQuestions": 0,
+                "progressPercent": 35.37593042,
+                "completeAndClean": false,
+                "releaseAcceptedByCore": false
+              },
+              {
+                "language": "all",
+                "newLearning": false,
+                "availableQuestions": 1136,
+                "implementationQuestions": 610,
+                "reviewQuestions": 23,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              },
+              {
+                "language": "all",
+                "newLearning": true,
+                "availableQuestions": 1136,
+                "implementationQuestions": 482,
+                "reviewQuestions": 11,
+                "progressPercent": 100,
+                "completeAndClean": true,
+                "releaseAcceptedByCore": true
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "The common absolute scale is game policy, not a measured difficulty truth.",
+    "Syntax Quiz budgets remain authored game rules and were not validated as human effort.",
+    "Most families have one direct primary observation, so no repeat variance estimate exists for them.",
+    "A shared family price is based on its canonical language, not a timing study of every port.",
+    "All original failures, reviews and selection decisions remain in the external audit archive; the compact input retains accepted-clock trial identities."
+  ]
+}
